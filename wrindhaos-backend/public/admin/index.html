@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WrindhaOS Admin Portal & Backoffice</title>
+  <style>
+    :root {
+      --primary: #0D5CE5;
+      --primary-dark: #0A48B7;
+      --bg: #0F172A;
+      --card-bg: #1E293B;
+      --border: #334155;
+      --text: #F8FAFC;
+      --text-muted: #94A3B8;
+      --success: #10B981;
+      --warning: #F59E0B;
+      --danger: #EF4444;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      padding: 24px;
+      min-height: 100vh;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .badge-admin {
+      background: var(--primary);
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      text-transform: uppercase;
+    }
+
+    .grid-metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .card-metric {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+    }
+
+    .card-metric h4 {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    .card-metric .val {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--card-bg);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      margin-bottom: 30px;
+    }
+
+    th, td {
+      padding: 12px 16px;
+      text-align: left;
+      font-size: 13px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      background: #111827;
+      color: var(--text-muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .status-free { background: rgba(148, 163, 184, 0.2); color: #CBD5E1; }
+    .status-premium { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+    .status-suspended { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+
+    .btn {
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: none;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-danger { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+    .btn-danger:hover { background: var(--danger); color: white; }
+    .btn-success { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+
+    .search-bar {
+      padding: 8px 14px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      width: 260px;
+      font-size: 13px;
+    }
+
+    .audit-box {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      max-height: 200px;
+      overflow-y: auto;
+      font-family: monospace;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="logo">
+      WrindhaOS <span class="badge-admin">Super Admin Portal</span>
+    </div>
+    <div>
+      <span style="font-size: 12px; color: var(--text-muted);">Session Token: <strong>mock_jwt_token_wrindha_os_2fa</strong></span>
+    </div>
+  </div>
+
+  <!-- METRICS GRID -->
+  <div class="grid-metrics">
+    <div class="card-metric">
+      <h4>Total Users</h4>
+      <div class="val" id="totalUsers">--</div>
+    </div>
+    <div class="card-metric">
+      <h4>Premium Subscribers</h4>
+      <div class="val" id="premiumUsers" style="color: var(--success);">--</div>
+    </div>
+    <div class="card-metric">
+      <h4>Free Users</h4>
+      <div class="val" id="freeUsers">--</div>
+    </div>
+    <div class="card-metric">
+      <h4>Estimated MRR</h4>
+      <div class="val" id="mrr" style="color: var(--primary);">--</div>
+    </div>
+  </div>
+
+  <!-- USER MANAGEMENT TABLE -->
+  <div class="section-title">
+    <span>USER ACCOUNTS & ENTITLEMENTS OVERRIDE</span>
+    <input type="text" id="searchInput" class="search-bar" placeholder="Search name, email or phone..." onkeyup="filterUsers()">
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>User ID</th>
+        <th>Full Name</th>
+        <th>Contact Identity</th>
+        <th>Current Plan</th>
+        <th>Status</th>
+        <th>Actions (Super Admin)</th>
+      </tr>
+    </thead>
+    <tbody id="userTableBody">
+      <tr><td colspan="6" style="text-align: center;">Loading user accounts...</td></tr>
+    </tbody>
+  </table>
+
+  <!-- SECURITY AUDIT TRAIL LOG -->
+  <div class="section-title">
+    <span>REAL-TIME SECURITY AUDIT LOGS</span>
+  </div>
+  <div class="audit-box" id="auditLogBox">
+    Loading audit trails...
+  </div>
+
+  <script>
+    let allUsers = [];
+
+    async function loadDashboard() {
+      try {
+        const res = await fetch('/api/v1/admin/dashboard', {
+          headers: { 'Authorization': 'Bearer mock_jwt_token_wrindha_os_2fa' }
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          document.getElementById('totalUsers').innerText = data.data.metrics.totalUsers;
+          document.getElementById('premiumUsers').innerText = data.data.metrics.premiumUsers;
+          document.getElementById('freeUsers').innerText = data.data.metrics.freeUsers;
+          document.getElementById('mrr').innerText = data.data.metrics.estimatedMRR;
+        }
+
+        loadUsers();
+        loadAuditLogs();
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function loadUsers() {
+      try {
+        const res = await fetch('/api/v1/admin/users', {
+          headers: { 'Authorization': 'Bearer mock_jwt_token_wrindha_os_2fa' }
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          allUsers = data.data.users;
+          renderUsers(allUsers);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function renderUsers(users) {
+      const tbody = document.getElementById('userTableBody');
+      if (users.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No user accounts found.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = users.map(u => `
+        <tr>
+          <td><code style="font-size:11px;">${u.id.slice(0, 8)}...</code></td>
+          <td><strong>${u.full_name || 'Student User'}</strong></td>
+          <td>${u.email || u.phone_number || 'N/A'}</td>
+          <td>
+            <span class="status-badge ${u.subscription_plan === 'PREMIUM' ? 'status-premium' : 'status-free'}">
+              ${u.subscription_plan}
+            </span>
+          </td>
+          <td>${u.subscription_status}</td>
+          <td>
+            ${u.subscription_plan === 'FREE' 
+              ? `<button class="btn btn-primary" onclick="overridePlan('${u.id}', 'PREMIUM')">Grant Premium</button>`
+              : `<button class="btn btn-danger" onclick="overridePlan('${u.id}', 'FREE')">Reset Free</button>`
+            }
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function filterUsers() {
+      const q = document.getElementById('searchInput').value.toLowerCase();
+      const filtered = allUsers.filter(u => 
+        (u.full_name && u.full_name.toLowerCase().includes(q)) ||
+        (u.email && u.email.toLowerCase().includes(q)) ||
+        (u.phone_number && u.phone_number.includes(q))
+      );
+      renderUsers(filtered);
+    }
+
+    async function overridePlan(userId, newPlan) {
+      try {
+        const res = await fetch(`/api/v1/admin/users/${userId}/override-plan`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer mock_jwt_token_wrindha_os_2fa'
+          },
+          body: JSON.stringify({ plan: newPlan, reason: 'Super Admin Override' })
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert(`Success! User plan updated to ${newPlan}`);
+          loadDashboard();
+        }
+      } catch (e) {
+        alert('Failed to override plan: ' + e);
+      }
+    }
+
+    async function loadAuditLogs() {
+      try {
+        const res = await fetch('/api/v1/admin/audit-logs', {
+          headers: { 'Authorization': 'Bearer mock_jwt_token_wrindha_os_2fa' }
+        });
+        const data = await res.json();
+        if (data.success) {
+          const logs = data.data.auditLogs;
+          document.getElementById('auditLogBox').innerHTML = logs.length === 0
+            ? 'No audit logs recorded yet.'
+            : logs.map(l => `[${l.created_at || 'NOW'}] ${l.event_type} - Target: ${l.details?.targetUserId || l.user_id || 'System'}`).join('<br>');
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    loadDashboard();
+  </script>
+</body>
+</html>

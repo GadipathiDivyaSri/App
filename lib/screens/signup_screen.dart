@@ -1,0 +1,481 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/app_provider.dart';
+
+class SignUpScreen extends StatefulWidget {
+  const SignUpScreen({super.key});
+
+  @override
+  State<SignUpScreen> createState() => _SignUpScreenState();
+}
+
+class _SignUpScreenState extends State<SignUpScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  final _nameCtrl = TextEditingController();
+  final _phoneCtrl = TextEditingController();
+  final _emailCtrl = TextEditingController();
+  final _otpCtrl = TextEditingController();
+  final _passwordCtrl = TextEditingController();
+  bool _otpSent = false;
+  bool _agreeTerms = true;
+  bool _obscurePassword = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    _nameCtrl.dispose();
+    _phoneCtrl.dispose();
+    _emailCtrl.dispose();
+    _otpCtrl.dispose();
+    _passwordCtrl.dispose();
+    super.dispose();
+  }
+
+  void _handleSendOtp() {
+    final isMobileTab = _tabController.index == 0;
+    final input = isMobileTab ? _phoneCtrl.text.trim() : _emailCtrl.text.trim();
+
+    if (input.isNotEmpty) {
+      setState(() {
+        _otpSent = true;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('OTP sent to $input! (Use code: 1234)'),
+          backgroundColor: const Color(0xFF0D5CE5),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter phone or email first')),
+      );
+    }
+  }
+
+  void _handleSignUp() {
+    if (_nameCtrl.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter your full name')),
+      );
+      return;
+    }
+
+    if (!_agreeTerms) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Please accept the Terms & Privacy Policy')),
+      );
+      return;
+    }
+
+    final isMobileTab = _tabController.index == 0;
+    final contact = isMobileTab ? _phoneCtrl.text.trim() : _emailCtrl.text.trim();
+
+    final provider = Provider.of<AppProvider>(context, listen: false);
+    provider.signup(_nameCtrl.text.trim(), contact);
+    Navigator.popUntil(context, (route) => route.isFirst);
+  }
+
+  void _handleGoogleSignUp() {
+    final provider = Provider.of<AppProvider>(context, listen: false);
+    provider.signup('Alex Johnson', 'alex.google@gmail.com');
+    Navigator.popUntil(context, (route) => route.isFirst);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Create Account 🚀',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w800,
+                  color: isDark ? Colors.white : const Color(0xFF1E293B),
+                ),
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'Sign up with your details to unlock personal growth and study dashboards.',
+                style: TextStyle(
+                  fontSize: 13,
+                  height: 1.4,
+                  color: Color(0xFF64748B),
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // FULL NAME
+              const Text(
+                'FULL NAME',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.1,
+                  color: Color(0xFF94A3B8),
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _nameCtrl,
+                autofocus: true,
+                decoration: InputDecoration(
+                  hintText: 'e.g., Alex Johnson',
+                  prefixIcon: const Icon(Icons.person_outline_rounded,
+                      size: 20, color: Color(0xFF0D5CE5)),
+                  filled: true,
+                  fillColor: isDark
+                      ? const Color(0xFF1E1F2B)
+                      : const Color(0xFFF8FAFC),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Segmented Tab Selector (Mobile OTP / Email OTP)
+              Container(
+                height: 44,
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? const Color(0xFF1E1F2B)
+                      : const Color(0xFFEEF2FF),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: TabBar(
+                  controller: _tabController,
+                  indicatorColor: Colors.transparent,
+                  dividerColor: Colors.transparent,
+                  indicator: BoxDecoration(
+                    color: const Color(0xFF0D5CE5),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  labelColor: Colors.white,
+                  unselectedLabelColor: const Color(0xFF64748B),
+                  labelStyle: const TextStyle(fontWeight: FontWeight.bold),
+                  tabs: const [
+                    Tab(text: 'Mobile OTP'),
+                    Tab(text: 'Email OTP'),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Tab View Contents
+              SizedBox(
+                height: _otpSent ? 160 : 80,
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    // Mobile View
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: _phoneCtrl,
+                                keyboardType: TextInputType.phone,
+                                decoration: InputDecoration(
+                                  hintText: '+91 9876543210',
+                                  prefixIcon: const Icon(
+                                      Icons.phone_iphone_rounded,
+                                      size: 20,
+                                      color: Color(0xFF0D5CE5)),
+                                  filled: true,
+                                  fillColor: isDark
+                                      ? const Color(0xFF1E1F2B)
+                                      : const Color(0xFFF8FAFC),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF0D5CE5),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 14, vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                              ),
+                              onPressed: _handleSendOtp,
+                              child: const Text('OTP',
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold)),
+                            ),
+                          ],
+                        ),
+                        if (_otpSent) ...[
+                          const SizedBox(height: 12),
+                          TextField(
+                            controller: _otpCtrl,
+                            keyboardType: TextInputType.number,
+                            maxLength: 4,
+                            decoration: InputDecoration(
+                              hintText: 'Enter 4-digit OTP (1234)',
+                              counterText: '',
+                              prefixIcon: const Icon(
+                                  Icons.lock_clock_outlined,
+                                  size: 20,
+                                  color: Color(0xFF0D5CE5)),
+                              filled: true,
+                              fillColor: isDark
+                                  ? const Color(0xFF1E1F2B)
+                                  : const Color(0xFFF8FAFC),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                borderSide: BorderSide.none,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+
+                    // Email View
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: _emailCtrl,
+                                keyboardType: TextInputType.emailAddress,
+                                decoration: InputDecoration(
+                                  hintText: 'alex@example.com',
+                                  prefixIcon: const Icon(Icons.email_outlined,
+                                      size: 20, color: Color(0xFF0D5CE5)),
+                                  filled: true,
+                                  fillColor: isDark
+                                      ? const Color(0xFF1E1F2B)
+                                      : const Color(0xFFF8FAFC),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF0D5CE5),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 14, vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                              ),
+                              onPressed: _handleSendOtp,
+                              child: const Text('OTP',
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold)),
+                            ),
+                          ],
+                        ),
+                        if (_otpSent) ...[
+                          const SizedBox(height: 12),
+                          TextField(
+                            controller: _otpCtrl,
+                            keyboardType: TextInputType.number,
+                            maxLength: 4,
+                            decoration: InputDecoration(
+                              hintText: 'Enter 4-digit OTP (1234)',
+                              counterText: '',
+                              prefixIcon: const Icon(
+                                  Icons.lock_clock_outlined,
+                                  size: 20,
+                                  color: Color(0xFF0D5CE5)),
+                              filled: true,
+                              fillColor: isDark
+                                  ? const Color(0xFF1E1F2B)
+                                  : const Color(0xFFF8FAFC),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                borderSide: BorderSide.none,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // PASSWORD
+              const Text(
+                'CREATE PASSWORD',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.1,
+                  color: Color(0xFF94A3B8),
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _passwordCtrl,
+                obscureText: _obscurePassword,
+                decoration: InputDecoration(
+                  hintText: '••••••••',
+                  prefixIcon: const Icon(Icons.lock_outline_rounded,
+                      size: 20, color: Color(0xFF0D5CE5)),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      size: 20,
+                    ),
+                    onPressed: () =>
+                        setState(() => _obscurePassword = !_obscurePassword),
+                  ),
+                  filled: true,
+                  fillColor: isDark
+                      ? const Color(0xFF1E1F2B)
+                      : const Color(0xFFF8FAFC),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+
+              // Terms & Conditions Checkbox
+              Row(
+                children: [
+                  SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: Checkbox(
+                      value: _agreeTerms,
+                      activeColor: const Color(0xFF0D5CE5),
+                      onChanged: (val) =>
+                          setState(() => _agreeTerms = val ?? true),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text(
+                      'I agree to the Terms of Service & Privacy Policy',
+                      style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+
+              // Create Account Primary Button
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF0D5CE5),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  onPressed: _handleSignUp,
+                  child: const Text(
+                    'Create Account',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Google Sign Up
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    side: const BorderSide(color: Color(0xFFCBD5E1)),
+                  ),
+                  onPressed: _handleGoogleSignUp,
+                  icon: const Icon(Icons.g_mobiledata_rounded,
+                      size: 32, color: Color(0xFF4285F4)),
+                  label: const Text(
+                    'Sign Up with Google',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1E293B),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Already have an account? Log In
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    'Already have an account? ',
+                    style: TextStyle(fontSize: 14, color: Color(0xFF64748B)),
+                  ),
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: const Text(
+                      'Log In',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF0D5CE5),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "name": "wrindhaos-backend",
+  "version": "1.0.0",
+  "description": "Production-ready backend for WrindhaOS student productivity app built with Node.js, Express, Supabase PostgreSQL, Google Play Billing, and FCM.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node --test tests/backend.test.js"
+  },
+  "keywords": [
+    "wrindhaos",
+    "express",
+    "supabase",
+    "google-play-billing",
+    "fcm"
+  ],
+  "author": "WrindhaOS Team",
+  "license": "MIT",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.18.2",
+    "express-rate-limit": "^7.1.5",
+    "firebase-admin": "^12.0.0",
+    "googleapis": "^133.0.0",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2"
+  }
+}
