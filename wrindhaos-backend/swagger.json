@@ -1,0 +1,181 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "WrindhaOS Production Backend REST API",
+    "version": "1.0.0",
+    "description": "Production REST API for WrindhaOS student productivity application featuring Supabase PostgreSQL, Google Play Billing server-side verification, FCM notifications, and Entitlements Engine."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5000/api/v1",
+      "description": "Local Development Server"
+    },
+    {
+      "url": "https://wrindhaos-backend.onrender.com/api/v1",
+      "description": "Render Production Cloud Server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "paths": {
+    "/auth/email/request-otp": {
+      "post": {
+        "summary": "Request Email OTP",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string", "example": "user@example.com" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "OTP sent successfully" }
+        }
+      }
+    },
+    "/auth/email/verify-otp": {
+      "post": {
+        "summary": "Verify Email OTP and Login/Register",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string", "example": "user@example.com" },
+                  "otp": { "type": "string", "example": "1234" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Authentication successful, returns JWT token" }
+        }
+      }
+    },
+    "/auth/google": {
+      "post": {
+        "summary": "Google Sign-In Server-Side Verification",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Google auth verified, returns user profile and session token" }
+        }
+      }
+    },
+    "/entitlements": {
+      "get": {
+        "summary": "Get User Feature Entitlements and Plan Limits",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "User entitlements, feature availability, and ads_enabled status" }
+        }
+      }
+    },
+    "/subscriptions/google/verify": {
+      "post": {
+        "summary": "Verify Google Play Billing Purchase Token Server-Side",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "purchaseToken": { "type": "string" },
+                  "productId": { "type": "string", "example": "wrindhaos_premium_monthly" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Google Play purchase verified and Premium activated" }
+        }
+      }
+    },
+    "/habits": {
+      "get": {
+        "summary": "Get User Habits",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "List of user habits" } }
+      },
+      "post": {
+        "summary": "Create Habit (Enforces max 2 for Free Plan)",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": { "type": "string", "example": "Read 20 pages" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Habit created" },
+          "403": { "description": "HABIT_LIMIT_REACHED for Free plan" }
+        }
+      }
+    },
+    "/subjects": {
+      "get": {
+        "summary": "Get User Academic Subjects",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "List of subjects" } }
+      },
+      "post": {
+        "summary": "Create Subject (Enforces max 2 for Free Plan)",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": { "type": "string", "example": "Computer Science" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Subject created" },
+          "403": { "description": "SUBJECT_LIMIT_REACHED for Free plan" }
+        }
+      }
+    }
+  }
+}
