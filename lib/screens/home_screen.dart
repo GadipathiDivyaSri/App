@@ -100,6 +100,7 @@ class HomeScreen extends StatelessWidget {
                       context,
                       isDark: isDark,
                       icon: Icons.spa_outlined,
+                      imageAsset: 'assets/icons/ic_personal_growth.png',
                       title: 'Personal\nGrowth',
                       subtitle: 'Habits & Milestones',
                       lightCardBg: AppTheme.pastelPersonalGrowth,
@@ -119,6 +120,7 @@ class HomeScreen extends StatelessWidget {
                       context,
                       isDark: isDark,
                       icon: Icons.work_outline_rounded,
+                      imageAsset: 'assets/icons/ic_career.png',
                       title: 'Career',
                       subtitle: 'Pathways & Goals',
                       lightCardBg: AppTheme.pastelCareer,
@@ -138,6 +140,7 @@ class HomeScreen extends StatelessWidget {
                       context,
                       isDark: isDark,
                       icon: Icons.school_outlined,
+                      imageAsset: 'assets/icons/ic_studies.png',
                       title: 'Studies',
                       subtitle: 'Subplanner & Focus',
                       lightCardBg: AppTheme.pastelStudies,
@@ -157,6 +160,7 @@ class HomeScreen extends StatelessWidget {
                       context,
                       isDark: isDark,
                       icon: Icons.calendar_today_outlined,
+                      imageAsset: 'assets/icons/ic_calendar.png',
                       title: 'Calendar',
                       subtitle: 'View Schedule',
                       lightCardBg: AppTheme.pastelCalendar,
@@ -176,6 +180,7 @@ class HomeScreen extends StatelessWidget {
                       context,
                       isDark: isDark,
                       icon: Icons.flag_outlined,
+                      imageAsset: 'assets/icons/ic_priority.png',
                       title: 'Priority',
                       subtitle: 'Priority Matrix',
                       lightCardBg: AppTheme.pastelPriority,
@@ -195,6 +200,7 @@ class HomeScreen extends StatelessWidget {
                       context,
                       isDark: isDark,
                       icon: Icons.bar_chart_rounded,
+                      imageAsset: 'assets/icons/ic_analytics.png',
                       title: 'Analytics',
                       subtitle: 'Track Progress',
                       lightCardBg: AppTheme.pastelAnalytics,
@@ -222,6 +228,7 @@ class HomeScreen extends StatelessWidget {
     BuildContext context, {
     required bool isDark,
     required IconData icon,
+    String? imageAsset,
     required String title,
     required String subtitle,
     required Color lightCardBg,
@@ -257,33 +264,58 @@ class HomeScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Top Row: Squircle Icon & Chevron Arrow
+            // Top Row: Custom Illustration Icon & Chevron Arrow
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? AppTheme.darkIconBg
-                        : lightIconContainerColor,
-                    borderRadius: BorderRadius.circular(14),
-                    boxShadow: [
-                      if (!isDark)
-                        BoxShadow(
-                          color: lightIconContainerColor.withOpacity(0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 3),
+                if (imageAsset != null)
+                  SizedBox(
+                    width: 48,
+                    height: 48,
+                    child: Image.asset(
+                      imageAsset,
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, __, ___) => Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? AppTheme.darkIconBg
+                              : lightIconContainerColor,
+                          borderRadius: BorderRadius.circular(14),
                         ),
-                    ],
+                        child: Icon(
+                          icon,
+                          size: 22,
+                          color: isDark ? AppTheme.darkIconGlow : Colors.white,
+                        ),
+                      ),
+                    ),
+                  )
+                else
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? AppTheme.darkIconBg
+                          : lightIconContainerColor,
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: [
+                        if (!isDark)
+                          BoxShadow(
+                            color: lightIconContainerColor.withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                      ],
+                    ),
+                    child: Icon(
+                      icon,
+                      size: 22,
+                      color: isDark ? AppTheme.darkIconGlow : Colors.white,
+                    ),
                   ),
-                  child: Icon(
-                    icon,
-                    size: 22,
-                    color: isDark ? AppTheme.darkIconGlow : Colors.white,
-                  ),
-                ),
                 Icon(
                   Icons.chevron_right_rounded,
                   size: 20,
