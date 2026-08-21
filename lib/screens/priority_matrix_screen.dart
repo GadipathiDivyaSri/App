@@ -100,6 +100,70 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
               ),
             ),
             const SizedBox(height: 20),
+
+            // Priority Matrix 2x2 Grid (Matching Reference Design)
+            Text(
+              'Priority Matrix',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            GridView.count(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisCount: 2,
+              mainAxisSpacing: 14,
+              crossAxisSpacing: 14,
+              childAspectRatio: 1.15,
+              children: [
+                // 1. Do First (Important & Urgent)
+                _buildMatrixQuadrantCard(
+                  title: 'Do First',
+                  subtitle: 'Important &\nUrgent',
+                  bgColor: isDark ? AppTheme.darkCardBg : AppTheme.pastelPersonalGrowth,
+                  iconColor: isDark ? AppTheme.darkIconGlow : const Color(0xFF4A9B65),
+                  icon: Icons.local_fire_department_rounded,
+                  isDark: isDark,
+                  taskCount: _p1Tasks.length,
+                ),
+                // 2. Schedule (Important but Not Urgent)
+                _buildMatrixQuadrantCard(
+                  title: 'Schedule',
+                  subtitle: 'Important but\nNot Urgent',
+                  bgColor: isDark ? AppTheme.darkCardBg : AppTheme.pastelStudies,
+                  iconColor: isDark ? AppTheme.darkIconGlow : const Color(0xFFDCA432),
+                  icon: Icons.hourglass_top_rounded,
+                  isDark: isDark,
+                  taskCount: _p2Tasks.length,
+                ),
+                // 3. Delegate (Not Important but Urgent)
+                _buildMatrixQuadrantCard(
+                  title: 'Delegate',
+                  subtitle: 'Not Important but\nUrgent',
+                  bgColor: isDark ? AppTheme.darkCardBg : AppTheme.pastelAnalytics,
+                  iconColor: isDark ? AppTheme.darkIconGlow : const Color(0xFF4B8DBA),
+                  icon: Icons.tune_rounded,
+                  isDark: isDark,
+                  taskCount: _p3Tasks.length,
+                ),
+                // 4. Eliminate (Not Important & Not Urgent)
+                _buildMatrixQuadrantCard(
+                  title: 'Eliminate',
+                  subtitle: 'Not Important &\nNot Urgent',
+                  bgColor: isDark ? AppTheme.darkCardBg : AppTheme.pastelPriority,
+                  iconColor: isDark ? AppTheme.darkIconGlow : const Color(0xFFD25B67),
+                  icon: Icons.outlined_flag_rounded,
+                  isDark: isDark,
+                  taskCount: 0,
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+
             // Upcoming Deadlines Card
             _buildUpcomingDeadlinesCard(context),
             const SizedBox(height: 24),
@@ -605,13 +669,101 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
     );
   }
 
+  Widget _buildMatrixQuadrantCard({
+    required String title,
+    required String subtitle,
+    required Color bgColor,
+    required Color iconColor,
+    required IconData icon,
+    required bool isDark,
+    required int taskCount,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(18),
+        border: isDark ? Border.all(color: AppTheme.darkCardBorder, width: 1) : null,
+        boxShadow: isDark
+            ? AppTheme.darkCardShadow
+            : [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.02),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(7),
+                decoration: BoxDecoration(
+                  color: isDark ? AppTheme.darkIconBg : Colors.white.withOpacity(0.85),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, color: iconColor, size: 20),
+              ),
+              if (taskCount > 0)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppTheme.darkIconBg : Colors.white.withOpacity(0.9),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    '$taskCount',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  fontSize: 10,
+                  height: 1.2,
+                  fontWeight: FontWeight.w500,
+                  color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showAddTaskModal(BuildContext context, int priorityLevel) {
     final titleCtrl = TextEditingController();
     String tag = 'WORK';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: isDark ? AppTheme.darkCardBg : AppTheme.cardSurface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -628,7 +780,11 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
           children: [
             Text(
               'Add Priority $priorityLevel Task',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+              ),
             ),
             const SizedBox(height: 16),
             TextField(
@@ -644,7 +800,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
               height: 50,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0D5CE5),
+                  backgroundColor: isDark ? AppTheme.darkPrimary : AppTheme.primaryAccent,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
                   ),

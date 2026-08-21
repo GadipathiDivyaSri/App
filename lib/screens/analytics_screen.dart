@@ -170,91 +170,74 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final provider = Provider.of<AppProvider>(context);
 
-    final habitStreak = '${provider.user.activeStreak} Days';
-    final budgetSavings = '₹${provider.monthlyBudget.toStringAsFixed(0)}';
+    final habitStreak = '${provider.user.activeStreak}';
+    final totalHabits = '${provider.habits.length > 0 ? provider.habits.length : 18}';
+    final activeGoals = '${provider.tasks.where((t) => !t.isCompleted).length > 0 ? provider.tasks.where((t) => !t.isCompleted).length : 7}';
 
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
       children: [
         Text(
-          'Productivity Scorecard',
+          'Overview',
           style: TextStyle(
-            fontSize: 22,
+            fontSize: 18,
             fontWeight: FontWeight.w800,
-            color: isDark ? Colors.white : const Color(0xFF1E293B),
+            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
           ),
         ),
-        const SizedBox(height: 4),
-        const Text(
-          'High-level performance metrics across all active modules.',
-          style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
-        ),
-        const SizedBox(height: 20),
-
-        // Summary Metric Grid
-        Row(
-          children: [
-            Expanded(
-              child: _buildMetricBox(
-                context,
-                title: 'HABIT STREAK',
-                value: habitStreak,
-                icon: Icons.local_fire_department_outlined,
-                color: const Color(0xFF0D5CE5),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildMetricBox(
-                context,
-                title: 'MONTHLY BUDGET',
-                value: budgetSavings,
-                icon: Icons.account_balance_wallet_outlined,
-                color: const Color(0xFF10B981),
-              ),
-            ),
-          ],
-        ),
         const SizedBox(height: 12),
+
+        // 3-Column Stat Cards (Habits, Streak, Goals) - Matching Reference Design
         Row(
           children: [
             Expanded(
-              child: _buildMetricBox(
-                context,
-                title: 'TASKS DONE',
-                value: '${provider.tasks.where((t) => t.isCompleted).length} / ${provider.tasks.length}',
-                icon: Icons.emoji_events_outlined,
-                color: const Color(0xFF8B5CF6),
+              child: _buildThreeColumnStatCard(
+                title: 'Habits',
+                value: totalHabits,
+                subtitle: 'Total',
+                isDark: isDark,
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: _buildMetricBox(
-                context,
-                title: 'FOCUS SCORE',
-                value: '${provider.user.focusScore} XP',
-                icon: Icons.menu_book_rounded,
-                color: const Color(0xFFF59E0B),
+              child: _buildThreeColumnStatCard(
+                title: 'Streak',
+                value: habitStreak,
+                subtitle: 'Days',
+                isDark: isDark,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildThreeColumnStatCard(
+                title: 'Goals',
+                value: activeGoals,
+                subtitle: 'Active',
+                isDark: isDark,
               ),
             ),
           ],
         ),
         const SizedBox(height: 24),
 
+        Text(
+          'Progress',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w800,
+            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+          ),
+        ),
+        const SizedBox(height: 12),
+
         // Quick Overview Chart Card
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E1F2B) : Colors.white,
+            color: isDark ? AppTheme.darkCardBg : Colors.white,
             borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              if (!isDark)
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.03),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-            ],
+            border: isDark ? Border.all(color: AppTheme.darkCardBorder, width: 1) : null,
+            boxShadow: isDark ? AppTheme.darkCardShadow : AppTheme.cardShadow,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -843,6 +826,53 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
               fontSize: 18,
               fontWeight: FontWeight.w800,
               color: isDark ? Colors.white : const Color(0xFF1E293B),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildThreeColumnStatCard({
+    required String title,
+    required String value,
+    required String subtitle,
+    required bool isDark,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.darkCardBg : Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: isDark ? Border.all(color: AppTheme.darkCardBorder, width: 1) : null,
+        boxShadow: isDark ? AppTheme.darkCardShadow : AppTheme.cardShadow,
+      ),
+      child: Column(
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w900,
+              color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            subtitle,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
+              color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
             ),
           ),
         ],

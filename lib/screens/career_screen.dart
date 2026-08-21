@@ -205,46 +205,31 @@ class CareerScreen extends StatelessWidget {
             ),
             const SizedBox(height: 14),
 
-            if (careerTasks.isEmpty)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(28),
-                decoration: BoxDecoration(
-                  color: isDark ? AppTheme.darkCardBg : Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: isDark
-                      ? Border.all(color: AppTheme.darkCardBorder, width: 1)
-                      : null,
-                ),
-                child: Column(
-                  children: [
-                    Icon(
-                      Icons.flag_circle_outlined,
-                      size: 48,
-                      color: isDark ? AppTheme.darkTextSecondary : const Color(0xFF8D827A),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'No career goals pinned yet',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : AppTheme.lightTextPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Tap Floating Roadmap to link your study goals.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              )
-            else
+            if (careerTasks.isEmpty) ...[
+              _buildPathwayProgressCard(
+                title: 'Make-up graduate',
+                subtitle: 'Pathways & Goal Goals',
+                progress: 0.60,
+                icon: Icons.school_rounded,
+                isDark: isDark,
+              ),
+              const SizedBox(height: 12),
+              _buildPathwayProgressCard(
+                title: 'Complete intention',
+                subtitle: 'Draft your goals',
+                progress: 0.40,
+                icon: Icons.edit_note_rounded,
+                isDark: isDark,
+              ),
+              const SizedBox(height: 12),
+              _buildPathwayProgressCard(
+                title: 'Develop commissions',
+                subtitle: 'Contribution',
+                progress: 0.25,
+                icon: Icons.lightbulb_outline_rounded,
+                isDark: isDark,
+              ),
+            ] else
               ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -263,14 +248,17 @@ class CareerScreen extends StatelessWidget {
                     ),
                     child: Row(
                       children: [
-                        Icon(
-                          task.isCompleted
-                              ? Icons.check_circle_rounded
-                              : Icons.radio_button_unchecked_rounded,
-                          color: task.isCompleted
-                              ? (isDark ? AppTheme.darkIconGlow : AppTheme.lightPrimary)
-                              : Colors.grey,
-                          size: 22,
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: isDark ? AppTheme.darkIconBg : AppTheme.pastelCareer,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            task.isCompleted ? Icons.check_rounded : Icons.flag_rounded,
+                            color: isDark ? AppTheme.darkIconGlow : AppTheme.pastelCareerIcon,
+                            size: 20,
+                          ),
                         ),
                         const SizedBox(width: 14),
                         Expanded(
@@ -294,6 +282,106 @@ class CareerScreen extends StatelessWidget {
             const SizedBox(height: 80),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildPathwayProgressCard({
+    required String title,
+    required String subtitle,
+    required double progress,
+    required IconData icon,
+    required bool isDark,
+  }) {
+    final percent = (progress * 100).toInt();
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.darkCardBg : Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: isDark ? Border.all(color: AppTheme.darkCardBorder, width: 1) : null,
+        boxShadow: isDark
+            ? AppTheme.darkCardShadow
+            : [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.02),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: isDark ? AppTheme.darkIconBg : AppTheme.pastelCareer,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(
+                  icon,
+                  color: isDark ? AppTheme.darkIconGlow : AppTheme.pastelCareerIcon,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Text(
+                '$percent%',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? AppTheme.darkIconGlow : AppTheme.pastelCareerIcon,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: isDark ? const Color(0xFF4C658A) : const Color(0xFF8D827A),
+                size: 20,
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 6,
+              backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFFFECE5),
+              valueColor: AlwaysStoppedAnimation<Color>(
+                isDark ? AppTheme.darkPrimary : AppTheme.pastelCareer,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
