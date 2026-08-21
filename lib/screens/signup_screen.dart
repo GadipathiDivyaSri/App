@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
 import '../theme/app_theme.dart';
+import 'terms_conditions_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -21,7 +22,7 @@ class _SignUpScreenState extends State<SignUpScreen>
   final _passwordCtrl = TextEditingController();
   final _referralCodeCtrl = TextEditingController();
   bool _otpSent = false;
-  bool _agreeTerms = true;
+  bool _agreeTerms = false;
   bool _obscurePassword = true;
 
   @override
@@ -74,7 +75,9 @@ class _SignUpScreenState extends State<SignUpScreen>
     if (!_agreeTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text('Please accept the Terms & Privacy Policy')),
+          content: Text('Please accept our Terms & Conditions to create an account'),
+          backgroundColor: Color(0xFFEF4444),
+        ),
       );
       return;
     }
@@ -93,6 +96,16 @@ class _SignUpScreenState extends State<SignUpScreen>
   }
 
   void _handleGoogleSignUp() {
+    if (!_agreeTerms) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please accept our Terms & Conditions to sign up'),
+          backgroundColor: Color(0xFFEF4444),
+        ),
+      );
+      return;
+    }
+
     final provider = Provider.of<AppProvider>(context, listen: false);
     final refCode = _referralCodeCtrl.text.trim();
     provider.signup(
@@ -426,6 +439,7 @@ class _SignUpScreenState extends State<SignUpScreen>
 
               // Terms & Conditions Checkbox
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   SizedBox(
                     width: 24,
@@ -433,15 +447,60 @@ class _SignUpScreenState extends State<SignUpScreen>
                     child: Checkbox(
                       value: _agreeTerms,
                       activeColor: const Color(0xFF0D5CE5),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5),
+                      ),
                       onChanged: (val) =>
-                          setState(() => _agreeTerms = val ?? true),
+                          setState(() => _agreeTerms = val ?? false),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  const Expanded(
-                    child: Text(
-                      'I agree to the Terms of Service & Privacy Policy',
-                      style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => setState(() => _agreeTerms = !_agreeTerms),
+                      child: RichText(
+                        text: TextSpan(
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            height: 1.45,
+                            color: isDark
+                                ? const Color(0xFF94A3B8)
+                                : const Color(0xFF64748B),
+                          ),
+                          children: [
+                            const TextSpan(
+                              text: 'By signing up, you accept our ',
+                            ),
+                            WidgetSpan(
+                              alignment: PlaceholderAlignment.baseline,
+                              baseline: TextBaseline.alphabetic,
+                              child: GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          const TermsConditionsScreen(),
+                                    ),
+                                  );
+                                },
+                                child: const Text(
+                                  'Terms & Conditions',
+                                  style: TextStyle(
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF0D5CE5),
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const TextSpan(
+                              text: ' and Privacy Policy.',
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 ],

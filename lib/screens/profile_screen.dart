@@ -7,6 +7,7 @@ import 'payment_history_screen.dart';
 import 'notification_settings_screen.dart';
 import 'referral_screen.dart';
 import 'about_us_screen.dart';
+import 'terms_conditions_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   final VoidCallback? onNavigateToHome;
@@ -133,6 +134,17 @@ class ProfileScreen extends StatelessWidget {
                         context,
                         MaterialPageRoute(
                           builder: (_) => const AboutUsScreen(),
+                        ),
+                      );
+                    }),
+                _MenuItemData(
+                    icon: Icons.gavel_rounded,
+                    title: 'Terms & Conditions',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const TermsConditionsScreen(),
                         ),
                       );
                     }),
@@ -284,7 +296,7 @@ class ProfileScreen extends StatelessWidget {
                     icon: Icons.help_outline_rounded,
                     title: 'Support & Care',
                     onTap: () => _showDialog(context, 'Support & Care',
-                        'Contact support at help@productivityhub.io')),
+                        'For support, inquiries, or feedback, please contact us at wrindhaos@gmail.com')),
                 _MenuItemData(
                     icon: Icons.share_outlined,
                     title: 'Referral Page',
