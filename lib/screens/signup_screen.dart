@@ -48,56 +48,87 @@ class _SignUpScreenState extends State<SignUpScreen>
     final input = isMobileTab ? _phoneCtrl.text.trim() : _emailCtrl.text.trim();
 
     if (input.isNotEmpty) {
-      setState(() {
-        _otpSent = true;
-      });
+      setState(() => _otpSent = true);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('OTP sent to $input! (Use code: 1234)'),
-          backgroundColor: AppTheme.primaryAccent,
+          content: Text(isMobileTab
+              ? '4-digit OTP sent to $input! (Demo OTP: 1234)'
+              : '4-digit verification code sent to $input! (Demo OTP: 1234)'),
+          backgroundColor: const Color(0xFF0D5CE5),
         ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter phone or email first')),
+        SnackBar(
+          content: Text(
+              'Please enter your ${isMobileTab ? "mobile number" : "email address"}'),
+          backgroundColor: Colors.orange,
+        ),
       );
     }
-  Future<bool> _openTermsAndConditions() async {
+  }
+
+  Future<void> _openTermsAndConditions() async {
     final accepted = await Navigator.push<bool>(
       context,
       MaterialPageRoute(
         builder: (_) => const TermsConditionsScreen(isReviewMode: true),
       ),
     );
-
-    if (accepted == true) {
-      setState(() {
-        _agreeTerms = true;
-      });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Row(
-              children: [
-                Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
-                SizedBox(width: 8),
-                Text('Terms & Conditions accepted.'),
-              ],
-            ),
-            backgroundColor: Color(0xFF0D5CE5),
-            duration: Duration(seconds: 2),
-          ),
-        );
-      }
-      return true;
+    if (accepted == true && mounted) {
+      setState(() => _agreeTerms = true);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Terms & Conditions reviewed and accepted! ✅'),
+          backgroundColor: Color(0xFF10B981),
+          duration: Duration(seconds: 2),
+        ),
+      );
     }
-    return false;
   }
 
-  void _handleSignUp() async {
-    if (_nameCtrl.text.trim().isEmpty) {
+  void _handleSignUp() {
+    final name = _nameCtrl.text.trim();
+    final isMobileTab = _tabController.index == 0;
+    final contact =
+        isMobileTab ? _phoneCtrl.text.trim() : _emailCtrl.text.trim();
+    final password = _passwordCtrl.text.trim();
+    final refCode = _referralCodeCtrl.text.trim();
+
+    if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter your full name')),
+      );
+      return;
+    }
+
+    if (contact.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(
+                'Please enter your ${isMobileTab ? "mobile number" : "email"}')),
+      );
+      return;
+    }
+
+    if (!_otpSent) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please click "OTP" to verify your contact')),
+      );
+      return;
+    }
+
+    if (_otpCtrl.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter the 4-digit OTP code')),
+      );
+      return;
+    }
+
+    if (password.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Password must be at least 6 characters long')),
       );
       return;
     }
@@ -105,47 +136,45 @@ class _SignUpScreenState extends State<SignUpScreen>
     if (!_agreeTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please review and accept our Terms & Conditions'),
+          content: Text(
+              'Please review and accept our Terms & Conditions before signing up.'),
           backgroundColor: Color(0xFFEF4444),
-          duration: Duration(seconds: 2),
+          duration: Duration(seconds: 3),
         ),
       );
-      final accepted = await _openTermsAndConditions();
-      if (!accepted) return;
+      _openTermsAndConditions();
+      return;
     }
 
-    final isMobileTab = _tabController.index == 0;
-    final contact = isMobileTab ? _phoneCtrl.text.trim() : _emailCtrl.text.trim();
-    final refCode = _referralCodeCtrl.text.trim();
-
-    if (!mounted) return;
     final provider = Provider.of<AppProvider>(context, listen: false);
-    provider.signup(
-      _nameCtrl.text.trim(),
+    provider.login(
+      name,
       contact,
       refCode: refCode.isNotEmpty ? refCode : null,
     );
     Navigator.popUntil(context, (route) => route.isFirst);
   }
 
-  void _handleGoogleSignUp() async {
+  void _handleGoogleSignUp() {
     if (!_agreeTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please review and accept our Terms & Conditions'),
+          content: Text(
+              'Please review and accept our Terms & Conditions before signing up.'),
           backgroundColor: Color(0xFFEF4444),
-          duration: Duration(seconds: 2),
+          duration: Duration(seconds: 3),
         ),
       );
-      final accepted = await _openTermsAndConditions();
-      if (!accepted) return;
+      _openTermsAndConditions();
+      return;
     }
 
-    if (!mounted) return;
-    final provider = Provider.of<AppProvider>(context, listen: false);
+    final name =
+        _nameCtrl.text.trim().isNotEmpty ? _nameCtrl.text.trim() : 'Alex Johnson';
     final refCode = _referralCodeCtrl.text.trim();
-    provider.signup(
-      'Alex Johnson',
+    final provider = Provider.of<AppProvider>(context, listen: false);
+    provider.login(
+      name,
       'alex.google@gmail.com',
       refCode: refCode.isNotEmpty ? refCode : null,
     );
@@ -851,6 +880,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF0D5CE5),
+                    elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),

@@ -1,3 +1,35 @@
+class Habit {
+  final String id;
+  String title;
+  String frequency;
+  bool isCompleted;
+  int streakDay;
+
+  Habit({
+    required this.id,
+    required this.title,
+    this.frequency = 'DAILY',
+    this.isCompleted = false,
+    this.streakDay = 0,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'title': title,
+        'frequency': frequency,
+        'isCompleted': isCompleted,
+        'streakDay': streakDay,
+      };
+
+  factory Habit.fromJson(Map<String, dynamic> json) => Habit(
+        id: json['id'] ?? 'h_1',
+        title: json['title'] ?? '',
+        frequency: json['frequency'] ?? 'DAILY',
+        isCompleted: json['isCompleted'] ?? false,
+        streakDay: json['streakDay'] ?? 0,
+      );
+}
+
 class Task {
   final String id;
   String title;

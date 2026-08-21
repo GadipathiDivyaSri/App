@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:share_plus/share_plus.dart';
 import '../providers/app_provider.dart';
 import '../models/models.dart';
 import '../theme/app_theme.dart';
@@ -156,7 +155,14 @@ class ReferralScreen extends StatelessWidget {
                         ),
                       ),
                       onPressed: () {
-                        Share.share(shareMessage);
+                        Clipboard.setData(ClipboardData(text: shareMessage));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text('Referral link & code copied to clipboard!'),
+                            backgroundColor: isDark ? AppTheme.darkPrimary : const Color(0xFF0D5CE5),
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
                       },
                       icon: const Icon(Icons.share_outlined, color: Colors.white, size: 18),
                       label: const Text(

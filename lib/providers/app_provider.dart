@@ -21,6 +21,52 @@ class AppProvider extends ChangeNotifier {
   );
   UserProfile get user => _user;
 
+  List<Habit> _habits = [
+    Habit(
+      id: 'h_1',
+      title: 'Morning Revision & Formula Practice',
+      frequency: 'DAILY • 06:00 AM',
+      isCompleted: true,
+      streakDay: 12,
+    ),
+    Habit(
+      id: 'h_2',
+      title: 'Mock Test / PYQ Solving',
+      frequency: 'DAILY • 02:00 PM',
+      isCompleted: true,
+      streakDay: 8,
+    ),
+    Habit(
+      id: 'h_3',
+      title: 'Daily Workout & Mindfulness',
+      frequency: 'DAILY • 06:30 PM',
+      isCompleted: false,
+      streakDay: 5,
+    ),
+  ];
+  List<Habit> get habits => _habits;
+
+  void addHabit(Habit habit) {
+    _habits.add(habit);
+    notifyListeners();
+  }
+
+  void toggleHabit(String id) {
+    final idx = _habits.indexWhere((h) => h.id == id);
+    if (idx != -1) {
+      _habits[idx].isCompleted = !_habits[idx].isCompleted;
+      if (_habits[idx].isCompleted) {
+        _habits[idx].streakDay += 1;
+      }
+      notifyListeners();
+    }
+  }
+
+  void deleteHabit(String id) {
+    _habits.removeWhere((h) => h.id == id);
+    notifyListeners();
+  }
+
   List<Task> _tasks = [];
   List<Task> get tasks => _tasks;
 

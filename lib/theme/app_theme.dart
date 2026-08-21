@@ -36,8 +36,11 @@ class AppTheme {
   // Compatibility aliases
   static const Color lightBg = background;
   static const Color lightPrimary = primaryAccent;
+  static const Color primaryColor = primaryAccent;
   static const Color lightTextPrimary = textPrimary;
   static const Color lightTextSecondary = textSecondary;
+  static const Color pastelGrowth = personalGrowth;
+  static const Color pastelGrowthIcon = personalGrowthIcon;
   static const Color pastelPersonalGrowth = personalGrowth;
   static const Color pastelPersonalGrowthIcon = personalGrowthIcon;
   static const Color pastelCareer = career;
@@ -50,6 +53,12 @@ class AppTheme {
   static const Color pastelPriorityIcon = priorityIcon;
   static const Color pastelAnalytics = analytics;
   static const Color pastelAnalyticsIcon = analyticsIcon;
+
+  // Matrix Quadrant Colors
+  static const Color matrixDoFirst = Color(0xFF10B981); // Q1: Urgent & Important (Green)
+  static const Color matrixSchedule = Color(0xFF3B82F6); // Q2: Not Urgent, Important (Blue)
+  static const Color matrixDelegate = Color(0xFFF59E0B); // Q3: Urgent, Not Important (Amber)
+  static const Color matrixEliminate = Color(0xFFEF4444); // Q4: Not Urgent, Not Important (Red)
 
   // ---------------------------------------------------------------------------
   // DARK MODE PALETTE (Deep Navy / Midnight Glow)
