@@ -270,23 +270,23 @@ class HomeScreen extends StatelessWidget {
               children: [
                 if (imageAsset != null)
                   SizedBox(
-                    width: 48,
-                    height: 48,
+                    width: 58,
+                    height: 58,
                     child: Image.asset(
                       imageAsset,
                       fit: BoxFit.contain,
                       errorBuilder: (_, __, ___) => Container(
-                        width: 44,
-                        height: 44,
+                        width: 52,
+                        height: 52,
                         decoration: BoxDecoration(
                           color: isDark
                               ? AppTheme.darkIconBg
                               : lightIconContainerColor,
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: BorderRadius.circular(16),
                         ),
                         child: Icon(
                           icon,
-                          size: 22,
+                          size: 28,
                           color: isDark ? AppTheme.darkIconGlow : Colors.white,
                         ),
                       ),
@@ -294,13 +294,13 @@ class HomeScreen extends StatelessWidget {
                   )
                 else
                   Container(
-                    width: 44,
-                    height: 44,
+                    width: 52,
+                    height: 52,
                     decoration: BoxDecoration(
                       color: isDark
                           ? AppTheme.darkIconBg
                           : lightIconContainerColor,
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         if (!isDark)
                           BoxShadow(
@@ -312,7 +312,7 @@ class HomeScreen extends StatelessWidget {
                     ),
                     child: Icon(
                       icon,
-                      size: 22,
+                      size: 28,
                       color: isDark ? AppTheme.darkIconGlow : Colors.white,
                     ),
                   ),

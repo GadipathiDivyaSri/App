@@ -22,8 +22,8 @@
       pointer-events: none;
       z-index: 99999;
       object-fit: contain;
-      transition: opacity 0.2s ease;
-      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.08));
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.12));
     }
   </style>
 </head>
@@ -73,10 +73,10 @@
                   activeOverlays.set(key, img);
                 }
                 
-                // Position at top-left of the card with standard padding
-                const iconSize = Math.min(48, Math.max(36, rect.height * 0.28));
-                const iconLeft = rect.left + 16;
-                const iconTop = rect.top + 16;
+                // Bigger, more prominent icon sizing: 58px on desktop, scaling smoothly
+                const iconSize = Math.min(62, Math.max(50, rect.height * 0.38));
+                const iconLeft = rect.left + 14;
+                const iconTop = rect.top + 14;
 
                 img.style.width = iconSize + 'px';
                 img.style.height = iconSize + 'px';
@@ -102,9 +102,9 @@
 
       // Start detection after Flutter initializes
       window.addEventListener('load', () => {
-        setTimeout(updateOverlays, 600);
+        setTimeout(updateOverlays, 500);
       });
-      setTimeout(updateOverlays, 1000);
+      setTimeout(updateOverlays, 800);
     })();
   </script>
   <script src="flutter_bootstrap.js" async></script>
