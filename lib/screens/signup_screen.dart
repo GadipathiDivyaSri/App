@@ -473,7 +473,154 @@ class _SignUpScreenState extends State<SignUpScreen>
               ),
               const SizedBox(height: 14),
 
-              // Terms & Conditions Checkbox
+              // Dedicated Terms & Conditions Review Card
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? const Color(0xFF181B26)
+                      : (_agreeTerms
+                          ? const Color(0xFFF0FDF4)
+                          : const Color(0xFFEFF6FF)),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(
+                    color: _agreeTerms
+                        ? const Color(0xFF10B981)
+                        : const Color(0xFF0D5CE5).withOpacity(0.4),
+                    width: 1.2,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: (_agreeTerms
+                                    ? const Color(0xFF10B981)
+                                    : const Color(0xFF0D5CE5))
+                                .withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(
+                            _agreeTerms
+                                ? Icons.verified_rounded
+                                : Icons.menu_book_rounded,
+                            color: _agreeTerms
+                                ? const Color(0xFF10B981)
+                                : const Color(0xFF0D5CE5),
+                            size: 20,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Terms & Conditions',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark
+                                      ? Colors.white
+                                      : const Color(0xFF1E293B),
+                                ),
+                              ),
+                              Text(
+                                '16 binding sections for exam aspirants',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: isDark
+                                      ? const Color(0xFF94A3B8)
+                                      : const Color(0xFF64748B),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: _agreeTerms
+                                ? const Color(0xFF10B981)
+                                : const Color(0xFFEF4444),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            _agreeTerms ? 'ACCEPTED' : 'REQUIRED',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      _agreeTerms
+                          ? 'You have reviewed and accepted the 16 sections of our Terms & Conditions and Privacy Policy.'
+                          : 'To protect your data and exam preparation privacy, please open and read our Terms & Conditions before signing up.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        height: 1.45,
+                        color: isDark
+                            ? const Color(0xFF94A3B8)
+                            : const Color(0xFF475569),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 40,
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _agreeTerms
+                              ? const Color(0xFF10B981).withOpacity(0.15)
+                              : const Color(0xFF0D5CE5),
+                          foregroundColor: _agreeTerms
+                              ? const Color(0xFF10B981)
+                              : Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: _agreeTerms
+                                ? const BorderSide(color: Color(0xFF10B981))
+                                : BorderSide.none,
+                          ),
+                        ),
+                        onPressed: _openTermsAndConditions,
+                        icon: Icon(
+                          _agreeTerms
+                              ? Icons.check_circle_rounded
+                              : Icons.chrome_reader_mode_rounded,
+                          size: 18,
+                        ),
+                        label: Text(
+                          _agreeTerms
+                              ? 'Terms Read & Accepted (Tap to Re-read)'
+                              : 'Read & Accept Terms & Conditions',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
+
+              // Agreement Checkbox
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -497,61 +644,24 @@ class _SignUpScreenState extends State<SignUpScreen>
                   ),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: Wrap(
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        GestureDetector(
-                          onTap: () {
-                            if (!_agreeTerms) {
-                              _openTermsAndConditions();
-                            } else {
-                              setState(() => _agreeTerms = false);
-                            }
-                          },
-                          child: Text(
-                            'By signing up, you accept our ',
-                            style: TextStyle(
-                              fontSize: 12.5,
-                              color: isDark
-                                  ? const Color(0xFF94A3B8)
-                                  : const Color(0xFF64748B),
-                            ),
-                          ),
+                    child: GestureDetector(
+                      onTap: () {
+                        if (!_agreeTerms) {
+                          _openTermsAndConditions();
+                        } else {
+                          setState(() => _agreeTerms = false);
+                        }
+                      },
+                      child: Text(
+                        'I confirm that I have read and agree to the Terms & Conditions and Privacy Policy.',
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          height: 1.45,
+                          color: isDark
+                              ? const Color(0xFF94A3B8)
+                              : const Color(0xFF64748B),
                         ),
-                        InkWell(
-                          onTap: _openTermsAndConditions,
-                          child: const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 2.0),
-                            child: Text(
-                              'Terms & Conditions',
-                              style: TextStyle(
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF0D5CE5),
-                                decoration: TextDecoration.underline,
-                              ),
-                            ),
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            if (!_agreeTerms) {
-                              _openTermsAndConditions();
-                            } else {
-                              setState(() => _agreeTerms = false);
-                            }
-                          },
-                          child: Text(
-                            ' and Privacy Policy.',
-                            style: TextStyle(
-                              fontSize: 12.5,
-                              color: isDark
-                                  ? const Color(0xFF94A3B8)
-                                  : const Color(0xFF64748B),
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 ],

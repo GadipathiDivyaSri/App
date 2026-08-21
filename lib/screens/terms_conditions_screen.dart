@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
-class TermsConditionsScreen extends StatelessWidget {
+class TermsConditionsScreen extends StatefulWidget {
   final bool isReviewMode;
   final VoidCallback? onAccept;
 
@@ -10,6 +10,44 @@ class TermsConditionsScreen extends StatelessWidget {
     this.isReviewMode = false,
     this.onAccept,
   });
+
+  @override
+  State<TermsConditionsScreen> createState() => _TermsConditionsScreenState();
+}
+
+class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
+  final ScrollController _scrollCtrl = ScrollController();
+  double _progress = 0.0;
+  bool _scrolledToEnd = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollCtrl.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (_scrollCtrl.hasClients) {
+      final max = _scrollCtrl.position.maxScrollExtent;
+      final current = _scrollCtrl.position.pixels;
+      if (max > 0) {
+        final p = (current / max).clamp(0.0, 1.0);
+        setState(() {
+          _progress = p;
+          if (p >= 0.85) {
+            _scrolledToEnd = true;
+          }
+        });
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollCtrl.removeListener(_onScroll);
+    _scrollCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,6 +74,15 @@ class TermsConditionsScreen extends StatelessWidget {
             fontSize: 20,
           ),
         ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(4),
+          child: LinearProgressIndicator(
+            value: _progress,
+            backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
+            valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF0D5CE5)),
+            minHeight: 4,
+          ),
+        ),
       ),
       bottomNavigationBar: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -56,34 +103,59 @@ class TermsConditionsScreen extends StatelessWidget {
           ],
         ),
         child: SafeArea(
-          child: SizedBox(
-            width: double.infinity,
-            height: 52,
-            child: ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF0D5CE5),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (!_scrolledToEnd)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.arrow_downward_rounded, size: 14, color: Color(0xFF0D5CE5)),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Scroll to review all 16 terms sections (${(_progress * 100).toInt()}%)',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF0D5CE5),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                elevation: 0,
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF0D5CE5),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 0,
+                  ),
+                  onPressed: () {
+                    if (widget.onAccept != null) {
+                      widget.onAccept!();
+                    }
+                    Navigator.pop(context, true);
+                  },
+                  icon: const Icon(Icons.check_circle_outline_rounded, size: 22),
+                  label: const Text(
+                    'I Have Read & Accept All 16 Sections',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                  ),
+                ),
               ),
-              onPressed: () {
-                if (onAccept != null) {
-                  onAccept!();
-                }
-                Navigator.pop(context, true);
-              },
-              icon: const Icon(Icons.check_circle_outline_rounded, size: 22),
-              label: const Text(
-                'I Have Read & Accept Terms',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-              ),
-            ),
+            ],
           ),
         ),
       ),
       body: SingleChildScrollView(
+        controller: _scrollCtrl,
         padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
