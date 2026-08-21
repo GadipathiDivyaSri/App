@@ -456,51 +456,56 @@ class _SignUpScreenState extends State<SignUpScreen>
                   ),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: GestureDetector(
-                      onTap: () => setState(() => _agreeTerms = !_agreeTerms),
-                      child: RichText(
-                        text: TextSpan(
-                          style: TextStyle(
-                            fontSize: 12.5,
-                            height: 1.45,
-                            color: isDark
-                                ? const Color(0xFF94A3B8)
-                                : const Color(0xFF64748B),
-                          ),
-                          children: [
-                            const TextSpan(
-                              text: 'By signing up, you accept our ',
+                    child: Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        GestureDetector(
+                          onTap: () => setState(() => _agreeTerms = !_agreeTerms),
+                          child: Text(
+                            'By signing up, you accept our ',
+                            style: TextStyle(
+                              fontSize: 12.5,
+                              color: isDark
+                                  ? const Color(0xFF94A3B8)
+                                  : const Color(0xFF64748B),
                             ),
-                            WidgetSpan(
-                              alignment: PlaceholderAlignment.baseline,
-                              baseline: TextBaseline.alphabetic,
-                              child: GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) =>
-                                          const TermsConditionsScreen(),
-                                    ),
-                                  );
-                                },
-                                child: const Text(
-                                  'Terms & Conditions',
-                                  style: TextStyle(
-                                    fontSize: 12.5,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF0D5CE5),
-                                    decoration: TextDecoration.underline,
-                                  ),
-                                ),
+                          ),
+                        ),
+                        InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const TermsConditionsScreen(),
+                              ),
+                            );
+                          },
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 2.0),
+                            child: Text(
+                              'Terms & Conditions',
+                              style: TextStyle(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF0D5CE5),
+                                decoration: TextDecoration.underline,
                               ),
                             ),
-                            const TextSpan(
-                              text: ' and Privacy Policy.',
-                            ),
-                          ],
+                          ),
                         ),
-                      ),
+                        GestureDetector(
+                          onTap: () => setState(() => _agreeTerms = !_agreeTerms),
+                          child: Text(
+                            ' and Privacy Policy.',
+                            style: TextStyle(
+                              fontSize: 12.5,
+                              color: isDark
+                                  ? const Color(0xFF94A3B8)
+                                  : const Color(0xFF64748B),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
