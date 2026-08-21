@@ -23,9 +23,109 @@
       overflow: hidden;
       background-color: #FFF9F0;
     }
+    #wrindha-custom-icons-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 1000;
+      overflow: hidden;
+    }
+    .module-custom-icon {
+      position: absolute;
+      pointer-events: none;
+      object-fit: contain;
+      z-index: 1001;
+      filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.08));
+    }
   </style>
 </head>
 <body>
+  <div id="wrindha-custom-icons-overlay"></div>
+
+  <script>
+    (function() {
+      const overlay = document.getElementById('wrindha-custom-icons-overlay');
+
+      const ICONS = [
+        { id: 'personal_growth', src: '/assets/icons/ic_personal_growth.png', row: 0, col: 0 },
+        { id: 'career',          src: '/assets/icons/ic_career.png',          row: 0, col: 1 },
+        { id: 'studies',         src: '/assets/icons/ic_studies.png',         row: 1, col: 0 },
+        { id: 'calendar',        src: '/assets/icons/ic_calendar.png',        row: 1, col: 1 },
+        { id: 'priority',        src: '/assets/icons/ic_priority.png',        row: 2, col: 0 },
+        { id: 'analytics',       src: '/assets/icons/ic_analytics.png',       row: 2, col: 1 }
+      ];
+
+      const elements = ICONS.map(item => {
+        const img = document.createElement('img');
+        img.src = item.src;
+        img.className = 'module-custom-icon';
+        img.style.display = 'none';
+        overlay.appendChild(img);
+        return { img, ...item };
+      });
+
+      function updateLayout() {
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+
+        // Determine if currently at root / HomeScreen
+        const isRoot = window.location.pathname === '/' || window.location.pathname === '/app' || window.location.pathname === '';
+        const isHashRoot = !window.location.hash || window.location.hash === '#/' || window.location.hash === '#';
+
+        if (!isRoot || !isHashRoot) {
+          elements.forEach(el => el.img.style.display = 'none');
+          return;
+        }
+
+        const padX = 20;
+        const padY = 16;
+        const headerH = 46;
+        const spacingAfterHeader = 20;
+        const gridStartY = padY + headerH + spacingAfterHeader; // ~82px
+
+        const availableW = vw - (padX * 2);
+        const gap = 16;
+        const colW = (availableW - gap) / 2;
+        const cardH = colW / 1.1;
+
+        const iconSize = Math.min(48, Math.max(38, cardH * 0.30));
+
+        elements.forEach(item => {
+          const cardLeft = padX + (item.col * (colW + gap));
+          const cardTop = gridStartY + (item.row * (cardH + gap));
+
+          // Inset inside card: 16px padding
+          const iconLeft = cardLeft + 14;
+          const iconTop = cardTop + 14;
+
+          if (cardTop < vh && (cardTop + cardH) > 0) {
+            item.img.style.width = iconSize + 'px';
+            item.img.style.height = iconSize + 'px';
+            item.img.style.left = iconLeft + 'px';
+            item.img.style.top = iconTop + 'px';
+            item.img.style.display = 'block';
+          } else {
+            item.img.style.display = 'none';
+          }
+        });
+      }
+
+      function tick() {
+        updateLayout();
+        requestAnimationFrame(tick);
+      }
+
+      window.addEventListener('resize', updateLayout);
+      window.addEventListener('scroll', updateLayout);
+      window.addEventListener('popstate', updateLayout);
+      window.addEventListener('hashchange', updateLayout);
+
+      requestAnimationFrame(tick);
+    })();
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
