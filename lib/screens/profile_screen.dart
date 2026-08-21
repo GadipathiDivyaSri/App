@@ -6,6 +6,7 @@ import 'pricing_screen.dart';
 import 'payment_history_screen.dart';
 import 'notification_settings_screen.dart';
 import 'referral_screen.dart';
+import 'about_us_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   final VoidCallback? onNavigateToHome;
@@ -127,8 +128,14 @@ class ProfileScreen extends StatelessWidget {
                 _MenuItemData(
                     icon: Icons.info_outline_rounded,
                     title: 'About Us',
-                    onTap: () => _showDialog(context, 'About Us',
-                        'Productivity Hub v1.0.0\nBuilt with Flutter & Provider.')),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const AboutUsScreen(),
+                        ),
+                      );
+                    }),
                 _MenuItemData(
                     icon: Icons.card_membership_outlined,
                     title: 'Pricing',
