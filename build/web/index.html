@@ -1,46 +1,112 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
   <base href="/">
-
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="description" content="WrindhaOS Productivity App">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="productivity_app">
+  <meta name="apple-mobile-web-app-title" content="WrindhaOS">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
-
-  <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>productivity_app</title>
+  <title>WrindhaOS</title>
   <link rel="manifest" href="manifest.json">
+
+  <style>
+    .module-icon-overlay {
+      position: absolute;
+      pointer-events: none;
+      z-index: 99999;
+      object-fit: contain;
+      transition: opacity 0.2s ease;
+      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.08));
+    }
+  </style>
 </head>
 <body>
-  <!--
-    You can customize the "flutter_bootstrap.js" script.
-    This is useful to provide a custom configuration to the Flutter loader
-    or to give the user feedback during the initialization process.
+  <script>
+    // Custom Illustrated Icons Overlay Manager for WrindhaOS
+    (function() {
+      const ICON_MAP = {
+        'Personal': '/assets/icons/ic_personal_growth.png',
+        'Career': '/assets/icons/ic_career.png',
+        'Studies': '/assets/icons/ic_studies.png',
+        'Calendar': '/assets/icons/ic_calendar.png',
+        'Priority': '/assets/icons/ic_priority.png',
+        'Analytics': '/assets/icons/ic_analytics.png'
+      };
 
-    For more details:
-    * https://docs.flutter.dev/platform-integration/web/initialization
-  -->
+      const overlayContainer = document.createElement('div');
+      overlayContainer.id = 'wrindha-icon-overlays';
+      overlayContainer.style.position = 'fixed';
+      overlayContainer.style.top = '0';
+      overlayContainer.style.left = '0';
+      overlayContainer.style.width = '100vw';
+      overlayContainer.style.height = '100vh';
+      overlayContainer.style.pointerEvents = 'none';
+      overlayContainer.style.zIndex = '999999';
+      document.body.appendChild(overlayContainer);
+
+      const activeOverlays = new Map();
+
+      function updateOverlays() {
+        const semantics = document.querySelectorAll('flt-semantics[aria-label], flt-semantics-placeholder, [role="button"]');
+        const foundKeys = new Set();
+
+        semantics.forEach(el => {
+          const label = el.getAttribute('aria-label') || el.innerText || '';
+          for (const [key, iconSrc] of Object.entries(ICON_MAP)) {
+            if (label.includes(key)) {
+              const rect = el.getBoundingClientRect();
+              if (rect.width > 80 && rect.height > 60 && rect.top >= 0 && rect.top < window.innerHeight) {
+                foundKeys.add(key);
+                let img = activeOverlays.get(key);
+                if (!img) {
+                  img = document.createElement('img');
+                  img.src = iconSrc;
+                  img.className = 'module-icon-overlay';
+                  overlayContainer.appendChild(img);
+                  activeOverlays.set(key, img);
+                }
+                
+                // Position at top-left of the card with standard padding
+                const iconSize = Math.min(48, Math.max(36, rect.height * 0.28));
+                const iconLeft = rect.left + 16;
+                const iconTop = rect.top + 16;
+
+                img.style.width = iconSize + 'px';
+                img.style.height = iconSize + 'px';
+                img.style.left = iconLeft + 'px';
+                img.style.top = iconTop + 'px';
+                img.style.display = 'block';
+                img.style.opacity = '1';
+              }
+            }
+          }
+        });
+
+        // Hide overlays for modules not currently visible on screen
+        activeOverlays.forEach((img, key) => {
+          if (!foundKeys.has(key)) {
+            img.style.display = 'none';
+            img.style.opacity = '0';
+          }
+        });
+
+        requestAnimationFrame(updateOverlays);
+      }
+
+      // Start detection after Flutter initializes
+      window.addEventListener('load', () => {
+        setTimeout(updateOverlays, 600);
+      });
+      setTimeout(updateOverlays, 1000);
+    })();
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
