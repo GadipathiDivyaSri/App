@@ -1,0 +1,6 @@
+{
+  "name": "WrindhaOS Admin Panel",
+  "description": "Private administration dashboard, user management, Google Play subscription control, product analytics, career roadmap management, push notifications, global app settings, website configuration, and legal policy management for WrindhaOS.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

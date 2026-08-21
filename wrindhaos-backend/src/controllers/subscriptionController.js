@@ -37,12 +37,29 @@ async function getMySubscription(req, res, next) {
 }
 
 /**
- * Google Play Real-Time Developer Notification Webhook (Idempotent Event Handler)
- * Endpoint: POST /api/v1/subscriptions/google/webhook
+ * In-App / Web Subscription Checkout with Referral Discount applied
+ * Endpoint: POST /api/v1/subscriptions/checkout
  */
+async function checkoutSubscription(req, res, next) {
+  try {
+    const { plan, basePrice } = req.body;
+    const userId = req.user.id;
+
+    const result = await subscriptionService.checkoutSubscription(
+      userId,
+      plan || 'PREMIUM',
+      basePrice || 59.0,
+      req.ip
+    );
+
+    sendSuccess(res, result, result.message);
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function handleGooglePlayWebhook(req, res, next) {
   try {
-    // Process Google Play Pub/Sub Event (Idempotent Handler)
     sendSuccess(res, { received: true }, 'Google Play lifecycle notification received & processed.');
   } catch (err) {
     next(err);
@@ -51,6 +68,7 @@ async function handleGooglePlayWebhook(req, res, next) {
 
 module.exports = {
   verifyGooglePlaySubscription,
+  checkoutSubscription,
   getMySubscription,
   handleGooglePlayWebhook,
 };

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
+import '../theme/app_theme.dart';
+import 'terms_conditions_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -18,8 +20,9 @@ class _SignUpScreenState extends State<SignUpScreen>
   final _emailCtrl = TextEditingController();
   final _otpCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
+  final _referralCodeCtrl = TextEditingController();
   bool _otpSent = false;
-  bool _agreeTerms = true;
+  bool _agreeTerms = false;
   bool _obscurePassword = true;
 
   @override
@@ -36,6 +39,7 @@ class _SignUpScreenState extends State<SignUpScreen>
     _emailCtrl.dispose();
     _otpCtrl.dispose();
     _passwordCtrl.dispose();
+    _referralCodeCtrl.dispose();
     super.dispose();
   }
 
@@ -50,7 +54,7 @@ class _SignUpScreenState extends State<SignUpScreen>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('OTP sent to $input! (Use code: 1234)'),
-          backgroundColor: const Color(0xFF0D5CE5),
+          backgroundColor: AppTheme.primaryAccent,
         ),
       );
     } else {
@@ -58,9 +62,39 @@ class _SignUpScreenState extends State<SignUpScreen>
         const SnackBar(content: Text('Please enter phone or email first')),
       );
     }
+  Future<bool> _openTermsAndConditions() async {
+    final accepted = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const TermsConditionsScreen(isReviewMode: true),
+      ),
+    );
+
+    if (accepted == true) {
+      setState(() {
+        _agreeTerms = true;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
+                SizedBox(width: 8),
+                Text('Terms & Conditions accepted.'),
+              ],
+            ),
+            backgroundColor: Color(0xFF0D5CE5),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+      return true;
+    }
+    return false;
   }
 
-  void _handleSignUp() {
+  void _handleSignUp() async {
     if (_nameCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter your full name')),
@@ -71,22 +105,50 @@ class _SignUpScreenState extends State<SignUpScreen>
     if (!_agreeTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text('Please accept the Terms & Privacy Policy')),
+          content: Text('Please review and accept our Terms & Conditions'),
+          backgroundColor: Color(0xFFEF4444),
+          duration: Duration(seconds: 2),
+        ),
       );
-      return;
+      final accepted = await _openTermsAndConditions();
+      if (!accepted) return;
     }
 
     final isMobileTab = _tabController.index == 0;
     final contact = isMobileTab ? _phoneCtrl.text.trim() : _emailCtrl.text.trim();
+    final refCode = _referralCodeCtrl.text.trim();
 
+    if (!mounted) return;
     final provider = Provider.of<AppProvider>(context, listen: false);
-    provider.signup(_nameCtrl.text.trim(), contact);
+    provider.signup(
+      _nameCtrl.text.trim(),
+      contact,
+      refCode: refCode.isNotEmpty ? refCode : null,
+    );
     Navigator.popUntil(context, (route) => route.isFirst);
   }
 
-  void _handleGoogleSignUp() {
+  void _handleGoogleSignUp() async {
+    if (!_agreeTerms) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please review and accept our Terms & Conditions'),
+          backgroundColor: Color(0xFFEF4444),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      final accepted = await _openTermsAndConditions();
+      if (!accepted) return;
+    }
+
+    if (!mounted) return;
     final provider = Provider.of<AppProvider>(context, listen: false);
-    provider.signup('Alex Johnson', 'alex.google@gmail.com');
+    final refCode = _referralCodeCtrl.text.trim();
+    provider.signup(
+      'Alex Johnson',
+      'alex.google@gmail.com',
+      refCode: refCode.isNotEmpty ? refCode : null,
+    );
     Navigator.popUntil(context, (route) => route.isFirst);
   }
 
@@ -95,9 +157,14 @@ class _SignUpScreenState extends State<SignUpScreen>
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
+      backgroundColor: isDark ? AppTheme.darkBg : AppTheme.background,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            size: 20,
+            color: isDark ? Colors.white : AppTheme.textPrimary,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -112,16 +179,16 @@ class _SignUpScreenState extends State<SignUpScreen>
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.w800,
-                  color: isDark ? Colors.white : const Color(0xFF1E293B),
+                  color: isDark ? Colors.white : AppTheme.textPrimary,
                 ),
               ),
               const SizedBox(height: 6),
-              const Text(
+              Text(
                 'Sign up with your details to unlock personal growth and study dashboards.',
                 style: TextStyle(
                   fontSize: 13,
                   height: 1.4,
-                  color: Color(0xFF64748B),
+                  color: isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary,
                 ),
               ),
               const SizedBox(height: 24),
@@ -139,9 +206,12 @@ class _SignUpScreenState extends State<SignUpScreen>
               const SizedBox(height: 8),
               TextField(
                 controller: _nameCtrl,
-                autofocus: true,
                 decoration: InputDecoration(
-                  hintText: 'e.g., Alex Johnson',
+                  hintText: 'Enter your full name',
+                  hintStyle: const TextStyle(
+                    fontSize: 13.5,
+                    color: Color(0xFF94A3B8),
+                  ),
                   prefixIcon: const Icon(Icons.person_outline_rounded,
                       size: 20, color: Color(0xFF0D5CE5)),
                   filled: true,
@@ -149,8 +219,29 @@ class _SignUpScreenState extends State<SignUpScreen>
                       ? const Color(0xFF1E1F2B)
                       : const Color(0xFFF8FAFC),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide.none,
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(
+                      color: isDark
+                          ? const Color(0xFF334155)
+                          : const Color(0xFFE2E8F0),
+                      width: 1,
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(
+                      color: isDark
+                          ? const Color(0xFF334155)
+                          : const Color(0xFFE2E8F0),
+                      width: 1,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: const BorderSide(
+                      color: Color(0xFF0D5CE5),
+                      width: 1.5,
+                    ),
                   ),
                 ),
               ),
@@ -186,7 +277,7 @@ class _SignUpScreenState extends State<SignUpScreen>
 
               // Tab View Contents
               SizedBox(
-                height: _otpSent ? 160 : 80,
+                height: _otpSent ? 160 : 75,
                 child: TabBarView(
                   controller: _tabController,
                   children: [
@@ -201,7 +292,11 @@ class _SignUpScreenState extends State<SignUpScreen>
                                 controller: _phoneCtrl,
                                 keyboardType: TextInputType.phone,
                                 decoration: InputDecoration(
-                                  hintText: '+91 9876543210',
+                                  hintText: 'Enter mobile number',
+                                  hintStyle: const TextStyle(
+                                    fontSize: 13.5,
+                                    color: Color(0xFF94A3B8),
+                                  ),
                                   prefixIcon: const Icon(
                                       Icons.phone_iphone_rounded,
                                       size: 20,
@@ -211,8 +306,29 @@ class _SignUpScreenState extends State<SignUpScreen>
                                       ? const Color(0xFF1E1F2B)
                                       : const Color(0xFFF8FAFC),
                                   border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                    borderSide: BorderSide.none,
+                                    borderRadius: BorderRadius.circular(14),
+                                    borderSide: BorderSide(
+                                      color: isDark
+                                          ? const Color(0xFF334155)
+                                          : const Color(0xFFE2E8F0),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                    borderSide: BorderSide(
+                                      color: isDark
+                                          ? const Color(0xFF334155)
+                                          : const Color(0xFFE2E8F0),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                    borderSide: const BorderSide(
+                                      color: Color(0xFF0D5CE5),
+                                      width: 1.5,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -221,8 +337,9 @@ class _SignUpScreenState extends State<SignUpScreen>
                             ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF0D5CE5),
+                                elevation: 0,
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 14, vertical: 16),
+                                    horizontal: 16, vertical: 14),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(14),
                                 ),
@@ -242,7 +359,11 @@ class _SignUpScreenState extends State<SignUpScreen>
                             keyboardType: TextInputType.number,
                             maxLength: 4,
                             decoration: InputDecoration(
-                              hintText: 'Enter 4-digit OTP (1234)',
+                              hintText: 'Enter 4-digit OTP',
+                              hintStyle: const TextStyle(
+                                fontSize: 13.5,
+                                color: Color(0xFF94A3B8),
+                              ),
                               counterText: '',
                               prefixIcon: const Icon(
                                   Icons.lock_clock_outlined,
@@ -253,8 +374,29 @@ class _SignUpScreenState extends State<SignUpScreen>
                                   ? const Color(0xFF1E1F2B)
                                   : const Color(0xFFF8FAFC),
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                borderSide: BorderSide.none,
+                                borderRadius: BorderRadius.circular(14),
+                                borderSide: BorderSide(
+                                  color: isDark
+                                      ? const Color(0xFF334155)
+                                      : const Color(0xFFE2E8F0),
+                                  width: 1,
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(14),
+                                borderSide: BorderSide(
+                                  color: isDark
+                                      ? const Color(0xFF334155)
+                                      : const Color(0xFFE2E8F0),
+                                  width: 1,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(14),
+                                borderSide: const BorderSide(
+                                  color: Color(0xFF0D5CE5),
+                                  width: 1.5,
+                                ),
                               ),
                             ),
                           ),
@@ -273,7 +415,11 @@ class _SignUpScreenState extends State<SignUpScreen>
                                 controller: _emailCtrl,
                                 keyboardType: TextInputType.emailAddress,
                                 decoration: InputDecoration(
-                                  hintText: 'alex@example.com',
+                                  hintText: 'Enter email address',
+                                  hintStyle: const TextStyle(
+                                    fontSize: 13.5,
+                                    color: Color(0xFF94A3B8),
+                                  ),
                                   prefixIcon: const Icon(Icons.email_outlined,
                                       size: 20, color: Color(0xFF0D5CE5)),
                                   filled: true,
@@ -281,8 +427,29 @@ class _SignUpScreenState extends State<SignUpScreen>
                                       ? const Color(0xFF1E1F2B)
                                       : const Color(0xFFF8FAFC),
                                   border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                    borderSide: BorderSide.none,
+                                    borderRadius: BorderRadius.circular(14),
+                                    borderSide: BorderSide(
+                                      color: isDark
+                                          ? const Color(0xFF334155)
+                                          : const Color(0xFFE2E8F0),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                    borderSide: BorderSide(
+                                      color: isDark
+                                          ? const Color(0xFF334155)
+                                          : const Color(0xFFE2E8F0),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                    borderSide: const BorderSide(
+                                      color: Color(0xFF0D5CE5),
+                                      width: 1.5,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -291,8 +458,9 @@ class _SignUpScreenState extends State<SignUpScreen>
                             ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF0D5CE5),
+                                elevation: 0,
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 14, vertical: 16),
+                                    horizontal: 16, vertical: 14),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(14),
                                 ),
@@ -312,7 +480,11 @@ class _SignUpScreenState extends State<SignUpScreen>
                             keyboardType: TextInputType.number,
                             maxLength: 4,
                             decoration: InputDecoration(
-                              hintText: 'Enter 4-digit OTP (1234)',
+                              hintText: 'Enter 4-digit OTP',
+                              hintStyle: const TextStyle(
+                                fontSize: 13.5,
+                                color: Color(0xFF94A3B8),
+                              ),
                               counterText: '',
                               prefixIcon: const Icon(
                                   Icons.lock_clock_outlined,
@@ -323,8 +495,29 @@ class _SignUpScreenState extends State<SignUpScreen>
                                   ? const Color(0xFF1E1F2B)
                                   : const Color(0xFFF8FAFC),
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                borderSide: BorderSide.none,
+                                borderRadius: BorderRadius.circular(14),
+                                borderSide: BorderSide(
+                                  color: isDark
+                                      ? const Color(0xFF334155)
+                                      : const Color(0xFFE2E8F0),
+                                  width: 1,
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(14),
+                                borderSide: BorderSide(
+                                  color: isDark
+                                      ? const Color(0xFF334155)
+                                      : const Color(0xFFE2E8F0),
+                                  width: 1,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(14),
+                                borderSide: const BorderSide(
+                                  color: Color(0xFF0D5CE5),
+                                  width: 1.5,
+                                ),
                               ),
                             ),
                           ),
@@ -351,7 +544,11 @@ class _SignUpScreenState extends State<SignUpScreen>
                 controller: _passwordCtrl,
                 obscureText: _obscurePassword,
                 decoration: InputDecoration(
-                  hintText: '••••••••',
+                  hintText: 'Create a password',
+                  hintStyle: const TextStyle(
+                    fontSize: 13.5,
+                    color: Color(0xFF94A3B8),
+                  ),
                   prefixIcon: const Icon(Icons.lock_outline_rounded,
                       size: 20, color: Color(0xFF0D5CE5)),
                   suffixIcon: IconButton(
@@ -369,15 +566,239 @@ class _SignUpScreenState extends State<SignUpScreen>
                       ? const Color(0xFF1E1F2B)
                       : const Color(0xFFF8FAFC),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide.none,
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(
+                      color: isDark
+                          ? const Color(0xFF334155)
+                          : const Color(0xFFE2E8F0),
+                      width: 1,
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(
+                      color: isDark
+                          ? const Color(0xFF334155)
+                          : const Color(0xFFE2E8F0),
+                      width: 1,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: const BorderSide(
+                      color: Color(0xFF0D5CE5),
+                      width: 1.5,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // REFERRAL CODE (OPTIONAL)
+              const Text(
+                'REFERRAL CODE (OPTIONAL)',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.1,
+                  color: Color(0xFF94A3B8),
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _referralCodeCtrl,
+                textCapitalization: TextCapitalization.characters,
+                decoration: InputDecoration(
+                  hintText: 'Enter referral code (optional)',
+                  hintStyle: const TextStyle(
+                    fontSize: 13.5,
+                    color: Color(0xFF94A3B8),
+                  ),
+                  prefixIcon: const Icon(Icons.discount_outlined,
+                      size: 20, color: Color(0xFF0D5CE5)),
+                  filled: true,
+                  fillColor: isDark
+                      ? const Color(0xFF1E1F2B)
+                      : const Color(0xFFF8FAFC),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(
+                      color: isDark
+                          ? const Color(0xFF334155)
+                          : const Color(0xFFE2E8F0),
+                      width: 1,
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(
+                      color: isDark
+                          ? const Color(0xFF334155)
+                          : const Color(0xFFE2E8F0),
+                      width: 1,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: const BorderSide(
+                      color: Color(0xFF0D5CE5),
+                      width: 1.5,
+                    ),
                   ),
                 ),
               ),
               const SizedBox(height: 14),
 
-              // Terms & Conditions Checkbox
+              // Dedicated Terms & Conditions Review Card
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? const Color(0xFF181B26)
+                      : (_agreeTerms
+                          ? const Color(0xFFF0FDF4)
+                          : const Color(0xFFEFF6FF)),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(
+                    color: _agreeTerms
+                        ? const Color(0xFF10B981)
+                        : const Color(0xFF0D5CE5).withOpacity(0.4),
+                    width: 1.2,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: (_agreeTerms
+                                    ? const Color(0xFF10B981)
+                                    : const Color(0xFF0D5CE5))
+                                .withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(
+                            _agreeTerms
+                                ? Icons.verified_rounded
+                                : Icons.menu_book_rounded,
+                            color: _agreeTerms
+                                ? const Color(0xFF10B981)
+                                : const Color(0xFF0D5CE5),
+                            size: 20,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Terms & Conditions',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark
+                                      ? Colors.white
+                                      : const Color(0xFF1E293B),
+                                ),
+                              ),
+                              Text(
+                                '16 binding sections for exam aspirants',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: isDark
+                                      ? const Color(0xFF94A3B8)
+                                      : const Color(0xFF64748B),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: _agreeTerms
+                                ? const Color(0xFF10B981)
+                                : const Color(0xFFEF4444),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            _agreeTerms ? 'ACCEPTED' : 'REQUIRED',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      _agreeTerms
+                          ? 'You have reviewed and accepted the 16 sections of our Terms & Conditions and Privacy Policy.'
+                          : 'To protect your data and exam preparation privacy, please open and read our Terms & Conditions before signing up.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        height: 1.45,
+                        color: isDark
+                            ? const Color(0xFF94A3B8)
+                            : const Color(0xFF475569),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 40,
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _agreeTerms
+                              ? const Color(0xFF10B981).withOpacity(0.15)
+                              : const Color(0xFF0D5CE5),
+                          foregroundColor: _agreeTerms
+                              ? const Color(0xFF10B981)
+                              : Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: _agreeTerms
+                                ? const BorderSide(color: Color(0xFF10B981))
+                                : BorderSide.none,
+                          ),
+                        ),
+                        onPressed: _openTermsAndConditions,
+                        icon: Icon(
+                          _agreeTerms
+                              ? Icons.check_circle_rounded
+                              : Icons.chrome_reader_mode_rounded,
+                          size: 18,
+                        ),
+                        label: Text(
+                          _agreeTerms
+                              ? 'Terms Read & Accepted (Tap to Re-read)'
+                              : 'Read & Accept Terms & Conditions',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
+
+              // Agreement Checkbox
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   SizedBox(
                     width: 24,
@@ -385,15 +806,38 @@ class _SignUpScreenState extends State<SignUpScreen>
                     child: Checkbox(
                       value: _agreeTerms,
                       activeColor: const Color(0xFF0D5CE5),
-                      onChanged: (val) =>
-                          setState(() => _agreeTerms = val ?? true),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      onChanged: (val) {
+                        if (val == true && !_agreeTerms) {
+                          _openTermsAndConditions();
+                        } else {
+                          setState(() => _agreeTerms = val ?? false);
+                        }
+                      },
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  const Expanded(
-                    child: Text(
-                      'I agree to the Terms of Service & Privacy Policy',
-                      style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        if (!_agreeTerms) {
+                          _openTermsAndConditions();
+                        } else {
+                          setState(() => _agreeTerms = false);
+                        }
+                      },
+                      child: Text(
+                        'I confirm that I have read and agree to the Terms & Conditions and Privacy Policy.',
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          height: 1.45,
+                          color: isDark
+                              ? const Color(0xFF94A3B8)
+                              : const Color(0xFF64748B),
+                        ),
+                      ),
                     ),
                   ),
                 ],

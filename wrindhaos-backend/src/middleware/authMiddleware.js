@@ -33,14 +33,20 @@ function authenticateUser(req, res, next) {
   } catch (err) {
     // Demo fallback for testing
     if (token === 'mock_jwt_token_wrindha_os_2fa' || token === 'mock_jwt_google_sso_token') {
-      req.user = {
-        id: 'u_1',
-        email: 'alex.johnson@example.com',
-        phone_number: '+919876543210',
-        subscription_plan: 'FREE',
-        subscription_status: 'ACTIVE',
-        ads_enabled: true,
-      };
+      let u = mockStore.users.get('u_1');
+      if (!u) {
+        u = {
+          id: 'u_1',
+          full_name: 'Alex Johnson',
+          email: 'alex.johnson@example.com',
+          phone_number: '+919876543210',
+          subscription_plan: 'FREE',
+          subscription_status: 'ACTIVE',
+          ads_enabled: true,
+        };
+        mockStore.users.set('u_1', u);
+      }
+      req.user = u;
       return next();
     }
     return sendError(res, 'Session token expired or invalid', 'UNAUTHORIZED', 401);

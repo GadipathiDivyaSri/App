@@ -5,6 +5,8 @@ const { mockStore } = require('../config/supabase');
 const { logAuditEvent } = require('../utils/auditLogger');
 const AUDIT_EVENTS = require('../constants/auditEvents');
 
+const { generateUniqueReferralCode, ensureUserReferralCode, applyReferralCode } = require('./referralService');
+
 /**
  * Generate JWT Session Token
  */
@@ -17,6 +19,7 @@ function generateToken(user) {
       plan: user.subscription_plan || 'FREE',
       status: user.subscription_status || 'ACTIVE',
       adsEnabled: user.ads_enabled ?? true,
+      referralCode: user.referral_code,
     },
     config.jwt.secret,
     { expiresIn: config.jwt.expiresIn }
@@ -26,13 +29,14 @@ function generateToken(user) {
 /**
  * Authenticate or Register via Email OTP
  */
-async function authenticateEmail(email, ipAddress) {
+async function authenticateEmail(email, ipAddress, referredByCode = null) {
   let user = Array.from(mockStore.users.values()).find((u) => u.email === email);
   let isNewUser = false;
 
   if (!user) {
     isNewUser = true;
     const userId = crypto.randomUUID();
+    const referralCode = generateUniqueReferralCode('WRINDHA');
     user = {
       id: userId,
       full_name: email.split('@')[0],
@@ -42,6 +46,8 @@ async function authenticateEmail(email, ipAddress) {
       subscription_plan: 'FREE',
       subscription_status: 'ACTIVE',
       ads_enabled: true,
+      referral_code: referralCode,
+      referred_by_code: null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       last_login_at: new Date().toISOString(),
@@ -57,8 +63,15 @@ async function authenticateEmail(email, ipAddress) {
       email: email,
     });
 
-    await logAuditEvent(userId, AUDIT_EVENTS.USER_CREATED, { method: 'email_otp', email }, ipAddress);
+    if (referredByCode) {
+      try {
+        await applyReferralCode(userId, referredByCode, ipAddress);
+      } catch (_) {}
+    }
+
+    await logAuditEvent(userId, AUDIT_EVENTS.USER_CREATED, { method: 'email_otp', email, referralCode }, ipAddress);
   } else {
+    ensureUserReferralCode(user);
     user.last_login_at = new Date().toISOString();
   }
 
@@ -71,13 +84,14 @@ async function authenticateEmail(email, ipAddress) {
 /**
  * Authenticate or Register via Mobile OTP
  */
-async function authenticateMobile(phone, ipAddress) {
+async function authenticateMobile(phone, ipAddress, referredByCode = null) {
   let user = Array.from(mockStore.users.values()).find((u) => u.phone_number === phone);
   let isNewUser = false;
 
   if (!user) {
     isNewUser = true;
     const userId = crypto.randomUUID();
+    const referralCode = generateUniqueReferralCode('WRINDHA');
     user = {
       id: userId,
       full_name: 'Mobile Student',
@@ -87,6 +101,8 @@ async function authenticateMobile(phone, ipAddress) {
       subscription_plan: 'FREE',
       subscription_status: 'ACTIVE',
       ads_enabled: true,
+      referral_code: referralCode,
+      referred_by_code: null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       last_login_at: new Date().toISOString(),
@@ -101,8 +117,15 @@ async function authenticateMobile(phone, ipAddress) {
       phone: phone,
     });
 
-    await logAuditEvent(userId, AUDIT_EVENTS.USER_CREATED, { method: 'mobile_otp', phone }, ipAddress);
+    if (referredByCode) {
+      try {
+        await applyReferralCode(userId, referredByCode, ipAddress);
+      } catch (_) {}
+    }
+
+    await logAuditEvent(userId, AUDIT_EVENTS.USER_CREATED, { method: 'mobile_otp', phone, referralCode }, ipAddress);
   } else {
+    ensureUserReferralCode(user);
     user.last_login_at = new Date().toISOString();
   }
 
@@ -115,7 +138,7 @@ async function authenticateMobile(phone, ipAddress) {
 /**
  * Authenticate via Google Sign-In (Server-side Token Verification)
  */
-async function authenticateGoogle(idToken, ipAddress) {
+async function authenticateGoogle(idToken, ipAddress, referredByCode = null) {
   // Server-side Google Token Verification Simulation / OAuth Check
   if (!idToken) {
     throw { statusCode: 400, code: 'INVALID_GOOGLE_TOKEN', message: 'Google identity token required.' };
@@ -130,6 +153,7 @@ async function authenticateGoogle(idToken, ipAddress) {
   if (!user) {
     isNewUser = true;
     const userId = crypto.randomUUID();
+    const referralCode = generateUniqueReferralCode('WRINDHA');
     user = {
       id: userId,
       full_name: 'Alex Johnson',
@@ -139,6 +163,8 @@ async function authenticateGoogle(idToken, ipAddress) {
       subscription_plan: 'FREE',
       subscription_status: 'ACTIVE',
       ads_enabled: true,
+      referral_code: referralCode,
+      referred_by_code: null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       last_login_at: new Date().toISOString(),
@@ -153,8 +179,15 @@ async function authenticateGoogle(idToken, ipAddress) {
       email: googleEmail,
     });
 
-    await logAuditEvent(userId, AUDIT_EVENTS.USER_CREATED, { method: 'google_sso', googleId }, ipAddress);
+    if (referredByCode) {
+      try {
+        await applyReferralCode(userId, referredByCode, ipAddress);
+      } catch (_) {}
+    }
+
+    await logAuditEvent(userId, AUDIT_EVENTS.USER_CREATED, { method: 'google_sso', googleId, referralCode }, ipAddress);
   } else {
+    ensureUserReferralCode(user);
     user.last_login_at = new Date().toISOString();
   }
 

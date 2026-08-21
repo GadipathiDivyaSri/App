@@ -1,4 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
+import '../providers/app_provider.dart';
+import '../models/models.dart';
+import '../theme/app_theme.dart';
 
 class ReferralScreen extends StatelessWidget {
   const ReferralScreen({super.key});
@@ -6,48 +12,69 @@ class ReferralScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final provider = Provider.of<AppProvider>(context);
+    final user = provider.user;
+    final referralCode = user.referralCode.isNotEmpty ? user.referralCode : 'WRINDHA7K92';
+    final successfulCount = user.successfulReferrals;
+    final pendingCount = user.pendingReferrals;
+    final discountPercent = user.activeDiscountPercent;
+    final activities = provider.referralActivities;
+
+    final shareMessage =
+        'Try WrindhaOS — an all-in-one productivity and life management app. Use my referral code $referralCode when you join.';
 
     return Scaffold(
+      backgroundColor: isDark ? AppTheme.darkBg : AppTheme.background,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            size: 20,
+            color: isDark ? Colors.white : AppTheme.textPrimary,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Referral Rewards'),
+        title: Text(
+          'Refer & Earn',
+          style: TextStyle(
+            color: isDark ? Colors.white : AppTheme.textPrimary,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Top Blue Banner
+            // Top Pastel / Dark Banner
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(22),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF2563EB), Color(0xFF1D4ED8)],
-                ),
+                color: isDark ? AppTheme.darkCardBg : AppTheme.career,
                 borderRadius: BorderRadius.circular(22),
+                border: isDark ? Border.all(color: AppTheme.darkCardBorder, width: 1) : null,
               ),
-              child: const Column(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Refer your friends, get rewarded!',
+                    'Refer & Earn',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: isDark ? Colors.white : AppTheme.textPrimary,
                       fontSize: 22,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
-                    'Refer a friend and get a 4% discount on your next billing cycle once they join.',
+                    "Invite a friend to WrindhaOS. When they become a paid user, you'll receive 10% off your next billing cycle.",
                     style: TextStyle(
-                      color: Colors.white70,
+                      color: isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary,
                       fontSize: 13,
                       height: 1.4,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
@@ -55,55 +82,63 @@ class ReferralScreen extends StatelessWidget {
             ),
             const SizedBox(height: 20),
 
-            // Card 1: YOUR UNIQUE CODE
+            // Card 1: YOUR UNIQUE REFERRAL CODE
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E1F2B) : const Color(0xFFEEF2FF),
+                color: isDark ? AppTheme.darkCardBg : AppTheme.cardSurface,
                 borderRadius: BorderRadius.circular(22),
+                border: isDark ? Border.all(color: AppTheme.darkCardBorder, width: 1) : null,
+                boxShadow: isDark ? AppTheme.darkCardShadow : AppTheme.cardShadow,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'YOUR UNIQUE CODE',
+                  Text(
+                    'YOUR UNIQUE REFERRAL CODE',
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 1.1,
-                      color: Color(0xFF94A3B8),
+                      color: isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 10),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 14),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF2A2B3D) : Colors.white,
+                      color: isDark ? AppTheme.darkIconBg : AppTheme.inputBg,
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: const Color(0xFFCBD5E1)),
+                      border: Border.all(color: isDark ? AppTheme.darkCardBorder : AppTheme.borderLight),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          'WRINDHA-ALEX-123',
+                        Text(
+                          referralCode,
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: 18,
                             fontWeight: FontWeight.w800,
-                            letterSpacing: 1.2,
-                            color: Color(0xFF0D5CE5),
+                            letterSpacing: 1.5,
+                            color: isDark ? AppTheme.darkIconGlow : AppTheme.primaryAccent,
                           ),
                         ),
-                        GestureDetector(
-                          onTap: () {
+                        IconButton(
+                          icon: Icon(
+                            Icons.copy_rounded,
+                            size: 22,
+                            color: isDark ? AppTheme.darkIconGlow : AppTheme.primaryAccent,
+                          ),
+                          tooltip: 'Copy Referral Code',
+                          onPressed: () {
+                            Clipboard.setData(ClipboardData(text: referralCode));
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text('Referral code copied!')),
+                              SnackBar(
+                                content: Text('Referral code $referralCode copied to clipboard!'),
+                                backgroundColor: AppTheme.primaryAccent,
+                              ),
                             );
                           },
-                          child: const Icon(Icons.copy_rounded,
-                              size: 20, color: Color(0xFF0D5CE5)),
                         ),
                       ],
                     ),
@@ -114,19 +149,16 @@ class ReferralScreen extends StatelessWidget {
                     height: 48,
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0D5CE5),
+                        backgroundColor: isDark ? AppTheme.darkPrimary : AppTheme.primaryAccent,
+                        foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
                         ),
                       ),
                       onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text('Share link dialogue opened.')),
-                        );
+                        Share.share(shareMessage);
                       },
-                      icon: const Icon(Icons.share_outlined,
-                          color: Colors.white, size: 18),
+                      icon: const Icon(Icons.share_outlined, color: Colors.white, size: 18),
                       label: const Text(
                         'Share Referral Link',
                         style: TextStyle(
@@ -142,7 +174,7 @@ class ReferralScreen extends StatelessWidget {
             ),
             const SizedBox(height: 20),
 
-            // Card 2: REFERRAL STATUS
+            // Card 2: REFERRAL SUMMARY & NEXT BILLING DISCOUNT
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -161,7 +193,7 @@ class ReferralScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'REFERRAL STATUS',
+                    'REWARDS & REFERRAL STATS',
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
@@ -169,85 +201,76 @@ class ReferralScreen extends StatelessWidget {
                       color: Color(0xFF94A3B8),
                     ),
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 16),
                   Row(
                     children: [
-                      Container(
-                        width: 50,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                              color: const Color(0xFF0D5CE5), width: 3),
-                        ),
-                        child: const Center(
-                          child: Text(
-                            '3',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF0D5CE5),
-                            ),
-                          ),
+                      Expanded(
+                        child: _buildMetricTile(
+                          context,
+                          title: 'Successful',
+                          value: '$successfulCount',
+                          subtitle: 'Paid Friends',
+                          icon: Icons.check_circle_outline_rounded,
+                          color: const Color(0xFF10B981),
                         ),
                       ),
-                      const SizedBox(width: 14),
-                      const Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '3 Friends Joined',
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            SizedBox(height: 2),
-                            Text(
-                              "You've earned 12% off your next payment!",
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Color(0xFF64748B),
-                              ),
-                            ),
-                          ],
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildMetricTile(
+                          context,
+                          title: 'Pending',
+                          value: '$pendingCount',
+                          subtitle: 'Invited Friends',
+                          icon: Icons.hourglass_top_rounded,
+                          color: const Color(0xFFF59E0B),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
-                  const Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'MILESTONE 1 (5 FRIENDS)',
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF94A3B8),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF2A2B3D) : const Color(0xFFDBEAFE),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.discount_outlined, color: Color(0xFF0D5CE5), size: 28),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Next Billing Discount',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                discountPercent > 0
+                                    ? '$discountPercent% OFF active (Valid for next cycle only)'
+                                    : 'No active discount. Refer a friend to earn 10% OFF!',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Color(0xFF64748B),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      Text(
-                        'BONUS: +2% EXTRA',
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF94A3B8),
+                        Text(
+                          '$discountPercent%',
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF0D5CE5),
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: const LinearProgressIndicator(
-                      value: 3 / 5,
-                      minHeight: 8,
-                      backgroundColor: Color(0xFFEEF2FF),
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        Color(0xFF0D5CE5),
-                      ),
+                      ],
                     ),
                   ),
                 ],
@@ -255,7 +278,7 @@ class ReferralScreen extends StatelessWidget {
             ),
             const SizedBox(height: 20),
 
-            // Card 3: Recent Activity
+            // Card 3: Reward History
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -273,50 +296,119 @@ class ReferralScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Recent Activity',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : const Color(0xFF1E293B),
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Reward History',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : const Color(0xFF1E293B),
+                        ),
+                      ),
+                      const Text(
+                        '10% Max / Cycle',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF0D5CE5),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 14),
-
-                  _buildActivityCard(
-                    context,
-                    name: 'Sarah Jenkins',
-                    status: 'JOINED VIA LINK • OCT 12',
-                    badgeText: '4% OFF APPLIED',
-                    isApplied: true,
-                    icon: Icons.person_rounded,
-                  ),
-                  const SizedBox(height: 10),
-
-                  _buildActivityCard(
-                    context,
-                    name: 'Mark Thompson',
-                    status: 'JOINED VIA LINK • OCT 08',
-                    badgeText: '4% OFF APPLIED',
-                    isApplied: true,
-                    icon: Icons.person_rounded,
-                  ),
-                  const SizedBox(height: 10),
-
-                  _buildActivityCard(
-                    context,
-                    name: 'Jessica L.',
-                    status: 'INVITE PENDING • OCT 14',
-                    badgeText: 'PENDING',
-                    isApplied: false,
-                    icon: Icons.mail_outline_rounded,
-                  ),
+                  if (activities.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 20.0),
+                      child: Center(
+                        child: Text(
+                          'No referral activity yet. Share your code to get started!',
+                          style: TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
+                        ),
+                      ),
+                    )
+                  else
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: activities.length,
+                      itemBuilder: (ctx, i) {
+                        final act = activities[i];
+                        final isQual = act.status == 'QUALIFIED';
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 10.0),
+                          child: _buildActivityCard(
+                            context,
+                            name: act.name,
+                            status: isQual ? 'QUALIFIED • ${act.date}' : 'PENDING PAYMENT • ${act.date}',
+                            badgeText: isQual ? '${act.discountPercent}% OFF' : 'PENDING',
+                            isApplied: isQual,
+                            icon: isQual ? Icons.person_rounded : Icons.mail_outline_rounded,
+                          ),
+                        );
+                      },
+                    ),
                 ],
               ),
             ),
             const SizedBox(height: 30),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildMetricTile(
+    BuildContext context, {
+    required String title,
+    required String value,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF2A2B3D) : const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF94A3B8),
+                ),
+              ),
+              Icon(icon, size: 16, color: color),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              color: color,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            subtitle,
+            style: const TextStyle(
+              fontSize: 10,
+              color: Color(0xFF64748B),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -341,7 +433,7 @@ class ReferralScreen extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 18,
-            backgroundColor: const Color(0xFFCBD5E1),
+            backgroundColor: isApplied ? const Color(0xFF10B981) : const Color(0xFFCBD5E1),
             child: Icon(icon, size: 20, color: Colors.white),
           ),
           const SizedBox(width: 12),
@@ -373,9 +465,7 @@ class ReferralScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: isApplied
-                  ? const Color(0xFFDBEAFE)
-                  : const Color(0xFFF1F5F9),
+              color: isApplied ? const Color(0xFFDBEAFE) : const Color(0xFFF1F5F9),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Text(
@@ -384,9 +474,7 @@ class ReferralScreen extends StatelessWidget {
                 fontSize: 9,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 0.8,
-                color: isApplied
-                    ? const Color(0xFF0D5CE5)
-                    : const Color(0xFF94A3B8),
+                color: isApplied ? const Color(0xFF0D5CE5) : const Color(0xFF94A3B8),
               ),
             ),
           ),

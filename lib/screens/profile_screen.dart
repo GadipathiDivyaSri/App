@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
+import '../theme/app_theme.dart';
 import 'pricing_screen.dart';
 import 'payment_history_screen.dart';
 import 'notification_settings_screen.dart';
 import 'referral_screen.dart';
+import 'about_us_screen.dart';
+import 'terms_conditions_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   final VoidCallback? onNavigateToHome;
@@ -18,9 +21,14 @@ class ProfileScreen extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
+      backgroundColor: isDark ? AppTheme.darkBg : AppTheme.background,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            size: 20,
+            color: isDark ? Colors.white : AppTheme.textPrimary,
+          ),
           onPressed: () {
             if (Navigator.canPop(context)) {
               Navigator.pop(context);
@@ -29,7 +37,13 @@ class ProfileScreen extends StatelessWidget {
             }
           },
         ),
-        title: const Text('Settings'),
+        title: Text(
+          'Settings',
+          style: TextStyle(
+            color: isDark ? Colors.white : AppTheme.textPrimary,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
@@ -47,11 +61,15 @@ class ProfileScreen extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.w800,
-                          color: isDark ? Colors.white : const Color(0xFF1E293B),
+                          color: isDark ? Colors.white : AppTheme.textPrimary,
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.edit_outlined, size: 18, color: Color(0xFF0D5CE5)),
+                        icon: Icon(
+                          Icons.edit_outlined,
+                          size: 18,
+                          color: isDark ? AppTheme.darkIconGlow : AppTheme.primaryAccent,
+                        ),
                         onPressed: () {
                           _showEditNameDialog(context, provider);
                         },
@@ -60,20 +78,17 @@ class ProfileScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                     decoration: BoxDecoration(
-                      color: isDark
-                          ? const Color(0xFF1E1F2B)
-                          : const Color(0xFFEEF2FF),
+                      color: isDark ? AppTheme.darkIconBg : AppTheme.career,
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: const Text(
+                    child: Text(
                       'WrindhaOS Member',
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF0D5CE5),
+                        color: isDark ? AppTheme.darkIconGlow : AppTheme.primaryAccent,
                       ),
                     ),
                   ),
@@ -90,7 +105,7 @@ class ProfileScreen extends StatelessWidget {
                     context,
                     title: 'FOCUS SCORE',
                     value: '${user.focusScore}',
-                    valueColor: const Color(0xFF0D5CE5),
+                    valueColor: isDark ? AppTheme.darkIconGlow : AppTheme.primaryAccent,
                   ),
                 ),
                 const SizedBox(width: 14),
@@ -99,7 +114,7 @@ class ProfileScreen extends StatelessWidget {
                     context,
                     title: 'ACTIVE STREAK',
                     value: '${user.activeStreak} Days',
-                    valueColor: isDark ? Colors.white : const Color(0xFF1E293B),
+                    valueColor: isDark ? Colors.white : AppTheme.textPrimary,
                   ),
                 ),
               ],
@@ -114,8 +129,25 @@ class ProfileScreen extends StatelessWidget {
                 _MenuItemData(
                     icon: Icons.info_outline_rounded,
                     title: 'About Us',
-                    onTap: () => _showDialog(context, 'About Us',
-                        'Productivity Hub v1.0.0\nBuilt with Flutter & Provider.')),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const AboutUsScreen(),
+                        ),
+                      );
+                    }),
+                _MenuItemData(
+                    icon: Icons.gavel_rounded,
+                    title: 'Terms & Conditions',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const TermsConditionsScreen(),
+                        ),
+                      );
+                    }),
                 _MenuItemData(
                     icon: Icons.card_membership_outlined,
                     title: 'Pricing',
@@ -264,7 +296,7 @@ class ProfileScreen extends StatelessWidget {
                     icon: Icons.help_outline_rounded,
                     title: 'Support & Care',
                     onTap: () => _showDialog(context, 'Support & Care',
-                        'Contact support at help@productivityhub.io')),
+                        'For support, inquiries, or feedback, please contact us at wrindhaos@gmail.com')),
                 _MenuItemData(
                     icon: Icons.share_outlined,
                     title: 'Referral Page',
@@ -290,6 +322,22 @@ class ProfileScreen extends StatelessWidget {
                   color: Colors.redAccent,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+
+            // Delete Account Button
+            TextButton.icon(
+              onPressed: () => _showDeleteAccountDialog(context, provider),
+              icon: const Icon(Icons.delete_outline_rounded,
+                  color: Color(0xFFEF4444), size: 20),
+              label: const Text(
+                'Delete Account',
+                style: TextStyle(
+                  color: Color(0xFFEF4444),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
@@ -478,6 +526,78 @@ class ProfileScreen extends StatelessWidget {
               Provider.of<AppProvider>(context, listen: false).logout();
             },
             child: const Text('Logout', style: TextStyle(color: Colors.redAccent)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteAccountDialog(BuildContext context, AppProvider provider) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: const Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: Color(0xFFEF4444), size: 24),
+            SizedBox(width: 8),
+            Text('Delete Account', style: TextStyle(fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: const Text(
+          'Are you sure you want to permanently delete your account? All your habits, tasks, calendar events, focus scores, and settings will be permanently erased. This action cannot be undone.',
+          style: TextStyle(fontSize: 14, height: 1.4),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(
+              'Cancel',
+              style: TextStyle(
+                color: isDark ? Colors.white70 : const Color(0xFF64748B),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFEF4444),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              elevation: 0,
+            ),
+            onPressed: () async {
+              Navigator.pop(ctx);
+
+              // Show loading feedback
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Deleting account and data...'),
+                  duration: Duration(seconds: 1),
+                ),
+              );
+
+              final res = await provider.deleteAccount();
+
+              if (Navigator.canPop(context)) {
+                Navigator.of(context).popUntil((route) => route.isFirst);
+              }
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(res['message'] ?? 'Account deleted successfully.'),
+                  backgroundColor: const Color(0xFF0D5CE5),
+                ),
+              );
+            },
+            child: const Text(
+              'Delete Permanently',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
         ],
       ),

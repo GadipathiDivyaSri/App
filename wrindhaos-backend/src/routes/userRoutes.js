@@ -8,5 +8,6 @@ router.use(authenticateUser);
 router.get('/me', userController.getCurrentUser);
 router.patch('/me', userController.updateProfile);
 router.delete('/me', userController.deleteAccount);
+router.delete('/delete-account', userController.deleteAccount);
 
 module.exports = router;

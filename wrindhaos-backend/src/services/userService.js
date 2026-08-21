@@ -33,8 +33,30 @@ async function deleteUserAccount(userId, ipAddress) {
   for (const [key, val] of mockStore.habits.entries()) {
     if (val.user_id === userId) mockStore.habits.delete(key);
   }
+  for (const [key, val] of mockStore.habitLogs.entries()) {
+    if (val.user_id === userId) mockStore.habitLogs.delete(key);
+  }
   for (const [key, val] of mockStore.subjects.entries()) {
     if (val.user_id === userId) mockStore.subjects.delete(key);
+  }
+  for (const [key, val] of mockStore.calendarEvents.entries()) {
+    if (val.user_id === userId) mockStore.calendarEvents.delete(key);
+  }
+  for (const [key, val] of mockStore.eisenhowerTasks.entries()) {
+    if (val.user_id === userId) mockStore.eisenhowerTasks.delete(key);
+  }
+  for (const [key, val] of mockStore.expenses.entries()) {
+    if (val.user_id === userId) mockStore.expenses.delete(key);
+  }
+  mockStore.monthlyBudgets.delete(userId);
+  for (const [key, val] of mockStore.referrals.entries()) {
+    if (val.referrer_user_id === userId || val.referred_user_id === userId) mockStore.referrals.delete(key);
+  }
+  for (const [key, val] of mockStore.referralRewards.entries()) {
+    if (val.referrer_user_id === userId) mockStore.referralRewards.delete(key);
+  }
+  for (const [key, val] of mockStore.identities.entries()) {
+    if (val.user_id === userId) mockStore.identities.delete(key);
   }
 
   await logAuditEvent(userId, AUDIT_EVENTS.ACCOUNT_DELETED, {}, ipAddress);

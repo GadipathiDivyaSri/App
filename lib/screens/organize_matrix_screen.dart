@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 
 class OrganizeMatrixScreen extends StatefulWidget {
   const OrganizeMatrixScreen({super.key});
@@ -18,12 +19,23 @@ class _OrganizeMatrixScreenState extends State<OrganizeMatrixScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
+      backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            size: 20,
+            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Organise'),
+        title: Text(
+          'Organise',
+          style: TextStyle(
+            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
@@ -45,33 +57,34 @@ class _OrganizeMatrixScreenState extends State<OrganizeMatrixScreen> {
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.w800,
-                color: isDark ? Colors.white : const Color(0xFF1E293B),
+                color: isDark ? Colors.white : AppTheme.lightTextPrimary,
               ),
             ),
             const SizedBox(height: 6),
-            const Text(
+            Text(
               'Prioritize tasks by urgency and importance in a 2x2 matrix table view.',
               style: TextStyle(
                 fontSize: 13,
                 height: 1.4,
-                color: Color(0xFF64748B),
+                color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
               ),
             ),
             const SizedBox(height: 20),
 
-            // 2x2 Eisenhower Table Grid
+            // 2x2 Eisenhower Table Grid with Exact Filled Pastel Colors
             Column(
               children: [
-                // Row 1: Q1 (Urgent & Important) | Q2 (Important but Not Urgent)
+                // Row 1: Q1 (Do First: #CFE8D5) | Q2 (Schedule: #F8DFA6)
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
                       child: _buildMatrixTableCell(
                         context,
-                        title: 'Urgent & Important',
-                        titleColor: const Color(0xFFEF4444),
-                        borderColor: const Color(0xFFEF4444),
+                        title: 'Do First',
+                        subtitle: 'Urgent & Important',
+                        bgColor: AppTheme.matrixDoFirst,
+                        iconColor: AppTheme.pastelGrowthIcon,
                         icon: Icons.priority_high_rounded,
                         tasks: _q1Tasks,
                         onAddTask: () => _showAddTaskDialog(context, 1),
@@ -81,9 +94,10 @@ class _OrganizeMatrixScreenState extends State<OrganizeMatrixScreen> {
                     Expanded(
                       child: _buildMatrixTableCell(
                         context,
-                        title: 'Important (Not Urgent)',
-                        titleColor: const Color(0xFF0D5CE5),
-                        borderColor: const Color(0xFF0D5CE5),
+                        title: 'Schedule',
+                        subtitle: 'Important (Not Urgent)',
+                        bgColor: AppTheme.matrixSchedule,
+                        iconColor: AppTheme.pastelStudiesIcon,
                         icon: Icons.calendar_today_rounded,
                         tasks: _q2Tasks,
                         onAddTask: () => _showAddTaskDialog(context, 2),
@@ -93,16 +107,17 @@ class _OrganizeMatrixScreenState extends State<OrganizeMatrixScreen> {
                 ),
                 const SizedBox(height: 12),
 
-                // Row 2: Q3 (Urgent but Not Important) | Q4 (Not Urgent & Not Important)
+                // Row 2: Q3 (Delegate: #C4D9E8) | Q4 (Eliminate: #E8B8BC)
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
                       child: _buildMatrixTableCell(
                         context,
-                        title: 'Urgent (Not Important)',
-                        titleColor: const Color(0xFFD97706),
-                        borderColor: const Color(0xFFD97706),
+                        title: 'Delegate',
+                        subtitle: 'Urgent (Not Important)',
+                        bgColor: AppTheme.matrixDelegate,
+                        iconColor: AppTheme.pastelAnalyticsIcon,
                         icon: Icons.people_outline_rounded,
                         tasks: _q3Tasks,
                         onAddTask: () => _showAddTaskDialog(context, 3),
@@ -112,9 +127,10 @@ class _OrganizeMatrixScreenState extends State<OrganizeMatrixScreen> {
                     Expanded(
                       child: _buildMatrixTableCell(
                         context,
-                        title: 'Neither (Delegate)',
-                        titleColor: const Color(0xFF64748B),
-                        borderColor: const Color(0xFFCBD5E1),
+                        title: 'Eliminate',
+                        subtitle: 'Neither',
+                        bgColor: AppTheme.matrixEliminate,
+                        iconColor: AppTheme.pastelPriorityIcon,
                         icon: Icons.delete_outline_rounded,
                         tasks: _q4Tasks,
                         onAddTask: () => _showAddTaskDialog(context, 4),
@@ -134,8 +150,9 @@ class _OrganizeMatrixScreenState extends State<OrganizeMatrixScreen> {
   Widget _buildMatrixTableCell(
     BuildContext context, {
     required String title,
-    required Color titleColor,
-    required Color borderColor,
+    required String subtitle,
+    required Color bgColor,
+    required Color iconColor,
     required IconData icon,
     required List<Map<String, dynamic>> tasks,
     required VoidCallback onAddTask,
@@ -146,17 +163,10 @@ class _OrganizeMatrixScreenState extends State<OrganizeMatrixScreen> {
       constraints: const BoxConstraints(minHeight: 220),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1F2B) : Colors.white,
+        color: isDark ? AppTheme.darkCardBg : bgColor,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: borderColor.withOpacity(0.5), width: 1.5),
-        boxShadow: [
-          if (!isDark)
-            BoxShadow(
-              color: Colors.black.withOpacity(0.02),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
-            ),
-        ],
+        border: isDark ? Border.all(color: AppTheme.darkCardBorder, width: 1) : null,
+        boxShadow: isDark ? AppTheme.darkCardShadow : AppTheme.cardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -168,7 +178,7 @@ class _OrganizeMatrixScreenState extends State<OrganizeMatrixScreen> {
               Expanded(
                 child: Row(
                   children: [
-                    Icon(icon, size: 16, color: titleColor),
+                    Icon(icon, size: 16, color: isDark ? AppTheme.darkIconGlow : iconColor),
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
@@ -176,9 +186,9 @@ class _OrganizeMatrixScreenState extends State<OrganizeMatrixScreen> {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 13,
                           fontWeight: FontWeight.bold,
-                          color: titleColor,
+                          color: isDark ? Colors.white : AppTheme.lightTextPrimary,
                         ),
                       ),
                     ),
@@ -190,15 +200,15 @@ class _OrganizeMatrixScreenState extends State<OrganizeMatrixScreen> {
                 child: Container(
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    color: titleColor.withOpacity(0.12),
+                    color: isDark ? AppTheme.darkIconBg : Colors.white.withOpacity(0.8),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(Icons.add, size: 14, color: titleColor),
+                  child: Icon(Icons.add, size: 14, color: isDark ? AppTheme.darkIconGlow : iconColor),
                 ),
               ),
             ],
           ),
-          const Divider(height: 16),
+          const SizedBox(height: 12),
 
           // Tasks List
           if (tasks.isEmpty)

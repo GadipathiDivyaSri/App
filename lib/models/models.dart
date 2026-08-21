@@ -125,30 +125,144 @@ class AppNotification {
       );
 }
 
-class UserProfile {
-  String name;
-  int focusScore;
-  int activeStreak;
-  bool isPremium;
+class ExpenseTransaction {
+  final String id;
+  String title;
+  String category;
+  double amount;
+  bool isIncome;
+  DateTime date;
+  String paymentMethod;
 
-  UserProfile({
-    required this.name,
-    required this.focusScore,
-    required this.activeStreak,
-    this.isPremium = true,
+  ExpenseTransaction({
+    required this.id,
+    required this.title,
+    required this.category,
+    required this.amount,
+    this.isIncome = false,
+    required this.date,
+    this.paymentMethod = 'UPI',
   });
 
   Map<String, dynamic> toJson() => {
+        'id': id,
+        'title': title,
+        'category': category,
+        'amount': amount,
+        'isIncome': isIncome,
+        'date': date.toIso8601String(),
+        'paymentMethod': paymentMethod,
+      };
+
+  factory ExpenseTransaction.fromJson(Map<String, dynamic> json) =>
+      ExpenseTransaction(
+        id: json['id'] ?? 'exp_${DateTime.now().millisecondsSinceEpoch}',
+        title: json['title'] ?? 'Expense',
+        category: json['category'] ?? 'General',
+        amount: (json['amount'] is num)
+            ? (json['amount'] as num).toDouble()
+            : double.tryParse(json['amount']?.toString() ?? '0') ?? 0.0,
+        isIncome: json['isIncome'] ?? false,
+        date: json['date'] != null
+            ? DateTime.parse(json['date'])
+            : DateTime.now(),
+        paymentMethod: json['paymentMethod'] ?? 'UPI',
+      );
+}
+
+class ReferralActivity {
+  final String id;
+  final String name;
+  final String status; // 'PENDING', 'QUALIFIED', 'USED'
+  final String date;
+  final int discountPercent;
+  final bool isApplied;
+
+  ReferralActivity({
+    required this.id,
+    required this.name,
+    required this.status,
+    required this.date,
+    this.discountPercent = 10,
+    this.isApplied = false,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
         'name': name,
+        'status': status,
+        'date': date,
+        'discountPercent': discountPercent,
+        'isApplied': isApplied,
+      };
+
+  factory ReferralActivity.fromJson(Map<String, dynamic> json) =>
+      ReferralActivity(
+        id: json['id'] ?? 'ref_${DateTime.now().millisecondsSinceEpoch}',
+        name: json['name'] ?? 'Friend',
+        status: json['status'] ?? 'PENDING',
+        date: json['date'] ?? 'Just now',
+        discountPercent: json['discountPercent'] ?? 10,
+        isApplied: json['isApplied'] ?? false,
+      );
+}
+
+class UserProfile {
+  String id;
+  String name;
+  String contact;
+  int focusScore;
+  int activeStreak;
+  bool isPremium;
+  String? token;
+  String referralCode;
+  String? referredByCode;
+  int successfulReferrals;
+  int pendingReferrals;
+  int activeDiscountPercent;
+
+  UserProfile({
+    this.id = 'u_1',
+    required this.name,
+    this.contact = '',
+    required this.focusScore,
+    required this.activeStreak,
+    this.isPremium = true,
+    this.token,
+    this.referralCode = 'WRINDHA7K92',
+    this.referredByCode,
+    this.successfulReferrals = 3,
+    this.pendingReferrals = 1,
+    this.activeDiscountPercent = 10,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'contact': contact,
         'focusScore': focusScore,
         'activeStreak': activeStreak,
         'isPremium': isPremium,
+        'token': token,
+        'referralCode': referralCode,
+        'referredByCode': referredByCode,
+        'successfulReferrals': successfulReferrals,
+        'pendingReferrals': pendingReferrals,
+        'activeDiscountPercent': activeDiscountPercent,
       };
 
   factory UserProfile.fromJson(Map<String, dynamic> json) => UserProfile(
+        id: json['id'] ?? 'u_1',
         name: json['name'] ?? 'Alex Johnson',
+        contact: json['contact'] ?? '',
         focusScore: json['focusScore'] ?? 92,
         activeStreak: json['activeStreak'] ?? 14,
         isPremium: json['isPremium'] ?? true,
+        token: json['token'],
+        referralCode: json['referralCode'] ?? 'WRINDHA7K92',
+        referredByCode: json['referredByCode'],
+        successfulReferrals: json['successfulReferrals'] ?? 3,
+        pendingReferrals: json['pendingReferrals'] ?? 1,
+        activeDiscountPercent: json['activeDiscountPercent'] ?? 10,
       );
 }

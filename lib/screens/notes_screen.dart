@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 
 class NotesScreen extends StatefulWidget {
   const NotesScreen({super.key});
@@ -15,16 +16,27 @@ class _NotesScreenState extends State<NotesScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
+      backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            size: 20,
+            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Journal'),
+        title: Text(
+          'Journal',
+          style: TextStyle(
+            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         heroTag: 'journal_fab',
-        backgroundColor: const Color(0xFF0D5CE5),
+        backgroundColor: isDark ? AppTheme.darkPrimary : AppTheme.pastelGrowthIcon,
         shape: const CircleBorder(),
         elevation: 4,
         child: const Icon(Icons.add, color: Colors.white, size: 28),
@@ -62,26 +74,29 @@ class _NotesScreenState extends State<NotesScreen> {
             child: Container(
               height: 110,
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E1F2B) : const Color(0xFFFAFAFA),
+                color: isDark ? AppTheme.darkCardBg : AppTheme.pastelGrowth,
                 borderRadius: BorderRadius.circular(18),
                 border: Border.all(
-                  color: const Color(0xFFCBD5E1),
+                  color: isDark ? AppTheme.darkCardBorder : const Color(0xFFB4DEBF),
                   width: 1.5,
                   style: BorderStyle.solid,
                 ),
               ),
-              child: const Column(
+              child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.edit_note_rounded,
-                      color: Color(0xFF0D5CE5), size: 30),
-                  SizedBox(height: 8),
+                  Icon(
+                    Icons.edit_note_rounded,
+                    color: isDark ? AppTheme.darkIconGlow : AppTheme.pastelGrowthIcon,
+                    size: 30,
+                  ),
+                  const SizedBox(height: 8),
                   Text(
                     'Click to write a quick journal entry',
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF64748B),
+                      color: isDark ? Colors.white : AppTheme.lightTextPrimary,
                     ),
                   ),
                 ],
@@ -102,16 +117,10 @@ class _NotesScreenState extends State<NotesScreen> {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1F2B) : Colors.white,
+        color: isDark ? AppTheme.darkCardBg : Colors.white,
         borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          if (!isDark)
-            BoxShadow(
-              color: Colors.black.withOpacity(0.03),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-        ],
+        border: isDark ? Border.all(color: AppTheme.darkCardBorder, width: 1) : null,
+        boxShadow: isDark ? AppTheme.darkCardShadow : AppTheme.cardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -125,13 +134,16 @@ class _NotesScreenState extends State<NotesScreen> {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: isDark ? Colors.white : const Color(0xFF1E293B),
+                    color: isDark ? Colors.white : AppTheme.lightTextPrimary,
                   ),
                 ),
               ),
               PopupMenuButton<String>(
-                icon: const Icon(Icons.more_vert_rounded,
-                    color: Color(0xFF94A3B8), size: 20),
+                icon: Icon(
+                  Icons.more_vert_rounded,
+                  color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
+                  size: 20,
+                ),
                 onSelected: (val) {
                   if (val == 'edit') {
                     _showEditJournalDialog(context, index);
@@ -142,14 +154,17 @@ class _NotesScreenState extends State<NotesScreen> {
                   }
                 },
                 itemBuilder: (ctx) => [
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'edit',
                     child: Row(
                       children: [
-                        Icon(Icons.edit_outlined,
-                            size: 18, color: Color(0xFF0D5CE5)),
-                        SizedBox(width: 8),
-                        Text('Edit Entry'),
+                        Icon(
+                          Icons.edit_outlined,
+                          size: 18,
+                          color: isDark ? AppTheme.darkPrimary : AppTheme.pastelGrowthIcon,
+                        ),
+                        const SizedBox(width: 8),
+                        const Text('Edit Entry'),
                       ],
                     ),
                   ),

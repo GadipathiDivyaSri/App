@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 
 class HabitTrackerScreen extends StatefulWidget {
   const HabitTrackerScreen({super.key});
@@ -13,18 +14,30 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? AppTheme.darkPrimary : AppTheme.personalGrowthIcon;
 
     return Scaffold(
+      backgroundColor: isDark ? AppTheme.darkBg : AppTheme.background,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            size: 20,
+            color: isDark ? Colors.white : AppTheme.textPrimary,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Habit Tracker'),
+        title: Text(
+          'Habit Tracker',
+          style: TextStyle(
+            color: isDark ? Colors.white : AppTheme.textPrimary,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         heroTag: 'habit_fab',
-        backgroundColor: const Color(0xFF0D5CE5),
+        backgroundColor: isDark ? AppTheme.darkPrimary : AppTheme.primaryAccent,
         shape: const CircleBorder(),
         elevation: 4,
         child: const Icon(Icons.add, color: Colors.white, size: 28),
@@ -44,16 +57,16 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
-                    color: isDark ? Colors.white : const Color(0xFF1E293B),
+                    color: isDark ? Colors.white : AppTheme.textPrimary,
                   ),
                 ),
                 Text(
                   _habits.isEmpty ? '0 DAY STREAK' : '${_habits.where((h) => h['isCompleted'] == true).length} ACTIVE',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 1.1,
-                    color: Color(0xFF0D5CE5),
+                    color: primaryColor,
                   ),
                 ),
               ],
@@ -63,8 +76,9 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
             Container(
               padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E1F2B) : const Color(0xFFEEF2FF),
+                color: isDark ? AppTheme.darkCardBg : AppTheme.personalGrowth,
                 borderRadius: BorderRadius.circular(20),
+                border: isDark ? Border.all(color: AppTheme.darkCardBorder, width: 1) : null,
               ),
               child: _habits.isEmpty
                   ? const Center(

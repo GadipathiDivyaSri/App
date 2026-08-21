@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 import 'add_subject_screen.dart';
 import 'subject_details_screen.dart';
 
@@ -17,16 +18,27 @@ class _SubjectPlannerScreenState extends State<SubjectPlannerScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
+      backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            size: 20,
+            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Subject Planner'),
+        title: Text(
+          'Subject Planner',
+          style: TextStyle(
+            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'subject_planner_fab',
-        backgroundColor: const Color(0xFF0D5CE5),
+        backgroundColor: isDark ? AppTheme.darkPrimary : AppTheme.pastelStudiesIcon,
         elevation: 4,
         icon: const Icon(Icons.add, color: Colors.white),
         label: const Text(
@@ -115,16 +127,10 @@ class _SubjectPlannerScreenState extends State<SubjectPlannerScreen> {
         margin: const EdgeInsets.only(bottom: 14),
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E1F2B) : Colors.white,
+          color: isDark ? AppTheme.darkCardBg : Colors.white,
           borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            if (!isDark)
-              BoxShadow(
-                color: Colors.black.withOpacity(0.03),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-          ],
+          border: isDark ? Border.all(color: AppTheme.darkCardBorder, width: 1) : null,
+          boxShadow: isDark ? AppTheme.darkCardShadow : AppTheme.cardShadow,
         ),
         child: Row(
           children: [
@@ -132,11 +138,14 @@ class _SubjectPlannerScreenState extends State<SubjectPlannerScreen> {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: const Color(0xFF0D5CE5).withOpacity(0.12),
+                color: isDark ? AppTheme.darkIconBg : AppTheme.pastelStudies,
                 borderRadius: BorderRadius.circular(14),
               ),
-              child: Icon(sub['icon'] as IconData,
-                  color: const Color(0xFF0D5CE5), size: 24),
+              child: Icon(
+                sub['icon'] as IconData,
+                color: isDark ? AppTheme.darkIconGlow : AppTheme.pastelStudiesIcon,
+                size: 24,
+              ),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -148,16 +157,16 @@ class _SubjectPlannerScreenState extends State<SubjectPlannerScreen> {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : const Color(0xFF1E293B),
+                      color: isDark ? Colors.white : AppTheme.lightTextPrimary,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     '${sub['unitsCount']} Units • ${(sub['progress'] * 100).toInt()}% Mastered',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
-                      color: Color(0xFF64748B),
+                      color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -166,9 +175,9 @@ class _SubjectPlannerScreenState extends State<SubjectPlannerScreen> {
                     child: LinearProgressIndicator(
                       value: sub['progress'] as double,
                       minHeight: 6,
-                      backgroundColor: const Color(0xFFEEF2FF),
-                      valueColor: const AlwaysStoppedAnimation<Color>(
-                        Color(0xFF0D5CE5),
+                      backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFFFF9E6),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        isDark ? AppTheme.darkPrimary : AppTheme.pastelStudiesIcon,
                       ),
                     ),
                   ),
@@ -177,7 +186,11 @@ class _SubjectPlannerScreenState extends State<SubjectPlannerScreen> {
             ),
             const SizedBox(width: 4),
             PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert_rounded, size: 20, color: Color(0xFF94A3B8)),
+              icon: Icon(
+                Icons.more_vert_rounded,
+                size: 20,
+                color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
+              ),
               onSelected: (val) {
                 if (val == 'edit') {
                   _showEditSubjectDialog(context, sub);
@@ -192,11 +205,11 @@ class _SubjectPlannerScreenState extends State<SubjectPlannerScreen> {
                 }
               },
               itemBuilder: (ctx) => [
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'edit',
                   child: Row(
                     children: [
-                      Icon(Icons.edit_outlined, size: 18, color: Color(0xFF0D5CE5)),
+                      Icon(Icons.edit_outlined, size: 18, color: isDark ? AppTheme.darkPrimary : AppTheme.pastelStudiesIcon),
                       SizedBox(width: 8),
                       Text('Edit Subject'),
                     ],

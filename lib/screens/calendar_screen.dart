@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../providers/app_provider.dart';
+import '../theme/app_theme.dart';
 
 class CalendarScreen extends StatelessWidget {
   const CalendarScreen({super.key});
@@ -13,24 +14,37 @@ class CalendarScreen extends StatelessWidget {
     final events = provider.calendarEvents;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    final primaryColor = isDark ? AppTheme.darkPrimary : AppTheme.lightPrimary;
+
     final dayEvents = events.where((e) =>
         e.startTime.year == selectedDate.year &&
         e.startTime.month == selectedDate.month &&
         e.startTime.day == selectedDate.day).toList();
 
     return Scaffold(
+      backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            size: 20,
+            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+          ),
           onPressed: () {
             if (Navigator.canPop(context)) Navigator.pop(context);
           },
         ),
-        title: const Text('Calendar'),
+        title: Text(
+          'Calendar',
+          style: TextStyle(
+            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         heroTag: 'calendar_fab',
-        backgroundColor: const Color(0xFF0D5CE5),
+        backgroundColor: primaryColor,
         shape: const CircleBorder(),
         elevation: 4,
         child: const Icon(Icons.add, color: Colors.white, size: 28),
@@ -41,6 +55,63 @@ class CalendarScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Top Pastel Banner (Refer to Image 2)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: isDark ? AppTheme.darkCardBg : AppTheme.pastelCalendar,
+                borderRadius: BorderRadius.circular(22),
+                border: isDark
+                    ? Border.all(color: AppTheme.darkCardBorder, width: 1)
+                    : null,
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? AppTheme.darkIconBg
+                          : AppTheme.pastelCalendarIcon,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Icon(
+                      Icons.calendar_today_outlined,
+                      color: isDark ? AppTheme.darkIconGlow : Colors.white,
+                      size: 28,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Calendar',
+                          style: TextStyle(
+                            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          DateFormat('MMMM yyyy').format(selectedDate),
+                          style: TextStyle(
+                            color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 18),
             // Month Header (Clickable for Month/Year Selection)
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -230,7 +301,9 @@ class CalendarScreen extends StatelessWidget {
                 child: Container(
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: isSelected ? const Color(0xFF0D5CE5) : Colors.transparent,
+                    color: isSelected
+                        ? (isDark ? AppTheme.darkIconGlow : AppTheme.pastelCalendarIcon)
+                        : Colors.transparent,
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -487,6 +560,15 @@ class CalendarScreen extends StatelessWidget {
   }
 
   void _showAddEventDialog(BuildContext context) {
+    final provider = Provider.of<AppProvider>(context, listen: false);
+    final now = DateTime.now();
+    final todayMidnight = DateTime(now.year, now.month, now.day);
+    
+    // Ensure default event scheduling date is today or selectedDate if in future
+    DateTime eventDate = provider.selectedDate.isBefore(todayMidnight)
+        ? todayMidnight
+        : provider.selectedDate;
+
     final titleCtrl = TextEditingController();
     final descCtrl = TextEditingController();
     final locationCtrl = TextEditingController();
@@ -514,9 +596,29 @@ class CalendarScreen extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Schedule Event',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Schedule Event',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0D5CE5).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Text(
+                          'Today & Future Only',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF0D5CE5),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 16),
                   TextField(
@@ -526,6 +628,32 @@ class CalendarScreen extends StatelessWidget {
                       filled: true,
                       border: OutlineInputBorder(),
                     ),
+                  ),
+                  const SizedBox(height: 12),
+                  // Dynamic Date Selector with firstDate = today
+                  OutlinedButton.icon(
+                    icon: const Icon(Icons.calendar_today_rounded, size: 16),
+                    label: Text(
+                      'Date: ${DateFormat('EEE, MMM d, yyyy').format(eventDate)}',
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    onPressed: () async {
+                      final currentNow = DateTime.now();
+                      final today = DateTime(currentNow.year, currentNow.month, currentNow.day);
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: eventDate.isBefore(today) ? today : eventDate,
+                        firstDate: today, // Past dates dynamically disabled
+                        lastDate: DateTime(currentNow.year + 10), // Dynamic future range
+                      );
+                      if (picked != null) {
+                        setStateModal(() => eventDate = picked);
+                      }
+                    },
                   ),
                   const SizedBox(height: 12),
                   TextField(
@@ -610,19 +738,40 @@ class CalendarScreen extends StatelessWidget {
                         ),
                       ),
                       onPressed: () {
-                        if (titleCtrl.text.trim().isNotEmpty) {
-                          final provider = Provider.of<AppProvider>(context, listen: false);
-                          provider.addCalendarEvent(
-                            titleCtrl.text.trim(),
-                            descCtrl.text.trim(),
-                            provider.selectedDate,
-                            preferredStartTime,
-                            preferredEndTime,
-                            locationCtrl.text.trim(),
-                            type,
+                        if (titleCtrl.text.trim().isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Please enter an event title.')),
                           );
-                          Navigator.pop(ctx);
+                          return;
                         }
+
+                        // Validate that date is not in the past
+                        if (!provider.isDateAllowedForCreation(eventDate)) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Cannot schedule events in the past. Only today and future dates allowed.'),
+                              backgroundColor: Color(0xFFEF4444),
+                            ),
+                          );
+                          return;
+                        }
+
+                        provider.addCalendarEvent(
+                          titleCtrl.text.trim(),
+                          descCtrl.text.trim(),
+                          eventDate,
+                          preferredStartTime,
+                          preferredEndTime,
+                          locationCtrl.text.trim(),
+                          type,
+                        );
+                        Navigator.pop(ctx);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Event scheduled successfully!'),
+                            backgroundColor: Color(0xFF0D5CE5),
+                          ),
+                        );
                       },
                       child: const Text(
                         'Save Event',

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 
 class FocusTimerScreen extends StatefulWidget {
   const FocusTimerScreen({super.key});
@@ -139,7 +140,7 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
             margin: const EdgeInsets.symmetric(horizontal: 24),
             height: 46,
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E1F2B) : const Color(0xFFEEF2FF),
+              color: isDark ? const Color(0xFF1E1F2B) : const Color(0xFFFFF9E6),
               borderRadius: BorderRadius.circular(16),
             ),
             child: TabBar(
@@ -147,11 +148,11 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
               indicatorColor: Colors.transparent,
               dividerColor: Colors.transparent,
               indicator: BoxDecoration(
-                color: const Color(0xFF0D5CE5),
+                color: isDark ? AppTheme.darkPrimary : AppTheme.pastelStudiesIcon,
                 borderRadius: BorderRadius.circular(12),
               ),
               labelColor: Colors.white,
-              unselectedLabelColor: const Color(0xFF64748B),
+              unselectedLabelColor: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
               labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
               tabs: const [
                 Tab(text: '⏱️ Stopwatch'),
@@ -191,16 +192,12 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
           height: 220,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: isDark ? const Color(0xFF1E1F2B) : Colors.white,
-            border: Border.all(color: const Color(0xFF0D5CE5), width: 4),
-            boxShadow: [
-              if (!isDark)
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
-                  blurRadius: 16,
-                  offset: const Offset(0, 6),
-                ),
-            ],
+            color: isDark ? AppTheme.darkCardBg : AppTheme.pastelStudies,
+            border: Border.all(
+              color: isDark ? AppTheme.darkIconGlow : AppTheme.pastelStudiesIcon,
+              width: 4,
+            ),
+            boxShadow: isDark ? AppTheme.darkCardShadow : AppTheme.cardShadow,
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -210,7 +207,7 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
                 style: TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.w900,
-                  color: isDark ? Colors.white : const Color(0xFF1E293B),
+                  color: isDark ? Colors.white : AppTheme.lightTextPrimary,
                 ),
               ),
               const SizedBox(height: 6),
@@ -220,7 +217,9 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1.2,
-                  color: _isStopwatchRunning ? const Color(0xFF10B981) : const Color(0xFF94A3B8),
+                  color: _isStopwatchRunning
+                      ? (isDark ? AppTheme.darkIconGlow : AppTheme.pastelStudiesIcon)
+                      : (isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary),
                 ),
               ),
             ],
@@ -234,10 +233,13 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
           children: [
             FloatingActionButton(
               heroTag: 'sw_reset_fab',
-              backgroundColor: isDark ? const Color(0xFF1E1F2B) : const Color(0xFFEEF2FF),
+              backgroundColor: isDark ? AppTheme.darkCardBg : Colors.white,
               elevation: 2,
               onPressed: _resetStopwatch,
-              child: const Icon(Icons.refresh_rounded, color: Color(0xFF64748B)),
+              child: Icon(
+                Icons.refresh_rounded,
+                color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
+              ),
             ),
             const SizedBox(width: 24),
             SizedBox(
@@ -245,7 +247,7 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
               height: 64,
               child: FloatingActionButton(
                 heroTag: 'sw_play_fab',
-                backgroundColor: const Color(0xFF0D5CE5),
+                backgroundColor: isDark ? AppTheme.darkPrimary : AppTheme.pastelStudiesIcon,
                 elevation: 4,
                 onPressed: _toggleStopwatch,
                 child: Icon(
@@ -279,9 +281,9 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
             ChoiceChip(
               label: const Text('25m Focus ⚡'),
               selected: !_isBreakMode,
-              selectedColor: const Color(0xFF0D5CE5),
+              selectedColor: isDark ? AppTheme.darkPrimary : AppTheme.pastelStudiesIcon,
               labelStyle: TextStyle(
-                color: !_isBreakMode ? Colors.white : (isDark ? Colors.white70 : const Color(0xFF1E293B)),
+                color: !_isBreakMode ? Colors.white : (isDark ? Colors.white70 : AppTheme.lightTextPrimary),
                 fontWeight: FontWeight.bold,
               ),
               onSelected: (_) => _switchPomodoroMode(false),
@@ -292,7 +294,7 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
               selected: _isBreakMode,
               selectedColor: const Color(0xFF10B981),
               labelStyle: TextStyle(
-                color: _isBreakMode ? Colors.white : (isDark ? Colors.white70 : const Color(0xFF1E293B)),
+                color: _isBreakMode ? Colors.white : (isDark ? Colors.white70 : AppTheme.lightTextPrimary),
                 fontWeight: FontWeight.bold,
               ),
               onSelected: (_) => _switchPomodoroMode(true),
@@ -311,9 +313,11 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
               child: CircularProgressIndicator(
                 value: progress,
                 strokeWidth: 10,
-                backgroundColor: isDark ? const Color(0xFF1E1F2B) : const Color(0xFFEEF2FF),
+                backgroundColor: isDark ? const Color(0xFF1E1F2B) : const Color(0xFFFFF9E6),
                 valueColor: AlwaysStoppedAnimation<Color>(
-                  _isBreakMode ? const Color(0xFF10B981) : const Color(0xFF0D5CE5),
+                  _isBreakMode
+                      ? const Color(0xFF10B981)
+                      : (isDark ? AppTheme.darkPrimary : AppTheme.pastelStudiesIcon),
                 ),
               ),
             ),
@@ -325,7 +329,7 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
                   style: TextStyle(
                     fontSize: 40,
                     fontWeight: FontWeight.w900,
-                    color: isDark ? Colors.white : const Color(0xFF1E293B),
+                    color: isDark ? Colors.white : AppTheme.lightTextPrimary,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -337,7 +341,7 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
                     letterSpacing: 1.2,
                     color: _isBreakMode
                         ? const Color(0xFF10B981)
-                        : (_isPomodoroRunning ? const Color(0xFF0D5CE5) : const Color(0xFF94A3B8)),
+                        : (isDark ? AppTheme.darkIconGlow : AppTheme.pastelStudiesIcon),
                   ),
                 ),
               ],
@@ -352,10 +356,13 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
           children: [
             FloatingActionButton(
               heroTag: 'pomo_reset_fab',
-              backgroundColor: isDark ? const Color(0xFF1E1F2B) : const Color(0xFFEEF2FF),
+              backgroundColor: isDark ? AppTheme.darkCardBg : Colors.white,
               elevation: 2,
               onPressed: _resetPomodoro,
-              child: const Icon(Icons.refresh_rounded, color: Color(0xFF64748B)),
+              child: Icon(
+                Icons.refresh_rounded,
+                color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
+              ),
             ),
             const SizedBox(width: 24),
             SizedBox(
@@ -363,7 +370,7 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
               height: 64,
               child: FloatingActionButton(
                 heroTag: 'pomo_play_fab',
-                backgroundColor: _isBreakMode ? const Color(0xFF10B981) : const Color(0xFF0D5CE5),
+                backgroundColor: isDark ? AppTheme.darkPrimary : AppTheme.pastelStudiesIcon,
                 elevation: 4,
                 onPressed: _togglePomodoro,
                 child: Icon(
