@@ -1,73 +1,177 @@
-// 2-Factor OTP Engine & Google SSO Authenticator Service
-const { mockDB } = require('../supabase_config');
+const axios = require('axios');
+
+const API_KEY = process.env.TWO_FACTOR_API_KEY;
 
 /**
- * Generate 2FA 4-digit / 6-digit OTP code for Mobile / Email
+ * SEND OTP VIA SMS
  */
-function send2FAOTP(contact) {
-  // Demo static OTP '1234' or dynamic random code
-  const code = '1234'; 
-  const expiresAt = Date.now() + 5 * 60 * 1000; // 5 mins validity
-
-  mockDB.otpStore[contact] = { code, expiresAt };
-  console.log(`[2FA OTP SENT] Destination: ${contact} | Code: ${code}`);
-
-  return {
-    success: true,
-    message: `2FA OTP code sent successfully to ${contact}`,
-    demoCode: code,
-  };
-}
-
-/**
- * Verify 2FA OTP Code
- */
-function verify2FAOTP(contact, code) {
-  const record = mockDB.otpStore[contact];
-
-  if (!record) {
-    // For demo fallback: allow code '1234'
-    if (code === '1234') {
-      return { success: true, token: 'mock_jwt_token_wrindha_os_2fa' };
+async function send2FAOTP(contact) {
+  try {
+    if (!API_KEY) {
+      console.error('[2FACTOR ERROR] API key is missing');
+      return {
+        success: false,
+        message: '2Factor API key is not configured.'
+      };
     }
-    return { success: false, message: 'No OTP record found. Please request a new OTP.' };
-  }
 
-  if (Date.now() > record.expiresAt) {
-    delete mockDB.otpStore[contact];
-    return { success: false, message: 'OTP has expired. Please request a new code.' };
-  }
+    // Clean phone number
+    let phone = String(contact)
+      .trim()
+      .replace(/\s+/g, '')
+      .replace(/^\+91/, '')
+      .replace(/^91/, '');
 
-  if (record.code !== code && code !== '1234') {
-    return { success: false, message: 'Invalid OTP verification code.' };
-  }
+    if (!/^[6-9]\d{9}$/.test(phone)) {
+      return {
+        success: false,
+        message: 'Please enter a valid Indian mobile number.'
+      };
+    }
 
-  delete mockDB.otpStore[contact];
-  return {
-    success: true,
-    token: 'mock_jwt_token_wrindha_os_2fa',
-    message: '2FA authentication successful!',
-  };
+    // ✅ FIX: Removed template name - using default template
+    const apiUrl = `https://2factor.in/API/V1/${API_KEY}/SMS/${phone}/AUTOGEN`;
+
+    console.log('[2FACTOR] Sending SMS to:', phone);
+
+    const response = await axios.get(apiUrl, {
+      timeout: 15000
+    });
+
+    console.log('[2FACTOR RESPONSE]', response.data);
+
+    if (response.data.Status !== 'Success') {
+      return {
+        success: false,
+        message: response.data.Details || 'Failed to send OTP.'
+      };
+    }
+
+    return {
+      success: true,
+      message: 'OTP sent successfully',
+      sessionId: response.data.Details
+    };
+
+  } catch (error) {
+    console.error('[2FACTOR ERROR]', error.message);
+    return {
+      success: false,
+      message: 'Unable to send OTP. Please try again.'
+    };
+  }
 }
 
 /**
- * Verify Google OAuth Sign-In Token
+ * VERIFY OTP
+ */
+async function verify2FAOTP(sessionId, code) {
+  try {
+    if (!API_KEY) {
+      return {
+        success: false,
+        message: '2Factor API key is not configured.'
+      };
+    }
+
+    if (!sessionId || !code) {
+      return {
+        success: false,
+        message: 'Session ID and OTP are required.'
+      };
+    }
+
+    const apiUrl = `https://2factor.in/API/V1/${API_KEY}/SMS/VERIFY/${sessionId}/${code}`;
+
+    console.log('[2FACTOR] Verifying OTP');
+
+    const response = await axios.get(apiUrl, {
+      timeout: 15000
+    });
+
+    console.log('[2FACTOR VERIFY]', response.data);
+
+    if (response.data.Status === 'Success') {
+      return {
+        success: true,
+        message: 'OTP verification successful.'
+      };
+    }
+
+    return {
+      success: false,
+      message: response.data.Details || 'Invalid or expired OTP.'
+    };
+
+  } catch (error) {
+    console.error('[2FACTOR VERIFY ERROR]', error.message);
+    return {
+      success: false,
+      message: 'OTP verification failed.'
+    };
+  }
+}
+
+/**
+ * RESEND OTP
+ */
+async function resend2FAOTP(sessionId) {
+  try {
+    if (!sessionId) {
+      return {
+        success: false,
+        message: 'Session ID is required.'
+      };
+    }
+
+    const apiUrl = `https://2factor.in/API/V1/${API_KEY}/SMS/RESEND/${sessionId}`;
+
+    console.log('[2FACTOR] Resending OTP');
+
+    const response = await axios.get(apiUrl, {
+      timeout: 15000
+    });
+
+    if (response.data.Status === 'Success') {
+      return {
+        success: true,
+        message: 'OTP resent successfully.',
+        sessionId: response.data.Details || sessionId
+      };
+    }
+
+    return {
+      success: false,
+      message: response.data.Details || 'Failed to resend OTP.'
+    };
+
+  } catch (error) {
+    console.error('[2FACTOR RESEND ERROR]', error.message);
+    return {
+      success: false,
+      message: 'Failed to resend OTP.'
+    };
+  }
+}
+
+/**
+ * GOOGLE TOKEN VERIFICATION
  */
 function verifyGoogleToken(googleToken) {
-  console.log(`[GOOGLE OAUTH VERIFIED] Token: ${googleToken}`);
   return {
     success: true,
     user: {
       id: 'g_123',
       name: 'Google User',
-      email: 'user@gmail.com',
+      email: 'user@gmail.com'
     },
-    token: 'mock_jwt_google_sso_token',
+    token: 'mock_jwt_google_sso_token'
   };
 }
 
 module.exports = {
   send2FAOTP,
   verify2FAOTP,
-  verifyGoogleToken,
+  resend2FAOTP,
+  verifyGoogleToken
 };
