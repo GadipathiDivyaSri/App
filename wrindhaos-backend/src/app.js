@@ -90,8 +90,11 @@ app.use('/api/referrals', referralRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/calendar', calendarRoutes);
 
-// SPA Web App HTML Route Fallback (for browser navigation outside /api routes)
+// SPA Web App & Admin Portal HTML Route Fallback
 app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/admin') && req.accepts('html')) {
+    return res.sendFile(path.join(__dirname, '../public/admin/index.html'));
+  }
   if (!req.path.startsWith('/api') && req.accepts('html')) {
     return res.sendFile(path.join(webAppPath, 'index.html'));
   }

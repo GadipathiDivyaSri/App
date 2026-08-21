@@ -47,8 +47,10 @@ ios/Flutter/app.framework
 ios/Runner.xcworkspace/xcuserdata/
 ios/Runner.xcodeproj/xcuserdata/
 
-# Node.js Backend
+# Node.js Backend & Admin Portal
 node_modules/
+admin-portal/node_modules/
+admin-portal/dist/
 wrindhaos-backend/node_modules/
 wrindhaos-backend/npm-debug.log
 .env
