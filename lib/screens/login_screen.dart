@@ -162,7 +162,7 @@ class _LoginScreenState extends State<LoginScreen>
                   indicatorColor: Colors.transparent,
                   dividerColor: Colors.transparent,
                   indicator: BoxDecoration(
-                    color: const Color(0xFF0D5CE5),
+                    color: primaryColor,
                     borderRadius: BorderRadius.circular(14),
                   ),
                   labelColor: Colors.white,
@@ -206,7 +206,7 @@ class _LoginScreenState extends State<LoginScreen>
                               color: Color(0xFF94A3B8),
                             ),
                             prefixIcon: const Icon(Icons.phone_iphone_rounded,
-                                size: 20, color: Color(0xFF0D5CE5)),
+                                size: 20, color: primaryColor),
                             filled: true,
                             fillColor: isDark
                                 ? const Color(0xFF1E1F2B)
@@ -232,7 +232,7 @@ class _LoginScreenState extends State<LoginScreen>
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(14),
                               borderSide: const BorderSide(
-                                color: Color(0xFF0D5CE5),
+                                color: primaryColor,
                                 width: 1.5,
                               ),
                             ),
@@ -265,7 +265,7 @@ class _LoginScreenState extends State<LoginScreen>
                               prefixIcon: const Icon(
                                   Icons.lock_clock_outlined,
                                   size: 20,
-                                  color: Color(0xFF0D5CE5)),
+                                  color: primaryColor),
                               filled: true,
                               fillColor: isDark
                                   ? const Color(0xFF1E1F2B)
@@ -291,7 +291,7 @@ class _LoginScreenState extends State<LoginScreen>
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(14),
                                 borderSide: const BorderSide(
-                                  color: Color(0xFF0D5CE5),
+                                  color: primaryColor,
                                   width: 1.5,
                                 ),
                               ),
@@ -305,7 +305,7 @@ class _LoginScreenState extends State<LoginScreen>
                           height: 50,
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF0D5CE5),
+                              backgroundColor: primaryColor,
                               elevation: 0,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(14),
@@ -349,7 +349,7 @@ class _LoginScreenState extends State<LoginScreen>
                               color: Color(0xFF94A3B8),
                             ),
                             prefixIcon: const Icon(Icons.email_outlined,
-                                size: 20, color: Color(0xFF0D5CE5)),
+                                size: 20, color: primaryColor),
                             filled: true,
                             fillColor: isDark
                                 ? const Color(0xFF1E1F2B)
@@ -375,7 +375,7 @@ class _LoginScreenState extends State<LoginScreen>
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(14),
                               borderSide: const BorderSide(
-                                color: Color(0xFF0D5CE5),
+                                color: primaryColor,
                                 width: 1.5,
                               ),
                             ),
@@ -403,7 +403,7 @@ class _LoginScreenState extends State<LoginScreen>
                               color: Color(0xFF94A3B8),
                             ),
                             prefixIcon: const Icon(Icons.lock_outline_rounded,
-                                size: 20, color: Color(0xFF0D5CE5)),
+                                size: 20, color: primaryColor),
                             suffixIcon: IconButton(
                               icon: Icon(
                                 _obscurePassword
@@ -439,7 +439,7 @@ class _LoginScreenState extends State<LoginScreen>
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(14),
                               borderSide: const BorderSide(
-                                color: Color(0xFF0D5CE5),
+                                color: primaryColor,
                                 width: 1.5,
                               ),
                             ),
@@ -457,7 +457,7 @@ class _LoginScreenState extends State<LoginScreen>
                                   height: 24,
                                   child: Checkbox(
                                     value: _rememberMe,
-                                    activeColor: const Color(0xFF0D5CE5),
+                                    activeColor: primaryColor,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(4),
                                     ),
@@ -480,7 +480,7 @@ class _LoginScreenState extends State<LoginScreen>
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFF0D5CE5),
+                                  color: primaryColor,
                                 ),
                               ),
                             ),
@@ -493,7 +493,7 @@ class _LoginScreenState extends State<LoginScreen>
                           height: 50,
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF0D5CE5),
+                              backgroundColor: primaryColor,
                               elevation: 0,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(14),
@@ -592,7 +592,7 @@ class _LoginScreenState extends State<LoginScreen>
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF0D5CE5),
+                        color: primaryColor,
                       ),
                     ),
                   ),

@@ -184,6 +184,7 @@ class _SignUpScreenState extends State<SignUpScreen>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? AppTheme.darkPrimary : AppTheme.primaryAccent;
 
     return Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.background,
@@ -242,7 +243,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                     color: Color(0xFF94A3B8),
                   ),
                   prefixIcon: const Icon(Icons.person_outline_rounded,
-                      size: 20, color: Color(0xFF0D5CE5)),
+                      size: 20, color: primaryColor),
                   filled: true,
                   fillColor: isDark
                       ? const Color(0xFF1E1F2B)
@@ -268,7 +269,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
                     borderSide: const BorderSide(
-                      color: Color(0xFF0D5CE5),
+                      color: primaryColor,
                       width: 1.5,
                     ),
                   ),
@@ -290,7 +291,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                   indicatorColor: Colors.transparent,
                   dividerColor: Colors.transparent,
                   indicator: BoxDecoration(
-                    color: const Color(0xFF0D5CE5),
+                    color: primaryColor,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   labelColor: Colors.white,
@@ -329,7 +330,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                                   prefixIcon: const Icon(
                                       Icons.phone_iphone_rounded,
                                       size: 20,
-                                      color: Color(0xFF0D5CE5)),
+                                      color: primaryColor),
                                   filled: true,
                                   fillColor: isDark
                                       ? const Color(0xFF1E1F2B)
@@ -355,7 +356,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(14),
                                     borderSide: const BorderSide(
-                                      color: Color(0xFF0D5CE5),
+                                      color: primaryColor,
                                       width: 1.5,
                                     ),
                                   ),
@@ -365,7 +366,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                             const SizedBox(width: 8),
                             ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF0D5CE5),
+                                backgroundColor: primaryColor,
                                 elevation: 0,
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 16, vertical: 14),
@@ -397,7 +398,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                               prefixIcon: const Icon(
                                   Icons.lock_clock_outlined,
                                   size: 20,
-                                  color: Color(0xFF0D5CE5)),
+                                  color: primaryColor),
                               filled: true,
                               fillColor: isDark
                                   ? const Color(0xFF1E1F2B)
@@ -423,7 +424,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(14),
                                 borderSide: const BorderSide(
-                                  color: Color(0xFF0D5CE5),
+                                  color: primaryColor,
                                   width: 1.5,
                                 ),
                               ),
@@ -450,7 +451,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                                     color: Color(0xFF94A3B8),
                                   ),
                                   prefixIcon: const Icon(Icons.email_outlined,
-                                      size: 20, color: Color(0xFF0D5CE5)),
+                                      size: 20, color: primaryColor),
                                   filled: true,
                                   fillColor: isDark
                                       ? const Color(0xFF1E1F2B)
@@ -476,7 +477,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(14),
                                     borderSide: const BorderSide(
-                                      color: Color(0xFF0D5CE5),
+                                      color: primaryColor,
                                       width: 1.5,
                                     ),
                                   ),
@@ -486,7 +487,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                             const SizedBox(width: 8),
                             ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF0D5CE5),
+                                backgroundColor: primaryColor,
                                 elevation: 0,
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 16, vertical: 14),
@@ -518,7 +519,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                               prefixIcon: const Icon(
                                   Icons.lock_clock_outlined,
                                   size: 20,
-                                  color: Color(0xFF0D5CE5)),
+                                  color: primaryColor),
                               filled: true,
                               fillColor: isDark
                                   ? const Color(0xFF1E1F2B)
@@ -544,7 +545,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(14),
                                 borderSide: const BorderSide(
-                                  color: Color(0xFF0D5CE5),
+                                  color: primaryColor,
                                   width: 1.5,
                                 ),
                               ),
@@ -579,7 +580,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                     color: Color(0xFF94A3B8),
                   ),
                   prefixIcon: const Icon(Icons.lock_outline_rounded,
-                      size: 20, color: Color(0xFF0D5CE5)),
+                      size: 20, color: primaryColor),
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscurePassword
@@ -615,7 +616,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
                     borderSide: const BorderSide(
-                      color: Color(0xFF0D5CE5),
+                      color: primaryColor,
                       width: 1.5,
                     ),
                   ),
@@ -644,7 +645,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                     color: Color(0xFF94A3B8),
                   ),
                   prefixIcon: const Icon(Icons.discount_outlined,
-                      size: 20, color: Color(0xFF0D5CE5)),
+                      size: 20, color: primaryColor),
                   filled: true,
                   fillColor: isDark
                       ? const Color(0xFF1E1F2B)
@@ -670,7 +671,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
                     borderSide: const BorderSide(
-                      color: Color(0xFF0D5CE5),
+                      color: primaryColor,
                       width: 1.5,
                     ),
                   ),
@@ -692,7 +693,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                   border: Border.all(
                     color: _agreeTerms
                         ? const Color(0xFF10B981)
-                        : const Color(0xFF0D5CE5).withOpacity(0.4),
+                        : primaryColor.withOpacity(0.4),
                     width: 1.2,
                   ),
                 ),
@@ -707,7 +708,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                           decoration: BoxDecoration(
                             color: (_agreeTerms
                                     ? const Color(0xFF10B981)
-                                    : const Color(0xFF0D5CE5))
+                                    : primaryColor)
                                 .withOpacity(0.12),
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -717,7 +718,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                                 : Icons.menu_book_rounded,
                             color: _agreeTerms
                                 ? const Color(0xFF10B981)
-                                : const Color(0xFF0D5CE5),
+                                : primaryColor,
                             size: 20,
                           ),
                         ),
@@ -790,7 +791,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                         style: ElevatedButton.styleFrom(
                           backgroundColor: _agreeTerms
                               ? const Color(0xFF10B981).withOpacity(0.15)
-                              : const Color(0xFF0D5CE5),
+                              : primaryColor,
                           foregroundColor: _agreeTerms
                               ? const Color(0xFF10B981)
                               : Colors.white,
@@ -834,7 +835,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                     height: 24,
                     child: Checkbox(
                       value: _agreeTerms,
-                      activeColor: const Color(0xFF0D5CE5),
+                      activeColor: primaryColor,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(5),
                       ),
@@ -879,7 +880,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                 height: 52,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0D5CE5),
+                    backgroundColor: primaryColor,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
@@ -939,7 +940,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF0D5CE5),
+                        color: primaryColor,
                       ),
                     ),
                   ),

@@ -210,8 +210,8 @@ class ProfileScreen extends StatelessWidget {
                         horizontal: 16.0, vertical: 12.0),
                     child: Row(
                       children: [
-                        const Icon(Icons.nightlight_round,
-                            size: 22, color: Color(0xFF0D5CE5)),
+                        Icon(Icons.nightlight_round,
+                            size: 22, color: isDark ? AppTheme.darkIconGlow : AppTheme.primaryAccent),
                         const SizedBox(width: 14),
                         const Expanded(
                           child: Text(
@@ -239,7 +239,7 @@ class ProfileScreen extends StatelessWidget {
                                       horizontal: 14, vertical: 6),
                                   decoration: BoxDecoration(
                                     color: !isDark
-                                        ? const Color(0xFF0D5CE5)
+                                        ? AppTheme.primaryAccent
                                         : Colors.transparent,
                                     borderRadius: BorderRadius.circular(10),
                                   ),
@@ -261,7 +261,7 @@ class ProfileScreen extends StatelessWidget {
                                       horizontal: 14, vertical: 6),
                                   decoration: BoxDecoration(
                                     color: isDark
-                                        ? const Color(0xFF0D5CE5)
+                                        ? AppTheme.darkPrimary
                                         : Colors.transparent,
                                     borderRadius: BorderRadius.circular(10),
                                   ),
