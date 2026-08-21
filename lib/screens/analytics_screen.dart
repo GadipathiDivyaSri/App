@@ -68,25 +68,19 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
               ),
               child: Row(
                 children: [
-                  SizedBox(
+                  Container(
                     width: 48,
                     height: 48,
-                    child: Image.asset(
-                      'assets/icons/ic_analytics.png',
-                      fit: BoxFit.contain,
-                      errorBuilder: (_, __, ___) => Container(
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? AppTheme.darkIconBg
-                              : AppTheme.pastelAnalyticsIcon,
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Icon(
-                          Icons.bar_chart_rounded,
-                          color: isDark ? AppTheme.darkIconGlow : Colors.white,
-                          size: 26,
-                        ),
-                      ),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? AppTheme.darkIconBg
+                          : AppTheme.pastelAnalyticsIcon,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Icon(
+                      Icons.bar_chart_rounded,
+                      color: isDark ? AppTheme.darkIconGlow : Colors.white,
+                      size: 26,
                     ),
                   ),
                   const SizedBox(width: 14),

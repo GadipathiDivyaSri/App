@@ -71,25 +71,19 @@ class CareerScreen extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  SizedBox(
+                  Container(
                     width: 52,
                     height: 52,
-                    child: Image.asset(
-                      'assets/icons/ic_career.png',
-                      fit: BoxFit.contain,
-                      errorBuilder: (_, __, ___) => Container(
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? AppTheme.darkIconBg
-                              : AppTheme.pastelCareerIcon,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Icon(
-                          Icons.work_outline_rounded,
-                          color: isDark ? AppTheme.darkIconGlow : Colors.white,
-                          size: 28,
-                        ),
-                      ),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? AppTheme.darkIconBg
+                          : AppTheme.pastelCareerIcon,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Icon(
+                      Icons.work_outline_rounded,
+                      color: isDark ? AppTheme.darkIconGlow : Colors.white,
+                      size: 28,
                     ),
                   ),
                   const SizedBox(width: 16),

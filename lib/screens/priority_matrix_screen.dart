@@ -56,25 +56,19 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
               ),
               child: Row(
                 children: [
-                  SizedBox(
+                  Container(
                     width: 52,
                     height: 52,
-                    child: Image.asset(
-                      'assets/icons/ic_priority.png',
-                      fit: BoxFit.contain,
-                      errorBuilder: (_, __, ___) => Container(
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? AppTheme.darkIconBg
-                              : AppTheme.pastelPriorityIcon,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Icon(
-                          Icons.flag_outlined,
-                          color: isDark ? AppTheme.darkIconGlow : Colors.white,
-                          size: 28,
-                        ),
-                      ),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? AppTheme.darkIconBg
+                          : AppTheme.pastelPriorityIcon,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Icon(
+                      Icons.flag_outlined,
+                      color: isDark ? AppTheme.darkIconGlow : Colors.white,
+                      size: 28,
                     ),
                   ),
                   const SizedBox(width: 16),
