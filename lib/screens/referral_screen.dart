@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../providers/app_provider.dart';
 import '../models/models.dart';
+import '../theme/app_theme.dart';
 
 class ReferralScreen extends StatelessWidget {
   const ReferralScreen({super.key});
@@ -23,46 +24,57 @@ class ReferralScreen extends StatelessWidget {
         'Try WrindhaOS — an all-in-one productivity and life management app. Use my referral code $referralCode when you join.';
 
     return Scaffold(
+      backgroundColor: isDark ? AppTheme.darkBg : AppTheme.background,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            size: 20,
+            color: isDark ? Colors.white : AppTheme.textPrimary,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Refer & Earn'),
+        title: Text(
+          'Refer & Earn',
+          style: TextStyle(
+            color: isDark ? Colors.white : AppTheme.textPrimary,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Top Gradient Banner
+            // Top Pastel / Dark Banner
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(22),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF2563EB), Color(0xFF1D4ED8)],
-                ),
+                color: isDark ? AppTheme.darkCardBg : AppTheme.career,
                 borderRadius: BorderRadius.circular(22),
+                border: isDark ? Border.all(color: AppTheme.darkCardBorder, width: 1) : null,
               ),
-              child: const Column(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Refer & Earn',
                     style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
+                      color: isDark ? Colors.white : AppTheme.textPrimary,
+                      fontSize: 22,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
                     "Invite a friend to WrindhaOS. When they become a paid user, you'll receive 10% off your next billing cycle.",
                     style: TextStyle(
-                      color: Colors.white70,
+                      color: isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary,
                       fontSize: 13,
                       height: 1.4,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
@@ -74,50 +86,56 @@ class ReferralScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E1F2B) : const Color(0xFFEEF2FF),
+                color: isDark ? AppTheme.darkCardBg : AppTheme.cardSurface,
                 borderRadius: BorderRadius.circular(22),
+                border: isDark ? Border.all(color: AppTheme.darkCardBorder, width: 1) : null,
+                boxShadow: isDark ? AppTheme.darkCardShadow : AppTheme.cardShadow,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'YOUR UNIQUE REFERRAL CODE',
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 1.1,
-                      color: Color(0xFF94A3B8),
+                      color: isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 10),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF2A2B3D) : Colors.white,
+                      color: isDark ? AppTheme.darkIconBg : AppTheme.inputBg,
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: const Color(0xFFCBD5E1)),
+                      border: Border.all(color: isDark ? AppTheme.darkCardBorder : AppTheme.borderLight),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
                           referralCode,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w800,
                             letterSpacing: 1.5,
-                            color: Color(0xFF0D5CE5),
+                            color: isDark ? AppTheme.darkIconGlow : AppTheme.primaryAccent,
                           ),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.copy_rounded, size: 22, color: Color(0xFF0D5CE5)),
+                          icon: Icon(
+                            Icons.copy_rounded,
+                            size: 22,
+                            color: isDark ? AppTheme.darkIconGlow : AppTheme.primaryAccent,
+                          ),
                           tooltip: 'Copy Referral Code',
                           onPressed: () {
                             Clipboard.setData(ClipboardData(text: referralCode));
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text('Referral code $referralCode copied to clipboard!'),
-                                backgroundColor: const Color(0xFF0D5CE5),
+                                backgroundColor: AppTheme.primaryAccent,
                               ),
                             );
                           },
@@ -131,7 +149,8 @@ class ReferralScreen extends StatelessWidget {
                     height: 48,
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0D5CE5),
+                        backgroundColor: isDark ? AppTheme.darkPrimary : AppTheme.primaryAccent,
+                        foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
                         ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
+import '../theme/app_theme.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -52,7 +53,7 @@ class _SignUpScreenState extends State<SignUpScreen>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('OTP sent to $input! (Use code: 1234)'),
-          backgroundColor: const Color(0xFF0D5CE5),
+          backgroundColor: AppTheme.primaryAccent,
         ),
       );
     } else {
@@ -107,9 +108,14 @@ class _SignUpScreenState extends State<SignUpScreen>
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
+      backgroundColor: isDark ? AppTheme.darkBg : AppTheme.background,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            size: 20,
+            color: isDark ? Colors.white : AppTheme.textPrimary,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -124,16 +130,16 @@ class _SignUpScreenState extends State<SignUpScreen>
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.w800,
-                  color: isDark ? Colors.white : const Color(0xFF1E293B),
+                  color: isDark ? Colors.white : AppTheme.textPrimary,
                 ),
               ),
               const SizedBox(height: 6),
-              const Text(
+              Text(
                 'Sign up with your details to unlock personal growth and study dashboards.',
                 style: TextStyle(
                   fontSize: 13,
                   height: 1.4,
-                  color: Color(0xFF64748B),
+                  color: isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary,
                 ),
               ),
               const SizedBox(height: 24),

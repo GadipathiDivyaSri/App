@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
 import '../services/api_service.dart';
+import '../theme/app_theme.dart';
 import 'signup_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -52,7 +53,7 @@ class _LoginScreenState extends State<LoginScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(res['message'] ?? '2FA OTP sent successfully! (Use code: 1234)'),
-            backgroundColor: const Color(0xFF0D5CE5),
+            backgroundColor: AppTheme.primaryAccent,
           ),
         );
       }
@@ -93,8 +94,10 @@ class _LoginScreenState extends State<LoginScreen>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? AppTheme.darkPrimary : AppTheme.primaryAccent;
 
     return Scaffold(
+      backgroundColor: isDark ? AppTheme.darkBg : AppTheme.background,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
@@ -109,19 +112,20 @@ class _LoginScreenState extends State<LoginScreen>
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF0D5CE5),
+                      color: primaryColor,
                       borderRadius: BorderRadius.circular(14),
                     ),
                     child: const Icon(Icons.bolt_rounded,
                         color: Colors.white, size: 28),
                   ),
                   const SizedBox(width: 12),
-                  const Text(
-                    'Wrindha OS',
+                  Text(
+                    'WrindhaOS',
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 0.5,
+                      color: isDark ? Colors.white : AppTheme.textPrimary,
                     ),
                   ),
                 ],
@@ -133,16 +137,15 @@ class _LoginScreenState extends State<LoginScreen>
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.w800,
-                  color: isDark ? Colors.white : const Color(0xFF1E293B),
+                  color: isDark ? Colors.white : AppTheme.textPrimary,
                 ),
               ),
               const SizedBox(height: 6),
-              const Text(
-                'Log in to access your habits, study goals, and priority matrix.',
+              Text(
+                'Sign in to access your goals, habits & study schedule.',
                 style: TextStyle(
                   fontSize: 13,
-                  height: 1.4,
-                  color: Color(0xFF64748B),
+                  color: isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary,
                 ),
               ),
               const SizedBox(height: 28),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
+import '../theme/app_theme.dart';
 
 class AddExpenseScreen extends StatefulWidget {
   const AddExpenseScreen({super.key});
@@ -64,7 +65,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(isIncome ? 'Income added successfully!' : 'Expense recorded successfully!'),
-        backgroundColor: const Color(0xFF0D5CE5),
+        backgroundColor: AppTheme.primaryAccent,
       ),
     );
 
@@ -78,12 +79,23 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     final isIncome = _category == 'Income';
 
     return Scaffold(
+      backgroundColor: isDark ? AppTheme.darkBg : AppTheme.background,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            size: 20,
+            color: isDark ? Colors.white : AppTheme.textPrimary,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Add Transaction'),
+        title: Text(
+          'Add Transaction',
+          style: TextStyle(
+            color: isDark ? Colors.white : AppTheme.textPrimary,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
@@ -93,28 +105,22 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E1F2B) : Colors.white,
+                color: isDark ? AppTheme.darkCardBg : AppTheme.cardSurface,
                 borderRadius: BorderRadius.circular(22),
-                boxShadow: [
-                  if (!isDark)
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.03),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                ],
+                border: isDark ? Border.all(color: AppTheme.darkCardBorder, width: 1) : null,
+                boxShadow: isDark ? AppTheme.darkCardShadow : AppTheme.cardShadow,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Illustration Graphic Container
                   Container(
-                    height: 120,
+                    height: 110,
                     width: double.infinity,
                     decoration: BoxDecoration(
                       color: isDark
-                          ? const Color(0xFF2A2B3D)
-                          : (isIncome ? const Color(0xFFDCFCE7) : const Color(0xFFEEF2FF)),
+                          ? AppTheme.darkIconBg
+                          : (isIncome ? AppTheme.personalGrowth : AppTheme.career),
                       borderRadius: BorderRadius.circular(18),
                     ),
                     child: Column(
@@ -124,16 +130,16 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                           isIncome
                               ? Icons.account_balance_wallet_rounded
                               : Icons.shopping_bag_rounded,
-                          size: 44,
-                          color: isIncome ? const Color(0xFF10B981) : const Color(0xFF0D5CE5),
+                          size: 40,
+                          color: isIncome ? AppTheme.personalGrowthIcon : AppTheme.careerIcon,
                         ),
                         const SizedBox(height: 8),
                         Text(
                           isIncome ? 'Log New Income' : 'Log New Expense',
                           style: TextStyle(
                             fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: isIncome ? const Color(0xFF10B981) : const Color(0xFF64748B),
+                            fontWeight: FontWeight.w700,
+                            color: isIncome ? AppTheme.personalGrowthIcon : AppTheme.careerIcon,
                           ),
                         ),
                       ],

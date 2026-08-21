@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
+import '../theme/app_theme.dart';
 import 'pricing_screen.dart';
 import 'payment_history_screen.dart';
 import 'notification_settings_screen.dart';
@@ -18,9 +19,14 @@ class ProfileScreen extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
+      backgroundColor: isDark ? AppTheme.darkBg : AppTheme.background,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            size: 20,
+            color: isDark ? Colors.white : AppTheme.textPrimary,
+          ),
           onPressed: () {
             if (Navigator.canPop(context)) {
               Navigator.pop(context);
@@ -29,7 +35,13 @@ class ProfileScreen extends StatelessWidget {
             }
           },
         ),
-        title: const Text('Settings'),
+        title: Text(
+          'Settings',
+          style: TextStyle(
+            color: isDark ? Colors.white : AppTheme.textPrimary,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
@@ -47,11 +59,15 @@ class ProfileScreen extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.w800,
-                          color: isDark ? Colors.white : const Color(0xFF1E293B),
+                          color: isDark ? Colors.white : AppTheme.textPrimary,
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.edit_outlined, size: 18, color: Color(0xFF0D5CE5)),
+                        icon: Icon(
+                          Icons.edit_outlined,
+                          size: 18,
+                          color: isDark ? AppTheme.darkIconGlow : AppTheme.primaryAccent,
+                        ),
                         onPressed: () {
                           _showEditNameDialog(context, provider);
                         },
@@ -60,20 +76,17 @@ class ProfileScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                     decoration: BoxDecoration(
-                      color: isDark
-                          ? const Color(0xFF1E1F2B)
-                          : const Color(0xFFEEF2FF),
+                      color: isDark ? AppTheme.darkIconBg : AppTheme.career,
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: const Text(
+                    child: Text(
                       'WrindhaOS Member',
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF0D5CE5),
+                        color: isDark ? AppTheme.darkIconGlow : AppTheme.primaryAccent,
                       ),
                     ),
                   ),
@@ -90,7 +103,7 @@ class ProfileScreen extends StatelessWidget {
                     context,
                     title: 'FOCUS SCORE',
                     value: '${user.focusScore}',
-                    valueColor: const Color(0xFF0D5CE5),
+                    valueColor: isDark ? AppTheme.darkIconGlow : AppTheme.primaryAccent,
                   ),
                 ),
                 const SizedBox(width: 14),
@@ -99,7 +112,7 @@ class ProfileScreen extends StatelessWidget {
                     context,
                     title: 'ACTIVE STREAK',
                     value: '${user.activeStreak} Days',
-                    valueColor: isDark ? Colors.white : const Color(0xFF1E293B),
+                    valueColor: isDark ? Colors.white : AppTheme.textPrimary,
                   ),
                 ),
               ],

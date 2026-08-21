@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../providers/app_provider.dart';
 import '../models/models.dart';
+import '../theme/app_theme.dart';
 import 'add_expense_screen.dart';
 
 class ExpenseTrackerScreen extends StatelessWidget {
@@ -12,13 +13,21 @@ class ExpenseTrackerScreen extends StatelessWidget {
     final controller = TextEditingController(
       text: provider.monthlyBudget.toStringAsFixed(0),
     );
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     showDialog(
       context: context,
       builder: (ctx) {
         return AlertDialog(
+          backgroundColor: isDark ? AppTheme.darkCardBg : AppTheme.cardSurface,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: const Text('Edit Monthly Budget', style: TextStyle(fontWeight: FontWeight.bold)),
+          title: Text(
+            'Edit Monthly Budget',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : AppTheme.textPrimary,
+            ),
+          ),
           content: TextField(
             controller: controller,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -31,12 +40,13 @@ class ExpenseTrackerScreen extends StatelessWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel'),
+              child: Text('Cancel', style: TextStyle(color: isDark ? Colors.white60 : AppTheme.textSecondary)),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF0D5CE5),
+                backgroundColor: isDark ? AppTheme.darkPrimary : AppTheme.primaryAccent,
                 foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               onPressed: () {
                 final newAmount = double.tryParse(controller.text.trim());
@@ -202,16 +212,27 @@ class ExpenseTrackerScreen extends StatelessWidget {
     final expenses = provider.expenses;
 
     return Scaffold(
+      backgroundColor: isDark ? AppTheme.darkBg : AppTheme.background,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            size: 20,
+            color: isDark ? Colors.white : AppTheme.textPrimary,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Expense Tracker'),
+        title: Text(
+          'Expense Tracker',
+          style: TextStyle(
+            color: isDark ? Colors.white : AppTheme.textPrimary,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         heroTag: 'expense_fab',
-        backgroundColor: const Color(0xFF0D5CE5),
+        backgroundColor: isDark ? AppTheme.darkPrimary : AppTheme.primaryAccent,
         shape: const CircleBorder(),
         elevation: 4,
         child: const Icon(Icons.add, color: Colors.white, size: 28),
@@ -234,38 +255,32 @@ class ExpenseTrackerScreen extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(22),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E1F2B) : Colors.white,
+                color: isDark ? AppTheme.darkCardBg : AppTheme.cardSurface,
                 borderRadius: BorderRadius.circular(22),
-                boxShadow: [
-                  if (!isDark)
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.03),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                ],
+                border: isDark ? Border.all(color: AppTheme.darkCardBorder, width: 1) : null,
+                boxShadow: isDark ? AppTheme.darkCardShadow : AppTheme.cardShadow,
               ),
               child: Column(
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text(
+                      Text(
                         'AVAILABLE BALANCE',
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
                           letterSpacing: 1.2,
-                          color: Color(0xFF94A3B8),
+                          color: isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary,
                         ),
                       ),
                       const SizedBox(width: 6),
                       InkWell(
                         onTap: () => _showEditBudgetDialog(context, provider),
-                        child: const Icon(
+                        child: Icon(
                           Icons.edit_outlined,
                           size: 16,
-                          color: Color(0xFF0D5CE5),
+                          color: isDark ? AppTheme.darkIconGlow : AppTheme.primaryAccent,
                         ),
                       ),
                     ],
@@ -277,7 +292,7 @@ class ExpenseTrackerScreen extends StatelessWidget {
                       fontSize: 30,
                       fontWeight: FontWeight.w800,
                       color: availableBalance >= 0
-                          ? (isDark ? Colors.white : const Color(0xFF1E293B))
+                          ? (isDark ? Colors.white : AppTheme.textPrimary)
                           : const Color(0xFFEF4444),
                     ),
                   ),
@@ -287,9 +302,9 @@ class ExpenseTrackerScreen extends StatelessWidget {
                     child: LinearProgressIndicator(
                       value: progress,
                       minHeight: 8,
-                      backgroundColor: const Color(0xFFEEF2FF),
+                      backgroundColor: isDark ? const Color(0xFF132F5C) : const Color(0xFFFFF0E8),
                       valueColor: AlwaysStoppedAnimation<Color>(
-                        progress > 0.9 ? const Color(0xFFEF4444) : const Color(0xFF0D5CE5),
+                        progress > 0.9 ? const Color(0xFFEF4444) : (isDark ? AppTheme.darkPrimary : AppTheme.primaryAccent),
                       ),
                     ),
                   ),
@@ -299,10 +314,10 @@ class ExpenseTrackerScreen extends StatelessWidget {
                     children: [
                       Text(
                         'Spent: ₹${totalSpent.toStringAsFixed(2)}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF64748B),
+                          color: isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary,
                         ),
                       ),
                       if (totalIncome > 0)
@@ -316,10 +331,10 @@ class ExpenseTrackerScreen extends StatelessWidget {
                         ),
                       Text(
                         'Budget: ₹${budget.toStringAsFixed(0)}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF0D5CE5),
+                          color: isDark ? AppTheme.darkIconGlow : AppTheme.primaryAccent,
                         ),
                       ),
                     ],
@@ -338,7 +353,7 @@ class ExpenseTrackerScreen extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
-                    color: isDark ? Colors.white : const Color(0xFF1E293B),
+                    color: isDark ? Colors.white : AppTheme.textPrimary,
                   ),
                 ),
                 Text(
@@ -346,7 +361,7 @@ class ExpenseTrackerScreen extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
-                    color: isDark ? Colors.white54 : const Color(0xFF94A3B8),
+                    color: isDark ? Colors.white54 : AppTheme.textSecondary,
                   ),
                 ),
               ],

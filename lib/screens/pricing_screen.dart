@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
+import '../theme/app_theme.dart';
 
 class PricingScreen extends StatefulWidget {
   const PricingScreen({super.key});
@@ -25,12 +26,23 @@ class _PricingScreenState extends State<PricingScreen> {
     final double finalPrice = basePrice - discountAmount;
 
     return Scaffold(
+      backgroundColor: isDark ? AppTheme.darkBg : AppTheme.background,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            size: 20,
+            color: isDark ? Colors.white : AppTheme.textPrimary,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Pricing & Plans'),
+        title: Text(
+          'Pricing & Plans',
+          style: TextStyle(
+            color: isDark ? Colors.white : AppTheme.textPrimary,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
@@ -41,17 +53,17 @@ class _PricingScreenState extends State<PricingScreen> {
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.w800,
-                color: isDark ? Colors.white : const Color(0xFF1E293B),
+                color: isDark ? Colors.white : AppTheme.textPrimary,
               ),
             ),
             const SizedBox(height: 6),
-            const Text(
+            Text(
               'Unlock your cognitive clarity with tailored focus plans.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13,
                 height: 1.4,
-                color: Color(0xFF64748B),
+                color: isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary,
               ),
             ),
             const SizedBox(height: 24),
@@ -60,16 +72,10 @@ class _PricingScreenState extends State<PricingScreen> {
             Container(
               padding: const EdgeInsets.all(22),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E1F2B) : Colors.white,
+                color: isDark ? AppTheme.darkCardBg : AppTheme.cardSurface,
                 borderRadius: BorderRadius.circular(22),
-                boxShadow: [
-                  if (!isDark)
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.03),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                ],
+                border: isDark ? Border.all(color: AppTheme.darkCardBorder, width: 1) : null,
+                boxShadow: isDark ? AppTheme.darkCardShadow : AppTheme.cardShadow,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -82,23 +88,23 @@ class _PricingScreenState extends State<PricingScreen> {
                         style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.w800,
-                          color: isDark ? Colors.white : const Color(0xFF1E293B),
+                          color: isDark ? Colors.white : AppTheme.textPrimary,
                         ),
                       ),
                       if (!isPremium)
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF2A2B3D) : const Color(0xFFE2E8F0),
+                            color: isDark ? AppTheme.darkIconBg : AppTheme.inputBg,
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: const Text(
+                          child: Text(
                             'CURRENT PLAN',
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
                               letterSpacing: 0.8,
-                              color: Color(0xFF64748B),
+                              color: isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary,
                             ),
                           ),
                         ),
@@ -106,12 +112,12 @@ class _PricingScreenState extends State<PricingScreen> {
                   ),
                   const SizedBox(height: 8),
                   RichText(
-                    text: const TextSpan(
+                    text: TextSpan(
                       text: '₹0',
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.w800,
-                        color: Color(0xFF0D5CE5),
+                        color: isDark ? AppTheme.darkIconGlow : AppTheme.primaryAccent,
                       ),
                       children: [
                         TextSpan(
@@ -119,7 +125,7 @@ class _PricingScreenState extends State<PricingScreen> {
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.normal,
-                            color: Color(0xFF64748B),
+                            color: isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary,
                           ),
                         ),
                       ],

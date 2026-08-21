@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
+import '../theme/app_theme.dart';
 
 class TodoScreen extends StatelessWidget {
   final VoidCallback? onNavigateToHome;
@@ -14,9 +15,14 @@ class TodoScreen extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
+      backgroundColor: isDark ? AppTheme.darkBg : AppTheme.background,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            size: 20,
+            color: isDark ? Colors.white : AppTheme.textPrimary,
+          ),
           onPressed: () {
             if (Navigator.canPop(context)) {
               Navigator.pop(context);
@@ -25,12 +31,18 @@ class TodoScreen extends StatelessWidget {
             }
           },
         ),
-        title: const Text('To-Do List'),
+        title: Text(
+          'To-Do List',
+          style: TextStyle(
+            color: isDark ? Colors.white : AppTheme.textPrimary,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
         centerTitle: false,
       ),
       floatingActionButton: FloatingActionButton(
         heroTag: 'todo_fab',
-        backgroundColor: const Color(0xFF0D5CE5),
+        backgroundColor: isDark ? AppTheme.darkPrimary : AppTheme.primaryAccent,
         elevation: 4,
         shape: const CircleBorder(),
         child: const Icon(Icons.add, color: Colors.white, size: 28),
@@ -127,11 +139,11 @@ class TodoScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: task.isCompleted
-                      ? const Color(0xFF0D5CE5)
+                      ? (isDark ? AppTheme.darkIconGlow : AppTheme.personalGrowthIcon)
                       : Colors.transparent,
                   border: Border.all(
                     color: task.isCompleted
-                        ? const Color(0xFF0D5CE5)
+                        ? (isDark ? AppTheme.darkIconGlow : AppTheme.personalGrowthIcon)
                         : const Color(0xFF94A3B8),
                     width: 2,
                   ),
