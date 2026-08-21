@@ -33,10 +33,19 @@ app.use(generalRateLimiter);
 // Serve Admin Web Portal Static Files
 app.use('/admin', express.static(path.join(__dirname, '../public/admin')));
 
-// Serve WrindhaOS Flutter Web Application Assets
+// Serve WrindhaOS Flutter Web Application Assets with no-cache headers to ensure immediate live updates
 const webAppPath = path.join(__dirname, '../../build/web');
-app.use('/app', express.static(webAppPath));
-app.use(express.static(webAppPath));
+const staticOptions = {
+  etag: false,
+  maxAge: 0,
+  setHeaders: (res) => {
+    res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+  },
+};
+app.use('/app', express.static(webAppPath, staticOptions));
+app.use(express.static(webAppPath, staticOptions));
 
 // Health Check Endpoint (Render & Monitoring)
 app.get('/health', (req, res) => {
