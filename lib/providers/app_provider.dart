@@ -139,7 +139,7 @@ class AppProvider extends ChangeNotifier {
     _initData();
   }
 
-  void login(String name, String contact, {String? id, String? token}) {
+  void login(String name, String contact, {String? id, String? token, String? refCode}) {
     _isLoggedIn = true;
     _user = UserProfile(
       id: id ?? 'u_1',
@@ -150,7 +150,11 @@ class AppProvider extends ChangeNotifier {
       isPremium: false,
       token: token,
       referralCode: 'WRINDHA7K92',
+      referredByCode: refCode,
     );
+    if (refCode != null && refCode.trim().isNotEmpty) {
+      applyReferralCode(refCode.trim());
+    }
     notifyListeners();
   }
 
