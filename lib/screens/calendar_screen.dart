@@ -68,19 +68,25 @@ class CalendarScreen extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Container(
+                  SizedBox(
                     width: 52,
                     height: 52,
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? AppTheme.darkIconBg
-                          : AppTheme.pastelCalendarIcon,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Icon(
-                      Icons.calendar_today_outlined,
-                      color: isDark ? AppTheme.darkIconGlow : Colors.white,
-                      size: 28,
+                    child: Image.asset(
+                      'assets/icons/ic_calendar.png',
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, __, ___) => Container(
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? AppTheme.darkIconBg
+                              : AppTheme.pastelCalendarIcon,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Icon(
+                          Icons.calendar_today_outlined,
+                          color: isDark ? AppTheme.darkIconGlow : Colors.white,
+                          size: 28,
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 16),
