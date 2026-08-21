@@ -238,11 +238,11 @@ class _SignUpScreenState extends State<SignUpScreen>
                 controller: _nameCtrl,
                 decoration: InputDecoration(
                   hintText: 'Enter your full name',
-                  hintStyle: const TextStyle(
+                  hintStyle: TextStyle(
                     fontSize: 13.5,
                     color: Color(0xFF94A3B8),
                   ),
-                  prefixIcon: const Icon(Icons.person_outline_rounded,
+                  prefixIcon: Icon(Icons.person_outline_rounded,
                       size: 20, color: primaryColor),
                   filled: true,
                   fillColor: isDark
@@ -268,7 +268,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
-                    borderSide: const BorderSide(
+                    borderSide: BorderSide(
                       color: primaryColor,
                       width: 1.5,
                     ),
@@ -296,7 +296,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                   ),
                   labelColor: Colors.white,
                   unselectedLabelColor: const Color(0xFF64748B),
-                  labelStyle: const TextStyle(fontWeight: FontWeight.bold),
+                  labelStyle: TextStyle(fontWeight: FontWeight.bold),
                   tabs: const [
                     Tab(text: 'Mobile OTP'),
                     Tab(text: 'Email OTP'),
@@ -323,11 +323,11 @@ class _SignUpScreenState extends State<SignUpScreen>
                                 keyboardType: TextInputType.phone,
                                 decoration: InputDecoration(
                                   hintText: 'Enter mobile number',
-                                  hintStyle: const TextStyle(
+                                  hintStyle: TextStyle(
                                     fontSize: 13.5,
                                     color: Color(0xFF94A3B8),
                                   ),
-                                  prefixIcon: const Icon(
+                                  prefixIcon: Icon(
                                       Icons.phone_iphone_rounded,
                                       size: 20,
                                       color: primaryColor),
@@ -355,7 +355,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                                   ),
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(14),
-                                    borderSide: const BorderSide(
+                                    borderSide: BorderSide(
                                       color: primaryColor,
                                       width: 1.5,
                                     ),
@@ -390,12 +390,12 @@ class _SignUpScreenState extends State<SignUpScreen>
                             maxLength: 4,
                             decoration: InputDecoration(
                               hintText: 'Enter 4-digit OTP',
-                              hintStyle: const TextStyle(
+                              hintStyle: TextStyle(
                                 fontSize: 13.5,
                                 color: Color(0xFF94A3B8),
                               ),
                               counterText: '',
-                              prefixIcon: const Icon(
+                              prefixIcon: Icon(
                                   Icons.lock_clock_outlined,
                                   size: 20,
                                   color: primaryColor),
@@ -423,7 +423,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(14),
-                                borderSide: const BorderSide(
+                                borderSide: BorderSide(
                                   color: primaryColor,
                                   width: 1.5,
                                 ),
@@ -446,11 +446,11 @@ class _SignUpScreenState extends State<SignUpScreen>
                                 keyboardType: TextInputType.emailAddress,
                                 decoration: InputDecoration(
                                   hintText: 'Enter email address',
-                                  hintStyle: const TextStyle(
+                                  hintStyle: TextStyle(
                                     fontSize: 13.5,
                                     color: Color(0xFF94A3B8),
                                   ),
-                                  prefixIcon: const Icon(Icons.email_outlined,
+                                  prefixIcon: Icon(Icons.email_outlined,
                                       size: 20, color: primaryColor),
                                   filled: true,
                                   fillColor: isDark
@@ -476,7 +476,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                                   ),
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(14),
-                                    borderSide: const BorderSide(
+                                    borderSide: BorderSide(
                                       color: primaryColor,
                                       width: 1.5,
                                     ),
@@ -511,12 +511,12 @@ class _SignUpScreenState extends State<SignUpScreen>
                             maxLength: 4,
                             decoration: InputDecoration(
                               hintText: 'Enter 4-digit OTP',
-                              hintStyle: const TextStyle(
+                              hintStyle: TextStyle(
                                 fontSize: 13.5,
                                 color: Color(0xFF94A3B8),
                               ),
                               counterText: '',
-                              prefixIcon: const Icon(
+                              prefixIcon: Icon(
                                   Icons.lock_clock_outlined,
                                   size: 20,
                                   color: primaryColor),
@@ -544,7 +544,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(14),
-                                borderSide: const BorderSide(
+                                borderSide: BorderSide(
                                   color: primaryColor,
                                   width: 1.5,
                                 ),
@@ -575,11 +575,11 @@ class _SignUpScreenState extends State<SignUpScreen>
                 obscureText: _obscurePassword,
                 decoration: InputDecoration(
                   hintText: 'Create a password',
-                  hintStyle: const TextStyle(
+                  hintStyle: TextStyle(
                     fontSize: 13.5,
                     color: Color(0xFF94A3B8),
                   ),
-                  prefixIcon: const Icon(Icons.lock_outline_rounded,
+                  prefixIcon: Icon(Icons.lock_outline_rounded,
                       size: 20, color: primaryColor),
                   suffixIcon: IconButton(
                     icon: Icon(
@@ -615,7 +615,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
-                    borderSide: const BorderSide(
+                    borderSide: BorderSide(
                       color: primaryColor,
                       width: 1.5,
                     ),
@@ -640,11 +640,11 @@ class _SignUpScreenState extends State<SignUpScreen>
                 textCapitalization: TextCapitalization.characters,
                 decoration: InputDecoration(
                   hintText: 'Enter referral code (optional)',
-                  hintStyle: const TextStyle(
+                  hintStyle: TextStyle(
                     fontSize: 13.5,
                     color: Color(0xFF94A3B8),
                   ),
-                  prefixIcon: const Icon(Icons.discount_outlined,
+                  prefixIcon: Icon(Icons.discount_outlined,
                       size: 20, color: primaryColor),
                   filled: true,
                   fillColor: isDark
@@ -670,7 +670,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
-                    borderSide: const BorderSide(
+                    borderSide: BorderSide(
                       color: primaryColor,
                       width: 1.5,
                     ),
@@ -760,7 +760,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                           ),
                           child: Text(
                             _agreeTerms ? 'ACCEPTED' : 'REQUIRED',
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: Colors.white,
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
@@ -799,7 +799,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                             side: _agreeTerms
-                                ? const BorderSide(color: Color(0xFF10B981))
+                                ? BorderSide(color: Color(0xFF10B981))
                                 : BorderSide.none,
                           ),
                         ),
@@ -814,7 +814,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                           _agreeTerms
                               ? 'Terms Read & Accepted (Tap to Re-read)'
                               : 'Read & Accept Terms & Conditions',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
                           ),
@@ -908,10 +908,10 @@ class _SignUpScreenState extends State<SignUpScreen>
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    side: const BorderSide(color: Color(0xFFCBD5E1)),
+                    side: BorderSide(color: Color(0xFFCBD5E1)),
                   ),
                   onPressed: _handleGoogleSignUp,
-                  icon: const Icon(Icons.g_mobiledata_rounded,
+                  icon: Icon(Icons.g_mobiledata_rounded,
                       size: 32, color: Color(0xFF4285F4)),
                   label: const Text(
                     'Sign Up with Google',
@@ -935,7 +935,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                   ),
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
-                    child: const Text(
+                    child: Text(
                       'Log In',
                       style: TextStyle(
                         fontSize: 14,

@@ -315,7 +315,7 @@ class ProfileScreen extends StatelessWidget {
             // Logout Button
             TextButton.icon(
               onPressed: () => _showLogoutDialog(context),
-              icon: const Icon(Icons.logout_rounded, color: Colors.redAccent),
+              icon: Icon(Icons.logout_rounded, color: Colors.redAccent),
               label: const Text(
                 'Logout',
                 style: TextStyle(
@@ -330,7 +330,7 @@ class ProfileScreen extends StatelessWidget {
             // Delete Account Button
             TextButton.icon(
               onPressed: () => _showDeleteAccountDialog(context, provider),
-              icon: const Icon(Icons.delete_outline_rounded,
+              icon: Icon(Icons.delete_outline_rounded,
                   color: Color(0xFFEF4444), size: 20),
               label: const Text(
                 'Delete Account',
@@ -366,7 +366,7 @@ class ProfileScreen extends StatelessWidget {
         children: [
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w700,
               letterSpacing: 1.1,
@@ -393,7 +393,7 @@ class ProfileScreen extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 8, left: 4),
       child: Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w700,
           letterSpacing: 1.1,
@@ -459,7 +459,7 @@ class ProfileScreen extends StatelessWidget {
           color: isDark ? Colors.white : const Color(0xFF1E293B),
         ),
       ),
-      trailing: const Icon(Icons.chevron_right_rounded,
+      trailing: Icon(Icons.chevron_right_rounded,
           color: Color(0xFF94A3B8), size: 22),
     );
   }

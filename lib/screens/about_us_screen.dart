@@ -66,7 +66,7 @@ class AboutUsScreen extends StatelessWidget {
                           color: AppTheme.primaryColor.withOpacity(0.12),
                           borderRadius: BorderRadius.circular(14),
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.info_outline_rounded,
                           color: AppTheme.primaryColor,
                           size: 26,
@@ -222,7 +222,7 @@ class AboutUsScreen extends StatelessWidget {
                     ),
                     child: Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.email_rounded,
                           color: AppTheme.primaryColor,
                           size: 20,
@@ -338,7 +338,7 @@ class AboutUsScreen extends StatelessWidget {
             child: Container(
               width: 6,
               height: 6,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: AppTheme.primaryColor,
                 shape: BoxShape.circle,
               ),

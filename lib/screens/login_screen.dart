@@ -115,7 +115,7 @@ class _LoginScreenState extends State<LoginScreen>
                       color: primaryColor,
                       borderRadius: BorderRadius.circular(14),
                     ),
-                    child: const Icon(Icons.bolt_rounded,
+                    child: Icon(Icons.bolt_rounded,
                         color: Colors.white, size: 28),
                   ),
                   const SizedBox(width: 12),
@@ -167,7 +167,7 @@ class _LoginScreenState extends State<LoginScreen>
                   ),
                   labelColor: Colors.white,
                   unselectedLabelColor: const Color(0xFF64748B),
-                  labelStyle: const TextStyle(fontWeight: FontWeight.bold),
+                  labelStyle: TextStyle(fontWeight: FontWeight.bold),
                   tabs: const [
                     Tab(text: 'Mobile OTP'),
                     Tab(text: 'Email & Password'),
@@ -201,11 +201,11 @@ class _LoginScreenState extends State<LoginScreen>
                           keyboardType: TextInputType.phone,
                           decoration: InputDecoration(
                             hintText: 'Enter mobile number',
-                            hintStyle: const TextStyle(
+                            hintStyle: TextStyle(
                               fontSize: 13.5,
                               color: Color(0xFF94A3B8),
                             ),
-                            prefixIcon: const Icon(Icons.phone_iphone_rounded,
+                            prefixIcon: Icon(Icons.phone_iphone_rounded,
                                 size: 20, color: primaryColor),
                             filled: true,
                             fillColor: isDark
@@ -231,7 +231,7 @@ class _LoginScreenState extends State<LoginScreen>
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(14),
-                              borderSide: const BorderSide(
+                              borderSide: BorderSide(
                                 color: primaryColor,
                                 width: 1.5,
                               ),
@@ -257,12 +257,12 @@ class _LoginScreenState extends State<LoginScreen>
                             maxLength: 4,
                             decoration: InputDecoration(
                               hintText: 'Enter 4-digit OTP',
-                              hintStyle: const TextStyle(
+                              hintStyle: TextStyle(
                                 fontSize: 13.5,
                                 color: Color(0xFF94A3B8),
                               ),
                               counterText: '',
-                              prefixIcon: const Icon(
+                              prefixIcon: Icon(
                                   Icons.lock_clock_outlined,
                                   size: 20,
                                   color: primaryColor),
@@ -290,7 +290,7 @@ class _LoginScreenState extends State<LoginScreen>
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(14),
-                                borderSide: const BorderSide(
+                                borderSide: BorderSide(
                                   color: primaryColor,
                                   width: 1.5,
                                 ),
@@ -314,7 +314,7 @@ class _LoginScreenState extends State<LoginScreen>
                             onPressed: _handleMobileLogin,
                             child: Text(
                               _otpSent ? 'Verify & Log In' : 'Send OTP',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
@@ -344,11 +344,11 @@ class _LoginScreenState extends State<LoginScreen>
                           keyboardType: TextInputType.emailAddress,
                           decoration: InputDecoration(
                             hintText: 'Enter email address',
-                            hintStyle: const TextStyle(
+                            hintStyle: TextStyle(
                               fontSize: 13.5,
                               color: Color(0xFF94A3B8),
                             ),
-                            prefixIcon: const Icon(Icons.email_outlined,
+                            prefixIcon: Icon(Icons.email_outlined,
                                 size: 20, color: primaryColor),
                             filled: true,
                             fillColor: isDark
@@ -374,7 +374,7 @@ class _LoginScreenState extends State<LoginScreen>
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(14),
-                              borderSide: const BorderSide(
+                              borderSide: BorderSide(
                                 color: primaryColor,
                                 width: 1.5,
                               ),
@@ -398,11 +398,11 @@ class _LoginScreenState extends State<LoginScreen>
                           obscureText: _obscurePassword,
                           decoration: InputDecoration(
                             hintText: 'Enter password',
-                            hintStyle: const TextStyle(
+                            hintStyle: TextStyle(
                               fontSize: 13.5,
                               color: Color(0xFF94A3B8),
                             ),
-                            prefixIcon: const Icon(Icons.lock_outline_rounded,
+                            prefixIcon: Icon(Icons.lock_outline_rounded,
                                 size: 20, color: primaryColor),
                             suffixIcon: IconButton(
                               icon: Icon(
@@ -438,7 +438,7 @@ class _LoginScreenState extends State<LoginScreen>
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(14),
-                              borderSide: const BorderSide(
+                              borderSide: BorderSide(
                                 color: primaryColor,
                                 width: 1.5,
                               ),
@@ -475,7 +475,7 @@ class _LoginScreenState extends State<LoginScreen>
                             ),
                             TextButton(
                               onPressed: () {},
-                              child: const Text(
+                              child: Text(
                                 'Forgot Password?',
                                 style: TextStyle(
                                   fontSize: 12,
@@ -553,10 +553,10 @@ class _LoginScreenState extends State<LoginScreen>
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    side: const BorderSide(color: Color(0xFFCBD5E1)),
+                    side: BorderSide(color: Color(0xFFCBD5E1)),
                   ),
                   onPressed: _handleGoogleLogin,
-                  icon: const Icon(Icons.g_mobiledata_rounded,
+                  icon: Icon(Icons.g_mobiledata_rounded,
                       size: 32, color: Color(0xFF4285F4)),
                   label: const Text(
                     'Continue with Google',
@@ -587,7 +587,7 @@ class _LoginScreenState extends State<LoginScreen>
                         ),
                       );
                     },
-                    child: const Text(
+                    child: Text(
                       'Sign Up',
                       style: TextStyle(
                         fontSize: 14,
