@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
+import '../theme/app_theme.dart';
 
 class AnalyticsScreen extends StatefulWidget {
   const AnalyticsScreen({super.key});
@@ -29,25 +30,97 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? AppTheme.darkPrimary : AppTheme.lightPrimary;
 
     return Scaffold(
+      backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            size: 20,
+            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Analytics & Insights'),
+        title: Text(
+          'Analytics & Insights',
+          style: TextStyle(
+            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
       ),
       body: Column(
         children: [
+          // Top Pastel / Dark Banner (Refer to Image 2)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: isDark ? AppTheme.darkCardBg : AppTheme.pastelAnalytics,
+                borderRadius: BorderRadius.circular(22),
+                border: isDark
+                    ? Border.all(color: AppTheme.darkCardBorder, width: 1)
+                    : null,
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? AppTheme.darkIconBg
+                          : AppTheme.pastelAnalyticsIcon,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Icon(
+                      Icons.bar_chart_rounded,
+                      color: isDark ? AppTheme.darkIconGlow : Colors.white,
+                      size: 26,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Analytics',
+                          style: TextStyle(
+                            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+                            fontSize: 17,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          'Track your progress 📈',
+                          style: TextStyle(
+                            color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
           const SizedBox(height: 8),
           // Module Tabs
           Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16),
-            height: 44,
+            margin: const EdgeInsets.symmetric(horizontal: 20),
+            height: 40,
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E1F2B) : const Color(0xFFEEF2FF),
-              borderRadius: BorderRadius.circular(16),
+              color: isDark ? AppTheme.darkCardBg : Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: isDark ? Border.all(color: AppTheme.darkCardBorder, width: 1) : null,
             ),
             child: TabBar(
               controller: _tabController,
@@ -55,11 +128,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
               indicatorColor: Colors.transparent,
               dividerColor: Colors.transparent,
               indicator: BoxDecoration(
-                color: const Color(0xFF0D5CE5),
-                borderRadius: BorderRadius.circular(12),
+                color: primaryColor,
+                borderRadius: BorderRadius.circular(10),
               ),
               labelColor: Colors.white,
-              unselectedLabelColor: const Color(0xFF64748B),
+              unselectedLabelColor: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
               labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
               tabs: const [
                 Tab(text: 'Overview'),
@@ -70,7 +143,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
               ],
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
 
           // Tab Views
           Expanded(

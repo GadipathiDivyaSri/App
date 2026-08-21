@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
+import '../theme/app_theme.dart';
 import 'career_roadmap_screen.dart';
 
 class CareerScreen extends StatelessWidget {
@@ -13,11 +14,30 @@ class CareerScreen extends StatelessWidget {
         provider.tasks.where((t) => t.category == 'Career Roadmap').toList();
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    final primaryColor = isDark ? AppTheme.darkPrimary : AppTheme.lightPrimary;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Career Dashboard')),
+      backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
+      appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            size: 20,
+            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          'Career Pathways & Goals',
+          style: TextStyle(
+            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      ),
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'career_screen_fab',
-        backgroundColor: const Color(0xFF0D5CE5),
+        backgroundColor: primaryColor,
         elevation: 6,
         icon: const Icon(Icons.alt_route_rounded, color: Colors.white),
         label: const Text(
@@ -38,93 +58,57 @@ class CareerScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Top Rank & XP Header Banner
+            // Top Rank & XP Header Banner (Refer to Image 2)
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(22),
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF2563EB), Color(0xFF1D4ED8)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
+                color: isDark ? AppTheme.darkCardBg : AppTheme.pastelCareer,
                 borderRadius: BorderRadius.circular(22),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF2563EB).withOpacity(0.3),
-                    blurRadius: 16,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
+                border: isDark
+                    ? Border.all(color: AppTheme.darkCardBorder, width: 1)
+                    : null,
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'CAREER RANK',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.2,
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.stars_rounded,
-                                color: Colors.white, size: 14),
-                            const SizedBox(width: 4),
-                            Text(
-                              '${provider.user.focusScore * 10} XP',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    provider.user.focusScore > 50
-                        ? 'Level 1: Career Starter'
-                        : 'Level 0: Career Starter',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.w800,
+                  Container(
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? AppTheme.darkIconBg
+                          : AppTheme.pastelCareerIcon,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Icon(
+                      Icons.work_outline_rounded,
+                      color: isDark ? AppTheme.darkIconGlow : Colors.white,
+                      size: 28,
                     ),
                   ),
-                  const SizedBox(height: 14),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(6),
-                    child: const LinearProgressIndicator(
-                      value: 0.0,
-                      minHeight: 6,
-                      backgroundColor: Colors.white24,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Tap Floating Roadmap below to add your first milestone node.',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Career Pathways',
+                          style: TextStyle(
+                            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Pathways & Goals 🎯',
+                          style: TextStyle(
+                            color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -132,7 +116,7 @@ class CareerScreen extends StatelessWidget {
             ),
             const SizedBox(height: 20),
 
-            // Floating Glassmorphism Hero Card
+            // Floating Interactive Roadmap Hero Card
             GestureDetector(
               onTap: () {
                 Navigator.push(
@@ -144,135 +128,170 @@ class CareerScreen extends StatelessWidget {
               },
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1E1F2B) : Colors.white,
-                  borderRadius: BorderRadius.circular(22),
+                  color: isDark ? const Color(0xFF132F5C) : const Color(0xFFFFECE5),
+                  borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                      color: const Color(0xFF0D5CE5).withOpacity(0.4),
-                      width: 1.5),
-                  boxShadow: [
-                    if (!isDark)
-                      BoxShadow(
-                        color: const Color(0xFF0D5CE5).withOpacity(0.06),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                  ],
+                    color: isDark ? AppTheme.darkIconGlow : AppTheme.lightPrimary,
+                    width: 1.5,
+                  ),
                 ),
                 child: Row(
                   children: [
                     Container(
-                      width: 50,
-                      height: 50,
+                      padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF0D5CE5).withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(16),
+                        color: isDark ? AppTheme.darkIconGlow : AppTheme.lightPrimary,
+                        shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.alt_route_rounded,
-                          color: Color(0xFF0D5CE5), size: 26),
+                      child: const Icon(Icons.hub_rounded,
+                          color: Colors.white, size: 22),
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 14),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
+                        children: [
                           Text(
-                            'Interactive Floating Roadmap',
+                            'Interactive Node Map',
                             style: TextStyle(
-                              fontSize: 16,
+                              fontSize: 15,
                               fontWeight: FontWeight.w800,
+                              color: isDark ? Colors.white : AppTheme.lightTextPrimary,
                             ),
                           ),
-                          SizedBox(height: 4),
+                          const SizedBox(height: 2),
                           Text(
-                            'View winding S-curve track & animated character avatar',
+                            'Drag, zoom & connect skill nodes live',
                             style: TextStyle(
-                              color: Color(0xFF64748B),
                               fontSize: 12,
+                              color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const Icon(Icons.chevron_right_rounded,
-                        color: Color(0xFF0D5CE5), size: 28),
+                    Icon(Icons.arrow_forward_ios_rounded,
+                        size: 16,
+                        color: isDark ? AppTheme.darkIconGlow : AppTheme.lightPrimary),
                   ],
                 ),
               ),
             ),
             const SizedBox(height: 24),
 
-            // Tasks Header
-            const Text(
-              'CAREER DELIVERABLES',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.1,
-                color: Color(0xFF94A3B8),
-              ),
+            // Active Milestones List
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Milestone Pathways',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+                  ),
+                ),
+                Text(
+                  '${careerTasks.length} Active',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: primaryColor,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 12),
-            careerTasks.isEmpty
-                ? Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF1E1F2B) : Colors.white,
-                      borderRadius: BorderRadius.circular(18),
+            const SizedBox(height: 14),
+
+            if (careerTasks.isEmpty)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(28),
+                decoration: BoxDecoration(
+                  color: isDark ? AppTheme.darkCardBg : Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: isDark
+                      ? Border.all(color: AppTheme.darkCardBorder, width: 1)
+                      : null,
+                ),
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.flag_circle_outlined,
+                      size: 48,
+                      color: isDark ? AppTheme.darkTextSecondary : const Color(0xFF8D827A),
                     ),
-                    child: const Center(
-                      child: Text(
-                        'No Career Roadmap tasks yet.',
-                        style: TextStyle(color: Color(0xFF64748B)),
+                    const SizedBox(height: 12),
+                    Text(
+                      'No career goals pinned yet',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : AppTheme.lightTextPrimary,
                       ),
                     ),
-                  )
-                : ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: careerTasks.length,
-                    itemBuilder: (context, index) {
-                      final task = careerTasks[index];
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? const Color(0xFF1E1F2B)
-                              : Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            if (!isDark)
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.02),
-                                blurRadius: 8,
-                                offset: const Offset(0, 3),
-                              ),
-                          ],
+                    const SizedBox(height: 4),
+                    Text(
+                      'Tap Floating Roadmap to link your study goals.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: careerTasks.length,
+                itemBuilder: (context, index) {
+                  final task = careerTasks[index];
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: isDark ? AppTheme.darkCardBg : Colors.white,
+                      borderRadius: BorderRadius.circular(18),
+                      border: isDark
+                          ? Border.all(color: AppTheme.darkCardBorder, width: 1)
+                          : null,
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          task.isCompleted
+                              ? Icons.check_circle_rounded
+                              : Icons.radio_button_unchecked_rounded,
+                          color: task.isCompleted
+                              ? (isDark ? AppTheme.darkIconGlow : AppTheme.lightPrimary)
+                              : Colors.grey,
+                          size: 22,
                         ),
-                        child: ListTile(
-                          leading: Icon(
-                            task.isCompleted
-                                ? Icons.check_circle_rounded
-                                : Icons.circle_outlined,
-                            color: const Color(0xFF0D5CE5),
-                          ),
-                          title: Text(
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Text(
                             task.title,
                             style: TextStyle(
+                              fontSize: 14,
                               fontWeight: FontWeight.w600,
                               decoration: task.isCompleted
                                   ? TextDecoration.lineThrough
                                   : null,
+                              color: isDark ? Colors.white : AppTheme.lightTextPrimary,
                             ),
                           ),
-                          subtitle: Text('Due: ${task.dueDateLabel}'),
-                          onTap: () => provider.toggleTaskCompletion(task.id),
                         ),
-                      );
-                    },
-                  ),
-            const SizedBox(height: 40),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            const SizedBox(height: 80),
           ],
         ),
       ),

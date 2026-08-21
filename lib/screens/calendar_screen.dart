@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../providers/app_provider.dart';
+import '../theme/app_theme.dart';
 
 class CalendarScreen extends StatelessWidget {
   const CalendarScreen({super.key});
@@ -13,24 +14,37 @@ class CalendarScreen extends StatelessWidget {
     final events = provider.calendarEvents;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    final primaryColor = isDark ? AppTheme.darkPrimary : AppTheme.lightPrimary;
+
     final dayEvents = events.where((e) =>
         e.startTime.year == selectedDate.year &&
         e.startTime.month == selectedDate.month &&
         e.startTime.day == selectedDate.day).toList();
 
     return Scaffold(
+      backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            size: 20,
+            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+          ),
           onPressed: () {
             if (Navigator.canPop(context)) Navigator.pop(context);
           },
         ),
-        title: const Text('Calendar'),
+        title: Text(
+          'Calendar',
+          style: TextStyle(
+            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         heroTag: 'calendar_fab',
-        backgroundColor: const Color(0xFF0D5CE5),
+        backgroundColor: primaryColor,
         shape: const CircleBorder(),
         elevation: 4,
         child: const Icon(Icons.add, color: Colors.white, size: 28),
@@ -41,6 +55,63 @@ class CalendarScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Top Pastel Banner (Refer to Image 2)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: isDark ? AppTheme.darkCardBg : AppTheme.pastelCalendar,
+                borderRadius: BorderRadius.circular(22),
+                border: isDark
+                    ? Border.all(color: AppTheme.darkCardBorder, width: 1)
+                    : null,
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? AppTheme.darkIconBg
+                          : AppTheme.pastelCalendarIcon,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Icon(
+                      Icons.calendar_today_outlined,
+                      color: isDark ? AppTheme.darkIconGlow : Colors.white,
+                      size: 28,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Calendar',
+                          style: TextStyle(
+                            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          DateFormat('MMMM yyyy').format(selectedDate),
+                          style: TextStyle(
+                            color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 18),
             // Month Header (Clickable for Month/Year Selection)
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -230,7 +301,9 @@ class CalendarScreen extends StatelessWidget {
                 child: Container(
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: isSelected ? const Color(0xFF0D5CE5) : Colors.transparent,
+                    color: isSelected
+                        ? (isDark ? AppTheme.darkIconGlow : AppTheme.pastelCalendarIcon)
+                        : Colors.transparent,
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,

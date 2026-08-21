@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
+import '../theme/app_theme.dart';
 import 'personal_growth_screen.dart';
 import 'career_screen.dart';
 import 'studies_screen.dart';
@@ -8,7 +9,6 @@ import 'calendar_screen.dart';
 import 'notifications_screen.dart';
 import 'priority_matrix_screen.dart';
 import 'analytics_screen.dart';
-import 'focus_timer_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   final Function(int) onTabChange;
@@ -21,31 +21,43 @@ class HomeScreen extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
+      backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header
+              // Header with Title & Notification Bell
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'WrindhaOS',
-                    style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.w800,
-                      color: isDark ? Colors.white : const Color(0xFF1E293B),
+                  RichText(
+                    text: TextSpan(
+                      text: 'Wrindha',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: -0.5,
+                        color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+                      ),
+                      children: [
+                        TextSpan(
+                          text: 'OS',
+                          style: TextStyle(
+                            color: isDark ? AppTheme.darkIconGlow : AppTheme.lightPrimary,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   Stack(
                     children: [
                       IconButton(
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.notifications_none_rounded,
                           size: 28,
-                          color: Color(0xFF0D5CE5),
+                          color: isDark ? AppTheme.darkIconGlow : AppTheme.lightPrimary,
                         ),
                         onPressed: () {
                           Navigator.push(
@@ -58,36 +70,40 @@ class HomeScreen extends StatelessWidget {
                       ),
                       if (provider.notifications.isNotEmpty)
                         Positioned(
-                          right: 10,
-                          top: 10,
+                          right: 12,
+                          top: 12,
                           child: Container(
-                            width: 9,
-                            height: 9,
-                            decoration: const BoxDecoration(
-                              color: Colors.redAccent,
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: isDark ? const Color(0xFFEF4444) : AppTheme.lightPrimary,
                               shape: BoxShape.circle,
                             ),
                           ),
                         ),
                     ],
-                  )
+                  ),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
 
-              // Grid Section
+              // 6 Module Grid Dashboard Cards
               Expanded(
                 child: GridView.count(
                   crossAxisCount: 2,
                   mainAxisSpacing: 16,
                   crossAxisSpacing: 16,
-                  childAspectRatio: 1.1,
+                  childAspectRatio: 0.98,
                   children: [
-                    _buildGridCard(
+                    // 1. Personal Growth
+                    _buildModuleCard(
                       context,
-                      icon: Icons.auto_awesome_outlined,
+                      isDark: isDark,
+                      icon: Icons.spa_outlined,
                       title: 'Personal\nGrowth',
                       subtitle: 'Habits & Milestones',
+                      lightCardBg: AppTheme.pastelPersonalGrowth,
+                      lightIconContainerColor: const Color(0xFF4A9B65),
                       onTap: () {
                         Navigator.push(
                           context,
@@ -97,11 +113,16 @@ class HomeScreen extends StatelessWidget {
                         );
                       },
                     ),
-                    _buildGridCard(
+
+                    // 2. Career
+                    _buildModuleCard(
                       context,
+                      isDark: isDark,
                       icon: Icons.work_outline_rounded,
                       title: 'Career',
                       subtitle: 'Pathways & Goals',
+                      lightCardBg: AppTheme.pastelCareer,
+                      lightIconContainerColor: AppTheme.pastelCareerIcon,
                       onTap: () {
                         Navigator.push(
                           context,
@@ -111,11 +132,16 @@ class HomeScreen extends StatelessWidget {
                         );
                       },
                     ),
-                    _buildGridCard(
+
+                    // 3. Studies
+                    _buildModuleCard(
                       context,
+                      isDark: isDark,
                       icon: Icons.school_outlined,
                       title: 'Studies',
                       subtitle: 'Subplanner & Focus',
+                      lightCardBg: AppTheme.pastelStudies,
+                      lightIconContainerColor: AppTheme.pastelStudiesIcon,
                       onTap: () {
                         Navigator.push(
                           context,
@@ -125,11 +151,16 @@ class HomeScreen extends StatelessWidget {
                         );
                       },
                     ),
-                    _buildGridCard(
+
+                    // 4. Calendar
+                    _buildModuleCard(
                       context,
+                      isDark: isDark,
                       icon: Icons.calendar_today_outlined,
                       title: 'Calendar',
                       subtitle: 'View Schedule',
+                      lightCardBg: AppTheme.pastelCalendar,
+                      lightIconContainerColor: AppTheme.pastelCalendarIcon,
                       onTap: () {
                         Navigator.push(
                           context,
@@ -139,11 +170,16 @@ class HomeScreen extends StatelessWidget {
                         );
                       },
                     ),
-                    _buildGridCard(
+
+                    // 5. Priority Matrix
+                    _buildModuleCard(
                       context,
-                      icon: Icons.priority_high_rounded,
+                      isDark: isDark,
+                      icon: Icons.flag_outlined,
                       title: 'Priority',
                       subtitle: 'Priority Matrix',
+                      lightCardBg: AppTheme.pastelPriority,
+                      lightIconContainerColor: AppTheme.pastelPriorityIcon,
                       onTap: () {
                         Navigator.push(
                           context,
@@ -153,11 +189,16 @@ class HomeScreen extends StatelessWidget {
                         );
                       },
                     ),
-                    _buildGridCard(
+
+                    // 6. Analytics
+                    _buildModuleCard(
                       context,
+                      isDark: isDark,
                       icon: Icons.bar_chart_rounded,
                       title: 'Analytics',
                       subtitle: 'Track Progress',
+                      lightCardBg: AppTheme.pastelAnalytics,
+                      lightIconContainerColor: AppTheme.pastelAnalyticsIcon,
                       onTap: () {
                         Navigator.push(
                           context,
@@ -177,28 +218,38 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildGridCard(
+  Widget _buildModuleCard(
     BuildContext context, {
+    required bool isDark,
     required IconData icon,
     required String title,
     required String subtitle,
+    required Color lightCardBg,
+    required Color lightIconContainerColor,
     required VoidCallback onTap,
   }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(16.0),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E1F2B) : Colors.white,
-          borderRadius: BorderRadius.circular(18),
+          color: isDark ? AppTheme.darkCardBg : lightCardBg,
+          borderRadius: BorderRadius.circular(22),
+          border: isDark
+              ? Border.all(color: AppTheme.darkCardBorder, width: 1)
+              : null,
           boxShadow: [
             if (!isDark)
               BoxShadow(
-                color: Colors.black.withOpacity(0.03),
+                color: Colors.black.withOpacity(0.02),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
+              )
+            else
+              BoxShadow(
+                color: Colors.black.withOpacity(0.35),
+                blurRadius: 12,
+                offset: const Offset(0, 6),
               ),
           ],
         ),
@@ -206,11 +257,42 @@ class HomeScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Icon(
-              icon,
-              size: 26,
-              color: const Color(0xFF0D5CE5),
+            // Top Row: Squircle Icon & Chevron Arrow
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? AppTheme.darkIconBg
+                        : lightIconContainerColor,
+                    borderRadius: BorderRadius.circular(14),
+                    boxShadow: [
+                      if (!isDark)
+                        BoxShadow(
+                          color: lightIconContainerColor.withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        ),
+                    ],
+                  ),
+                  child: Icon(
+                    icon,
+                    size: 22,
+                    color: isDark ? AppTheme.darkIconGlow : Colors.white,
+                  ),
+                ),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  size: 20,
+                  color: isDark ? const Color(0xFF4C658A) : const Color(0x662D2622),
+                ),
+              ],
             ),
+
+            // Bottom Section: Title & Subtitle
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -218,9 +300,9 @@ class HomeScreen extends StatelessWidget {
                   title,
                   style: TextStyle(
                     fontSize: 16,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w800,
                     height: 1.2,
-                    color: isDark ? Colors.white : const Color(0xFF1E293B),
+                    color: isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -228,9 +310,10 @@ class HomeScreen extends StatelessWidget {
                   subtitle,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
-                    color: Color(0xFF64748B),
+                    fontWeight: FontWeight.w500,
+                    color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
                   ),
                 ),
               ],

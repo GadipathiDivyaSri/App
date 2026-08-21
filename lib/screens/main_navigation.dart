@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 import 'home_screen.dart';
 import 'todo_screen.dart';
 import 'profile_screen.dart';
@@ -35,42 +36,51 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         children: pages,
       ),
       bottomNavigationBar: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E1F2B) : const Color(0xFFEEF2FF),
+          color: isDark ? AppTheme.darkNavBg : AppTheme.lightNavBg,
           boxShadow: [
-            if (!isDark)
-              BoxShadow(
-                color: Colors.black.withOpacity(0.04),
-                blurRadius: 10,
-                offset: const Offset(0, -4),
-              ),
+            BoxShadow(
+              color: isDark ? Colors.black.withOpacity(0.5) : Colors.black.withOpacity(0.04),
+              blurRadius: 16,
+              offset: const Offset(0, -4),
+            ),
           ],
+          border: isDark
+              ? const Border(top: BorderSide(color: Color(0x1A2A85FF), width: 1))
+              : null,
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            // Left Tab: To-Do
-            _buildNavItem(
-              index: 0,
-              icon: Icons.format_list_bulleted_rounded,
-              label: 'To-Do',
-            ),
-            // Center Tab: Home (Prominent Circle)
-            _buildNavItem(
-              index: 1,
-              icon: Icons.home_filled,
-              isCenter: true,
-              label: 'Home',
-            ),
-            // Right Tab: Profile
-            _buildNavItem(
-              index: 2,
-              icon: Icons.person_outline_rounded,
-              activeIcon: Icons.person_rounded,
-              label: 'Profile',
-            ),
-          ],
+        child: SafeArea(
+          top: false,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              // Left Tab: Menu / To-Do
+              _buildNavItem(
+                index: 0,
+                icon: Icons.menu_rounded,
+                activeIcon: Icons.menu_rounded,
+                label: 'Menu',
+                isDark: isDark,
+              ),
+              // Center Tab: Home (Floating round button)
+              _buildNavItem(
+                index: 1,
+                icon: Icons.home_rounded,
+                isCenter: true,
+                label: 'Home',
+                isDark: isDark,
+              ),
+              // Right Tab: Profile
+              _buildNavItem(
+                index: 2,
+                icon: Icons.person_outline_rounded,
+                activeIcon: Icons.person_rounded,
+                label: 'Profile',
+                isDark: isDark,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -82,31 +92,54 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     IconData? activeIcon,
     bool isCenter = false,
     required String label,
+    required bool isDark,
   }) {
     final isSelected = _currentIndex == index;
     final displayIcon = (isSelected && activeIcon != null) ? activeIcon : icon;
 
+    final activeColor = isDark ? AppTheme.darkIconGlow : AppTheme.lightPrimary;
+    final inactiveColor = isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary;
+
     return GestureDetector(
       onTap: () => setState(() => _currentIndex = index),
       behavior: HitTestBehavior.opaque,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 4.0),
-        child: isCenter
-            ? Container(
-                padding: const EdgeInsets.all(12),
-                decoration: const BoxDecoration(
-                  color: Color(0xFF0D5CE5),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(displayIcon, color: Colors.white, size: 24),
-              )
-            : Icon(
-                displayIcon,
-                size: 26,
-                color: isSelected
-                    ? const Color(0xFF0D5CE5)
-                    : const Color(0xFF64748B),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (isCenter)
+            Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                color: isDark ? AppTheme.darkPrimary : AppTheme.lightPrimary,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: (isDark ? AppTheme.darkPrimary : AppTheme.lightPrimary).withOpacity(0.35),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
+              child: Icon(displayIcon, color: Colors.white, size: 26),
+            )
+          else ...[
+            Icon(
+              displayIcon,
+              size: 24,
+              color: isSelected ? activeColor : inactiveColor,
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                color: isSelected ? activeColor : inactiveColor,
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }

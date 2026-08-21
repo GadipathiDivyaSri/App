@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 import 'calendar_screen.dart';
 
 class PriorityMatrixScreen extends StatefulWidget {
@@ -19,18 +20,86 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
+      backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            size: 20,
+            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Priority Matrix'),
+        title: Text(
+          'Priority Matrix',
+          style: TextStyle(
+            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Top Pastel / Dark Banner (Refer to Image 2)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: isDark ? AppTheme.darkCardBg : AppTheme.pastelPriority,
+                borderRadius: BorderRadius.circular(22),
+                border: isDark
+                    ? Border.all(color: AppTheme.darkCardBorder, width: 1)
+                    : null,
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? AppTheme.darkIconBg
+                          : AppTheme.pastelPriorityIcon,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Icon(
+                      Icons.flag_outlined,
+                      color: isDark ? AppTheme.darkIconGlow : Colors.white,
+                      size: 28,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Priority',
+                          style: TextStyle(
+                            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Priority Matrix ⭐',
+                          style: TextStyle(
+                            color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
             // Upcoming Deadlines Card
             _buildUpcomingDeadlinesCard(context),
             const SizedBox(height: 24),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 import 'habit_tracker_screen.dart';
 import 'expense_tracker_screen.dart';
 import 'milestones_screen.dart';
@@ -13,47 +14,79 @@ class PersonalGrowthScreen extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
+      backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            size: 20,
+            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Personal Growth'),
+        title: Text(
+          'Personal Growth',
+          style: TextStyle(
+            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
         child: Column(
           children: [
-            // Top Blue Banner "Build Your Future"
+            // Top Pastel / Dark Banner (Refer to Image 2)
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(22),
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF2563EB), Color(0xFF1D4ED8)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(20),
+                color: isDark ? AppTheme.darkCardBg : AppTheme.pastelPersonalGrowth,
+                borderRadius: BorderRadius.circular(22),
+                border: isDark
+                    ? Border.all(color: AppTheme.darkCardBorder, width: 1)
+                    : null,
               ),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
                 children: [
-                  Text(
-                    'Build Your Future',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.w800,
+                  Container(
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? AppTheme.darkIconBg
+                          : AppTheme.pastelPersonalGrowthIcon,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Icon(
+                      Icons.spa_outlined,
+                      color: isDark ? AppTheme.darkIconGlow : Colors.white,
+                      size: 28,
                     ),
                   ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Track your daily progress and master your habits to reach peak productivity.',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 13,
-                      height: 1.4,
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Personal Growth',
+                          style: TextStyle(
+                            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Grow better, every day 🌿',
+                          style: TextStyle(
+                            color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -67,6 +100,7 @@ class PersonalGrowthScreen extends StatelessWidget {
               category: 'SELF IMPROVEMENT',
               title: 'Track your Habits',
               icon: Icons.swap_horiz_rounded,
+              isDark: isDark,
               onTap: () {
                 Navigator.push(
                   context,
@@ -83,6 +117,7 @@ class PersonalGrowthScreen extends StatelessWidget {
               category: 'FINANCIAL HEALTH',
               title: 'Track your Expenses',
               icon: Icons.account_balance_wallet_outlined,
+              isDark: isDark,
               onTap: () {
                 Navigator.push(
                   context,
@@ -99,6 +134,7 @@ class PersonalGrowthScreen extends StatelessWidget {
               category: 'CAREER ROADMAP',
               title: 'Track your Milestones',
               icon: Icons.flag_outlined,
+              isDark: isDark,
               onTap: () {
                 Navigator.push(
                   context,
@@ -115,6 +151,7 @@ class PersonalGrowthScreen extends StatelessWidget {
               category: 'ORGANIZATION',
               title: 'Organize your tasks',
               icon: Icons.format_list_bulleted_rounded,
+              isDark: isDark,
               onTap: () {
                 Navigator.push(
                   context,
@@ -131,6 +168,7 @@ class PersonalGrowthScreen extends StatelessWidget {
               category: 'KNOWLEDGE HUB',
               title: 'Journal',
               icon: Icons.book_outlined,
+              isDark: isDark,
               onTap: () {
                 Navigator.push(
                   context,
@@ -152,17 +190,27 @@ class PersonalGrowthScreen extends StatelessWidget {
     required String category,
     required String title,
     required IconData icon,
+    required bool isDark,
     required VoidCallback onTap,
   }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E1F2B) : const Color(0xFFF8FAFC),
+          color: isDark ? AppTheme.darkCardBg : Colors.white,
           borderRadius: BorderRadius.circular(18),
+          border: isDark
+              ? Border.all(color: AppTheme.darkCardBorder, width: 1)
+              : null,
+          boxShadow: [
+            if (!isDark)
+              BoxShadow(
+                color: Colors.black.withOpacity(0.02),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+          ],
         ),
         child: Row(
           children: [
@@ -170,10 +218,16 @@ class PersonalGrowthScreen extends StatelessWidget {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: const Color(0xFF0D5CE5).withOpacity(0.12),
+                color: isDark
+                    ? AppTheme.darkIconBg
+                    : AppTheme.pastelPersonalGrowth,
                 borderRadius: BorderRadius.circular(14),
               ),
-              child: Icon(icon, color: const Color(0xFF0D5CE5), size: 22),
+              child: Icon(
+                icon,
+                color: isDark ? AppTheme.darkIconGlow : AppTheme.pastelPersonalGrowthIcon,
+                size: 22,
+              ),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -182,27 +236,30 @@ class PersonalGrowthScreen extends StatelessWidget {
                 children: [
                   Text(
                     category,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 10,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w700,
                       letterSpacing: 1.1,
-                      color: Color(0xFF94A3B8),
+                      color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     title,
                     style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: isDark ? Colors.white : const Color(0xFF1E293B),
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary,
                     ),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right_rounded,
-                color: Color(0xFF94A3B8), size: 22),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: isDark ? const Color(0xFF4C658A) : const Color(0xFF8D827A),
+              size: 20,
+            ),
           ],
         ),
       ),
