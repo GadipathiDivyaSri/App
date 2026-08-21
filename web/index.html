@@ -26,6 +26,16 @@
   </style>
 </head>
 <body>
+  <script>
+    // Unregister legacy service workers to force immediate refresh of new colors and builds
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function(registrations) {
+        for (var registration of registrations) {
+          registration.unregister();
+        }
+      });
+    }
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
