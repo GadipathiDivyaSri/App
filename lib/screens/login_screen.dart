@@ -200,7 +200,11 @@ class _LoginScreenState extends State<LoginScreen>
                           controller: _phoneCtrl,
                           keyboardType: TextInputType.phone,
                           decoration: InputDecoration(
-                            hintText: '+91 9876543210',
+                            hintText: 'Enter mobile number',
+                            hintStyle: const TextStyle(
+                              fontSize: 13.5,
+                              color: Color(0xFF94A3B8),
+                            ),
                             prefixIcon: const Icon(Icons.phone_iphone_rounded,
                                 size: 20, color: Color(0xFF0D5CE5)),
                             filled: true,
@@ -208,8 +212,29 @@ class _LoginScreenState extends State<LoginScreen>
                                 ? const Color(0xFF1E1F2B)
                                 : const Color(0xFFF8FAFC),
                             border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(16),
-                              borderSide: BorderSide.none,
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: BorderSide(
+                                color: isDark
+                                    ? const Color(0xFF334155)
+                                    : const Color(0xFFE2E8F0),
+                                width: 1,
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: BorderSide(
+                                color: isDark
+                                    ? const Color(0xFF334155)
+                                    : const Color(0xFFE2E8F0),
+                                width: 1,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: const BorderSide(
+                                color: Color(0xFF0D5CE5),
+                                width: 1.5,
+                              ),
                             ),
                           ),
                         ),
@@ -231,7 +256,11 @@ class _LoginScreenState extends State<LoginScreen>
                             keyboardType: TextInputType.number,
                             maxLength: 4,
                             decoration: InputDecoration(
-                              hintText: '1234',
+                              hintText: 'Enter 4-digit OTP',
+                              hintStyle: const TextStyle(
+                                fontSize: 13.5,
+                                color: Color(0xFF94A3B8),
+                              ),
                               counterText: '',
                               prefixIcon: const Icon(
                                   Icons.lock_clock_outlined,
@@ -242,8 +271,29 @@ class _LoginScreenState extends State<LoginScreen>
                                   ? const Color(0xFF1E1F2B)
                                   : const Color(0xFFF8FAFC),
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                borderSide: BorderSide.none,
+                                borderRadius: BorderRadius.circular(14),
+                                borderSide: BorderSide(
+                                  color: isDark
+                                      ? const Color(0xFF334155)
+                                      : const Color(0xFFE2E8F0),
+                                  width: 1,
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(14),
+                                borderSide: BorderSide(
+                                  color: isDark
+                                      ? const Color(0xFF334155)
+                                      : const Color(0xFFE2E8F0),
+                                  width: 1,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(14),
+                                borderSide: const BorderSide(
+                                  color: Color(0xFF0D5CE5),
+                                  width: 1.5,
+                                ),
                               ),
                             ),
                           ),
@@ -252,12 +302,13 @@ class _LoginScreenState extends State<LoginScreen>
 
                         SizedBox(
                           width: double.infinity,
-                          height: 52,
+                          height: 50,
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF0D5CE5),
+                              elevation: 0,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
+                                borderRadius: BorderRadius.circular(14),
                               ),
                             ),
                             onPressed: _handleMobileLogin,
@@ -265,7 +316,7 @@ class _LoginScreenState extends State<LoginScreen>
                               _otpSent ? 'Verify & Log In' : 'Send OTP',
                               style: const TextStyle(
                                 color: Colors.white,
-                                fontSize: 16,
+                                fontSize: 15,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -292,7 +343,11 @@ class _LoginScreenState extends State<LoginScreen>
                           controller: _emailCtrl,
                           keyboardType: TextInputType.emailAddress,
                           decoration: InputDecoration(
-                            hintText: 'alex@example.com',
+                            hintText: 'Enter email address',
+                            hintStyle: const TextStyle(
+                              fontSize: 13.5,
+                              color: Color(0xFF94A3B8),
+                            ),
                             prefixIcon: const Icon(Icons.email_outlined,
                                 size: 20, color: Color(0xFF0D5CE5)),
                             filled: true,
@@ -300,8 +355,29 @@ class _LoginScreenState extends State<LoginScreen>
                                 ? const Color(0xFF1E1F2B)
                                 : const Color(0xFFF8FAFC),
                             border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(16),
-                              borderSide: BorderSide.none,
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: BorderSide(
+                                color: isDark
+                                    ? const Color(0xFF334155)
+                                    : const Color(0xFFE2E8F0),
+                                width: 1,
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: BorderSide(
+                                color: isDark
+                                    ? const Color(0xFF334155)
+                                    : const Color(0xFFE2E8F0),
+                                width: 1,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: const BorderSide(
+                                color: Color(0xFF0D5CE5),
+                                width: 1.5,
+                              ),
                             ),
                           ),
                         ),
@@ -321,7 +397,11 @@ class _LoginScreenState extends State<LoginScreen>
                           controller: _passwordCtrl,
                           obscureText: _obscurePassword,
                           decoration: InputDecoration(
-                            hintText: '••••••••',
+                            hintText: 'Enter password',
+                            hintStyle: const TextStyle(
+                              fontSize: 13.5,
+                              color: Color(0xFF94A3B8),
+                            ),
                             prefixIcon: const Icon(Icons.lock_outline_rounded,
                                 size: 20, color: Color(0xFF0D5CE5)),
                             suffixIcon: IconButton(
@@ -331,16 +411,37 @@ class _LoginScreenState extends State<LoginScreen>
                                     : Icons.visibility_outlined,
                                 size: 20,
                               ),
-                              onPressed: () => setState(() =>
-                                  _obscurePassword = !_obscurePassword),
+                              onPressed: () => setState(
+                                  () => _obscurePassword = !_obscurePassword),
                             ),
                             filled: true,
                             fillColor: isDark
                                 ? const Color(0xFF1E1F2B)
                                 : const Color(0xFFF8FAFC),
                             border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(16),
-                              borderSide: BorderSide.none,
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: BorderSide(
+                                color: isDark
+                                    ? const Color(0xFF334155)
+                                    : const Color(0xFFE2E8F0),
+                                width: 1,
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: BorderSide(
+                                color: isDark
+                                    ? const Color(0xFF334155)
+                                    : const Color(0xFFE2E8F0),
+                                width: 1,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: const BorderSide(
+                                color: Color(0xFF0D5CE5),
+                                width: 1.5,
+                              ),
                             ),
                           ),
                         ),
@@ -357,6 +458,9 @@ class _LoginScreenState extends State<LoginScreen>
                                   child: Checkbox(
                                     value: _rememberMe,
                                     activeColor: const Color(0xFF0D5CE5),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
                                     onChanged: (val) => setState(
                                         () => _rememberMe = val ?? true),
                                   ),
@@ -382,7 +486,7 @@ class _LoginScreenState extends State<LoginScreen>
                             ),
                           ],
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 14),
 
                         SizedBox(
                           width: double.infinity,
@@ -390,8 +494,9 @@ class _LoginScreenState extends State<LoginScreen>
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF0D5CE5),
+                              elevation: 0,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
+                                borderRadius: BorderRadius.circular(14),
                               ),
                             ),
                             onPressed: _handleEmailLogin,
@@ -399,7 +504,7 @@ class _LoginScreenState extends State<LoginScreen>
                               'Log In',
                               style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 16,
+                                fontSize: 15,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
