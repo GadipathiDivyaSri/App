@@ -62,9 +62,39 @@ class _SignUpScreenState extends State<SignUpScreen>
         const SnackBar(content: Text('Please enter phone or email first')),
       );
     }
+  Future<bool> _openTermsAndConditions() async {
+    final accepted = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const TermsConditionsScreen(isReviewMode: true),
+      ),
+    );
+
+    if (accepted == true) {
+      setState(() {
+        _agreeTerms = true;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
+                SizedBox(width: 8),
+                Text('Terms & Conditions accepted.'),
+              ],
+            ),
+            backgroundColor: Color(0xFF0D5CE5),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+      return true;
+    }
+    return false;
   }
 
-  void _handleSignUp() {
+  void _handleSignUp() async {
     if (_nameCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter your full name')),
@@ -75,17 +105,20 @@ class _SignUpScreenState extends State<SignUpScreen>
     if (!_agreeTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please accept our Terms & Conditions to create an account'),
+          content: Text('Please review and accept our Terms & Conditions'),
           backgroundColor: Color(0xFFEF4444),
+          duration: Duration(seconds: 2),
         ),
       );
-      return;
+      final accepted = await _openTermsAndConditions();
+      if (!accepted) return;
     }
 
     final isMobileTab = _tabController.index == 0;
     final contact = isMobileTab ? _phoneCtrl.text.trim() : _emailCtrl.text.trim();
     final refCode = _referralCodeCtrl.text.trim();
 
+    if (!mounted) return;
     final provider = Provider.of<AppProvider>(context, listen: false);
     provider.signup(
       _nameCtrl.text.trim(),
@@ -95,17 +128,20 @@ class _SignUpScreenState extends State<SignUpScreen>
     Navigator.popUntil(context, (route) => route.isFirst);
   }
 
-  void _handleGoogleSignUp() {
+  void _handleGoogleSignUp() async {
     if (!_agreeTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please accept our Terms & Conditions to sign up'),
+          content: Text('Please review and accept our Terms & Conditions'),
           backgroundColor: Color(0xFFEF4444),
+          duration: Duration(seconds: 2),
         ),
       );
-      return;
+      final accepted = await _openTermsAndConditions();
+      if (!accepted) return;
     }
 
+    if (!mounted) return;
     final provider = Provider.of<AppProvider>(context, listen: false);
     final refCode = _referralCodeCtrl.text.trim();
     provider.signup(
@@ -450,8 +486,13 @@ class _SignUpScreenState extends State<SignUpScreen>
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(5),
                       ),
-                      onChanged: (val) =>
-                          setState(() => _agreeTerms = val ?? false),
+                      onChanged: (val) {
+                        if (val == true && !_agreeTerms) {
+                          _openTermsAndConditions();
+                        } else {
+                          setState(() => _agreeTerms = val ?? false);
+                        }
+                      },
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -460,7 +501,13 @@ class _SignUpScreenState extends State<SignUpScreen>
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         GestureDetector(
-                          onTap: () => setState(() => _agreeTerms = !_agreeTerms),
+                          onTap: () {
+                            if (!_agreeTerms) {
+                              _openTermsAndConditions();
+                            } else {
+                              setState(() => _agreeTerms = false);
+                            }
+                          },
                           child: Text(
                             'By signing up, you accept our ',
                             style: TextStyle(
@@ -472,14 +519,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                           ),
                         ),
                         InkWell(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const TermsConditionsScreen(),
-                              ),
-                            );
-                          },
+                          onTap: _openTermsAndConditions,
                           child: const Padding(
                             padding: EdgeInsets.symmetric(vertical: 2.0),
                             child: Text(
@@ -494,7 +534,13 @@ class _SignUpScreenState extends State<SignUpScreen>
                           ),
                         ),
                         GestureDetector(
-                          onTap: () => setState(() => _agreeTerms = !_agreeTerms),
+                          onTap: () {
+                            if (!_agreeTerms) {
+                              _openTermsAndConditions();
+                            } else {
+                              setState(() => _agreeTerms = false);
+                            }
+                          },
                           child: Text(
                             ' and Privacy Policy.',
                             style: TextStyle(

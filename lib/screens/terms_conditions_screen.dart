@@ -2,7 +2,14 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
 class TermsConditionsScreen extends StatelessWidget {
-  const TermsConditionsScreen({super.key});
+  final bool isReviewMode;
+  final VoidCallback? onAccept;
+
+  const TermsConditionsScreen({
+    super.key,
+    this.isReviewMode = false,
+    this.onAccept,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +26,7 @@ class TermsConditionsScreen extends StatelessWidget {
             size: 20,
             color: isDark ? Colors.white : AppTheme.lightTextPrimary,
           ),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Navigator.pop(context, false),
         ),
         title: Text(
           'Terms & Conditions',
@@ -27,6 +34,52 @@ class TermsConditionsScreen extends StatelessWidget {
             color: isDark ? Colors.white : AppTheme.lightTextPrimary,
             fontWeight: FontWeight.w800,
             fontSize: 20,
+          ),
+        ),
+      ),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        decoration: BoxDecoration(
+          color: isDark ? AppTheme.darkCardBg : Colors.white,
+          border: Border(
+            top: BorderSide(
+              color: isDark ? AppTheme.darkCardBorder : const Color(0xFFE2E8F0),
+              width: 1,
+            ),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, -4),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          child: SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF0D5CE5),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                elevation: 0,
+              ),
+              onPressed: () {
+                if (onAccept != null) {
+                  onAccept!();
+                }
+                Navigator.pop(context, true);
+              },
+              icon: const Icon(Icons.check_circle_outline_rounded, size: 22),
+              label: const Text(
+                'I Have Read & Accept Terms',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+              ),
+            ),
           ),
         ),
       ),
