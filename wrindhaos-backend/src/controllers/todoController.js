@@ -14,6 +14,25 @@ async function getTodos(req, res, next) {
 async function createTodo(req, res, next) {
   try {
     const { title, category, priority, due_date, due_date_label } = req.body;
+
+    if (due_date) {
+      const parsedDueDate = new Date(due_date);
+      const todayMidnight = new Date();
+      todayMidnight.setHours(0, 0, 0, 0);
+
+      const dueMidnight = new Date(parsedDueDate);
+      dueMidnight.setHours(0, 0, 0, 0);
+
+      if (dueMidnight < todayMidnight) {
+        return sendError(
+          res,
+          'Cannot create tasks scheduled for dates in the past. Only today and future dates are allowed.',
+          'PAST_DATE_FORBIDDEN',
+          400
+        );
+      }
+    }
+
     const todoId = crypto.randomUUID();
     const newTodo = {
       id: todoId,

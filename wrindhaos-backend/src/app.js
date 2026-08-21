@@ -18,6 +18,8 @@ const entitlementRoutes = require('./routes/entitlementRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const userPrivacyRoutes = require('./routes/userPrivacyRoutes');
+const expenseRoutes = require('./routes/expenseRoutes');
+const referralRoutes = require('./routes/referralRoutes');
 
 const app = express();
 
@@ -30,6 +32,11 @@ app.use(generalRateLimiter);
 
 // Serve Admin Web Portal Static Files
 app.use('/admin', express.static(path.join(__dirname, '../public/admin')));
+
+// Serve WrindhaOS Flutter Web Application Assets
+const webAppPath = path.join(__dirname, '../../build/web');
+app.use('/app', express.static(webAppPath));
+app.use(express.static(webAppPath));
 
 // Health Check Endpoint (Render & Monitoring)
 app.get('/health', (req, res) => {
@@ -60,8 +67,29 @@ app.use('/api/v1/entitlements', entitlementRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/privacy', userPrivacyRoutes);
+app.use('/api/v1/expenses', expenseRoutes);
+app.use('/api/v1/referrals', referralRoutes);
 
-// Fallback 404 Route Handler
+// Compatibility aliases for /api/...
+app.use('/api/auth', authRoutes);
+app.use('/api/user', userRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/tasks', todoRoutes);
+app.use('/api/todos', todoRoutes);
+app.use('/api/expenses', expenseRoutes);
+app.use('/api/referrals', referralRoutes);
+app.use('/api/subscriptions', subscriptionRoutes);
+app.use('/api/calendar', calendarRoutes);
+
+// SPA Web App HTML Route Fallback (for browser navigation)
+app.get('*', (req, res, next) => {
+  if (req.accepts('html')) {
+    return res.sendFile(path.join(webAppPath, 'index.html'));
+  }
+  next();
+});
+
+// Fallback 404 Route Handler for API requests
 app.use((req, res) => {
   res.status(404).json({
     success: false,

@@ -487,6 +487,15 @@ class CalendarScreen extends StatelessWidget {
   }
 
   void _showAddEventDialog(BuildContext context) {
+    final provider = Provider.of<AppProvider>(context, listen: false);
+    final now = DateTime.now();
+    final todayMidnight = DateTime(now.year, now.month, now.day);
+    
+    // Ensure default event scheduling date is today or selectedDate if in future
+    DateTime eventDate = provider.selectedDate.isBefore(todayMidnight)
+        ? todayMidnight
+        : provider.selectedDate;
+
     final titleCtrl = TextEditingController();
     final descCtrl = TextEditingController();
     final locationCtrl = TextEditingController();
@@ -514,9 +523,29 @@ class CalendarScreen extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Schedule Event',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Schedule Event',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0D5CE5).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Text(
+                          'Today & Future Only',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF0D5CE5),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 16),
                   TextField(
@@ -526,6 +555,32 @@ class CalendarScreen extends StatelessWidget {
                       filled: true,
                       border: OutlineInputBorder(),
                     ),
+                  ),
+                  const SizedBox(height: 12),
+                  // Dynamic Date Selector with firstDate = today
+                  OutlinedButton.icon(
+                    icon: const Icon(Icons.calendar_today_rounded, size: 16),
+                    label: Text(
+                      'Date: ${DateFormat('EEE, MMM d, yyyy').format(eventDate)}',
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    onPressed: () async {
+                      final currentNow = DateTime.now();
+                      final today = DateTime(currentNow.year, currentNow.month, currentNow.day);
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: eventDate.isBefore(today) ? today : eventDate,
+                        firstDate: today, // Past dates dynamically disabled
+                        lastDate: DateTime(currentNow.year + 10), // Dynamic future range
+                      );
+                      if (picked != null) {
+                        setStateModal(() => eventDate = picked);
+                      }
+                    },
                   ),
                   const SizedBox(height: 12),
                   TextField(
@@ -610,19 +665,40 @@ class CalendarScreen extends StatelessWidget {
                         ),
                       ),
                       onPressed: () {
-                        if (titleCtrl.text.trim().isNotEmpty) {
-                          final provider = Provider.of<AppProvider>(context, listen: false);
-                          provider.addCalendarEvent(
-                            titleCtrl.text.trim(),
-                            descCtrl.text.trim(),
-                            provider.selectedDate,
-                            preferredStartTime,
-                            preferredEndTime,
-                            locationCtrl.text.trim(),
-                            type,
+                        if (titleCtrl.text.trim().isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Please enter an event title.')),
                           );
-                          Navigator.pop(ctx);
+                          return;
                         }
+
+                        // Validate that date is not in the past
+                        if (!provider.isDateAllowedForCreation(eventDate)) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Cannot schedule events in the past. Only today and future dates allowed.'),
+                              backgroundColor: Color(0xFFEF4444),
+                            ),
+                          );
+                          return;
+                        }
+
+                        provider.addCalendarEvent(
+                          titleCtrl.text.trim(),
+                          descCtrl.text.trim(),
+                          eventDate,
+                          preferredStartTime,
+                          preferredEndTime,
+                          locationCtrl.text.trim(),
+                          type,
+                        );
+                        Navigator.pop(ctx);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Event scheduled successfully!'),
+                            backgroundColor: Color(0xFF0D5CE5),
+                          ),
+                        );
                       },
                       child: const Text(
                         'Save Event',

@@ -18,6 +18,8 @@ router.post(
   subscriptionController.verifyGooglePlaySubscription
 );
 
+router.post('/checkout', subscriptionController.checkoutSubscription);
+
 router.get('/me', subscriptionController.getMySubscription);
 
 module.exports = router;

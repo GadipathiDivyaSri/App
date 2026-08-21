@@ -18,6 +18,7 @@ class _SignUpScreenState extends State<SignUpScreen>
   final _emailCtrl = TextEditingController();
   final _otpCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
+  final _referralCodeCtrl = TextEditingController();
   bool _otpSent = false;
   bool _agreeTerms = true;
   bool _obscurePassword = true;
@@ -36,6 +37,7 @@ class _SignUpScreenState extends State<SignUpScreen>
     _emailCtrl.dispose();
     _otpCtrl.dispose();
     _passwordCtrl.dispose();
+    _referralCodeCtrl.dispose();
     super.dispose();
   }
 
@@ -78,15 +80,25 @@ class _SignUpScreenState extends State<SignUpScreen>
 
     final isMobileTab = _tabController.index == 0;
     final contact = isMobileTab ? _phoneCtrl.text.trim() : _emailCtrl.text.trim();
+    final refCode = _referralCodeCtrl.text.trim();
 
     final provider = Provider.of<AppProvider>(context, listen: false);
-    provider.signup(_nameCtrl.text.trim(), contact);
+    provider.signup(
+      _nameCtrl.text.trim(),
+      contact,
+      refCode: refCode.isNotEmpty ? refCode : null,
+    );
     Navigator.popUntil(context, (route) => route.isFirst);
   }
 
   void _handleGoogleSignUp() {
     final provider = Provider.of<AppProvider>(context, listen: false);
-    provider.signup('Alex Johnson', 'alex.google@gmail.com');
+    final refCode = _referralCodeCtrl.text.trim();
+    provider.signup(
+      'Alex Johnson',
+      'alex.google@gmail.com',
+      refCode: refCode.isNotEmpty ? refCode : null,
+    );
     Navigator.popUntil(context, (route) => route.isFirst);
   }
 
@@ -364,6 +376,36 @@ class _SignUpScreenState extends State<SignUpScreen>
                     onPressed: () =>
                         setState(() => _obscurePassword = !_obscurePassword),
                   ),
+                  filled: true,
+                  fillColor: isDark
+                      ? const Color(0xFF1E1F2B)
+                      : const Color(0xFFF8FAFC),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // REFERRAL CODE (OPTIONAL)
+              const Text(
+                'REFERRAL CODE (OPTIONAL)',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.1,
+                  color: Color(0xFF94A3B8),
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _referralCodeCtrl,
+                textCapitalization: TextCapitalization.characters,
+                decoration: InputDecoration(
+                  hintText: 'e.g., WRINDHA7K92',
+                  prefixIcon: const Icon(Icons.discount_outlined,
+                      size: 20, color: Color(0xFF0D5CE5)),
                   filled: true,
                   fillColor: isDark
                       ? const Color(0xFF1E1F2B)

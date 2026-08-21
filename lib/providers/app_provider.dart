@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/models.dart';
+import '../services/api_service.dart';
 
 class AppProvider extends ChangeNotifier {
   ThemeMode _themeMode = ThemeMode.light;
@@ -11,7 +12,9 @@ class AppProvider extends ChangeNotifier {
   bool get isLoggedIn => _isLoggedIn;
 
   UserProfile _user = UserProfile(
+    id: 'u_1',
     name: 'Student User',
+    contact: '',
     focusScore: 0,
     activeStreak: 0,
     isPremium: false,
@@ -27,7 +30,38 @@ class AppProvider extends ChangeNotifier {
   List<AppNotification> _notifications = [];
   List<AppNotification> get notifications => _notifications;
 
-  DateTime _selectedDate = DateTime(2026, 8, 5);
+  List<ExpenseTransaction> _expenses = [];
+  List<ExpenseTransaction> get expenses => _expenses;
+
+  List<ReferralActivity> _referralActivities = [
+    ReferralActivity(
+      id: 'ref_1',
+      name: 'Sarah Jenkins',
+      status: 'QUALIFIED',
+      date: 'OCT 12',
+      discountPercent: 10,
+      isApplied: true,
+    ),
+    ReferralActivity(
+      id: 'ref_2',
+      name: 'Mark Thompson',
+      status: 'QUALIFIED',
+      date: 'OCT 08',
+      discountPercent: 10,
+      isApplied: true,
+    ),
+    ReferralActivity(
+      id: 'ref_3',
+      name: 'Jessica L.',
+      status: 'PENDING',
+      date: 'OCT 14',
+      discountPercent: 10,
+      isApplied: false,
+    ),
+  ];
+  List<ReferralActivity> get referralActivities => _referralActivities;
+
+  DateTime _selectedDate = DateTime.now();
   DateTime get selectedDate => _selectedDate;
 
   String _notificationFilter = 'RECENT';
@@ -36,35 +70,103 @@ class AppProvider extends ChangeNotifier {
   double _monthlyBudget = 10000.0;
   double get monthlyBudget => _monthlyBudget;
 
+  // Financial Summary Getters
+  double get totalExpenses => _expenses
+      .where((e) => !e.isIncome)
+      .fold(0.0, (sum, item) => sum + item.amount);
+
+  double get totalIncome => _expenses
+      .where((e) => e.isIncome)
+      .fold(0.0, (sum, item) => sum + item.amount);
+
+  double get availableBalance => _monthlyBudget + totalIncome - totalExpenses;
+
+  // Date Restriction Validation
+  bool isDateAllowedForCreation(DateTime date) {
+    final now = DateTime.now();
+    final todayMidnight = DateTime(now.year, now.month, now.day);
+    final targetMidnight = DateTime(date.year, date.month, date.day);
+    return !targetMidnight.isBefore(todayMidnight);
+  }
+
   AppProvider() {
     _initData();
   }
 
-  void login(String name, String contact) {
+  void login(String name, String contact, {String? id, String? token}) {
     _isLoggedIn = true;
     _user = UserProfile(
+      id: id ?? 'u_1',
       name: name.isNotEmpty ? name : 'Student User',
+      contact: contact,
       focusScore: 0,
       activeStreak: 0,
       isPremium: false,
+      token: token,
+      referralCode: 'WRINDHA7K92',
     );
     notifyListeners();
   }
 
-  void signup(String name, String contact) {
+  void signup(String name, String contact, {String? id, String? token, String? refCode}) {
     _isLoggedIn = true;
     _user = UserProfile(
+      id: id ?? 'u_1',
       name: name.isNotEmpty ? name : 'Student User',
+      contact: contact,
       focusScore: 0,
       activeStreak: 0,
       isPremium: false,
+      token: token,
+      referralCode: 'WRINDHA${DateTime.now().millisecondsSinceEpoch % 10000}',
+      referredByCode: refCode,
     );
+    if (refCode != null && refCode.trim().isNotEmpty) {
+      applyReferralCode(refCode.trim());
+    }
     notifyListeners();
   }
 
   void logout() {
     _isLoggedIn = false;
     notifyListeners();
+  }
+
+  Future<Map<String, dynamic>> deleteAccount() async {
+    // 1. Send authenticated delete request to backend
+    final result = await ApiService.deleteAccount(
+      userId: _user.id,
+      contact: _user.contact,
+      token: _user.token,
+    );
+
+    // 2. Clear local storage persistence for user data
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('saved_tasks');
+    await prefs.remove('saved_events');
+    await prefs.remove('saved_notifications');
+    await prefs.remove('saved_monthly_budget');
+    await prefs.remove('saved_expenses');
+    await prefs.remove('saved_referrals');
+
+    // 3. Reset in-memory state
+    _tasks = [];
+    _calendarEvents = [];
+    _notifications = [];
+    _expenses = [];
+    _monthlyBudget = 10000.0;
+    _user = UserProfile(
+      id: 'u_1',
+      name: 'Student User',
+      contact: '',
+      focusScore: 0,
+      activeStreak: 0,
+      isPremium: false,
+    );
+    _isLoggedIn = false;
+
+    notifyListeners();
+    return result;
   }
 
   void toggleTheme(bool isDark) {
@@ -88,6 +190,96 @@ class AppProvider extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble('saved_monthly_budget', amount);
     notifyListeners();
+  }
+
+  // Expense Operations
+  void addExpense(
+    String title,
+    String category,
+    double amount, {
+    bool isIncome = false,
+    String paymentMethod = 'UPI',
+  }) {
+    if (amount <= 0) return;
+    final newExp = ExpenseTransaction(
+      id: 'exp_${DateTime.now().millisecondsSinceEpoch}',
+      title: title.trim().isEmpty ? category : title.trim(),
+      category: category,
+      amount: amount,
+      isIncome: isIncome,
+      date: DateTime.now(),
+      paymentMethod: paymentMethod,
+    );
+    _expenses.insert(0, newExp);
+    _saveExpenses();
+    ApiService.createExpense(
+      title: newExp.title,
+      category: newExp.category,
+      amount: newExp.amount,
+      isIncome: newExp.isIncome,
+      paymentMethod: newExp.paymentMethod,
+    );
+    notifyListeners();
+  }
+
+  void editExpense(
+    String id,
+    String title,
+    String category,
+    double amount, {
+    bool isIncome = false,
+    String paymentMethod = 'UPI',
+  }) {
+    if (amount <= 0) return;
+    final index = _expenses.indexWhere((e) => e.id == id);
+    if (index != -1) {
+      _expenses[index] = ExpenseTransaction(
+        id: id,
+        title: title.trim().isEmpty ? category : title.trim(),
+        category: category,
+        amount: amount,
+        isIncome: isIncome,
+        date: _expenses[index].date,
+        paymentMethod: paymentMethod,
+      );
+      _saveExpenses();
+      ApiService.updateExpense(
+        id: id,
+        title: title,
+        category: category,
+        amount: amount,
+        isIncome: isIncome,
+        paymentMethod: paymentMethod,
+      );
+      notifyListeners();
+    }
+  }
+
+  void deleteExpense(String id) {
+    _expenses.removeWhere((e) => e.id == id);
+    _saveExpenses();
+    ApiService.deleteExpense(id);
+    notifyListeners();
+  }
+
+  // Referral Operations
+  void applyReferralCode(String code) {
+    _user.referredByCode = code;
+    ApiService.applyReferralCode(_user.id, code);
+    notifyListeners();
+  }
+
+  Future<void> checkoutSubscription(String plan, double basePrice) async {
+    final res = await ApiService.checkoutSubscription(
+      userId: _user.id,
+      plan: plan,
+      basePrice: basePrice,
+    );
+    if (res['success'] == true || res['subscription'] != null) {
+      _user.isPremium = true;
+      _user.activeDiscountPercent = 0; // consumed
+      notifyListeners();
+    }
   }
 
   // Initial Mock Data Setup & Persistence
@@ -135,6 +327,43 @@ class AppProvider extends ChangeNotifier {
           decoded.map((item) => AppNotification.fromJson(item)).toList();
     } else {
       _notifications = [];
+    }
+
+    // Load Expenses
+    final expensesJson = prefs.getString('saved_expenses');
+    if (expensesJson != null) {
+      final List decoded = jsonDecode(expensesJson);
+      _expenses =
+          decoded.map((item) => ExpenseTransaction.fromJson(item)).toList();
+    } else {
+      _expenses = [
+        ExpenseTransaction(
+          id: 'e_1',
+          title: 'Lunch with Client',
+          category: 'Food & Drinks',
+          amount: 45.20,
+          isIncome: false,
+          date: DateTime.now().subtract(const Duration(hours: 2)),
+          paymentMethod: 'UPI',
+        ),
+        ExpenseTransaction(
+          id: 'e_2',
+          title: 'Freelance Payout',
+          category: 'Income',
+          amount: 1200.00,
+          isIncome: true,
+          date: DateTime.now().subtract(const Duration(days: 1)),
+          paymentMethod: 'Bank Transfer',
+        ),
+      ];
+    }
+
+    // Load Referrals
+    final referralsJson = prefs.getString('saved_referrals');
+    if (referralsJson != null) {
+      final List decoded = jsonDecode(referralsJson);
+      _referralActivities =
+          decoded.map((item) => ReferralActivity.fromJson(item)).toList();
     }
 
     _recalculateMetrics();
@@ -358,5 +587,17 @@ class AppProvider extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     final jsonList = _notifications.map((n) => n.toJson()).toList();
     await prefs.setString('saved_notifications', jsonEncode(jsonList));
+  }
+
+  Future<void> _saveExpenses() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonList = _expenses.map((e) => e.toJson()).toList();
+    await prefs.setString('saved_expenses', jsonEncode(jsonList));
+  }
+
+  Future<void> _saveReferrals() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonList = _referralActivities.map((r) => r.toJson()).toList();
+    await prefs.setString('saved_referrals', jsonEncode(jsonList));
   }
 }

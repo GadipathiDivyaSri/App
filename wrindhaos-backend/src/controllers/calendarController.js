@@ -25,7 +25,30 @@ async function getEvents(req, res, next) {
 
 async function createEvent(req, res, next) {
   try {
-    const { title, description, start_time, end_time, location, reminder } = req.body;
+    const { title, description, start_time, end_time, date, location, reminder } = req.body;
+
+    // Dynamic Date Restriction Validation (Today or Future ONLY)
+    const targetDateStr = start_time || date || new Date().toISOString();
+    const eventStartDate = new Date(targetDateStr);
+    const todayMidnight = new Date();
+    todayMidnight.setHours(0, 0, 0, 0);
+
+    if (isNaN(eventStartDate.getTime())) {
+      return sendError(res, 'Invalid date format provided for calendar event.', 'INVALID_DATE', 400);
+    }
+
+    const eventDateMidnight = new Date(eventStartDate);
+    eventDateMidnight.setHours(0, 0, 0, 0);
+
+    if (eventDateMidnight < todayMidnight) {
+      return sendError(
+        res,
+        'Cannot schedule events for dates in the past. Only today and future dates are allowed.',
+        'PAST_DATE_FORBIDDEN',
+        400
+      );
+    }
+
     const eventId = crypto.randomUUID();
     const newEvent = {
       id: eventId,
