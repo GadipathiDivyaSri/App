@@ -17,94 +17,125 @@
   <link rel="manifest" href="manifest.json">
 
   <style>
-    .module-icon-overlay {
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: #FFF9F0;
+    }
+    #wrindha-icon-overlays {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 1000;
+    }
+    .module-icon-img {
       position: absolute;
       pointer-events: none;
-      z-index: 99999;
       object-fit: contain;
-      transition: opacity 0.2s ease, transform 0.2s ease;
-      filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.12));
+      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+      transition: transform 0.15s ease, opacity 0.2s ease;
     }
   </style>
 </head>
 <body>
+  <div id="wrindha-icon-overlays"></div>
+
   <script>
-    // Custom Illustrated Icons Overlay Manager for WrindhaOS
     (function() {
-      const ICON_MAP = {
-        'Personal': '/assets/icons/ic_personal_growth.png',
-        'Career': '/assets/icons/ic_career.png',
-        'Studies': '/assets/icons/ic_studies.png',
-        'Calendar': '/assets/icons/ic_calendar.png',
-        'Priority': '/assets/icons/ic_priority.png',
-        'Analytics': '/assets/icons/ic_analytics.png'
-      };
+      const container = document.getElementById('wrindha-icon-overlays');
 
-      const overlayContainer = document.createElement('div');
-      overlayContainer.id = 'wrindha-icon-overlays';
-      overlayContainer.style.position = 'fixed';
-      overlayContainer.style.top = '0';
-      overlayContainer.style.left = '0';
-      overlayContainer.style.width = '100vw';
-      overlayContainer.style.height = '100vh';
-      overlayContainer.style.pointerEvents = 'none';
-      overlayContainer.style.zIndex = '999999';
-      document.body.appendChild(overlayContainer);
+      // 6 Custom Reference Illustrated Icons in exact GridView order:
+      // Row 0: Personal Growth (Col 0), Career (Col 1)
+      // Row 1: Studies (Col 0), Calendar (Col 1)
+      // Row 2: Priority (Col 0), Analytics (Col 1)
+      const ICONS = [
+        { id: 'personal_growth', src: '/assets/icons/ic_personal_growth.png', row: 0, col: 0 },
+        { id: 'career', src: '/assets/icons/ic_career.png', row: 0, col: 1 },
+        { id: 'studies', src: '/assets/icons/ic_studies.png', row: 1, col: 0 },
+        { id: 'calendar', src: '/assets/icons/ic_calendar.png', row: 1, col: 1 },
+        { id: 'priority', src: '/assets/icons/ic_priority.png', row: 2, col: 0 },
+        { id: 'analytics', src: '/assets/icons/ic_analytics.png', row: 2, col: 1 }
+      ];
 
-      const activeOverlays = new Map();
+      const imgElements = [];
 
-      function updateOverlays() {
-        const semantics = document.querySelectorAll('flt-semantics[aria-label], flt-semantics-placeholder, [role="button"]');
-        const foundKeys = new Set();
+      // Pre-create image elements
+      ICONS.forEach(ic => {
+        const img = document.createElement('img');
+        img.src = ic.src;
+        img.id = 'icon-' + ic.id;
+        img.className = 'module-icon-img';
+        img.style.display = 'none';
+        container.appendChild(img);
+        imgElements.push({ img, ...ic });
+      });
 
-        semantics.forEach(el => {
-          const label = el.getAttribute('aria-label') || el.innerText || '';
-          for (const [key, iconSrc] of Object.entries(ICON_MAP)) {
-            if (label.includes(key)) {
-              const rect = el.getBoundingClientRect();
-              if (rect.width > 80 && rect.height > 60 && rect.top >= 0 && rect.top < window.innerHeight) {
-                foundKeys.add(key);
-                let img = activeOverlays.get(key);
-                if (!img) {
-                  img = document.createElement('img');
-                  img.src = iconSrc;
-                  img.className = 'module-icon-overlay';
-                  overlayContainer.appendChild(img);
-                  activeOverlays.set(key, img);
-                }
-                
-                // Bigger, more prominent icon sizing: 58px on desktop, scaling smoothly
-                const iconSize = Math.min(62, Math.max(50, rect.height * 0.38));
-                const iconLeft = rect.left + 14;
-                const iconTop = rect.top + 14;
+      function layoutIcons() {
+        // Check if on HomeScreen (URL is root or / and no subscreen route in hash)
+        const isHome = window.location.pathname === '/' || window.location.pathname === '/app' || window.location.hash === '' || window.location.hash === '#/' || window.location.hash === '#';
+        
+        // Check screen dimensions
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
 
-                img.style.width = iconSize + 'px';
-                img.style.height = iconSize + 'px';
-                img.style.left = iconLeft + 'px';
-                img.style.top = iconTop + 'px';
-                img.style.display = 'block';
-                img.style.opacity = '1';
-              }
-            }
+        // HomeScreen layout constants:
+        // SafeArea padding: horizontal: 20px, top: ~68px (WrindhaOS header title + notification icon + spacing 20px)
+        const padX = 20;
+        const headerH = 78; // Title + bell + margin
+        const gap = 16;
+        
+        const availableW = Math.min(vw - (padX * 2), 600); // max card grid width if on desktop
+        const startX = (vw - availableW) / 2;
+        const colW = (availableW - gap) / 2;
+        const cardH = colW / 0.98;
+        const startY = headerH;
+        
+        const iconSize = Math.min(56, Math.max(44, cardH * 0.32));
+
+        imgElements.forEach(item => {
+          if (!isHome) {
+            item.img.style.display = 'none';
+            return;
+          }
+
+          const cardLeft = startX + (item.col * (colW + gap));
+          const cardTop = startY + (item.row * (cardH + gap));
+
+          // Position icon inside the top-left squircle area of each card (16px inset)
+          const iconLeft = cardLeft + 14;
+          const iconTop = cardTop + 14;
+
+          // Only show if card is within visible viewport
+          if (cardTop < vh && (cardTop + cardH) > 0) {
+            item.img.style.width = iconSize + 'px';
+            item.img.style.height = iconSize + 'px';
+            item.img.style.left = iconLeft + 'px';
+            item.img.style.top = iconTop + 'px';
+            item.img.style.display = 'block';
+            item.img.style.opacity = '1';
+          } else {
+            item.img.style.display = 'none';
           }
         });
-
-        // Hide overlays for modules not currently visible on screen
-        activeOverlays.forEach((img, key) => {
-          if (!foundKeys.has(key)) {
-            img.style.display = 'none';
-            img.style.opacity = '0';
-          }
-        });
-
-        requestAnimationFrame(updateOverlays);
       }
 
-      // Start detection after Flutter initializes
-      window.addEventListener('load', () => {
-        setTimeout(updateOverlays, 500);
-      });
-      setTimeout(updateOverlays, 800);
+      // Continuous sync with RAF and event listeners
+      function loop() {
+        layoutIcons();
+        requestAnimationFrame(loop);
+      }
+      
+      window.addEventListener('resize', layoutIcons);
+      window.addEventListener('scroll', layoutIcons);
+      window.addEventListener('popstate', layoutIcons);
+      window.addEventListener('hashchange', layoutIcons);
+
+      // Start loop
+      requestAnimationFrame(loop);
     })();
   </script>
   <script src="flutter_bootstrap.js" async></script>
