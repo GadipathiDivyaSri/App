@@ -170,6 +170,12 @@ class ProfileScreen extends StatelessWidget {
                         ),
                       );
                     }),
+                _MenuItemData(
+                    icon: Icons.delete_forever_rounded,
+                    title: 'Delete Account',
+                    iconColor: const Color(0xFFEF4444),
+                    textColor: const Color(0xFFEF4444),
+                    onTap: () => _showDeleteAccountDialog(context, provider)),
               ],
             ),
             const SizedBox(height: 20),
@@ -312,36 +318,40 @@ class ProfileScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
-            // Logout Button
-            TextButton.icon(
-              onPressed: () => _showLogoutDialog(context),
-              icon: Icon(Icons.logout_rounded, color: Colors.redAccent),
-              label: const Text(
-                'Logout',
-                style: TextStyle(
-                  color: Colors.redAccent,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+            // Logout & Delete Account Actions
+            Center(
+              child: Column(
+                children: [
+                  TextButton.icon(
+                    onPressed: () => _showLogoutDialog(context),
+                    icon: const Icon(Icons.logout_rounded, color: Colors.redAccent),
+                    label: const Text(
+                      'Logout',
+                      style: TextStyle(
+                        color: Colors.redAccent,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextButton.icon(
+                    onPressed: () => _showDeleteAccountDialog(context, provider),
+                    icon: const Icon(Icons.delete_forever_rounded,
+                        color: Color(0xFFEF4444), size: 20),
+                    label: const Text(
+                      'Delete Account',
+                      style: TextStyle(
+                        color: Color(0xFFEF4444),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 8),
-
-            // Delete Account Button
-            TextButton.icon(
-              onPressed: () => _showDeleteAccountDialog(context, provider),
-              icon: Icon(Icons.delete_outline_rounded,
-                  color: Color(0xFFEF4444), size: 20),
-              label: const Text(
-                'Delete Account',
-                style: TextStyle(
-                  color: Color(0xFFEF4444),
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            const SizedBox(height: 30),
+            const SizedBox(height: 100),
           ],
         ),
       ),
@@ -430,6 +440,8 @@ class ProfileScreen extends StatelessWidget {
                 icon: item.icon,
                 title: item.title,
                 onTap: item.onTap,
+                iconColor: item.iconColor,
+                textColor: item.textColor,
               ),
               if (index < items.length - 1)
                 const Divider(height: 1, indent: 50),
@@ -445,22 +457,31 @@ class ProfileScreen extends StatelessWidget {
     required IconData icon,
     required String title,
     required VoidCallback onTap,
+    Color? iconColor,
+    Color? textColor,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return ListTile(
       onTap: onTap,
-      leading: Icon(icon, color: const Color(0xFF0D5CE5), size: 22),
+      leading: Icon(
+        icon,
+        color: iconColor ?? const Color(0xFF0D5CE5),
+        size: 22,
+      ),
       title: Text(
         title,
         style: TextStyle(
           fontSize: 15,
           fontWeight: FontWeight.w600,
-          color: isDark ? Colors.white : const Color(0xFF1E293B),
+          color: textColor ?? (isDark ? Colors.white : const Color(0xFF1E293B)),
         ),
       ),
-      trailing: Icon(Icons.chevron_right_rounded,
-          color: Color(0xFF94A3B8), size: 22),
+      trailing: Icon(
+        Icons.chevron_right_rounded,
+        color: textColor ?? const Color(0xFF94A3B8),
+        size: 22,
+      ),
     );
   }
 
@@ -609,6 +630,14 @@ class _MenuItemData {
   final IconData icon;
   final String title;
   final VoidCallback onTap;
+  final Color? iconColor;
+  final Color? textColor;
 
-  _MenuItemData({required this.icon, required this.title, required this.onTap});
+  _MenuItemData({
+    required this.icon,
+    required this.title,
+    required this.onTap,
+    this.iconColor,
+    this.textColor,
+  });
 }
