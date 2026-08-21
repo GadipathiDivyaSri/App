@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 
 class CareerRoadmapScreen extends StatefulWidget {
   const CareerRoadmapScreen({super.key});
@@ -36,30 +37,47 @@ class _CareerRoadmapScreenState extends State<CareerRoadmapScreen> {
     final currentActiveIdx = _highestCompletedIndex;
 
     return Scaffold(
+      backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            size: 20,
+            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Floating Career Roadmap'),
+        title: Text(
+          'Floating Career Roadmap',
+          style: TextStyle(
+            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         actions: [
           Container(
             margin: const EdgeInsets.only(right: 16),
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: const Color(0xFF0D5CE5).withOpacity(0.12),
+              color: isDark
+                  ? AppTheme.darkIconBg
+                  : AppTheme.pastelCareer,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
               children: [
-                const Icon(Icons.stars_rounded, color: Color(0xFF0D5CE5), size: 16),
+                Icon(
+                  Icons.stars_rounded,
+                  color: isDark ? AppTheme.darkIconGlow : AppTheme.pastelCareerIcon,
+                  size: 16,
+                ),
                 const SizedBox(width: 4),
                 Text(
                   '$_totalXp XP',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF0D5CE5),
+                    color: isDark ? AppTheme.darkIconGlow : AppTheme.pastelCareerIcon,
                   ),
                 ),
               ],
@@ -69,7 +87,7 @@ class _CareerRoadmapScreenState extends State<CareerRoadmapScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'career_floating_fab',
-        backgroundColor: const Color(0xFF0D5CE5),
+        backgroundColor: isDark ? AppTheme.darkPrimary : AppTheme.pastelCareerIcon,
         elevation: 6,
         icon: const Icon(Icons.add, color: Colors.white),
         label: const Text(
@@ -89,17 +107,10 @@ class _CareerRoadmapScreenState extends State<CareerRoadmapScreen> {
               width: double.infinity,
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
-                ),
+                color: isDark ? AppTheme.darkCardBg : AppTheme.pastelCareer,
                 borderRadius: BorderRadius.circular(22),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
+                border: isDark ? Border.all(color: AppTheme.darkCardBorder, width: 1) : null,
+                boxShadow: isDark ? AppTheme.darkCardShadow : AppTheme.cardShadow,
               ),
               child: Row(
                 children: [
@@ -107,11 +118,16 @@ class _CareerRoadmapScreenState extends State<CareerRoadmapScreen> {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF0D5CE5).withOpacity(0.2),
+                      color: isDark
+                          ? AppTheme.darkIconBg
+                          : Colors.white,
                       borderRadius: BorderRadius.circular(14),
                     ),
-                    child: const Icon(Icons.alt_route_rounded,
-                        color: Color(0xFF60A5FA), size: 26),
+                    child: Icon(
+                      Icons.alt_route_rounded,
+                      color: isDark ? AppTheme.darkIconGlow : AppTheme.pastelCareerIcon,
+                      size: 26,
+                    ),
                   ),
                   const SizedBox(width: 14),
                   Expanded(
@@ -206,29 +222,29 @@ class _CareerRoadmapScreenState extends State<CareerRoadmapScreen> {
                             decoration: BoxDecoration(
                               color: isDark
                                   ? (isCompleted
-                                      ? const Color(0xFF1E1F2B)
+                                      ? AppTheme.darkCardBg
                                       : const Color(0xFF181924))
                                   : (isCompleted
-                                      ? Colors.white
-                                      : const Color(0xFFF8FAFC)),
+                                      ? AppTheme.pastelCareer
+                                      : Colors.white),
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
                                 color: isCompleted
-                                    ? const Color(0xFF0D5CE5)
+                                    ? (isDark ? AppTheme.darkIconGlow : AppTheme.pastelCareerIcon)
                                     : (isCurrentAvatarNode
-                                        ? const Color(0xFF10B981)
-                                        : const Color(0xFFCBD5E1)),
+                                        ? (isDark ? AppTheme.darkIconGlow : AppTheme.pastelCareerIcon)
+                                        : (isDark ? AppTheme.darkCardBorder : const Color(0xFFE8DCCF))),
                                 width: isCurrentAvatarNode ? 2.5 : 1.5,
                               ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: isCompleted
-                                      ? const Color(0xFF0D5CE5).withOpacity(0.12)
-                                      : Colors.black.withOpacity(0.03),
-                                  blurRadius: 12,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
+                              boxShadow: isDark
+                                  ? AppTheme.darkCardShadow
+                                  : [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.02),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 3),
+                                      ),
+                                    ],
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
@@ -238,15 +254,15 @@ class _CareerRoadmapScreenState extends State<CareerRoadmapScreen> {
                                   height: 42,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
-                                    color: isCompleted
-                                        ? const Color(0xFF0D5CE5)
-                                        : const Color(0xFFEEF2FF),
+                                    color: isDark
+                                        ? AppTheme.darkIconBg
+                                        : (isCompleted ? Colors.white : AppTheme.pastelCareer),
                                   ),
                                   child: Icon(
                                     node['icon'] as IconData,
-                                    color: isCompleted
-                                        ? Colors.white
-                                        : const Color(0xFF0D5CE5),
+                                    color: isDark
+                                        ? AppTheme.darkIconGlow
+                                        : AppTheme.pastelCareerIcon,
                                     size: 20,
                                   ),
                                 ),
@@ -258,16 +274,16 @@ class _CareerRoadmapScreenState extends State<CareerRoadmapScreen> {
                                       children: [
                                         Text(
                                           'Lvl ${node['level']}',
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontSize: 10,
                                             fontWeight: FontWeight.bold,
-                                            color: Color(0xFF0D5CE5),
+                                            color: isDark ? AppTheme.darkIconGlow : AppTheme.pastelCareerIcon,
                                           ),
                                         ),
                                         const SizedBox(width: 6),
                                         if (isCompleted)
-                                          const Icon(Icons.check_circle_rounded,
-                                              size: 12, color: Color(0xFF10B981)),
+                                          Icon(Icons.check_circle_rounded,
+                                              size: 12, color: isDark ? AppTheme.darkIconGlow : AppTheme.pastelCareerIcon),
                                       ],
                                     ),
                                     const SizedBox(height: 2),

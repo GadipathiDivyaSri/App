@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 import 'add_milestone_screen.dart';
 
 class MilestonesScreen extends StatefulWidget {
@@ -16,15 +17,27 @@ class _MilestonesScreenState extends State<MilestonesScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
+      backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            size: 20,
+            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+          ),
           onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          'Achieved Milestones',
+          style: TextStyle(
+            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
         heroTag: 'milestones_fab',
-        backgroundColor: const Color(0xFF0D5CE5),
+        backgroundColor: isDark ? AppTheme.darkPrimary : AppTheme.pastelGrowthIcon,
         shape: const CircleBorder(),
         elevation: 4,
         child: const Icon(Icons.add, color: Colors.white, size: 28),
@@ -122,16 +135,10 @@ class _MilestonesScreenState extends State<MilestonesScreen> {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1F2B) : Colors.white,
+        color: isDark ? AppTheme.darkCardBg : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          if (!isDark)
-            BoxShadow(
-              color: Colors.black.withOpacity(0.03),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-        ],
+        border: isDark ? Border.all(color: AppTheme.darkCardBorder, width: 1) : null,
+        boxShadow: isDark ? AppTheme.darkCardShadow : AppTheme.cardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -139,32 +146,39 @@ class _MilestonesScreenState extends State<MilestonesScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                m['category']!,
-                style: const TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.1,
-                  color: Color(0xFF0D5CE5),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: isDark ? AppTheme.darkIconBg : AppTheme.pastelGrowth,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  m['category']!,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.8,
+                    color: isDark ? AppTheme.darkIconGlow : AppTheme.pastelGrowthIcon,
+                  ),
                 ),
               ),
               Text(
                 m['date']!,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w500,
-                  color: Color(0xFF94A3B8),
+                  color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           Text(
             m['title']!,
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w700,
-              color: isDark ? Colors.white : const Color(0xFF1E293B),
+              color: isDark ? Colors.white : AppTheme.lightTextPrimary,
             ),
           ),
           const SizedBox(height: 6),
@@ -173,20 +187,24 @@ class _MilestonesScreenState extends State<MilestonesScreen> {
             style: TextStyle(
               fontSize: 13,
               height: 1.4,
-              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+              color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
             ),
           ),
           const SizedBox(height: 14),
           Row(
             children: [
-              Icon(badgeIcon, size: 16, color: const Color(0xFF0D5CE5)),
+              Icon(
+                badgeIcon,
+                size: 16,
+                color: isDark ? AppTheme.darkIconGlow : AppTheme.pastelGrowthIcon,
+              ),
               const SizedBox(width: 6),
               Text(
                 m['badge']!,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF64748B),
+                  color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
                 ),
               ),
             ],

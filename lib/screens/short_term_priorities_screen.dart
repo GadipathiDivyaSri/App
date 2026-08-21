@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 import 'goal_achieved_screen.dart';
 
 class ShortTermPrioritiesScreen extends StatefulWidget {
@@ -17,18 +18,30 @@ class _ShortTermPrioritiesScreenState extends State<ShortTermPrioritiesScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
+      backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            size: 20,
+            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+          ),
           onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          'Short Term Priorities',
+          style: TextStyle(
+            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         actions: [
           Container(
             margin: const EdgeInsets.only(right: 20),
             width: 24,
             height: 24,
-            decoration: const BoxDecoration(
-              color: Color(0xFF0D5CE5),
+            decoration: BoxDecoration(
+              color: isDark ? AppTheme.darkIconGlow : AppTheme.pastelPriorityIcon,
               shape: BoxShape.circle,
             ),
           ),
@@ -42,15 +55,15 @@ class _ShortTermPrioritiesScreenState extends State<ShortTermPrioritiesScreen> {
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.w800,
-              color: isDark ? Colors.white : const Color(0xFF1E293B),
+              color: isDark ? Colors.white : AppTheme.lightTextPrimary,
             ),
           ),
           const SizedBox(height: 4),
-          const Text(
+          Text(
             'Focus on the next 7 days',
             style: TextStyle(
               fontSize: 13,
-              color: Color(0xFF64748B),
+              color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
             ),
           ),
           const SizedBox(height: 24),
@@ -74,16 +87,10 @@ class _ShortTermPrioritiesScreenState extends State<ShortTermPrioritiesScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1F2B) : Colors.white,
+        color: isDark ? AppTheme.darkCardBg : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          if (!isDark)
-            BoxShadow(
-              color: Colors.black.withOpacity(0.03),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-        ],
+        border: isDark ? Border.all(color: AppTheme.darkCardBorder, width: 1) : null,
+        boxShadow: isDark ? AppTheme.darkCardShadow : AppTheme.cardShadow,
       ),
       child: IntrinsicHeight(
         child: Row(
@@ -93,8 +100,8 @@ class _ShortTermPrioritiesScreenState extends State<ShortTermPrioritiesScreen> {
               width: 5,
               decoration: BoxDecoration(
                 color: isCompleted
-                    ? const Color(0xFF94A3B8)
-                    : const Color(0xFF0D5CE5),
+                    ? (isDark ? const Color(0xFF4C658A) : const Color(0xFF94A3B8))
+                    : (isDark ? AppTheme.darkIconGlow : AppTheme.pastelPriorityIcon),
                 borderRadius: const BorderRadius.horizontal(
                     left: Radius.circular(20)),
               ),
@@ -118,10 +125,10 @@ class _ShortTermPrioritiesScreenState extends State<ShortTermPrioritiesScreen> {
                                   ? TextDecoration.lineThrough
                                   : null,
                               color: isCompleted
-                                  ? const Color(0xFF94A3B8)
+                                  ? (isDark ? AppTheme.darkTextSecondary : const Color(0xFF94A3B8))
                                   : (isDark
                                       ? Colors.white
-                                      : const Color(0xFF1E293B)),
+                                      : AppTheme.lightTextPrimary),
                             ),
                           ),
                         ),
@@ -129,8 +136,8 @@ class _ShortTermPrioritiesScreenState extends State<ShortTermPrioritiesScreen> {
                           Container(
                             width: 22,
                             height: 22,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFF0D5CE5),
+                            decoration: BoxDecoration(
+                              color: isDark ? AppTheme.darkIconGlow : AppTheme.pastelPriorityIcon,
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(Icons.check,
