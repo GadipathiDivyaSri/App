@@ -192,18 +192,18 @@ class _GoalPyramidScreenState extends State<GoalPyramidScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            _buildGoalSummaryCard(context, 'Short Term', '${_shortGoals.length} Active Goals', () {
+            _buildGoalSection(context, 'Short Term', _shortGoals, () {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const ShortTermPrioritiesScreen()),
               );
             }),
-            const SizedBox(height: 10),
-            _buildGoalSummaryCard(context, 'Medium Term', '${_mediumGoals.length} Active Goals', () {
+            const SizedBox(height: 14),
+            _buildGoalSection(context, 'Medium Term', _mediumGoals, () {
               _showGoalTierDetails(context, 'Medium Term Goals', _mediumGoals);
             }),
-            const SizedBox(height: 10),
-            _buildGoalSummaryCard(context, 'Long Term Roadmap', '${_longGoals.length} Roadmap Milestones', () {
+            const SizedBox(height: 14),
+            _buildGoalSection(context, 'Long Term Roadmap', _longGoals, () {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const CareerRoadmapScreen()),
@@ -216,17 +216,68 @@ class _GoalPyramidScreenState extends State<GoalPyramidScreen> {
     );
   }
 
-  Widget _buildGoalSummaryCard(
-      BuildContext context, String title, String subtitle, VoidCallback onTap) {
+  Widget _buildGoalSection(
+      BuildContext context, String title, List<Map<String, String>> goals, VoidCallback onTap) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return ListTile(
-      tileColor: isDark ? const Color(0xFF1E1F2B) : Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-      subtitle: Text(subtitle, style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
-      trailing: const Icon(Icons.chevron_right_rounded, color: Color(0xFF0D5CE5)),
-      onTap: onTap,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ListTile(
+          tileColor: isDark ? const Color(0xFF1E1F2B) : Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+          subtitle: Text('${goals.length} Active Goals', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+          trailing: const Icon(Icons.chevron_right_rounded, color: Color(0xFF0D5CE5)),
+          onTap: onTap,
+        ),
+        if (goals.isNotEmpty) ...[
+          const SizedBox(height: 6),
+          ...goals.asMap().entries.map((entry) {
+            final idx = entry.key;
+            final g = entry.value;
+            return Container(
+              margin: const EdgeInsets.only(bottom: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF2A2B3D) : const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(12),
+                border: isDark ? Border.all(color: AppTheme.darkCardBorder) : null,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      g['title'] ?? '',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white : const Color(0xFF1E293B),
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0D5CE5).withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      g['progress'] ?? '0%',
+                      style: const TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF0D5CE5),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ],
     );
   }
 

@@ -98491,7 +98491,7 @@ r.jS()
 r.ap(a0,new A.f(k+(44-r.b.c)/2,p))}},
 d5(a){return!1}}
 A.MJ.prototype={
-ap(a1,a2){var s,r,q,p,o,n,m,l,k,j,i,h,g,f,e=null,d=[0.88,0.7,0.78,0.85],c=["Habits","Expenses","Goals","Studies"],b=[B.i,B.ba,B.he,B.iW],a=(a2.a-144)/5,a0=A.mq(e,e,e,e,e,B.L,B.ab,e,B.cI,B.as)
+ap(a1,a2){var s,r,q,p,o,n,m,l,k,j,i,h,g,f,e=null,d=[0,0,0,0],c=["Habits","Expenses","Goals","Studies"],b=[B.i,B.ba,B.he,B.iW],a=(a2.a-144)/5,a0=A.mq(e,e,e,e,e,B.L,B.ab,e,B.cI,B.as)
 for(s=a2.b,r=s-20,q=this.b,p=36+a,s-=30,o=a1.a,n=0;n<4;++n){m=a+n*p
 l=s*d[n]
 k=s-l
@@ -99229,9 +99229,21 @@ h=o?B.B:B.iQ
 s=A.Q(18)
 r=A.ef(B.lP,B.z,1)
 i=A.d7(A.ab(A.b([i,B.aR,g,B.aR,A.c2(p,A.a4(p,A.d7(A.L("Long Term",p,p,p,p,A.aw(p,p,o?B.e:B.M,p,p,p,p,p,p,p,p,18,p,p,B.x,p,p,!0,p,p,p,p,p,p,p,p),p,p,p),p,p),B.m,p,new A.a0(h,p,r,s,p,p,B.r),p,80,p,p,p,p,1/0),B.t,!1,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,new A.avo(a),p,p,p,p,p,p)],l),B.l,B.h,B.f,0,B.o),p,p)
-return A.cR(n,A.dX(A.ab(A.b([k,B.am,j,B.aJ,B.a6m,B.ku,i,B.ZW,A.L("Active Goals Overview",p,p,p,p,A.aw(p,p,o?B.e:B.M,p,p,p,p,p,p,p,p,18,p,p,B.x,p,p,!0,p,p,p,p,p,p,p,p),p,p,p),B.am,q.G4(a,"Short Term",""+q.d.length+" Active Goals",new A.avp(a)),B.aR,q.G4(a,"Medium Term",""+q.e.length+" Active Goals",new A.avq(q,a)),B.aR,q.G4(a,"Long Term Roadmap",""+q.f.length+" Roadmap Milestones",new A.avr(a)),B.dx],l),B.w,B.h,B.f,0,B.o),p,B.t,B.be,p,p,B.Q),p,m)},
-G4(a,b,c,d){var s=null,r=A.n(a).ax.a===B.A?B.B:B.e,q=A.Q(16),p=A.L(b,s,s,s,s,B.cf,s,s,s)
-return A.aci(s,d,new A.bv(q,B.u),A.L(c,s,s,s,s,B.d9,s,s,s),r,p,B.Nb)},
+return A.cR(n,A.dX(A.ab(A.b([k,B.am,j,B.aJ,B.a6m,B.ku,i,B.ZW,A.L("Active Goals Overview",p,p,p,p,A.aw(p,p,o?B.e:B.M,p,p,p,p,p,p,p,p,18,p,p,B.x,p,p,!0,p,p,p,p,p,p,p,p),p,p,p),B.am,q.G4(a,"Short Term",""+q.d.length+" Active Goals",new A.avp(a),q.d),B.aR,q.G4(a,"Medium Term",""+q.e.length+" Active Goals",new A.avq(q,a),q.e),B.aR,q.G4(a,"Long Term Roadmap",""+q.f.length+" Roadmap Milestones",new A.avr(a),q.f),B.dx],l),B.w,B.h,B.f,0,B.o),p,B.t,B.be,p,p,B.Q),p,m)},
+G4(a,b,c,d,goalsList){
+      var s=null,r=A.n(a).ax.a===B.A?B.B:B.e,q=A.Q(16),p=A.L(b,s,s,s,s,B.cf,s,s,s);
+      var headerTile = A.aci(s,d,new A.bv(q,B.u),A.L(c,s,s,s,s,B.d9,s,s,s),r,p,B.Nb);
+      if (!goalsList || goalsList.length === 0) return headerTile;
+      var items = [headerTile];
+      for (var i = 0; i < goalsList.length; i++) {
+        var g = goalsList[i];
+        var gTitle = A.b1(g.i(0, "title"));
+        var gProg = A.b1(g.i(0, "progress"));
+        items.push(B.aJ);
+        items.push(A.a4(s, A.ah(A.b([A.aQ(A.L(gTitle, s,s,s,s, A.aw(s,s,A.n(a).ax.a===B.A?B.e:B.M,s,s,s,s,s,s,s,s,13,s,s,B.aq,s,s,!0,s,s,s,s,s,s,s,s),s,s,s), 1), B.aF, A.L("Status: " + gProg, s,s,s,s, B.d9, s,s,s)], t.p), B.l, B.h, B.f, 0, s), B.m, s, new A.a0(r,s,s,A.Q(10),s,s,B.r), s,s,B.md,B.dQ,s,s,s));
+      }
+      return A.ab(items, B.w, B.h, B.f, 0, B.o);
+    },
 Wa(a,b,c){A.k5(new A.avf(this,b,c,a),a,!1,B.cx,t.z)},
 W7(a){var s={},r=$.a7()
 s.a="Short"
@@ -100001,7 +100013,7 @@ l=A.b1(r.i(0,"title"))
 k=q?B.dZ:s
 if(q)p=B.ak
 else p=p?B.e:B.M
-return A.c2(s,A.a4(s,A.ah(A.b([m,B.aF,A.aQ(A.L(l,s,s,s,s,A.aw(s,s,p,s,k,s,s,s,s,s,s,12,s,s,B.aq,s,s,!0,s,s,s,s,s,s,s,s),s,s,s),1)],t.p),B.l,B.h,B.f,0,s),B.m,s,new A.a0(o,s,s,n,s,s,B.r),s,s,B.md,B.dQ,s,s,s),B.t,!1,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,new A.ayk(this.a,this.b,a.a,q),s,s,s,s,s,s)},
+return A.c2(s,A.a4(s,A.ah(A.b([m,B.aF,A.aQ(A.L(l,s,s,s,s,A.aw(s,s,p,s,k,s,s,s,s,s,s,12,s,s,B.aq,s,s,!0,s,s,s,s,s,s,s,s),s,s,s),1),A.PY(B.Np,new A.priorityMenuItems(),new A.eisenhowerPopupHandler(this.a,this.b,a.a,r),t.N)],t.p),B.l,B.h,B.f,0,s),B.m,s,new A.a0(o,s,s,n,s,s,B.r),s,s,B.md,B.dQ,s,s,s),B.t,!1,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,new A.ayk(this.a,this.b,a.a,q),s,s,s,s,s,s)},
 $S:618}
 A.ayk.prototype={
 $0(){var s=this
@@ -100954,6 +100966,51 @@ A.todoSaveDlg.prototype = {
   $S: 0
 };
 // --- END INJECTED TODO POPUP HANDLER ---
+
+
+// --- INJECTED EISENHOWER POPUP & GOALS HELPERS ---
+A.eisenhowerPopupHandler = function eisenhowerPopupHandler(matrixState, tasksList, taskIdx, task) {
+  this.a = matrixState;
+  this.b = tasksList;
+  this.c = taskIdx;
+  this.d = task;
+};
+A.eisenhowerPopupHandler.prototype = {
+  $1(val) {
+    var state = this.a, list = this.b, idx = this.c, task = this.d;
+    if (val === "edit") {
+      var initialTitle = A.b1(task.i(0, "title"));
+      var textCtrl = new A.bW(new A.c4(initialTitle, B.bn, B.aG), $.a7());
+      A.n0(null, null, !0, null, new A.taskEditDlg(state, textCtrl, task), null, null, !0, t.z);
+    } else if (val === "complete") {
+      state.L(new A.eisenhowerToggle(task));
+    } else if (val === "delete") {
+      state.L(new A.eisenhowerDelete(list, task));
+    }
+  },
+  $S: 29
+};
+
+A.eisenhowerToggle = function eisenhowerToggle(task) { this.a = task; };
+A.eisenhowerToggle.prototype = {
+  $0() {
+    var cur = J.d(this.a.i(0, "isCompleted"), !0);
+    this.a.p(0, "isCompleted", !cur);
+  },
+  $S: 0
+};
+
+A.eisenhowerDelete = function eisenhowerDelete(list, task) {
+  this.a = list;
+  this.b = task;
+};
+A.eisenhowerDelete.prototype = {
+  $0() {
+    B.b.G(this.a, this.b);
+  },
+  $S: 0
+};
+// --- END INJECTED EISENHOWER POPUP ---
 
 A.aCC.prototype={
 $1(a){var s,r=this
@@ -106533,7 +106590,7 @@ B.a7k=new A.G("Transport",null,null,null,null,null,null,null,null,null,null)
 B.KM=new A.dU("Transport",B.a7k,B.b9,null,t.T)
 B.a75=new A.G("Income",null,null,null,null,null,null,null,null,null,null)
 B.KF=new A.dU("Income",B.a75,B.b9,null,t.T)
-B.Qk=s([B.KI,B.KK,B.KM,B.KF],t.FG)
+B.aOther=new A.G("Others",null,null,null,null,null,null,null,null,null,null);B.KOther=new A.dU("Others",B.aOther,B.b9,null,t.T);B.Qk=s([B.KI,B.KK,B.KM,B.KF,B.KOther],t.FG)
 B.Qm=s([18,15,10,12,15,18,15,12,12],t.n)
 B.tB=s(["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],t.s)
 B.Qp=s(["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],t.s)

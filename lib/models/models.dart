@@ -259,13 +259,13 @@ class UserProfile {
     this.contact = '',
     required this.focusScore,
     required this.activeStreak,
-    this.isPremium = true,
+    this.isPremium = false,
     this.token,
     this.referralCode = 'WRINDHA7K92',
     this.referredByCode,
-    this.successfulReferrals = 3,
-    this.pendingReferrals = 1,
-    this.activeDiscountPercent = 10,
+    this.successfulReferrals = 0,
+    this.pendingReferrals = 0,
+    this.activeDiscountPercent = 0,
   });
 
   Map<String, dynamic> toJson() => {

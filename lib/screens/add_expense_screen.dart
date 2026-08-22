@@ -212,6 +212,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                       DropdownMenuItem(value: 'Entertainment', child: Text('Entertainment')),
                       DropdownMenuItem(value: 'Income', child: Text('Income (Credit)')),
                       DropdownMenuItem(value: 'General', child: Text('General')),
+                      DropdownMenuItem(value: 'Others', child: Text('Others')),
                     ],
                     onChanged: (val) {
                       if (val != null) setState(() => _category = val);

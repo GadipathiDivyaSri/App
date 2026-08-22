@@ -282,6 +282,69 @@ class _OrganizeMatrixScreenState extends State<OrganizeMatrixScreen> {
                           ),
                         ),
                       ),
+                      PopupMenuButton<String>(
+                        padding: EdgeInsets.zero,
+                        icon: Icon(
+                          Icons.more_vert_rounded,
+                          size: 16,
+                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        onSelected: (val) {
+                          if (val == 'edit') {
+                            _showEditTaskDialog(context, tasks, idx);
+                          } else if (val == 'complete') {
+                            setState(() {
+                              tasks[idx]['isCompleted'] = !isCompleted;
+                            });
+                          } else if (val == 'delete') {
+                            setState(() {
+                              tasks.removeAt(idx);
+                            });
+                          }
+                        },
+                        itemBuilder: (ctx) => [
+                          PopupMenuItem(
+                            value: 'edit',
+                            child: Row(
+                              children: [
+                                Icon(Icons.edit_outlined,
+                                    size: 18,
+                                    color: isDark
+                                        ? AppTheme.darkPrimary
+                                        : const Color(0xFF0D5CE5)),
+                                const SizedBox(width: 8),
+                                const Text('Edit'),
+                              ],
+                            ),
+                          ),
+                          const PopupMenuItem(
+                            value: 'complete',
+                            child: Row(
+                              children: [
+                                Icon(Icons.check_circle_outline_rounded,
+                                    size: 18, color: Color(0xFF10B981)),
+                                SizedBox(width: 8),
+                                Text('Complete'),
+                              ],
+                            ),
+                          ),
+                          const PopupMenuItem(
+                            value: 'delete',
+                            child: Row(
+                              children: [
+                                Icon(Icons.delete_outline_rounded,
+                                    size: 18, color: Colors.redAccent),
+                                SizedBox(width: 8),
+                                Text('Delete',
+                                    style: TextStyle(color: Colors.redAccent)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
@@ -363,6 +426,34 @@ class _OrganizeMatrixScreenState extends State<OrganizeMatrixScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showEditTaskDialog(BuildContext context, List<Map<String, dynamic>> tasks, int idx) {
+    final titleCtrl = TextEditingController(text: tasks[idx]['title'] as String);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Edit Task', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: TextField(
+          controller: titleCtrl,
+          decoration: const InputDecoration(labelText: 'Task Title', border: OutlineInputBorder()),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () {
+              if (titleCtrl.text.trim().isNotEmpty) {
+                setState(() {
+                  tasks[idx]['title'] = titleCtrl.text.trim();
+                });
+                Navigator.pop(ctx);
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
       ),
     );
   }
