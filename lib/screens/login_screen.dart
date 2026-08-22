@@ -322,6 +322,21 @@ class _LoginScreenState extends State<LoginScreen>
                             ),
                           ),
                         ),
+                        const SizedBox(height: 14),
+                        Center(
+                          child: GestureDetector(
+                            onTap: () => _showTermsDialog(context),
+                            child: Text(
+                              'Terms & Conditions',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: primaryColor,
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                          ),
+                        ),
                       ],
                     ),
 
@@ -602,6 +617,90 @@ class _LoginScreenState extends State<LoginScreen>
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  void _showTermsDialog(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Terms & Conditions', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: SingleChildScrollView(
+          child: Text(
+            '''TERMS & CONDITIONS
+
+1. Acceptance of Terms
+These Terms & Conditions ("Terms") form a binding agreement between you and WrindhaOS governing your use of the WrindhaOS mobile application and wrindhaos.in (together, the "Service"). By creating an account or using the Service, you agree to these Terms, our Privacy Policy, and our other published policies. If you do not agree, do not use the Service.
+
+2. Eligibility
+The Service is intended for students preparing for competitive examinations. If you are under 18 years of age, you may use the Service only with the consent and involvement of a parent or legal guardian, who agrees to be bound by these Terms on your behalf.
+
+3. Your Account
+• You must provide accurate information (email and/or phone number) to create an account and complete OTP verification.
+• You are responsible for maintaining the confidentiality of your account credentials and for all activity under your account.
+• You must notify us promptly at wrindhaos@gmail.com of any unauthorized use of your account.
+
+4. The Service
+WrindhaOS provides productivity tools including habit tracking, to-dos, an Eisenhower/priority matrix, goals and milestones, a subject/topic academic tracker, a calendar and timetable, a focus timer, a private journal, and personal expense tracking. Features available to you depend on whether you are on the Free plan or a paid Premium plan (see Section 6 and our Subscription Policy).
+We may add, modify, or discontinue features at our discretion, and will provide reasonable notice for material changes that reduce Premium functionality you are actively paying for.
+
+5. Free Tier and Usage Limits
+The Free plan provides core functionality with certain usage limits (for example, a maximum number of active habits and subjects), as displayed in-app. These limits may change from time to time; current limits are always shown in the app's plan comparison screen.
+
+6. Subscriptions and Payment
+Premium plans are billed and processed entirely through Google Play Billing. We do not collect or store your payment card, UPI, or bank account details. Pricing, billing cycles, auto-renewal, and cancellation are governed by Google Play's terms in addition to our Subscription Policy and Refund & Cancellation Policy, both incorporated by reference.
+
+7. Your Content
+Content you create in the Service — journal entries, notes, goals, tasks, and similar material ("User Content") — remains yours. You grant us a limited, non-exclusive licence to store, process, and display your User Content solely to operate and provide the Service to you. See our User Content Policy for details, including how journal content is encrypted.
+
+8. Acceptable Use
+You agree to use the Service lawfully and in accordance with our Acceptable Use Policy. We may suspend or terminate accounts that violate these Terms, subject to the notice and review process described in that policy.
+
+9. Disclaimers
+WrindhaOS is a productivity and organisational tool. It is not exam-preparation content, a coaching service, or a guarantee of examination results, and it is not a medical, financial, or professional advisory service. See our full Disclaimer.
+
+10. Limitation of Liability
+To the maximum extent permitted by applicable law, [LEGAL ENTITY NAME — e.g., “GrabMyService Private Limited,” trading as WrindhaOS] shall not be liable for indirect, incidental, special, or consequential damages arising from your use of, or inability to use, the Service, including loss of data, loss of study progress, or exam outcomes. Our aggregate liability for any claim relating to the Service shall not exceed the amount you paid us, if any, in the twelve (12) months preceding the claim.
+
+11. Termination
+You may stop using the Service and request account deletion at any time (see our Account Deletion Policy). We may suspend or terminate your access for violation of these Terms, non-payment of applicable subscription fees, or as required by law.
+
+12. Force Majeure
+We will not be liable for any failure or delay in performing our obligations under these Terms where the failure or delay results from causes beyond our reasonable control, including but not limited to acts of God, natural disaster, fire, flood, war, civil unrest, labour disputes not involving our employees, government action, internet or telecommunications failures, power outages, or failures of third-party infrastructure we rely on (including Supabase or Google Play). During such an event, our obligations under these Terms will be suspended for the duration of the event, and we will make reasonable efforts to resume normal service as soon as practicable. This clause does not excuse payment obligations already due, nor does it affect refund rights you may have under our Refund & Cancellation Policy.
+
+13. Dispute Resolution
+13.1 Informal Resolution First
+If a dispute arises out of or relating to these Terms or the Service, you agree to first contact us at [SUPPORT EMAIL — e.g., support@wrindhaos.in] (or, for grievances, our Grievance Officer per the Grievance Redressal Policy) and give us a reasonable opportunity — at least 30 days — to resolve the matter informally before pursuing formal proceedings.
+
+13.2 Arbitration
+If a dispute is not resolved informally within 30 days, either party may refer it to binding arbitration under the Arbitration and Conciliation Act, 1996 (as amended). The arbitration will be conducted by a sole arbitrator appointed by mutual agreement of the parties, or, failing agreement within 15 days, in accordance with the Act's default appointment procedure. The seat and venue of arbitration shall be Chittoor, Andhra Pradesh, India, India, the language of the arbitration shall be English, and the arbitrator's award shall be final and binding on both parties, subject to any right of challenge available under the Act.
+
+13.3 Exceptions
+Nothing in this Section 14 prevents either party from seeking urgent interim or injunctive relief from a court of competent jurisdiction where necessary to prevent immediate harm (for example, to stop unauthorised use of our intellectual property or ongoing misuse of the Service), or from exercising statutory rights that cannot be waived by agreement, including your right to approach a consumer forum under the Consumer Protection Act, 2019, or to raise a grievance under our Grievance Redressal Policy.
+
+14. Governing Law and Jurisdiction
+These Terms are governed by the laws of India. Subject to Section 14 (Dispute Resolution) and the Grievance Redressal Policy, courts at Chittoor, Andhra Pradesh, India shall have exclusive jurisdiction over any disputes not resolved through arbitration or that fall within the exceptions in Section 14.3.
+
+15. Changes to These Terms
+We may revise these Terms from time to time. Continued use of the Service after an update constitutes acceptance of the revised Terms. The current version is always available at wrindhaos.in/terms.
+
+16. Contact
+Questions about these Terms: wrindhaos@gmail.com''',
+            style: TextStyle(
+              fontSize: 13,
+              height: 1.5,
+              color: isDark ? Colors.white70 : const Color(0xFF334155),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('OK', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
       ),
     );
   }
