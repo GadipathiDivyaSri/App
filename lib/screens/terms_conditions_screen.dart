@@ -313,7 +313,7 @@ class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
               isDark,
               '10',
               'Limitation of Liability',
-              'To the maximum extent permitted by applicable law, WrindhaOS shall not be liable for indirect, incidental, special, or consequential damages arising from your use of, or inability to use, the Service, including loss of data, loss of study progress, or exam outcomes. Our aggregate liability for any claim relating to the Service shall not exceed the amount you paid us, if any, in the twelve (12) months preceding the claim.',
+              'To the maximum extent permitted by applicable law, [LEGAL ENTITY NAME — e.g., “GrabMyService Private Limited,” trading as WrindhaOS] shall not be liable for indirect, incidental, special, or consequential damages arising from your use of, or inability to use, the Service, including loss of data, loss of study progress, or exam outcomes. Our aggregate liability for any claim relating to the Service shall not exceed the amount you paid us, if any, in the twelve (12) months preceding the claim.',
             ),
 
             _buildSection(
@@ -334,14 +334,14 @@ class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
               isDark,
               '13',
               'Dispute Resolution',
-              '13.1 Informal Resolution First\nIf a dispute arises out of or relating to these Terms or the Service, you agree to first contact us at wrindhaos@gmail.com (or, for grievances, our Grievance Officer per the Grievance Redressal Policy) and give us a reasonable opportunity — at least 30 days — to resolve the matter informally before pursuing formal proceedings.\n\n13.2 Arbitration\nIf a dispute is not resolved informally within 30 days, either party may refer it to binding arbitration under the Arbitration and Conciliation Act, 1996 (as amended). The arbitration will be conducted by a sole arbitrator appointed by mutual agreement of the parties, or, failing agreement within 15 days, in accordance with the Act\'s default appointment procedure. The seat and venue of arbitration shall be Chittoor, Andhra Pradesh, India, the language of the arbitration shall be English, and the arbitrator\'s award shall be final and binding on both parties, subject to any right of challenge available under the Act.\n\n13.3 Exceptions\nNothing in this Section 13 prevents either party from seeking urgent interim or injunctive relief from a court of competent jurisdiction where necessary to prevent immediate harm (for example, to stop unauthorised use of our intellectual property or ongoing misuse of the Service), or from exercising statutory rights that cannot be waived by agreement, including your right to approach a consumer forum under the Consumer Protection Act, 2019, or to raise a grievance under our Grievance Redressal Policy.',
+              '13.1 Informal Resolution First\nIf a dispute arises out of or relating to these Terms or the Service, you agree to first contact us at [SUPPORT EMAIL — e.g., support@wrindhaos.in] (or, for grievances, our Grievance Officer per the Grievance Redressal Policy) and give us a reasonable opportunity — at least 30 days — to resolve the matter informally before pursuing formal proceedings.\n\n13.2 Arbitration\nIf a dispute is not resolved informally within 30 days, either party may refer it to binding arbitration under the Arbitration and Conciliation Act, 1996 (as amended). The arbitration will be conducted by a sole arbitrator appointed by mutual agreement of the parties, or, failing agreement within 15 days, in accordance with the Act\'s default appointment procedure. The seat and venue of arbitration shall be Chittoor, Andhra Pradesh, India, India, the language of the arbitration shall be English, and the arbitrator\'s award shall be final and binding on both parties, subject to any right of challenge available under the Act.\n\n13.3 Exceptions\nNothing in this Section 14 prevents either party from seeking urgent interim or injunctive relief from a court of competent jurisdiction where necessary to prevent immediate harm (for example, to stop unauthorised use of our intellectual property or ongoing misuse of the Service), or from exercising statutory rights that cannot be waived by agreement, including your right to approach a consumer forum under the Consumer Protection Act, 2019, or to raise a grievance under our Grievance Redressal Policy.',
             ),
 
             _buildSection(
               isDark,
               '14',
               'Governing Law and Jurisdiction',
-              'These Terms are governed by the laws of India. Subject to Section 13 (Dispute Resolution) and the Grievance Redressal Policy, courts at Chittoor, Andhra Pradesh, India shall have exclusive jurisdiction over any disputes not resolved through arbitration or that fall within the exceptions in Section 13.3.',
+              'These Terms are governed by the laws of India. Subject to Section 14 (Dispute Resolution) and the Grievance Redressal Policy, courts at Chittoor, Andhra Pradesh, India shall have exclusive jurisdiction over any disputes not resolved through arbitration or that fall within the exceptions in Section 14.3.',
             ),
 
             _buildSection(
@@ -355,7 +355,7 @@ class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
               isDark,
               '16',
               'Contact',
-              'Questions about these Terms:\nEmail: wrindhaos@gmail.com',
+              'Questions about these Terms: wrindhaos@gmail.com',
             ),
             const SizedBox(height: 32),
           ],

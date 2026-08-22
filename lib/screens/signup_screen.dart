@@ -205,7 +205,7 @@ class _SignUpScreenState extends State<SignUpScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Create Account 🚀',
+                'Create Account',
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.w800,
