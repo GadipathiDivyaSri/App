@@ -76,22 +76,6 @@ class ProfileScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 4),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: isDark ? AppTheme.darkIconBg : AppTheme.career,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      'WrindhaOS Member',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: isDark ? AppTheme.darkIconGlow : AppTheme.primaryAccent,
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),

@@ -185,8 +185,93 @@ class TodoScreen extends StatelessWidget {
                 ],
               ),
             ),
+            PopupMenuButton<String>(
+              icon: Icon(
+                Icons.more_vert_rounded,
+                size: 20,
+                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+              onSelected: (val) {
+                if (val == 'edit') {
+                  _showEditTaskDialog(context, provider, task);
+                } else if (val == 'complete') {
+                  provider.toggleTaskCompletion(task.id);
+                } else if (val == 'delete') {
+                  provider.deleteTask(task.id);
+                }
+              },
+              itemBuilder: (ctx) => [
+                PopupMenuItem(
+                  value: 'edit',
+                  child: Row(
+                    children: [
+                      Icon(Icons.edit_outlined,
+                          size: 18,
+                          color: isDark
+                              ? AppTheme.darkPrimary
+                              : const Color(0xFF0D5CE5)),
+                      const SizedBox(width: 8),
+                      const Text('Edit'),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'complete',
+                  child: Row(
+                    children: [
+                      Icon(Icons.check_circle_outline_rounded,
+                          size: 18, color: Color(0xFF10B981)),
+                      SizedBox(width: 8),
+                      Text('Complete'),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'delete',
+                  child: Row(
+                    children: [
+                      Icon(Icons.delete_outline_rounded,
+                          size: 18, color: Colors.redAccent),
+                      SizedBox(width: 8),
+                      Text('Delete',
+                          style: TextStyle(color: Colors.redAccent)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showEditTaskDialog(BuildContext context, AppProvider provider, dynamic task) {
+    final titleCtrl = TextEditingController(text: task.title as String);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Edit Task', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: TextField(
+          controller: titleCtrl,
+          decoration: const InputDecoration(labelText: 'Task Title', border: OutlineInputBorder()),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () {
+              if (titleCtrl.text.trim().isNotEmpty) {
+                task.title = titleCtrl.text.trim();
+                provider.notifyListeners();
+                Navigator.pop(ctx);
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
       ),
     );
   }

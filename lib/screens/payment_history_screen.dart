@@ -50,19 +50,11 @@ class PaymentHistoryScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'Pro Monthly',
+                    'Free Plan',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w800,
                       color: isDark ? Colors.white : const Color(0xFF1E293B),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'Next billing date: Nov 15, 2023',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Color(0xFF64748B),
                     ),
                   ),
                   const SizedBox(height: 14),
@@ -81,7 +73,7 @@ class PaymentHistoryScreen extends StatelessWidget {
                       );
                     },
                     child: const Text(
-                      'Manage Plan',
+                      'Upgrade Plan',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 14,
@@ -106,71 +98,28 @@ class PaymentHistoryScreen extends StatelessWidget {
                     color: isDark ? Colors.white : const Color(0xFF1E293B),
                   ),
                 ),
-                GestureDetector(
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Exporting CSV receipt...')),
-                    );
-                  },
-                  child: const Row(
-                    children: [
-                      Icon(Icons.download_rounded,
-                          size: 16, color: Color(0xFF0D5CE5)),
-                      SizedBox(width: 4),
-                      Text(
-                        'Export CSV',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.8,
-                          color: Color(0xFF0D5CE5),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
               ],
             ),
             const SizedBox(height: 14),
 
-            // Transactions List
-            _buildTxCard(
-              context,
-              title: 'Pro Monthly Subscription',
-              date: 'OCT 15, 2023',
-              amount: '₹49',
-              status: 'Successful',
-              isSuccess: true,
-            ),
-            const SizedBox(height: 12),
-
-            _buildTxCard(
-              context,
-              title: 'Pro Monthly Subscription',
-              date: 'SEP 15, 2023',
-              amount: '₹49',
-              status: 'Successful',
-              isSuccess: true,
-            ),
-            const SizedBox(height: 12),
-
-            _buildTxCard(
-              context,
-              title: 'Pro Annual Plan (Attempt)',
-              date: 'AUG 16, 2023',
-              amount: '₹499',
-              status: 'Failed',
-              isSuccess: false,
-            ),
-            const SizedBox(height: 12),
-
-            _buildTxCard(
-              context,
-              title: 'Pro Monthly Subscription',
-              date: 'AUG 15, 2023',
-              amount: '₹49',
-              status: 'Successful',
-              isSuccess: true,
+            // Empty Transactions State
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: isDark ? AppTheme.darkCardBg : Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: isDark ? Border.all(color: AppTheme.darkCardBorder) : null,
+              ),
+              child: Center(
+                child: Text(
+                  'No past transactions found.',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                  ),
+                ),
+              ),
             ),
             const SizedBox(height: 24),
 

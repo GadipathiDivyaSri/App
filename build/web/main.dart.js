@@ -100031,8 +100031,8 @@ A.vV.prototype={
 E(a){var s,r=this,q=null,p="Pro Monthly Subscription",o="Successful",n=A.n(a).ax.a===B.A,m=A.dd(q,q,A.c5(q,q,q,B.aI,q,q,new A.agt(a),q,q,q,q),B.a79),l=n?B.B:B.e,k=A.Q(22),j=A.b([],t.V)
 if(!n)j.push(new A.aC(0,B.D,A.O(8,B.j.m()>>>16&255,B.j.m()>>>8&255,B.j.m()&255),B.ar,10))
 s=t.p
-j=A.a4(q,A.ab(A.b([B.a88,B.bt,A.L("Pro Monthly",q,q,q,q,A.aw(q,q,n?B.e:B.M,q,q,q,q,q,q,q,q,20,q,q,B.a_,q,q,!0,q,q,q,q,q,q,q,q),q,q,q),B.aJ,B.a6u,B.b6,A.dm(B.a6W,new A.agu(a),A.dy(q,q,B.i,q,q,q,q,q,q,q,q,q,B.LI,q,new A.bv(A.Q(12),B.u),q,q,q,q,q))],s),B.w,B.h,B.f,0,B.o),B.m,q,new A.a0(l,q,q,k,j,q,B.r),q,q,q,B.S,q,q,1/0)
-return A.cR(m,A.dX(A.ab(A.b([j,B.ae,A.ah(A.b([A.L("Past Transactions",q,q,q,q,A.aw(q,q,n?B.e:B.M,q,q,q,q,q,q,q,q,18,q,q,B.a_,q,q,!0,q,q,q,q,q,q,q,q),q,q,q),A.c2(q,B.Xp,B.t,!1,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,new A.agv(a),q,q,q,q,q,q)],s),B.l,B.aC,B.f,0,q),B.b6,r.zk(a,"\u20b949","OCT 15, 2023",!0,o,p),B.am,r.zk(a,"\u20b949","SEP 15, 2023",!0,o,p),B.am,r.zk(a,"\u20b9499","AUG 16, 2023",!1,"Failed","Pro Annual Plan (Attempt)"),B.am,r.zk(a,"\u20b949","AUG 15, 2023",!0,o,p),B.ae,A.a4(q,B.JQ,B.m,q,new A.a0(q,q,q,A.Q(20),q,B.P0,B.r),q,q,q,B.eo,q,q,1/0),B.cd],s),B.w,B.h,B.f,0,B.o),q,B.t,B.be,q,q,B.Q),q,q)},
+j=A.a4(q,A.ab(A.b([B.a88,B.bt,A.L("Free Plan",q,q,q,q,A.aw(q,q,n?B.e:B.M,q,q,q,q,q,q,q,q,20,q,q,B.a_,q,q,!0,q,q,q,q,q,q,q,q),q,q,q),B.aJ,B.a6u,B.b6,A.dm(B.a6W,new A.agu(a),A.dy(q,q,B.i,q,q,q,q,q,q,q,q,q,B.LI,q,new A.bv(A.Q(12),B.u),q,q,q,q,q))],s),B.w,B.h,B.f,0,B.o),B.m,q,new A.a0(l,q,q,k,j,q,B.r),q,q,q,B.S,q,q,1/0)
+return A.cR(m,A.dX(A.ab(A.b([j,B.ae,A.ah(A.b([A.L("Past Transactions",q,q,q,q,A.aw(q,q,n?B.e:B.M,q,q,q,q,q,q,q,q,18,q,q,B.a_,q,q,!0,q,q,q,q,q,q,q,q),q,q,q),A.c2(q,B.Xp,B.t,!1,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,new A.agv(a),q,q,q,q,q,q)],s),B.l,B.aC,B.f,0,q),B.b6,A.d7(A.L("No payment transactions found.",q,q,q,q,A.aw(q,q,n?B.bw:B.bx,q,q,q,q,q,q,q,q,14,q,q,r,q,q,!0,q,q,q,q,q,q,q,q),q,q,q),q,q),B.ae,A.a4(q,B.JQ,B.m,q,new A.a0(q,q,q,A.Q(20),q,B.P0,B.r),q,q,q,B.eo,q,q,1/0),B.cd],s),B.w,B.h,B.f,0,B.o),q,B.t,B.be,q,q,B.Q),q,q)},
 zk(a,b,c,d,e,f){var s,r,q,p,o,n,m=null,l=A.n(a).ax.a===B.A,k=l?B.B:B.e,j=A.Q(18),i=A.b([],t.V)
 if(!l)i.push(new A.aC(0,B.D,A.O(5,B.j.m()>>>16&255,B.j.m()>>>8&255,B.j.m()&255),B.bl,8))
 s=d?A.O(B.d.aE(25.5),B.i.m()>>>16&255,B.i.m()>>>8&255,B.i.m()&255):A.O(B.d.aE(25.5),B.cX.m()>>>16&255,B.cX.m()>>>8&255,B.cX.m()&255)
@@ -100232,7 +100232,7 @@ A.Q7.prototype={
 E(a3){var s,r,q,p,o,n,m,l,k,j,i,h,g,f,e=this,d=null,c=A.fH(a3,!0,t.R),b=c.c,a=A.n(a3).ax.a===B.A,a0=A.dd(d,d,A.c5(d,d,d,B.aI,d,d,new A.ahE(e,a3),d,d,d,d),B.a7j),a1=b.a,a2=t.p
 a1=A.ah(A.b([A.L(a1,d,d,d,d,A.aw(d,d,a?B.e:B.M,d,d,d,d,d,d,d,d,22,d,d,B.a_,d,d,!0,d,d,d,d,d,d,d,d),d,d,d),A.c5(d,d,d,B.fp,d,d,new A.ahF(e,a3,c),d,d,d,d)],a2),B.l,B.aO,B.f,0,d)
 s=a?B.B:B.an
-s=A.d7(A.ab(A.b([a1,B.aJ,A.a4(d,B.a6l,B.m,d,new A.a0(s,d,d,A.Q(20),d,d,B.r),d,d,d,B.jh,d,d,d)],a2),B.l,B.h,B.f,0,B.o),d,d)
+s=A.d7(A.ab(A.b([a1],a2),B.l,B.h,B.f,0,B.o),d,d)
 a1=A.aQ(e.QB(a3,"FOCUS SCORE",""+b.b,B.i),1)
 r=b.c
 q=a?B.e:B.M
@@ -100378,7 +100378,7 @@ k=p?B.B:B.e
 i=A.Q(22)
 j=A.b([],j)
 if(s)j.push(new A.aC(0,B.D,A.O(8,B.j.m()>>>16&255,B.j.m()>>>8&255,B.j.m()&255),B.ar,10))
-return A.cR(o,A.dX(A.ab(A.b([n,B.ax,l,B.ax,m,B.ax,A.a4(r,A.ab(A.b([A.L("Recent Activity",r,r,r,r,A.aw(r,r,p?B.e:B.M,r,r,r,r,r,r,r,r,15,r,r,B.x,r,r,!0,r,r,r,r,r,r,r,r),r,r,r),B.b6,this.G2(a,q,B.n9,!0,"Sarah Jenkins","JOINED VIA LINK \u2022 OCT 12"),B.aR,this.G2(a,q,B.n9,!0,"Mark Thompson","JOINED VIA LINK \u2022 OCT 08"),B.aR,this.G2(a,"PENDING",B.MZ,!1,"Jessica L.","INVITE PENDING \u2022 OCT 14")],h),B.w,B.h,B.f,0,B.o),B.m,r,new A.a0(k,r,r,i,j,r,B.r),r,r,r,B.S,r,r,r),B.cd],h),B.w,B.h,B.f,0,B.o),r,B.t,B.be,r,r,B.Q),r,r)},
+return A.cR(o,A.dX(A.ab(A.b([n,B.ax,l,B.ax,m,B.ax,A.a4(r,A.ab(A.b([A.L("Recent Activity",r,r,r,r,A.aw(r,r,p?B.e:B.M,r,r,r,r,r,r,r,r,15,r,r,B.x,r,r,!0,r,r,r,r,r,r,r,r),r,r,r),B.b6,A.L("No referral activity yet.",r,r,r,r,A.aw(r,r,p?B.bw:B.bx,r,r,r,r,r,r,r,r,13,r,r,r,r,r,!0,r,r,r,r,r,r,r,r),r,r,r)],h),B.w,B.h,B.f,0,B.o),B.m,r,new A.a0(k,r,r,i,j,r,B.r),r,r,r,B.S,r,r,r),B.cd],h),B.w,B.h,B.f,0,B.o),r,B.t,B.be,r,r,B.Q),r,r)},
 G2(a,b,c,d,e,f){var s=null,r=A.n(a).ax.a===B.A,q=r?B.bw:B.b0,p=A.Q(16),o=A.cb(c,B.e,s,20),n=t.p,m=A.aQ(A.ab(A.b([A.L(e,s,s,s,s,A.aw(s,s,r?B.e:B.M,s,s,s,s,s,s,s,s,14,s,s,B.x,s,s,!0,s,s,s,s,s,s,s,s),s,s,s),B.dw,A.L(f,s,s,s,s,B.a14,s,s,s)],n),B.w,B.h,B.f,0,B.o),1),l=d?B.iQ:B.lT,k=A.Q(10)
 return A.a4(s,A.ah(A.b([new A.Mn(o,B.c7,18,s),B.bD,m,A.a4(s,A.L(b,s,s,s,s,A.aw(s,s,d?B.i:B.ak,s,s,s,s,s,s,s,s,9,s,s,B.x,s,s,!0,s,0.8,s,s,s,s,s,s),s,s,s),B.m,s,new A.a0(l,s,s,k,s,s,B.r),s,s,s,B.en,s,s,s)],n),B.l,B.h,B.f,0,s),B.m,s,new A.a0(q,s,s,p,s,s,B.r),s,s,s,B.ri,s,s,s)}}
 A.aid.prototype={
@@ -100888,6 +100888,73 @@ A.termsDlgAction.prototype = {
 };
 // --- END INJECTED TERMS & CONDITIONS DIALOG ---
 
+
+// --- INJECTED TODO POPUP HANDLER & ACTIONS ---
+A.todoPopupHandler = function todoPopupHandler(provider, buildCtx, task) {
+  this.a = provider;
+  this.b = buildCtx;
+  this.c = task;
+};
+A.todoPopupHandler.prototype = {
+  $1(val) {
+    var provider = this.a, ctx = this.b, task = this.c;
+    if (val === "edit") {
+      var initialTitle = task.b;
+      var textCtrl = new A.bW(new A.c4(initialTitle, B.bn, B.aG), $.a7());
+      A.n0(null, null, !0, null, new A.todoEditDlg(provider, textCtrl, task), ctx, null, !0, t.z);
+    } else if (val === "complete") {
+      provider.a2I(task.a);
+    } else if (val === "delete") {
+      provider.auq(task.a);
+    }
+  },
+  $S: 29
+};
+
+A.todoEditDlg = function todoEditDlg(provider, textCtrl, task) {
+  this.a = provider;
+  this.b = textCtrl;
+  this.c = task;
+};
+A.todoEditDlg.prototype = {
+  $1(dialogCtx) {
+    var s = null;
+    var ctrl = this.b;
+    var inputWidget = A.cc(s, B.a2, !1, s, !0, B.y, s, A.cg(), ctrl, s, s, s, s, s, 2, B.Oi, B.t, !0, s, !0, s, !1, s, B.a0, s, s, s, s, s, s, s, s, 1, s, s, !1, "\u2022", s, s, s, s, s, !1, s, s, !1, s, !0, s, B.S, s, s, s, s, s, s, s, s, s, s, s, s, !0, B.L, s, B.aa, s, s, s, s);
+    if (!B.editTodoTitle) {
+      B.editTodoTitle = new A.G("Edit To-Do Task", null, B.cf, null, null, null, null, null, null, null, null);
+    }
+    return A.pq(
+      A.b([
+        A.eX(B.eN, new A.taskCancelDlg(dialogCtx), s),
+        A.dm(B.fP, new A.todoSaveDlg(this.a, ctrl, this.c, dialogCtx), s)
+      ], t.p),
+      inputWidget,
+      B.editTodoTitle
+    );
+  },
+  $S: 47
+};
+
+A.todoSaveDlg = function todoSaveDlg(provider, textCtrl, task, dialogCtx) {
+  this.a = provider;
+  this.b = textCtrl;
+  this.c = task;
+  this.d = dialogCtx;
+};
+A.todoSaveDlg.prototype = {
+  $0() {
+    var newTitle = B.c.b1(this.b.a.a);
+    if (newTitle.length !== 0) {
+      this.c.b = newTitle;
+      this.a.Y();
+      A.am(this.d, !1).aU(null);
+    }
+  },
+  $S: 0
+};
+// --- END INJECTED TODO POPUP HANDLER ---
+
 A.aCC.prototype={
 $1(a){var s,r=this
 if(a==="edit")r.a.aos(r.b,r.c)
@@ -100945,7 +101012,7 @@ else o=j?B.e:B.M
 n=A.L(c.b,k,k,k,k,A.aw(k,k,o,k,n,k,k,k,k,k,k,15,k,k,B.bA,k,k,!0,k,k,k,k,k,k,k,k),k,k,k)
 o=c.d
 l=t.p
-return A.aMD(i,B.aV,A.a4(k,A.ah(A.b([m,B.bT,A.aQ(A.ab(A.b([n,B.aJ,A.L(c.c+"  \u2022  "+o,k,k,k,k,A.aw(k,k,c.f?B.c7:B.U,k,k,k,k,k,k,k,k,12,k,k,B.aq,k,k,!0,k,k,k,k,k,k,k,k),k,k,k)],l),B.w,B.h,B.f,0,B.o),1)],l),B.l,B.h,B.f,0,k),B.m,k,new A.a0(s,k,q,r,p,k,B.r),k,k,B.fd,B.mg,k,k,k),B.m6,new A.d6(c.a,t.kK),new A.ao5(b,c),B.ck)},
+return A.aMD(i,B.aV,A.a4(k,A.ah(A.b([m,B.bT,A.aQ(A.ab(A.b([n,B.aJ,A.L(c.c+"  \u2022  "+o,k,k,k,k,A.aw(k,k,c.f?B.c7:B.U,k,k,k,k,k,k,k,k,12,k,k,B.aq,k,k,!0,k,k,k,k,k,k,k,k),k,k,k)],l),B.w,B.h,B.f,0,B.o),1),A.PY(B.Np,new A.priorityMenuItems(),new A.todoPopupHandler(b,a,c),t.N)],l),B.l,B.h,B.f,0,k),B.m,k,new A.a0(s,k,q,r,p,k,B.r),k,k,B.fd,B.mg,k,k,k),B.m6,new A.d6(c.a,t.kK),new A.ao5(b,c),B.ck)},
 apu(a){var s={},r=$.a7()
 s.a="Career Roadmap"
 s.b="Today"
@@ -108739,7 +108806,7 @@ B.EE=new A.j(!0,B.e,null,null,null,null,14,B.x,null,null,null,null,null,null,nul
 B.a6W=new A.G("Manage Plan",null,B.EE,null,null,null,null,null,null,null,null)
 B.a6Y=new A.G("Subject Planner",null,null,null,null,null,null,null,null,null,null)
 B.a3O=new A.j(!0,B.i,null,null,null,null,16,B.a_,null,1.2,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
-B.a6Z=new A.G("WRINDHA-ALEX-123",null,B.a3O,null,null,null,null,null,null,null,null)
+B.a6Z=new A.G("WRINDHA-USER-001",null,B.a3O,null,null,null,null,null,null,null,null)
 B.a7_=new A.G("Add New Habit",null,B.cS,null,null,null,null,null,null,null,null)
 B.a70=new A.G("START: ENTRY LEVEL",null,B.oH,null,null,null,null,null,null,null,null)
 B.a72=new A.G("Prioritize this unit in your dashboard",null,B.d9,null,null,null,null,null,null,null,null)

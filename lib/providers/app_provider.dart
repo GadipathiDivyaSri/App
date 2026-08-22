@@ -21,29 +21,7 @@ class AppProvider extends ChangeNotifier {
   );
   UserProfile get user => _user;
 
-  List<Habit> _habits = [
-    Habit(
-      id: 'h_1',
-      title: 'Morning Revision & Formula Practice',
-      frequency: 'DAILY • 06:00 AM',
-      isCompleted: true,
-      streakDay: 12,
-    ),
-    Habit(
-      id: 'h_2',
-      title: 'Mock Test / PYQ Solving',
-      frequency: 'DAILY • 02:00 PM',
-      isCompleted: true,
-      streakDay: 8,
-    ),
-    Habit(
-      id: 'h_3',
-      title: 'Daily Workout & Mindfulness',
-      frequency: 'DAILY • 06:30 PM',
-      isCompleted: false,
-      streakDay: 5,
-    ),
-  ];
+  List<Habit> _habits = [];
   List<Habit> get habits => _habits;
 
   void addHabit(Habit habit) {
@@ -79,32 +57,7 @@ class AppProvider extends ChangeNotifier {
   List<ExpenseTransaction> _expenses = [];
   List<ExpenseTransaction> get expenses => _expenses;
 
-  List<ReferralActivity> _referralActivities = [
-    ReferralActivity(
-      id: 'ref_1',
-      name: 'Sarah Jenkins',
-      status: 'QUALIFIED',
-      date: 'OCT 12',
-      discountPercent: 10,
-      isApplied: true,
-    ),
-    ReferralActivity(
-      id: 'ref_2',
-      name: 'Mark Thompson',
-      status: 'QUALIFIED',
-      date: 'OCT 08',
-      discountPercent: 10,
-      isApplied: true,
-    ),
-    ReferralActivity(
-      id: 'ref_3',
-      name: 'Jessica L.',
-      status: 'PENDING',
-      date: 'OCT 14',
-      discountPercent: 10,
-      isApplied: false,
-    ),
-  ];
+  List<ReferralActivity> _referralActivities = [];
   List<ReferralActivity> get referralActivities => _referralActivities;
 
   DateTime _selectedDate = DateTime.now();

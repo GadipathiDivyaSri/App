@@ -328,49 +328,61 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _buildDeadlineBox(
-                  context,
-                  label: 'TODAY',
-                  count: _p1Tasks.length.toString(),
-                  color: Colors.redAccent,
+          Builder(builder: (context) {
+            final allTasks = [..._p1Tasks, ..._p2Tasks, ..._p3Tasks];
+            final todayCount = allTasks.where((t) => (t['dueDate'] as String? ?? '').contains('Today')).length;
+            final tomorrowCount = allTasks.where((t) => (t['dueDate'] as String? ?? '').contains('Tomorrow')).length;
+            final thisWeekCount = allTasks.where((t) => (t['dueDate'] as String? ?? '').contains('Week')).length;
+            final laterCount = allTasks.where((t) => !(t['dueDate'] as String? ?? '').contains('Today') && !(t['dueDate'] as String? ?? '').contains('Tomorrow') && !(t['dueDate'] as String? ?? '').contains('Week')).length;
+
+            return Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildDeadlineBox(
+                        context,
+                        label: 'TODAY',
+                        count: todayCount.toString(),
+                        color: Colors.redAccent,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _buildDeadlineBox(
+                        context,
+                        label: 'TOMORROW',
+                        count: tomorrowCount.toString(),
+                        color: Colors.amber.shade800,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _buildDeadlineBox(
-                  context,
-                  label: 'TOMORROW',
-                  count: _p2Tasks.length.toString(),
-                  color: Colors.amber.shade800,
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildDeadlineBox(
+                        context,
+                        label: 'THIS WEEK',
+                        count: thisWeekCount.toString(),
+                        color: const Color(0xFF0D5CE5),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _buildDeadlineBox(
+                        context,
+                        label: 'LATER',
+                        count: laterCount.toString(),
+                        color: const Color(0xFF10B981),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: _buildDeadlineBox(
-                  context,
-                  label: 'THIS WEEK',
-                  count: _p3Tasks.length.toString(),
-                  color: const Color(0xFF0D5CE5),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _buildDeadlineBox(
-                  context,
-                  label: 'LATER',
-                  count: _completedTasks.length.toString(),
-                  color: const Color(0xFF10B981),
-                ),
-              ),
-            ],
-          ),
+              ],
+            );
+          }),
         ],
       ),
     );
@@ -820,6 +832,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
   void _showAddTaskModal(BuildContext context, int priorityLevel) {
     final titleCtrl = TextEditingController();
     String tag = 'WORK';
+    String selectedDueDate = 'Today, 5:00 PM';
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     showModalBottomSheet(
@@ -829,72 +842,101 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
-          top: 24,
-          left: 20,
-          right: 20,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Add Priority $priorityLevel Task',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : AppTheme.lightTextPrimary,
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: titleCtrl,
-              decoration: const InputDecoration(
-                hintText: 'Task Title',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: isDark ? AppTheme.darkPrimary : AppTheme.primaryAccent,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-                onPressed: () {
-                  if (titleCtrl.text.trim().isNotEmpty) {
-                    setState(() {
-                      final newTask = {
-                        'title': titleCtrl.text.trim(),
-                        'dueDate': 'Today, 5:00 PM',
-                        'tag': tag,
-                        'tagColor': const Color(0xFFE0F2FE),
-                        'textColor': const Color(0xFF0284C7),
-                      };
-                      if (priorityLevel == 1) _p1Tasks.add(newTask);
-                      if (priorityLevel == 2) _p2Tasks.add(newTask);
-                      if (priorityLevel == 3) _p3Tasks.add(newTask);
-                    });
-                    Navigator.pop(ctx);
-                  }
-                },
-                child: const Text(
-                  'Save Task',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setModalState) => Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
+            top: 24,
+            left: 20,
+            right: 20,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Add Priority $priorityLevel Task',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : AppTheme.lightTextPrimary,
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+              TextField(
+                controller: titleCtrl,
+                decoration: const InputDecoration(
+                  hintText: 'Task Title',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 14),
+              const Text(
+                'DEADLINE / DUE DATE',
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF94A3B8)),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                children: [
+                  'Today, 5:00 PM',
+                  'Tomorrow, 10:00 AM',
+                  'This Week, Friday',
+                  'Later'
+                ].map((d) {
+                  final isSelected = selectedDueDate == d;
+                  return ChoiceChip(
+                    label: Text(d),
+                    selected: isSelected,
+                    selectedColor: isDark ? AppTheme.darkPrimary : AppTheme.primaryAccent,
+                    onSelected: (val) {
+                      setModalState(() {
+                        selectedDueDate = d;
+                      });
+                    },
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: isDark ? AppTheme.darkPrimary : AppTheme.primaryAccent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  onPressed: () {
+                    if (titleCtrl.text.trim().isNotEmpty) {
+                      setState(() {
+                        final newTask = {
+                          'title': titleCtrl.text.trim(),
+                          'dueDate': selectedDueDate,
+                          'tag': tag,
+                          'tagColor': const Color(0xFFE0F2FE),
+                          'textColor': const Color(0xFF0284C7),
+                        };
+                        if (priorityLevel == 1) _p1Tasks.add(newTask);
+                        if (priorityLevel == 2) _p2Tasks.add(newTask);
+                        if (priorityLevel == 3) _p3Tasks.add(newTask);
+                      });
+                      Navigator.pop(ctx);
+                    }
+                  },
+                  child: const Text(
+                    'Save Task',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
