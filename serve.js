@@ -2,7 +2,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
-const PORT = 8080;
+const PORT = 3000;
 const dir = __dirname;
 
 const mimeTypes = {
@@ -38,13 +38,17 @@ http.createServer((req, res) => {
 
   fs.readFile(filePath, (err, content) => {
     if (err) {
+      console.log(`[500] ${req.url} (Error: ${err.message})`);
       res.writeHead(500);
       res.end('Server Error');
     } else {
+      console.log(`[200] ${req.url} -> ${ext || 'html'}`);
       res.writeHead(200, {
         'Content-Type': contentType,
         'Access-Control-Allow-Origin': '*',
-        'Cache-Control': 'no-cache',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
       });
       res.end(content);
     }
