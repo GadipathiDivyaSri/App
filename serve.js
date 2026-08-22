@@ -1,8 +1,8 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const { handleApiRequest } = require('./backend/api_handler');
 
-const PORT = 3000;
 const dir = __dirname;
 
 const mimeTypes = {
@@ -23,6 +23,12 @@ const mimeTypes = {
 
 function createServer() {
   return http.createServer((req, res) => {
+    // 1. Route API requests to backend handler
+    if (req.url.startsWith('/api/') || req.url === '/api') {
+      return handleApiRequest(req, res);
+    }
+
+    // 2. Serve static frontend files
     let reqUrl = req.url.split('?')[0];
     let filePath = path.join(dir, reqUrl === '/' ? 'index.html' : reqUrl);
 
@@ -43,7 +49,6 @@ function createServer() {
         res.writeHead(500);
         res.end('Server Error');
       } else {
-        console.log(`[200] ${req.url} -> ${ext || 'html'}`);
         res.writeHead(200, {
           'Content-Type': contentType,
           'Access-Control-Allow-Origin': '*',
@@ -62,7 +67,10 @@ for (const port of ports) {
   try {
     const server = createServer();
     server.listen(port, () => {
-      console.log(`WrindhaOS App live on http://localhost:${port}`);
+      console.log(`===================================================`);
+      console.log(`🚀 WrindhaOS Frontend & Backend API live on http://localhost:${port}`);
+      console.log(`📡 Health Check: http://localhost:${port}/api/health`);
+      console.log(`===================================================`);
     });
     server.on('error', (err) => {
       console.log(`Port ${port} error: ${err.message}`);
@@ -71,4 +79,3 @@ for (const port of ports) {
     console.log(`Could not bind port ${port}:`, e.message);
   }
 }
-

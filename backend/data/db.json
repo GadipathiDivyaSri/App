@@ -1,0 +1,38 @@
+{
+  "users": [],
+  "tasks": [
+    {
+      "id": "t_1787417043560",
+      "title": "Test Math Revision",
+      "category": "Studies",
+      "dueDateLabel": "Today",
+      "isCompleted": false,
+      "createdAt": "2026-08-22T16:44:03.560Z"
+    }
+  ],
+  "expenses": [
+    {
+      "id": "e_1787417087573",
+      "title": "Stationery & Notebooks",
+      "category": "Others",
+      "amount": 150,
+      "isIncome": false,
+      "paymentMethod": "UPI",
+      "date": "2026-08-22T16:44:47.573Z"
+    }
+  ],
+  "goals": {
+    "short": [],
+    "medium": [],
+    "long": []
+  },
+  "habits": [],
+  "calendarEvents": [],
+  "referrals": [],
+  "otpStore": {
+    "test@wrindhaos.in": {
+      "code": "9658",
+      "expiresAt": 1787417330927
+    }
+  }
+}
