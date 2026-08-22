@@ -100182,7 +100182,7 @@ if(!k)h.push(new A.aC(0,B.D,new A.x(0.04,0,0,0,B.n),B.bl,8))
 s=A.a4(l,l,B.m,l,new A.a0(c,l,l,B.pG,l,l,B.r),l,l,l,l,l,l,5)
 r=A.b1(b.i(0,"title"))
 q=t.p
-r=A.ah(A.b([A.L(r,l,l,l,l,A.aw(l,l,k?B.e:B.M,l,l,l,l,l,l,l,l,14.5,l,l,B.x,l,l,!0,l,l,l,l,l,l,l,l),l,l,l),B.Np],q),B.l,B.aC,B.f,0,l)
+r=A.ah(A.b([A.L(r,l,l,l,l,A.aw(l,l,k?B.e:B.M,l,l,l,l,l,l,l,l,14.5,l,l,B.x,l,l,!0,l,l,l,l,l,l,l,l),l,l,l),A.PY(B.Np,new A.aCB(),new A.taskPopupHandler(this,a,b),t.N)],q),B.l,B.aC,B.f,0,l)
 p=A.ah(A.b([B.Nd,B.dW,A.L(A.b1(b.i(0,"dueDate")),l,l,l,l,B.EM,l,l,l)],q),B.l,B.h,B.f,0,l)
 o=t.G
 n=o.a(b.i(0,"tagColor"))
@@ -100734,6 +100734,117 @@ $S:0}
 A.aCy.prototype={
 $1(a){return new A.t4(A.b1(this.a.i(0,"name")),null)},
 $S:640}
+
+// --- INJECTED PRIORITY MATRIX 3-DOTS ACTIONS ---
+B.editTaskTitle = new A.G("Edit Task", null, B.cf, null, null, null, null, null, null, null, null);
+
+A.taskPopupHandler = function taskPopupHandler(matrixState, buildCtx, task) {
+  this.a = matrixState;
+  this.b = buildCtx;
+  this.c = task;
+};
+A.taskPopupHandler.prototype = {
+  $1(val) {
+    var state = this.a, ctx = this.b, task = this.c;
+    if (val === "edit") {
+      var initialTitle = A.b1(task.i(0, "title"));
+      var textCtrl = new A.bW(new A.c4(initialTitle, B.bn, B.aG), $.a7());
+      A.n0(null, null, !0, null, new A.taskEditDlg(state, textCtrl, task), ctx, null, !0, t.z);
+    } else if (val === "complete") {
+      state.L(new A.taskCompAction(state, task));
+    } else if (val === "delete") {
+      state.L(new A.taskDelAction(state, task));
+    }
+  },
+  $S: 29
+};
+
+A.taskDelAction = function taskDelAction(matrixState, task) {
+  this.a = matrixState;
+  this.b = task;
+};
+A.taskDelAction.prototype = {
+  $0() {
+    B.b.G(this.a.d, this.b);
+    B.b.G(this.a.e, this.b);
+    B.b.G(this.a.f, this.b);
+  },
+  $S: 0
+};
+
+A.taskCompAction = function taskCompAction(matrixState, task) {
+  this.a = matrixState;
+  this.b = task;
+};
+A.taskCompAction.prototype = {
+  $0() {
+    B.b.G(this.a.d, this.b);
+    B.b.G(this.a.e, this.b);
+    B.b.G(this.a.f, this.b);
+  },
+  $S: 0
+};
+
+A.taskEditDlg = function taskEditDlg(matrixState, textCtrl, task) {
+  this.a = matrixState;
+  this.b = textCtrl;
+  this.c = task;
+};
+A.taskEditDlg.prototype = {
+  $1(dialogCtx) {
+    var s = null;
+    var ctrl = this.b;
+    var inputWidget = A.cc(s, B.a2, !1, s, !0, B.y, s, A.cg(), ctrl, s, s, s, s, s, 2, B.Oi, B.t, !0, s, !0, s, !1, s, B.a0, s, s, s, s, s, s, s, s, 1, s, s, !1, "\u2022", s, s, s, s, s, !1, s, s, !1, s, !0, s, B.S, s, s, s, s, s, s, s, s, s, s, s, s, !0, B.L, s, B.aa, s, s, s, s);
+    return A.pq(
+      A.b([
+        A.eX(B.eN, new A.taskCancelDlg(dialogCtx), s),
+        A.dm(B.fP, new A.taskSaveDlg(this.a, ctrl, this.c, dialogCtx), s)
+      ], t.p),
+      inputWidget,
+      B.editTaskTitle
+    );
+  },
+  $S: 47
+};
+
+A.taskCancelDlg = function taskCancelDlg(dialogCtx) { this.a = dialogCtx; };
+A.taskCancelDlg.prototype = {
+  $0() {
+    A.am(this.a, !1).aU(null);
+    return null;
+  },
+  $S: 0
+};
+
+A.taskSaveDlg = function taskSaveDlg(matrixState, textCtrl, task, dialogCtx) {
+  this.a = matrixState;
+  this.b = textCtrl;
+  this.c = task;
+  this.d = dialogCtx;
+};
+A.taskSaveDlg.prototype = {
+  $0() {
+    var newTitle = B.c.b1(this.b.a.a);
+    if (newTitle.length !== 0) {
+      this.a.L(new A.taskApplyTitle(this.c, newTitle));
+      A.am(this.d, !1).aU(null);
+    }
+  },
+  $S: 0
+};
+
+A.taskApplyTitle = function taskApplyTitle(task, newTitle) {
+  this.a = task;
+  this.b = newTitle;
+};
+A.taskApplyTitle.prototype = {
+  $0() {
+    this.a.p(0, "title", this.b);
+  },
+  $S: 0
+};
+// --- END INJECTED PRIORITY MATRIX ACTIONS ---
+
 A.aCC.prototype={
 $1(a){var s,r=this
 if(a==="edit")r.a.aos(r.b,r.c)

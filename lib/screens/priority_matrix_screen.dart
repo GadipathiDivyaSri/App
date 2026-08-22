@@ -182,7 +182,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
               _buildEmptySectionCard(context, 'No high priority tasks. Tap + Add Task to create one.')
             else
               ..._p1Tasks
-                  .map((t) => _buildPriorityTaskCard(context, t, Colors.redAccent))
+                  .map((t) => _buildPriorityTaskCard(context, t, Colors.redAccent, priorityLevel: 1))
                   .toList(),
             const SizedBox(height: 24),
 
@@ -201,7 +201,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
             else
               ..._p2Tasks
                   .map((t) =>
-                      _buildPriorityTaskCard(context, t, Colors.amber.shade800))
+                      _buildPriorityTaskCard(context, t, Colors.amber.shade800, priorityLevel: 2))
                   .toList(),
             const SizedBox(height: 24),
 
@@ -220,7 +220,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
             else
               ..._p3Tasks
                   .map((t) =>
-                      _buildPriorityTaskCard(context, t, const Color(0xFF10B981)))
+                      _buildPriorityTaskCard(context, t, const Color(0xFF10B981), priorityLevel: 3))
                   .toList(),
             const SizedBox(height: 24),
 
@@ -521,7 +521,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
   }
 
   Widget _buildPriorityTaskCard(
-      BuildContext context, Map<String, dynamic> task, Color borderAccent) {
+      BuildContext context, Map<String, dynamic> task, Color borderAccent, {int priorityLevel = 1}) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
@@ -559,17 +559,79 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          task['title'] as String,
-                          style: TextStyle(
-                            fontSize: 14.5,
-                            fontWeight: FontWeight.w700,
-                            color:
-                                isDark ? Colors.white : const Color(0xFF1E293B),
+                        Expanded(
+                          child: Text(
+                            task['title'] as String,
+                            style: TextStyle(
+                              fontSize: 14.5,
+                              fontWeight: FontWeight.w700,
+                              color:
+                                  isDark ? Colors.white : const Color(0xFF1E293B),
+                            ),
                           ),
                         ),
-                        const Icon(Icons.more_horiz_rounded,
-                            color: Color(0xFF94A3B8), size: 18),
+                        PopupMenuButton<String>(
+                          icon: const Icon(Icons.more_horiz_rounded,
+                              color: Color(0xFF94A3B8), size: 18),
+                          onSelected: (val) {
+                            if (val == 'edit') {
+                              _showEditTaskDialog(context, task);
+                            } else if (val == 'complete') {
+                              setState(() {
+                                _removeTaskFromList(task, priorityLevel);
+                                _completedTasks.insert(0, {
+                                  'title': task['title'],
+                                  'tag': task['tag'],
+                                  'tagColor': task['tagColor'],
+                                  'textColor': task['textColor'],
+                                });
+                              });
+                            } else if (val == 'delete') {
+                              setState(() {
+                                _removeTaskFromList(task, priorityLevel);
+                              });
+                            }
+                          },
+                          itemBuilder: (ctx) => [
+                            PopupMenuItem(
+                              value: 'edit',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.edit_outlined,
+                                      size: 18,
+                                      color: isDark
+                                          ? AppTheme.darkPrimary
+                                          : const Color(0xFF0D5CE5)),
+                                  const SizedBox(width: 8),
+                                  const Text('Edit Task'),
+                                ],
+                              ),
+                            ),
+                            const PopupMenuItem(
+                              value: 'complete',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.check_circle_outline_rounded,
+                                      size: 18, color: Color(0xFF10B981)),
+                                  SizedBox(width: 8),
+                                  Text('Mark as Done'),
+                                ],
+                              ),
+                            ),
+                            const PopupMenuItem(
+                              value: 'delete',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.delete_outline_rounded,
+                                      size: 18, color: Colors.redAccent),
+                                  SizedBox(width: 8),
+                                  Text('Delete Task',
+                                      style: TextStyle(color: Colors.redAccent)),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                     const SizedBox(height: 6),
@@ -837,4 +899,39 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
       ),
     );
   }
+
+  void _removeTaskFromList(Map<String, dynamic> task, int priorityLevel) {
+    if (priorityLevel == 1) _p1Tasks.remove(task);
+    if (priorityLevel == 2) _p2Tasks.remove(task);
+    if (priorityLevel == 3) _p3Tasks.remove(task);
+  }
+
+  void _showEditTaskDialog(BuildContext context, Map<String, dynamic> task) {
+    final titleCtrl = TextEditingController(text: task['title'] as String);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Edit Task', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: TextField(
+          controller: titleCtrl,
+          decoration: const InputDecoration(labelText: 'Task Title', border: OutlineInputBorder()),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () {
+              if (titleCtrl.text.trim().isNotEmpty) {
+                setState(() {
+                  task['title'] = titleCtrl.text.trim();
+                });
+                Navigator.pop(ctx);
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
 }
+
