@@ -26,6 +26,7 @@ class _LoginScreenState extends State<LoginScreen>
   final _passwordCtrl = TextEditingController();
   bool _obscurePassword = true;
   bool _rememberMe = true;
+  bool _agreeToTerms = true;
 
   @override
   void initState() {
@@ -322,20 +323,40 @@ class _LoginScreenState extends State<LoginScreen>
                             ),
                           ),
                         ),
-                        const SizedBox(height: 14),
-                        Center(
-                          child: GestureDetector(
-                            onTap: () => _showTermsDialog(context),
-                            child: Text(
-                              'Terms & Conditions',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: primaryColor,
-                                decoration: TextDecoration.underline,
+                        const SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: Checkbox(
+                                value: _agreeToTerms,
+                                onChanged: (val) {
+                                  setState(() {
+                                    _agreeToTerms = val ?? false;
+                                  });
+                                },
+                                activeColor: primaryColor,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
                               ),
                             ),
-                          ),
+                            const SizedBox(width: 8),
+                            GestureDetector(
+                              onTap: () => _showTermsDialog(context),
+                              child: Text(
+                                'I agree to the Terms & Conditions',
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w500,
+                                  color: isDark ? Colors.white70 : const Color(0xFF475569),
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
