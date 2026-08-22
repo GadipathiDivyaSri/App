@@ -239,7 +239,7 @@ class _NotesScreenState extends State<NotesScreen> {
             TextField(
               controller: titleCtrl,
               decoration: const InputDecoration(
-                hintText: 'Journal Title (e.g., Daily Reflections)',
+                hintText: 'Journal Title',
                 border: OutlineInputBorder(),
               ),
             ),

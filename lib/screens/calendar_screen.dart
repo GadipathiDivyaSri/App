@@ -697,7 +697,7 @@ class CalendarScreen extends StatelessWidget {
                         child: TextField(
                           controller: locationCtrl,
                           decoration: const InputDecoration(
-                            hintText: 'Location (e.g. Workspace A)',
+                            hintText: 'Location',
                             filled: true,
                             border: OutlineInputBorder(),
                           ),

@@ -237,7 +237,7 @@ class _SignUpScreenState extends State<SignUpScreen>
               TextField(
                 controller: _nameCtrl,
                 decoration: InputDecoration(
-                  hintText: 'Enter your full name',
+                  hintText: '',
                   hintStyle: TextStyle(
                     fontSize: 13.5,
                     color: Color(0xFF94A3B8),
@@ -322,7 +322,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                                 controller: _phoneCtrl,
                                 keyboardType: TextInputType.phone,
                                 decoration: InputDecoration(
-                                  hintText: 'Enter mobile number',
+                                  hintText: '',
                                   hintStyle: TextStyle(
                                     fontSize: 13.5,
                                     color: Color(0xFF94A3B8),
@@ -445,7 +445,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                                 controller: _emailCtrl,
                                 keyboardType: TextInputType.emailAddress,
                                 decoration: InputDecoration(
-                                  hintText: 'Enter email address',
+                                  hintText: '',
                                   hintStyle: TextStyle(
                                     fontSize: 13.5,
                                     color: Color(0xFF94A3B8),
@@ -574,7 +574,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                 controller: _passwordCtrl,
                 obscureText: _obscurePassword,
                 decoration: InputDecoration(
-                  hintText: 'Create a password',
+                  hintText: '',
                   hintStyle: TextStyle(
                     fontSize: 13.5,
                     color: Color(0xFF94A3B8),
@@ -639,7 +639,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                 controller: _referralCodeCtrl,
                 textCapitalization: TextCapitalization.characters,
                 decoration: InputDecoration(
-                  hintText: 'Enter referral code (optional)',
+                  hintText: '',
                   hintStyle: TextStyle(
                     fontSize: 13.5,
                     color: Color(0xFF94A3B8),

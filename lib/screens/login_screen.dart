@@ -200,7 +200,7 @@ class _LoginScreenState extends State<LoginScreen>
                           controller: _phoneCtrl,
                           keyboardType: TextInputType.phone,
                           decoration: InputDecoration(
-                            hintText: 'Enter mobile number',
+                            hintText: '',
                             hintStyle: TextStyle(
                               fontSize: 13.5,
                               color: Color(0xFF94A3B8),
@@ -343,7 +343,7 @@ class _LoginScreenState extends State<LoginScreen>
                           controller: _emailCtrl,
                           keyboardType: TextInputType.emailAddress,
                           decoration: InputDecoration(
-                            hintText: 'Enter email address',
+                            hintText: '',
                             hintStyle: TextStyle(
                               fontSize: 13.5,
                               color: Color(0xFF94A3B8),
@@ -397,7 +397,7 @@ class _LoginScreenState extends State<LoginScreen>
                           controller: _passwordCtrl,
                           obscureText: _obscurePassword,
                           decoration: InputDecoration(
-                            hintText: 'Enter password',
+                            hintText: '',
                             hintStyle: TextStyle(
                               fontSize: 13.5,
                               color: Color(0xFF94A3B8),

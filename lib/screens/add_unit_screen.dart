@@ -91,7 +91,7 @@ class _AddUnitScreenState extends State<AddUnitScreen> {
             TextField(
               controller: _titleCtrl,
               decoration: InputDecoration(
-                hintText: 'e.g., Integration Techniques',
+                hintText: '',
                 filled: true,
                 fillColor: isDark
                     ? const Color(0xFF1E1F2B)

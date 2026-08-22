@@ -550,13 +550,13 @@ class _CareerRoadmapScreenState extends State<CareerRoadmapScreen> {
               controller: titleCtrl,
               autofocus: true,
               decoration: const InputDecoration(
-                hintText: 'Milestone Title (e.g., Senior Architect)',
+                hintText: 'Milestone Title',
                 border: OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 12),
             TextField(
-              controller: subCtrl,
+              controller: descCtrl,
               decoration: const InputDecoration(
                 hintText: 'Subtitle / Description',
                 border: OutlineInputBorder(),
@@ -567,7 +567,7 @@ class _CareerRoadmapScreenState extends State<CareerRoadmapScreen> {
               controller: xpCtrl,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
-                hintText: 'XP Reward (e.g., 500)',
+                hintText: 'XP Reward',
                 border: OutlineInputBorder(),
               ),
             ),

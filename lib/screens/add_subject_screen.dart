@@ -45,7 +45,7 @@ class _AddSubjectScreenState extends State<AddSubjectScreen> {
                 fontWeight: FontWeight.w600,
               ),
               decoration: InputDecoration(
-                hintText: 'e.g., Quantum Physics',
+                hintText: '',
                 filled: true,
                 fillColor: isDark
                     ? const Color(0xFF1E1F2B)

@@ -325,7 +325,7 @@ class _GoalPyramidScreenState extends State<GoalPyramidScreen> {
                 controller: titleCtrl,
                 autofocus: true,
                 decoration: const InputDecoration(
-                  hintText: 'Goal Title (e.g., Master Advanced Data Structures)',
+                  hintText: 'Goal Title',
                   border: OutlineInputBorder(),
                 ),
               ),

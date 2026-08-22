@@ -61,7 +61,7 @@ class _AddMilestoneScreenState extends State<AddMilestoneScreen> {
                   TextField(
                     controller: _titleCtrl,
                     decoration: InputDecoration(
-                      hintText: 'e.g., Completed Research Project',
+                      hintText: '',
                       suffixIcon: const Icon(Icons.edit_outlined, size: 18),
                       filled: true,
                       fillColor: isDark

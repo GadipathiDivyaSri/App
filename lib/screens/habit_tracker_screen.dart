@@ -485,7 +485,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                     controller: titleCtrl,
                     decoration: const InputDecoration(
                       labelText: 'Habit Title',
-                      hintText: 'e.g. Read 20 pages, Morning Exercise',
+                      hintText: '',
                       border: OutlineInputBorder(),
                     ),
                   ),

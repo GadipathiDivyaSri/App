@@ -323,7 +323,7 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
               controller: titleCtrl,
               autofocus: true,
               decoration: const InputDecoration(
-                hintText: 'Topic Title (e.g., Topic 6: Matrices)',
+                hintText: 'Topic Title',
                 border: OutlineInputBorder(),
               ),
             ),
