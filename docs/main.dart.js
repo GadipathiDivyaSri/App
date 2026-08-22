@@ -100182,7 +100182,7 @@ if(!k)h.push(new A.aC(0,B.D,new A.x(0.04,0,0,0,B.n),B.bl,8))
 s=A.a4(l,l,B.m,l,new A.a0(c,l,l,B.pG,l,l,B.r),l,l,l,l,l,l,5)
 r=A.b1(b.i(0,"title"))
 q=t.p
-r=A.ah(A.b([A.L(r,l,l,l,l,A.aw(l,l,k?B.e:B.M,l,l,l,l,l,l,l,l,14.5,l,l,B.x,l,l,!0,l,l,l,l,l,l,l,l),l,l,l),A.PY(B.Np,new A.aCB(),new A.taskPopupHandler(this,a,b),t.N)],q),B.l,B.aC,B.f,0,l)
+r=A.ah(A.b([A.L(r,l,l,l,l,A.aw(l,l,k?B.e:B.M,l,l,l,l,l,l,l,l,14.5,l,l,B.x,l,l,!0,l,l,l,l,l,l,l,l),l,l,l),A.PY(B.Np,new A.priorityMenuItems(),new A.taskPopupHandler(this,a,b),t.N)],q),B.l,B.aC,B.f,0,l)
 p=A.ah(A.b([B.Nd,B.dW,A.L(A.b1(b.i(0,"dueDate")),l,l,l,l,B.EM,l,l,l)],q),B.l,B.h,B.f,0,l)
 o=t.G
 n=o.a(b.i(0,"tagColor"))
@@ -100735,8 +100735,34 @@ A.aCy.prototype={
 $1(a){return new A.t4(A.b1(this.a.i(0,"name")),null)},
 $S:640}
 
+
+
+
 // --- INJECTED PRIORITY MATRIX 3-DOTS ACTIONS ---
-B.editTaskTitle = new A.G("Edit Task", null, B.cf, null, null, null, null, null, null, null, null);
+B.editPriorityText = new A.G("Edit Priority", null, null, null, null, null, null, null, null, null, null);
+B.editPriorityRow = A.b([B.fp, B.aF, B.editPriorityText], t.p);
+B.editPriorityWrap = new A.dH(B.a8, B.h, B.f, B.l, null, B.o, null, 0, B.editPriorityRow, null);
+B.editPriorityItem = new A.ft("edit", B.editPriorityWrap, null, t.wI);
+
+B.completionText = new A.G("Completion", null, null, null, null, null, null, null, null, null, null);
+B.completionRow = A.b([B.NP, B.aF, B.completionText], t.p);
+B.completionWrap = new A.dH(B.a8, B.h, B.f, B.l, null, B.o, null, 0, B.completionRow, null);
+B.completionItem = new A.ft("complete", B.completionWrap, null, t.wI);
+
+B.deletePriorityText = new A.G("Delete Priority", null, B.fN, null, null, null, null, null, null, null, null);
+B.deletePriorityRow = A.b([B.hH, B.aF, B.deletePriorityText], t.p);
+B.deletePriorityWrap = new A.dH(B.a8, B.h, B.f, B.l, null, B.o, null, 0, B.deletePriorityRow, null);
+B.deletePriorityItem = new A.ft("delete", B.deletePriorityWrap, null, t.wI);
+
+A.priorityMenuItems = function priorityMenuItems() {};
+A.priorityMenuItems.prototype = {
+  $1(a) {
+    return A.b([B.editPriorityItem, B.completionItem, B.deletePriorityItem], t.Do);
+  },
+  $S: 73
+};
+
+B.editTaskTitle = new A.G("Edit Priority", null, B.cf, null, null, null, null, null, null, null, null);
 
 A.taskPopupHandler = function taskPopupHandler(matrixState, buildCtx, task) {
   this.a = matrixState;
