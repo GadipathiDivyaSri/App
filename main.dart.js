@@ -100009,11 +100009,15 @@ $S:0}
 A.ayl.prototype={
 $1(a){var s=null,r=a.b,q=J.d(r.i(0,"isCompleted"),!0),p=this.c,o=p?B.bw:B.b0,n=A.Q(10),m=A.Q(4),l=A.ef(q?B.i:B.c7,B.z,1.5),k=q?B.i:B.C,j=q?B.NB:s
 m=A.a4(s,j,B.m,s,new A.a0(k,s,l,m,s,s,B.r),s,16,s,s,s,s,16)
+var checkBtn=A.c2(s,m,B.t,!1,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,new A.ayk(this.a,this.b,a.a,q),s,s,s,s,s,s)
 l=A.b1(r.i(0,"title"))
 k=q?B.dZ:s
-if(q)p=B.ak
-else p=p?B.e:B.M
-return A.c2(s,A.a4(s,A.ah(A.b([m,B.aF,A.aQ(A.L(l,s,s,s,s,A.aw(s,s,p,s,k,s,s,s,s,s,s,12,s,s,B.aq,s,s,!0,s,s,s,s,s,s,s,s),s,s,s),1),A.PY(B.Np,new A.priorityMenuItems(),new A.eisenhowerPopupHandler(this.a,this.b,a.a,r),t.N)],t.p),B.l,B.h,B.f,0,s),B.m,s,new A.a0(o,s,s,n,s,s,B.r),s,s,B.md,B.dQ,s,s,s),B.t,!1,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,new A.ayk(this.a,this.b,a.a,q),s,s,s,s,s,s)},
+var textColor=q?B.ak:(p?B.e:B.M)
+var textWidget=A.aQ(A.L(l,s,s,s,s,A.aw(s,s,textColor,s,k,s,s,s,s,s,s,12,s,s,B.aq,s,s,!0,s,s,s,s,s,s,s,s),s,s,s),1)
+var popupIcon=new A.aV(B.N_,18,p?B.ak:B.U,s,s)
+var popupBtn=A.PY(popupIcon,new A.priorityMenuItems(),new A.eisenhowerPopupHandler(this.a,this.b,a.a,r),t.N)
+var cardRow=A.ah(A.b([checkBtn,B.aF,textWidget,popupBtn],t.p),B.l,B.h,B.f,0,s)
+return A.a4(s,cardRow,B.m,s,new A.a0(o,s,s,n,s,s,B.r),s,s,B.md,B.dQ,s,s,s)},
 $S:618}
 A.ayk.prototype={
 $0(){var s=this
@@ -100968,6 +100972,9 @@ A.todoSaveDlg.prototype = {
 // --- END INJECTED TODO POPUP HANDLER ---
 
 
+
+
+
 // --- INJECTED EISENHOWER POPUP & GOALS HELPERS ---
 A.eisenhowerPopupHandler = function eisenhowerPopupHandler(matrixState, tasksList, taskIdx, task) {
   this.a = matrixState;
@@ -100981,7 +100988,7 @@ A.eisenhowerPopupHandler.prototype = {
     if (val === "edit") {
       var initialTitle = A.b1(task.i(0, "title"));
       var textCtrl = new A.bW(new A.c4(initialTitle, B.bn, B.aG), $.a7());
-      A.n0(null, null, !0, null, new A.taskEditDlg(state, textCtrl, task), null, null, !0, t.z);
+      A.n0(null, null, !0, null, new A.eisenhowerEditDlg(state, textCtrl, task), null, null, !0, t.z);
     } else if (val === "complete") {
       state.L(new A.eisenhowerToggle(task));
     } else if (val === "delete") {
@@ -101007,6 +101014,60 @@ A.eisenhowerDelete = function eisenhowerDelete(list, task) {
 A.eisenhowerDelete.prototype = {
   $0() {
     B.b.G(this.a, this.b);
+  },
+  $S: 0
+};
+
+A.eisenhowerEditDlg = function eisenhowerEditDlg(state, textCtrl, task) {
+  this.a = state;
+  this.b = textCtrl;
+  this.c = task;
+};
+A.eisenhowerEditDlg.prototype = {
+  $1(dialogCtx) {
+    var s = null;
+    var ctrl = this.b;
+    var inputWidget = A.cc(s, B.a2, !1, s, !0, B.y, s, A.cg(), ctrl, s, s, s, s, s, 2, B.Oi, B.t, !0, s, !0, s, !1, s, B.a0, s, s, s, s, s, s, s, s, 1, s, s, !1, "\u2022", s, s, s, s, s, !1, s, s, !1, s, !0, s, B.S, s, s, s, s, s, s, s, s, s, s, s, s, !0, B.L, s, B.aa, s, s, s, s);
+    if (!B.editEisenTitle) {
+      B.editEisenTitle = new A.G("Edit Task", null, B.cf, null, null, null, null, null, null, null, null);
+    }
+    return A.pq(
+      A.b([
+        A.eX(B.eN, new A.taskCancelDlg(dialogCtx), s),
+        A.dm(B.fP, new A.eisenhowerSaveDlg(this.a, ctrl, this.c, dialogCtx), s)
+      ], t.p),
+      inputWidget,
+      B.editEisenTitle
+    );
+  },
+  $S: 47
+};
+
+A.eisenhowerSaveDlg = function eisenhowerSaveDlg(state, textCtrl, task, dialogCtx) {
+  this.a = state;
+  this.b = textCtrl;
+  this.c = task;
+  this.d = dialogCtx;
+};
+A.eisenhowerSaveDlg.prototype = {
+  $0() {
+    var newTitle = B.c.b1(this.b.a.a);
+    if (newTitle.length !== 0) {
+      var s = this;
+      this.a.L(new A.eisenhowerUpdateTitle(s.c, newTitle));
+      A.am(s.d, !1).aU(null);
+    }
+  },
+  $S: 0
+};
+
+A.eisenhowerUpdateTitle = function eisenhowerUpdateTitle(task, newTitle) {
+  this.a = task;
+  this.b = newTitle;
+};
+A.eisenhowerUpdateTitle.prototype = {
+  $0() {
+    this.a.p(0, "title", this.b);
   },
   $S: 0
 };
