@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 const PORT = 8080;
-const dir = path.join(__dirname, 'build', 'web');
+const dir = __dirname;
 
 const mimeTypes = {
   '.html': 'text/html',
@@ -11,18 +11,28 @@ const mimeTypes = {
   '.css': 'text/css',
   '.json': 'application/json',
   '.png': 'image/png',
-  '.jpg': 'image/jpg',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
   '.svg': 'image/svg+xml',
   '.ttf': 'application/font-ttf',
   '.otf': 'application/font-otf',
+  '.woff': 'application/font-woff',
+  '.woff2': 'font/woff2',
   '.wasm': 'application/wasm',
 };
 
 http.createServer((req, res) => {
-  let filePath = path.join(dir, req.url === '/' ? 'index.html' : req.url.split('?')[0]);
+  let reqUrl = req.url.split('?')[0];
+  let filePath = path.join(dir, reqUrl === '/' ? 'index.html' : reqUrl);
+
   if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
+    if (path.extname(reqUrl)) {
+      res.writeHead(404, { 'Content-Type': 'text/plain' });
+      return res.end('Not Found');
+    }
     filePath = path.join(dir, 'index.html');
   }
+
   const ext = path.extname(filePath).toLowerCase();
   const contentType = mimeTypes[ext] || 'application/octet-stream';
 
@@ -40,5 +50,5 @@ http.createServer((req, res) => {
     }
   });
 }).listen(PORT, () => {
-  console.log(`Productivity App running cleanly on http://localhost:${PORT}`);
+  console.log(`WrindhaOS App running cleanly on http://localhost:${PORT}`);
 });
