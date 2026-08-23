@@ -100983,7 +100983,7 @@ p.d7(A.jd(null,null,null,B.cE,null,B.z,null,A.m(n==null?"Invalid 2FA OTP code. P
 return A.U($async$vv,r)},
 agN(){var s=this.w,r=B.c.aN(s.a.a).length!==0&&B.c.aN(this.x.a.a).length!==0,q=this.c
 if(r){q.toString
-A.f1(q,!1,t.T).MG("Alex Johnson",B.c.aN(s.a.a))}else q.Y(t.J).f.d7(B.a0k)},
+A.f1(q,!1,t.T).MG(B.c.aN(s.a.a),B.c.aN(s.a.a))}else q.Y(t.J).f.d7(B.a0k)},
 aha(){var s=this.c
 s.toString
 A.f1(s,!1,t.T).MG("Alex Johnson","alex.google@gmail.com")},
@@ -101041,11 +101041,11 @@ e=A.B(14)
 d=a0?B.bl:B.aR
 m=A.bZ(b,B.Z,!1,b,!0,B.z,b,A.c4(),c.x,b,b,b,b,b,2,A.dW(b,new A.bB(4,h,new A.am(f,1,B.p,-1)),b,b,b,b,b,b,!0,new A.bB(4,e,new A.am(d,1,B.p,-1)),b,b,b,b,b,i,!0,b,b,b,b,new A.bB(4,A.B(14),new A.am(a1,1.5,B.p,-1)),b,b,b,b,b,b,b,b,k,"",b,b,b,b,b,b,b,b,b,!0,!0,!1,b,g,b,b,b,b,b,b,j,b,b,b,b,b),B.t,!0,b,!0,b,!1,b,B.W,b,b,b,b,b,b,b,b,1,b,b,m,"\u2022",b,b,b,b,b,!1,b,b,!1,b,!0,b,B.F,b,b,b,b,b,b,b,b,b,b,b,b,!0,B.G,b,B.a3,b,b,b,b)
 j=c.z
-p=A.b_(A.ao0(A.a([n,A.a0(A.a([B.a82,B.ao,l,B.aP,B.a79,B.ao,m,B.by,A.a4(A.a([A.a4(A.a([A.b_(A.aJG(a1,new A.ay5(c),new A.bb(A.B(4),B.v),j),24,24),B.aq,B.a93],s),B.i,B.h,B.f,0,b,b),A.e_(A.m("Forgot Password?",b,b,b,b,A.J(b,b,a1,b,b,b,b,b,b,b,b,12,b,b,B.x,b,b,!0,b,b,b,b,b,b,b,b),b,b,b),new A.ay6(),b)],s),B.i,B.ap,B.f,0,b,b),B.aP,A.b_(A.cW(B.a86,c.gagM(),A.cX(b,b,a1,b,b,b,0,b,b,b,b,b,b,b,new A.bb(A.B(14),B.v),b,b,b,b,b)),50,1/0)],s),B.w,B.h,B.f,0,B.m)],s),p),350,b)
+p=A.a0(A.a([B.a82,B.ao,l,B.aP,B.a79,B.ao,m,B.by,A.a4(A.a([A.a4(A.a([A.b_(A.aJG(a1,new A.ay5(c),new A.bb(A.B(4),B.v),j),24,24),B.aq,B.a93],s),B.i,B.h,B.f,0,b,b),A.e_(A.m("Forgot Password?",b,b,b,b,A.J(b,b,a1,b,b,b,b,b,b,b,b,12,b,b,B.x,b,b,!0,b,b,b,b,b,b,b,b),b,b,b),new A.ay6(),b)],s),B.i,B.ap,B.f,0,b,b),B.aP,A.b_(A.cW(B.a86,c.gagM(),A.cX(b,b,a1,b,b,b,0,b,b,b,b,b,b,b,new A.bb(A.B(14),B.v),b,b,b,b,b)),50,1/0)],s),B.w,B.h,B.f,0,B.m)
 n=A.aD(A.aK2(a0?B.rs:B.aR,b),1)
 n=A.a4(A.a([n,B.WG,A.aD(A.aK2(a0?B.rs:B.aR,b),1)],s),B.i,B.h,B.f,0,b,b)
 m=A.Da(b,b,b,b,b,b,b,b,b,b,b,b,b,b,new A.bb(A.B(16),B.v),new A.am(A.b1(4291548641),1,B.p,-1),b,b,b,b)
-return A.cJ(b,a2,A.l0(!0,A.dA(A.a0(A.a([B.by,a3,B.an,r,B.bz,q,B.oV,o,B.an,p,n,B.aD,A.b_(A.wc(A.as(B.tM,A.b1(4282549748),b,32),B.a7i,c.gah9(),m),52,1/0),B.an,A.a4(A.a([B.a8q,A.cc(b,A.m("Sign Up",b,b,b,b,A.J(b,b,a1,b,b,b,b,b,b,b,b,14,b,b,B.x,b,b,!0,b,b,b,b,b,b,b,b),b,b,b),B.t,!1,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,new A.ay7(a4),b,b,b,b,b,b)],s),B.i,B.b_,B.f,0,b,b),B.aD],s),B.w,B.h,B.f,0,B.m),b,B.t,B.t3,b,b,B.S),B.aA,!0),b,b)},
+return A.cJ(b,a2,A.l0(!0,A.dA(A.a0(A.a([B.by,a3,B.an,r,B.bz,q,B.an,p,B.aD,n,B.aD,A.b_(A.wc(A.as(B.tM,A.b1(4282549748),b,32),B.a7i,c.gah9(),m),52,1/0),B.an,A.a4(A.a([B.a8q,A.cc(b,A.m("Sign Up",b,b,b,b,A.J(b,b,a1,b,b,b,b,b,b,b,b,14,b,b,B.x,b,b,!0,b,b,b,b,b,b,b,b),b,b,b),B.t,!1,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,new A.ay7(a4),b,b,b,b,b,b)],s),B.i,B.b_,B.f,0,b,b),B.aD],s),B.w,B.h,B.f,0,B.m),b,B.t,B.t3,b,b,B.S),B.aA,!0),b,b)},
 apZ(a){var s=null
 A.hQ(s,s,!0,s,new A.axY(A.p(a).ax.a===B.A),a,s,!0,t.z)}}
 A.axW.prototype={
@@ -110185,7 +110185,7 @@ B.a6M=new A.L("Please enter an event title.",null,null,null,null,null,null,null,
 B.a0i=new A.dZ(B.a6M,null,null,null,null,null,null,null,null,null,null,null,null,B.b7,!1,null,null,null,B.z,null)
 B.a75=new A.L("Plan management active.",null,null,null,null,null,null,null,null,null,null)
 B.a0j=new A.dZ(B.a75,null,null,null,null,null,null,null,null,null,null,null,null,B.b7,!1,null,null,null,B.z,null)
-B.a8D=new A.L("Please enter email and password",null,null,null,null,null,null,null,null,null,null)
+B.a8D=new A.L("Please enter username and password",null,null,null,null,null,null,null,null,null,null)
 B.a0k=new A.dZ(B.a8D,null,null,null,null,null,null,null,null,null,null,null,null,B.b7,!1,null,null,null,B.z,null)
 B.a9g=new A.L("Please enter an expense amount.",null,null,null,null,null,null,null,null,null,null)
 B.a0l=new A.dZ(B.a9g,B.bG,null,null,null,null,null,null,null,null,null,null,null,B.b7,!1,null,null,null,B.z,null)
@@ -110708,7 +110708,7 @@ B.a7X=new A.L("No transactions recorded yet.",null,B.a1N,null,null,null,null,nul
 B.a7Z=new A.L("CREATE PASSWORD",null,B.aL,null,null,null,null,null,null,null,null)
 B.a80=new A.L("Save Transaction",null,B.cy,null,null,null,null,null,null,null,null)
 B.a81=new A.L("4-WEEK STREAK LINE TREND",null,B.aL,null,null,null,null,null,null,null,null)
-B.a82=new A.L("EMAIL ADDRESS",null,B.aL,null,null,null,null,null,null,null,null)
+B.a82=new A.L("USERNAME",null,B.aL,null,null,null,null,null,null,null,null)
 B.a86=new A.L("Log In",null,B.pf,null,null,null,null,null,null,null,null)
 B.a87=new A.L("Save Subject",null,B.cy,null,null,null,null,null,null,null,null)
 B.a88=new A.L("Already have an account? ",null,B.pe,null,null,null,null,null,null,null,null)
