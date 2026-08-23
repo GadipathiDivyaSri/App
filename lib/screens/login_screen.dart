@@ -141,6 +141,36 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // WrindhaOS Brand Icon
+                Center(
+                  child: Container(
+                    width: 76,
+                    height: 76,
+                    margin: const EdgeInsets.only(bottom: 20),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(22),
+                      boxShadow: [
+                        BoxShadow(
+                          color: (isDark ? const Color(0xFF6366F1) : const Color(0xFF0D5CE5)).withOpacity(0.3),
+                          blurRadius: 16,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(22),
+                      child: Image.asset(
+                        'assets/images/wrindha_logo.png',
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Container(
+                          color: primaryColor,
+                          child: const Icon(Icons.bolt_rounded, color: Colors.white, size: 38),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
                 // Header
                 Text(
                   'Login to WrindhaOS',

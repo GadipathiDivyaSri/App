@@ -166,9 +166,36 @@ class _SignupScreenState extends State<SignupScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 28.0, vertical: 8.0),
           child: Form(
             key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+                // WrindhaOS Brand Icon
+                Center(
+                  child: Container(
+                    width: 72,
+                    height: 72,
+                    margin: const EdgeInsets.only(bottom: 18),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: (isDark ? const Color(0xFF6366F1) : const Color(0xFF0D5CE5)).withOpacity(0.3),
+                          blurRadius: 16,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(20),
+                      child: Image.asset(
+                        'assets/images/wrindha_logo.png',
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Container(
+                          color: primaryColor,
+                          child: const Icon(Icons.bolt_rounded, color: Colors.white, size: 36),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
                 Text(
                   'Create Account',
                   style: TextStyle(

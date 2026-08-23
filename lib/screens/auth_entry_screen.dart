@@ -73,26 +73,35 @@ class _AuthEntryScreenState extends State<AuthEntryScreen> {
             children: [
               const Spacer(flex: 2),
 
-              // Logo Container
+              // Logo Container with Official WrindhaOS Icon
               Center(
                 child: Container(
-                  width: 90,
-                  height: 90,
+                  width: 104,
+                  height: 104,
                   decoration: BoxDecoration(
-                    color: primaryColor,
                     borderRadius: BorderRadius.circular(28),
                     boxShadow: [
                       BoxShadow(
-                        color: primaryColor.withOpacity(0.35),
-                        blurRadius: 20,
+                        color: (isDark ? const Color(0xFF6366F1) : const Color(0xFF0D5CE5)).withOpacity(0.35),
+                        blurRadius: 24,
                         offset: const Offset(0, 8),
                       ),
                     ],
                   ),
-                  child: const Icon(
-                    Icons.bolt_rounded,
-                    color: Colors.white,
-                    size: 54,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(28),
+                    child: Image.asset(
+                      'assets/images/wrindha_logo.png',
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        color: primaryColor,
+                        child: const Icon(
+                          Icons.bolt_rounded,
+                          color: Colors.white,
+                          size: 54,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),
