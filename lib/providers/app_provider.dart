@@ -92,10 +92,26 @@ class AppProvider extends ChangeNotifier {
     _initData();
   }
 
-  void login(String name, String contact, {String? id, String? token, String? refCode}) {
+  void loginWithUser(UserProfile user, String? token) async {
+    _isLoggedIn = true;
+    _user = user;
+    if (token != null) {
+      _user.token = token;
+    }
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('saved_session_user', jsonEncode(_user.toJson()));
+    if (token != null) {
+      await prefs.setString('saved_session_token', token);
+    }
+    notifyListeners();
+  }
+
+  void login(String name, String contact, {String? id, String? token, String? refCode, String? username, String? email}) {
     _isLoggedIn = true;
     _user = UserProfile(
       id: id ?? 'u_1',
+      username: username ?? name.toLowerCase().replaceAll(' ', '_'),
+      email: email ?? contact,
       name: name.isNotEmpty ? name : 'Student User',
       contact: contact,
       focusScore: 0,
@@ -108,13 +124,16 @@ class AppProvider extends ChangeNotifier {
     if (refCode != null && refCode.trim().isNotEmpty) {
       applyReferralCode(refCode.trim());
     }
+    _saveSession();
     notifyListeners();
   }
 
-  void signup(String name, String contact, {String? id, String? token, String? refCode}) {
+  void signup(String name, String contact, {String? id, String? token, String? refCode, String? username, String? email}) {
     _isLoggedIn = true;
     _user = UserProfile(
       id: id ?? 'u_1',
+      username: username ?? name.toLowerCase().replaceAll(' ', '_'),
+      email: email ?? contact,
       name: name.isNotEmpty ? name : 'Student User',
       contact: contact,
       focusScore: 0,
@@ -127,12 +146,24 @@ class AppProvider extends ChangeNotifier {
     if (refCode != null && refCode.trim().isNotEmpty) {
       applyReferralCode(refCode.trim());
     }
+    _saveSession();
     notifyListeners();
   }
 
-  void logout() {
+  void logout() async {
     _isLoggedIn = false;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('saved_session_user');
+    await prefs.remove('saved_session_token');
     notifyListeners();
+  }
+
+  Future<void> _saveSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('saved_session_user', jsonEncode(_user.toJson()));
+    if (_user.token != null) {
+      await prefs.setString('saved_session_token', _user.token!);
+    }
   }
 
   Future<Map<String, dynamic>> deleteAccount() async {
@@ -349,6 +380,24 @@ class AppProvider extends ChangeNotifier {
         final List decoded = jsonDecode(referralsJson);
         _referralActivities =
             decoded.map((item) => ReferralActivity.fromJson(item)).toList();
+      }
+
+      // Load Active Session
+      final sessionUserJson = prefs.getString('saved_session_user');
+      final sessionToken = prefs.getString('saved_session_token');
+      if (sessionUserJson != null && sessionUserJson.isNotEmpty) {
+        try {
+          final Map<String, dynamic> userMap = jsonDecode(sessionUserJson);
+          _user = UserProfile.fromJson(userMap);
+          if (sessionToken != null) {
+            _user.token = sessionToken;
+          }
+          _isLoggedIn = true;
+        } catch (err) {
+          _isLoggedIn = false;
+        }
+      } else {
+        _isLoggedIn = false;
       }
 
       _recalculateMetrics();

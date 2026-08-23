@@ -101698,7 +101698,7 @@ k=f?B.X:B.jh
 j=i.f
 k=i.zy(q,B.O8,k,f,"Not Important but\nUrgent",j.length,"Delegate")
 q=f?B.ah:B.md
-s=A.a([r,B.aD,s,B.a4,A.aPi(1.15,A.a([p,m,k,i.zy(q,B.O1,f?B.X:B.eH,f,"Not Important &\nNot Urgent",0,"Eliminate")],n),2,14,14,B.f2,!0),B.an,i.ac0(a),B.an,i.Gi(B.l.k(o.length),B.cE,"High Priority","PRIORITY 1"),B.by,i.Gf(a,1),B.by],n)
+s=A.a([r,B.aD,i.ac0(a),B.an,i.Gi(B.l.k(o.length),B.cE,"High Priority","PRIORITY 1"),B.by,i.Gf(a,1),B.by],n)
 if(o.length===0)s.push(i.zw(a,"No high priority tasks. Tap + Add Task to create one."))
 else{r=A.a1(o).i("ae<1,e>")
 r=A.a8(new A.ae(o,new A.aBd(i,a),r),r.i("ax.E"))

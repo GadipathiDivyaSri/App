@@ -30,6 +30,12 @@ function createServer() {
 
     // 2. Serve static frontend files
     let reqUrl = req.url.split('?')[0];
+    if (reqUrl.startsWith('/App/')) {
+      reqUrl = reqUrl.substring(4);
+    } else if (reqUrl.startsWith('/App')) {
+      reqUrl = reqUrl.substring(4) || '/';
+    }
+
     let filePath = path.join(dir, reqUrl === '/' ? 'index.html' : reqUrl);
 
     if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {

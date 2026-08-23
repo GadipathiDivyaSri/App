@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'providers/app_provider.dart';
 import 'theme/app_theme.dart';
 import 'screens/main_navigation.dart';
-import 'screens/login_screen.dart';
+import 'screens/auth_entry_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,7 +43,7 @@ class ProductivityApp extends StatelessWidget {
       themeMode: provider.themeMode,
       home: provider.isLoggedIn
           ? const MainNavigationScreen()
-          : const LoginScreen(),
+          : const AuthEntryScreen(),
     );
   }
 }

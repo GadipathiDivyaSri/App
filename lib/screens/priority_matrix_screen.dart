@@ -101,68 +101,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
             ),
             const SizedBox(height: 20),
 
-            // Priority Matrix 2x2 Grid (Matching Reference Design)
-            Text(
-              'Priority Matrix',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: isDark ? Colors.white : AppTheme.lightTextPrimary,
-              ),
-            ),
-            const SizedBox(height: 12),
 
-            GridView.count(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 2,
-              mainAxisSpacing: 14,
-              crossAxisSpacing: 14,
-              childAspectRatio: 1.15,
-              children: [
-                // 1. Do First (Important & Urgent)
-                _buildMatrixQuadrantCard(
-                  title: 'Do First',
-                  subtitle: 'Important &\nUrgent',
-                  bgColor: isDark ? AppTheme.darkCardBg : AppTheme.pastelPersonalGrowth,
-                  iconColor: isDark ? AppTheme.darkIconGlow : const Color(0xFF4A9B65),
-                  icon: Icons.local_fire_department_rounded,
-                  isDark: isDark,
-                  taskCount: _p1Tasks.length,
-                ),
-                // 2. Schedule (Important but Not Urgent)
-                _buildMatrixQuadrantCard(
-                  title: 'Schedule',
-                  subtitle: 'Important but\nNot Urgent',
-                  bgColor: isDark ? AppTheme.darkCardBg : AppTheme.pastelStudies,
-                  iconColor: isDark ? AppTheme.darkIconGlow : const Color(0xFFDCA432),
-                  icon: Icons.hourglass_top_rounded,
-                  isDark: isDark,
-                  taskCount: _p2Tasks.length,
-                ),
-                // 3. Delegate (Not Important but Urgent)
-                _buildMatrixQuadrantCard(
-                  title: 'Delegate',
-                  subtitle: 'Not Important but\nUrgent',
-                  bgColor: isDark ? AppTheme.darkCardBg : AppTheme.pastelAnalytics,
-                  iconColor: isDark ? AppTheme.darkIconGlow : const Color(0xFF4B8DBA),
-                  icon: Icons.tune_rounded,
-                  isDark: isDark,
-                  taskCount: _p3Tasks.length,
-                ),
-                // 4. Eliminate (Not Important & Not Urgent)
-                _buildMatrixQuadrantCard(
-                  title: 'Eliminate',
-                  subtitle: 'Not Important &\nNot Urgent',
-                  bgColor: isDark ? AppTheme.darkCardBg : AppTheme.pastelPriority,
-                  iconColor: isDark ? AppTheme.darkIconGlow : const Color(0xFFD25B67),
-                  icon: Icons.outlined_flag_rounded,
-                  isDark: isDark,
-                  taskCount: 0,
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
 
             // Upcoming Deadlines Card
             _buildUpcomingDeadlinesCard(context),

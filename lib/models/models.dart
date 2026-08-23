@@ -249,8 +249,11 @@ class ReferralActivity {
 
 class UserProfile {
   String id;
+  String username;
+  String email;
   String name;
   String contact;
+  bool isEmailVerified;
   int focusScore;
   int activeStreak;
   bool isPremium;
@@ -263,8 +266,11 @@ class UserProfile {
 
   UserProfile({
     this.id = 'u_1',
+    this.username = 'alex_j',
+    this.email = '',
     required this.name,
     this.contact = '',
+    this.isEmailVerified = true,
     required this.focusScore,
     required this.activeStreak,
     this.isPremium = false,
@@ -278,8 +284,11 @@ class UserProfile {
 
   Map<String, dynamic> toJson() => {
         'id': id,
+        'username': username,
+        'email': email,
         'name': name,
         'contact': contact,
+        'isEmailVerified': isEmailVerified,
         'focusScore': focusScore,
         'activeStreak': activeStreak,
         'isPremium': isPremium,
@@ -293,8 +302,11 @@ class UserProfile {
 
   factory UserProfile.fromJson(Map<String, dynamic> json) => UserProfile(
         id: json['id'] ?? 'u_1',
+        username: json['username'] ?? (json['name'] ?? 'user').toString().toLowerCase().replaceAll(' ', '_'),
+        email: json['email'] ?? json['contact'] ?? '',
         name: json['name'] ?? 'Alex Johnson',
-        contact: json['contact'] ?? '',
+        contact: json['contact'] ?? json['email'] ?? '',
+        isEmailVerified: json['isEmailVerified'] ?? true,
         focusScore: json['focusScore'] ?? 92,
         activeStreak: json['activeStreak'] ?? 14,
         isPremium: json['isPremium'] ?? true,

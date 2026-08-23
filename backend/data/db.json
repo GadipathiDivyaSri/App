@@ -1,5 +1,20 @@
 {
-  "users": [],
+  "users": [
+    {
+      "id": "u_1787483727392",
+      "username": "kalyan_g",
+      "email": "kalyan@example.com",
+      "name": "kalyan_g",
+      "password": "newpassword456",
+      "contact": "kalyan@example.com",
+      "isEmailVerified": true,
+      "focusScore": 0,
+      "activeStreak": 0,
+      "isPremium": false,
+      "referralCode": "WRINDHA1421",
+      "createdAt": "2026-08-23T11:15:27.392Z"
+    }
+  ],
   "tasks": [
     {
       "id": "t_1787417043560",
