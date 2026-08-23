@@ -7,6 +7,19 @@ import 'screens/login_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  ErrorWidget.builder = (FlutterErrorDetails details) {
+    return Container(
+      color: const Color(0xFFFFF9F0),
+      alignment: Alignment.center,
+      padding: const EdgeInsets.all(16),
+      child: SingleChildScrollView(
+        child: Text(
+          'Rendering notice: ${details.exceptionAsString()}',
+          style: const TextStyle(color: Color(0xFF1E293B), fontSize: 12),
+        ),
+      ),
+    );
+  };
   runApp(
     ChangeNotifierProvider(
       create: (_) => AppProvider(),

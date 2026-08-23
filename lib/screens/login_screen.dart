@@ -179,7 +179,7 @@ class _LoginScreenState extends State<LoginScreen>
 
               // Tab Views
               SizedBox(
-                height: 280,
+                height: 350,
                 child: TabBarView(
                   controller: _tabController,
                   children: [
