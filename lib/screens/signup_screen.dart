@@ -4,6 +4,7 @@ import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import 'email_otp_screen.dart';
 import 'login_screen.dart';
+import 'terms_conditions_screen.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -22,6 +23,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  bool _agreeToTerms = false;
   bool _isLoading = false;
 
   // Username validation state
@@ -77,7 +79,7 @@ class _SignupScreenState extends State<SignupScreen> {
     });
   }
 
-  void _handleContinue() async {
+  void _handleCreateAccount() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -86,6 +88,16 @@ class _SignupScreenState extends State<SignupScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(_usernameError ?? 'Please choose an available username'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+
+    if (!_agreeToTerms) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please agree to the Terms & Conditions to proceed.'),
           backgroundColor: Colors.redAccent,
         ),
       );
@@ -109,7 +121,7 @@ class _SignupScreenState extends State<SignupScreen> {
     if (!mounted) return;
 
     if (res['success'] == true) {
-      // Step 3 & 4: Route to Email OTP Screen
+      // Route to Email Verification / OTP Screen
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -123,7 +135,7 @@ class _SignupScreenState extends State<SignupScreen> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(res['message'] ?? 'Failed to initiate registration'),
+          content: Text(res['message'] ?? 'Failed to initiate account creation'),
           backgroundColor: Colors.redAccent,
         ),
       );
@@ -168,7 +180,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'Join WrindhaOS and organize your productivity',
+                  'Set up your username, email, and password to start',
                   style: TextStyle(
                     fontSize: 14,
                     color: isDark
@@ -323,7 +335,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 ],
                 const SizedBox(height: 18),
 
-                // 2. Email Address Field
+                // 2. Email Address Field (for Email Verification)
                 Text(
                   'Email Address',
                   style: TextStyle(
@@ -527,14 +539,77 @@ class _SignupScreenState extends State<SignupScreen> {
                     return null;
                   },
                 ),
+                const SizedBox(height: 20),
+
+                // 5. Terms & Conditions Checkbox
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: Checkbox(
+                        value: _agreeToTerms,
+                        activeColor: primaryColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        onChanged: (val) {
+                          setState(() => _agreeToTerms = val ?? false);
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          Text(
+                            'I agree to the ',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: isDark
+                                  ? AppTheme.darkTextSecondary
+                                  : AppTheme.lightTextSecondary,
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => TermsConditionsScreen(
+                                    isReviewMode: true,
+                                    onAccept: () {
+                                      setState(() => _agreeToTerms = true);
+                                    },
+                                  ),
+                                ),
+                              );
+                            },
+                            child: Text(
+                              'Terms & Conditions',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: primaryColor,
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 28),
 
-                // Continue Button
+                // 6. Create Account Button
                 SizedBox(
                   width: double.infinity,
                   height: 54,
                   child: ElevatedButton(
-                    onPressed: _isLoading ? null : _handleContinue,
+                    onPressed: _isLoading ? null : _handleCreateAccount,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: primaryColor,
                       foregroundColor: Colors.white,
@@ -553,7 +628,7 @@ class _SignupScreenState extends State<SignupScreen> {
                             ),
                           )
                         : const Text(
-                            'Continue',
+                            'Create Account',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,

@@ -102279,17 +102279,9 @@ return A.P(A.ad(o,!1).bJ(p),$async$ny)
 case 2:if(b===!0&&q.c!=null){q.K(new A.aDA(q))
 q.c.Y(t.J).f.d7(B.a0f)}return A.T(null,r)}})
 return A.U($async$ny,r)},
-ajp(){var s,r,q,p,o,n=this,m=null,l=B.c.aN(n.e.a.a),k=n.d
-k===$&&A.b()
-s=k.d===0
-r=s?B.c.aN(n.f.a.a):B.c.aN(n.r.a.a)
-q=B.c.aN(n.x.a.a)
-p=B.c.aN(n.y.a.a)
+ajp(){var s,r,q,p,o,n=this,m=null,l=B.c.aN(n.e.a.a),r=B.c.aN(n.r.a.a),q=B.c.aN(n.x.a.a),p=B.c.aN(n.y.a.a),k=n.c
 if(l.length===0){n.c.Y(t.J).f.d7(B.a0h)
-return}if(r.length===0){k=n.c.Y(t.J).f
-k.d7(A.jd(m,m,m,m,m,B.z,m,A.m("Please enter your "+(s?"mobile number":"email"),m,m,m,m,m,m,m,m),m,B.b7,m,m,m,m,m,m,m,m,m,m))
-return}if(!n.z){n.c.Y(t.J).f.d7(B.a0n)
-return}if(B.c.aN(n.w.a.a).length===0){n.c.Y(t.J).f.d7(B.a0r)
+return}if(r.length===0){k.Y(t.J).f.d7(A.jd(m,m,m,m,m,B.z,m,A.m("Please enter your email address",m,m,m,m,m,m,m,m),m,B.b7,m,m,m,m,m,m,m,m,m,m))
 return}if(q.length<6){n.c.Y(t.J).f.d7(B.a0p)
 return}if(!n.Q){n.c.Y(t.J).f.d7(B.ET)
 n.ny()
@@ -102355,7 +102347,7 @@ r=A.B(14)
 q=f?B.bl:B.aR
 p=A.B(14)
 m=f?B.bl:B.aR
-B.b.M(o,A.a([B.a4,A.bZ(j,B.Z,!1,j,!0,B.z,j,A.c4(),k.w,j,j,j,j,j,2,A.dW(j,new A.bB(4,r,new A.am(q,1,B.p,-1)),j,j,j,j,"",j,!0,new A.bB(4,p,new A.am(m,1,B.p,-1)),j,j,j,j,j,s,!0,j,j,j,j,new A.bB(4,A.B(14),new A.am(e,1.5,B.p,-1)),j,j,j,j,j,j,j,j,a5,g,j,j,j,j,j,j,j,j,j,!0,!0,!1,j,a6,j,j,j,j,j,j,j,j,j,j,j,j),B.t,!0,j,!0,j,!1,j,B.W,j,j,j,j,B.iS,j,4,j,1,j,j,!1,h,j,j,j,j,j,!1,j,j,!1,j,!0,j,B.F,j,j,j,j,j,j,j,j,j,j,j,j,!0,B.G,j,B.a3,j,j,j,j)],n))}a0=A.b_(A.ao0(A.a([a4,A.a0(o,B.w,B.h,B.f,0,B.m)],n),a3),a0,j)
+a0=A.bZ(j,B.Z,!1,j,!0,B.z,j,A.c4(),k.r,j,j,j,j,j,2,A.dW(j,new A.bB(4,r,new A.am(q,1,B.p,-1)),j,j,j,j,j,j,!0,new A.bB(4,p,new A.am(m,1,B.p,-1)),j,j,j,j,j,s,!0,j,j,j,j,new A.bB(4,A.B(14),new A.am(e,1.5,B.p,-1)),j,j,j,j,j,j,j,j,a5,"",j,j,j,j,j,j,j,j,j,!0,!0,!1,j,a6,j,j,j,j,j,j,j,j,j,j,j,j),B.t,!0,j,!0,j,!1,j,B.W,j,j,j,j,B.pa,j,j,j,1,j,j,!1,h,j,j,j,j,j,!1,j,j,!1,j,!0,j,B.F,j,j,j,j,j,j,j,j,j,j,j,j,!0,B.G,j,B.a3,j,j,j,j)
 a3=k.as
 a4=A.J(j,j,A.b1(i),j,j,j,j,j,j,j,j,13.5,j,j,j,j,j,!0,j,j,j,j,j,j,j,j)
 a5=A.as(B.tQ,e,j,20)
@@ -102407,7 +102399,7 @@ s=A.b_(A.aJG(e,new A.aDG(k),new A.bb(A.B(5),B.v),s),24,24)
 a4=A.a4(A.a([s,B.ep,A.aD(A.cc(j,A.m("I confirm that I have read and agree to the Terms & Conditions and Privacy Policy.",j,j,j,j,A.J(j,j,f?B.ar:B.a_,j,j,j,j,j,j,j,j,12.5,j,j,j,j,1.45,!0,j,j,j,j,j,j,j,j),j,j,j),B.t,!1,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,new A.aDH(k),j,j,j,j,j,j),1)],n),B.w,B.h,B.f,0,j,j)
 s=A.b_(A.cW(B.a8C,k.gajo(),A.cX(j,j,e,j,j,j,0,j,j,j,j,j,j,j,new A.bb(A.B(16),B.v),j,j,j,j,j)),52,1/0)
 r=A.Da(j,j,j,j,j,j,j,j,j,j,j,j,j,j,new A.bb(A.B(16),B.v),new A.am(A.b1(4291548641),1,B.p,-1),j,j,j,j)
-return A.cJ(c,d,A.l0(!0,A.dA(A.a0(A.a([b,B.bz,a,B.an,B.a7p,B.ao,a1,B.a1,a2,B.a1,a0,B.a1,B.a7Z,B.ao,a3,B.a1,B.a7g,B.ao,a5,B.aP,a6,B.aP,a4,B.aD,s,B.a1,A.b_(A.wc(A.as(B.tM,A.b1(4282549748),j,32),B.a6Y,k.gahb(),r),50,1/0),B.an,A.a4(A.a([B.a88,A.cc(j,A.m("Log In",j,j,j,j,A.J(j,j,e,j,j,j,j,j,j,j,j,14,j,j,B.x,j,j,!0,j,j,j,j,j,j,j,j),j,j,j),B.t,!1,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,new A.aDI(a7),j,j,j,j,j,j)],n),B.i,B.b_,B.f,0,j,j),B.aD],n),B.w,B.h,B.f,0,B.m),j,B.t,B.MJ,j,j,B.S),B.aA,!0),j,j)}}
+return A.cJ(c,d,A.l0(!0,A.dA(A.a0(A.a([b,B.bz,a,B.an,B.a7p,B.ao,a1,B.a1,B.a82,B.ao,a0,B.a1,B.a7Z,B.ao,a3,B.a1,B.a7g,B.ao,a5,B.aP,a6,B.aP,a4,B.aD,s,B.a1,A.b_(A.wc(A.as(B.tM,A.b1(4282549748),j,32),B.a6Y,k.gahb(),r),50,1/0),B.an,A.a4(A.a([B.a88,A.cc(j,A.m("Log In",j,j,j,j,A.J(j,j,e,j,j,j,j,j,j,j,j,14,j,j,B.x,j,j,!0,j,j,j,j,j,j,j,j),j,j,j),B.t,!1,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,new A.aDI(a7),j,j,j,j,j,j)],n),B.i,B.b_,B.f,0,j,j),B.aD],n),B.w,B.h,B.f,0,B.m),j,B.t,B.MJ,j,j,B.S),B.aA,!0),j,j)}}
 A.aDx.prototype={
 $0(){return this.a.z=!0},
 $S:0}
@@ -110179,7 +110171,7 @@ B.a7v=new A.L("Terms & Conditions reviewed and accepted! \u2705",null,null,null,
 B.a0f=new A.dZ(B.a7v,B.al,null,null,null,null,null,null,null,null,null,null,null,B.hY,!1,null,null,null,B.z,null)
 B.a7M=new A.L("Expense deleted and balance updated.",null,null,null,null,null,null,null,null,null,null)
 B.a0g=new A.dZ(B.a7M,null,null,null,null,null,null,null,null,null,null,null,null,B.b7,!1,null,null,null,B.z,null)
-B.a6Z=new A.L("Please enter your full name",null,null,null,null,null,null,null,null,null,null)
+B.a6Z=new A.L("Please choose a username",null,null,null,null,null,null,null,null,null,null)
 B.a0h=new A.dZ(B.a6Z,null,null,null,null,null,null,null,null,null,null,null,null,B.b7,!1,null,null,null,B.z,null)
 B.a6M=new A.L("Please enter an event title.",null,null,null,null,null,null,null,null,null,null)
 B.a0i=new A.dZ(B.a6M,null,null,null,null,null,null,null,null,null,null,null,null,B.b7,!1,null,null,null,B.z,null)
@@ -110670,13 +110662,16 @@ B.a7b=new A.L("GOALS STATUS PIE CHART",null,B.aL,null,null,null,null,null,null,n
 B.a7c=new A.L("WEEKLY HABITS COMPLETED",null,B.aL,null,null,null,null,null,null,null,null)
 B.a7d=new A.L("Edit Priority",null,null,null,null,null,null,null,null,null,null)
 B.a7e=new A.L("Edit Subject",null,B.c2,null,null,null,null,null,null,null,null)
-B.a7g=new A.L("REFERRAL CODE (OPTIONAL)",null,B.aL,null,null,null,null,null,null,null,null)
-B.a7h=new A.L("Edit Journal Entry",null,B.dd,null,null,null,null,null,null,null,null)
-B.a7i=new A.L("Continue with Google",null,B.Fq,null,null,null,null,null,null,null,null)
-B.a7l=new A.L("Edit Entry",null,null,null,null,null,null,null,null,null,null)
-B.a7m=new A.L("Schedule Event",null,B.dd,null,null,null,null,null,null,null,null)
-B.a7n=new A.L("MOBILE NUMBER",null,B.aL,null,null,null,null,null,null,null,null)
-B.a7p=new A.L("FULL NAME",null,B.aL,null,null,null,null,null,null,null,null)
+B.a7g=new A.L("CONFIRM PASSWORD",null,B.aL,null,null,null,null,null,null,null,null)
+B.a7h=new A.L("Search transactions...",null,null,null,null,null,null,null,null,null,null)
+B.a7i=new A.L("Continue with Google",null,B.pn,null,null,null,null,null,null,null,null)
+B.a7j=new A.L("Save & Sync to Roadmap",null,B.cy,null,null,null,null,null,null,null,null)
+B.a7k=new A.L("DAILY COMPLETION RATE",null,B.aL,null,null,null,null,null,null,null,null)
+B.a7l=new A.L("No subjects added yet",null,B.c6,null,null,null,null,null,null,null,null)
+B.a7m=new A.L("Add Transaction",null,B.cz,null,null,null,null,null,null,null,null)
+B.a7n=new A.G("5 Achieved \u2022 1 Pending",null,B.pm,null,null,null,null,null,null,null,null)
+B.a7o=new A.L("Add Milestone",null,B.cA,null,null,null,null,null,null,null,null)
+B.a7p=new A.L("USERNAME",null,B.aL,null,null,null,null,null,null,null,null)
 B.a59=new A.j(!0,B.u,null,null,null,null,11,B.x,null,1.1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
 B.a7q=new A.L("NEW ENTRY",null,B.a59,null,null,null,null,null,null,null,null)
 B.a7t=new A.L("Save Changes",null,B.cy,null,null,null,null,null,null,null,null)
