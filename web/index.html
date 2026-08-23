@@ -5,6 +5,7 @@
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="WrindhaOS Productivity App">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
@@ -17,25 +18,83 @@
   <link rel="manifest" href="manifest.json">
 
   <style>
-    body {
+    html, body {
       margin: 0;
       padding: 0;
+      width: 100%;
+      height: 100%;
       overflow: hidden;
       background-color: #FFF9F0;
+    }
+    #loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #FFF9F0;
+      z-index: 99999;
+    }
+    .spinner {
+      width: 44px;
+      height: 44px;
+      border: 4px solid #E2E8F0;
+      border-top-color: #0D5CE5;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
   </style>
 </head>
 <body>
+  <div id="loading">
+    <div class="spinner"></div>
+    <p style="margin-top: 16px; font-weight: 600; font-size: 15px; color: #1E293B;">Starting WrindhaOS...</p>
+  </div>
+
+  <script src="flutter.js" defer></script>
   <script>
-    // Unregister legacy service workers to force immediate refresh of new colors and builds
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(function(registrations) {
-        for (var registration of registrations) {
-          registration.unregister();
+    window.addEventListener('load', function() {
+      // Unregister any stale service workers
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for (var r of registrations) { r.unregister(); }
+        });
+      }
+
+      _flutter.loader.loadEntrypoint({
+        entrypointUrl: 'main.dart.js?v=' + Date.now(),
+        onEntrypointLoaded: async function(engineInitializer) {
+          try {
+            let appRunner = await engineInitializer.initializeEngine({
+              useColorEmoji: true
+            });
+            var loading = document.getElementById('loading');
+            if (loading) loading.remove();
+            await appRunner.runApp();
+          } catch (e) {
+            console.warn('Engine init fallback:', e);
+            try {
+              let appRunner = await engineInitializer.initializeEngine();
+              var loading = document.getElementById('loading');
+              if (loading) loading.remove();
+              await appRunner.runApp();
+            } catch (err) {
+              console.error('Fatal engine error:', err);
+              var loading = document.getElementById('loading');
+              if (loading) loading.innerHTML = '<p style="color:red;padding:20px;">Failed to start app. Please refresh.</p>';
+            }
+          }
         }
       });
-    }
+    });
   </script>
-  <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

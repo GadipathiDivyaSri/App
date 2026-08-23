@@ -1,21 +1,21 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <script>
-    // Dynamically set base href to support both root (localhost) and subpath hosting (GitHub Pages)
-    var pathname = window.location.pathname;
-    if (!pathname.endsWith('/')) {
-      pathname = pathname.substring(0, pathname.lastIndexOf('/') + 1);
-    }
-    document.write('<base href="' + pathname + '">');
-  </script>
+  <base href="$FLUTTER_BASE_HREF">
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="WrindhaOS Productivity App">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-  <title>WrindhaOS</title>
+  <!-- iOS meta tags & icons -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="WrindhaOS">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
   <link rel="icon" type="image/png" href="favicon.png"/>
+
+  <title>WrindhaOS</title>
+  <link rel="manifest" href="manifest.json">
 
   <style>
     html, body {
@@ -38,11 +38,11 @@
       justify-content: center;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: #FFF9F0;
-      z-index: 9999;
+      z-index: 99999;
     }
     .spinner {
-      width: 42px;
-      height: 42px;
+      width: 44px;
+      height: 44px;
       border: 4px solid #E2E8F0;
       border-top-color: #0D5CE5;
       border-radius: 50%;
@@ -61,7 +61,8 @@
 
   <script src="flutter.js" defer></script>
   <script>
-    window.addEventListener('load', function(ev) {
+    window.addEventListener('load', function() {
+      // Unregister any stale service workers
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations().then(function(registrations) {
           for (var r of registrations) { r.unregister(); }
@@ -73,15 +74,23 @@
         onEntrypointLoaded: async function(engineInitializer) {
           try {
             let appRunner = await engineInitializer.initializeEngine({
-              useColorEmoji: true,
+              useColorEmoji: true
             });
-            const loading = document.getElementById('loading');
+            var loading = document.getElementById('loading');
             if (loading) loading.remove();
             await appRunner.runApp();
           } catch (e) {
-            console.error('Engine initialization error:', e);
-            const loading = document.getElementById('loading');
-            if (loading) loading.innerText = 'Failed to load: ' + e;
+            console.warn('Engine init fallback:', e);
+            try {
+              let appRunner = await engineInitializer.initializeEngine();
+              var loading = document.getElementById('loading');
+              if (loading) loading.remove();
+              await appRunner.runApp();
+            } catch (err) {
+              console.error('Fatal engine error:', err);
+              var loading = document.getElementById('loading');
+              if (loading) loading.innerHTML = '<p style="color:red;padding:20px;">Failed to start app. Please refresh.</p>';
+            }
           }
         }
       });
