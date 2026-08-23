@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/app_provider.dart';
+import '../widgets/upgrade_pro_modal.dart';
 import '../theme/app_theme.dart';
 import 'habit_tracker_screen.dart';
 import 'expense_tracker_screen.dart';
@@ -12,6 +15,7 @@ class PersonalGrowthScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isPremium = Provider.of<AppProvider>(context).user.isPremium;
 
     return Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
@@ -118,13 +122,22 @@ class PersonalGrowthScreen extends StatelessWidget {
               title: 'Track your Expenses',
               icon: Icons.account_balance_wallet_outlined,
               isDark: isDark,
+              isLocked: !isPremium,
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const ExpenseTrackerScreen(),
-                  ),
-                );
+                if (!isPremium) {
+                  showUpgradeProModal(
+                    context,
+                    featureTitle: 'Expense Tracker',
+                    limitExplanation: 'Personal Finance Tracking & Expense Ledger are exclusive to Pro members. Upgrade for ₹49/month to unlock!',
+                  );
+                } else {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const ExpenseTrackerScreen(),
+                    ),
+                  );
+                }
               },
             ),
             const SizedBox(height: 14),
@@ -152,13 +165,22 @@ class PersonalGrowthScreen extends StatelessWidget {
               title: 'Organize your tasks',
               icon: Icons.format_list_bulleted_rounded,
               isDark: isDark,
+              isLocked: !isPremium,
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const OrganizeMatrixScreen(),
-                  ),
-                );
+                if (!isPremium) {
+                  showUpgradeProModal(
+                    context,
+                    featureTitle: 'Organize Matrix',
+                    limitExplanation: 'Eisenhower Quadrant Matrix & Task Triage are exclusive to Pro members. Upgrade for ₹49/month to unlock!',
+                  );
+                } else {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const OrganizeMatrixScreen(),
+                    ),
+                  );
+                }
               },
             ),
             const SizedBox(height: 14),
@@ -169,13 +191,22 @@ class PersonalGrowthScreen extends StatelessWidget {
               title: 'Journal',
               icon: Icons.book_outlined,
               isDark: isDark,
+              isLocked: !isPremium,
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const NotesScreen(),
-                  ),
-                );
+                if (!isPremium) {
+                  showUpgradeProModal(
+                    context,
+                    featureTitle: 'Journal & Notes',
+                    limitExplanation: 'Daily Productivity Journal & Reflection Logs are exclusive to Pro members. Upgrade for ₹49/month to unlock!',
+                  );
+                } else {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const NotesScreen(),
+                    ),
+                  );
+                }
               },
             ),
             const SizedBox(height: 30),
@@ -191,6 +222,7 @@ class PersonalGrowthScreen extends StatelessWidget {
     required String title,
     required IconData icon,
     required bool isDark,
+    bool isLocked = false,
     required VoidCallback onTap,
   }) {
     return GestureDetector(
@@ -255,11 +287,39 @@ class PersonalGrowthScreen extends StatelessWidget {
                 ],
               ),
             ),
-            Icon(
-              Icons.chevron_right_rounded,
-              color: isDark ? const Color(0xFF4C658A) : const Color(0xFF8D827A),
-              size: 20,
-            ),
+            if (isLocked)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF2A2B3D) : Colors.black.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.lock_rounded,
+                      size: 13,
+                      color: isDark ? const Color(0xFFF59E0B) : const Color(0xFFB45309),
+                    ),
+                    const SizedBox(width: 3),
+                    Text(
+                      'PRO',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        color: isDark ? const Color(0xFFF59E0B) : const Color(0xFFB45309),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              Icon(
+                Icons.chevron_right_rounded,
+                color: isDark ? const Color(0xFF4C658A) : const Color(0xFF8D827A),
+                size: 20,
+              ),
           ],
         ),
       ),

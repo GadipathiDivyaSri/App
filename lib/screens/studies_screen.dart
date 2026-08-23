@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/app_provider.dart';
+import '../widgets/upgrade_pro_modal.dart';
 import '../theme/app_theme.dart';
 import 'calendar_screen.dart';
 import 'subject_planner_screen.dart';
@@ -11,6 +14,7 @@ class StudiesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isPremium = Provider.of<AppProvider>(context).user.isPremium;
 
     return Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
@@ -131,13 +135,22 @@ class StudiesScreen extends StatelessWidget {
               title: 'Focus Timer',
               subtitle: 'Deep work sessions & stopwatch',
               isDark: isDark,
+              isLocked: !isPremium,
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const FocusTimerScreen(),
-                  ),
-                );
+                if (!isPremium) {
+                  showUpgradeProModal(
+                    context,
+                    featureTitle: 'Focus Timer & Centre',
+                    limitExplanation: 'Pomodoro Focus Timer, ambient soundscapes, and deep work sessions are exclusive to Pro members. Upgrade for ₹49/month to unlock!',
+                  );
+                } else {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const FocusTimerScreen(),
+                    ),
+                  );
+                }
               },
             ),
             const SizedBox(height: 16),
@@ -169,6 +182,7 @@ class StudiesScreen extends StatelessWidget {
     required String title,
     required String subtitle,
     required bool isDark,
+    bool isLocked = false,
     required VoidCallback onTap,
   }) {
     return GestureDetector(
@@ -231,11 +245,39 @@ class StudiesScreen extends StatelessWidget {
                 ],
               ),
             ),
-            Icon(
-              Icons.chevron_right_rounded,
-              color: isDark ? const Color(0xFF4C658A) : const Color(0xFF8D827A),
-              size: 20,
-            ),
+            if (isLocked)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF2A2B3D) : Colors.black.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.lock_rounded,
+                      size: 13,
+                      color: isDark ? const Color(0xFFF59E0B) : const Color(0xFFB45309),
+                    ),
+                    const SizedBox(width: 3),
+                    Text(
+                      'PRO',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        color: isDark ? const Color(0xFFF59E0B) : const Color(0xFFB45309),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              Icon(
+                Icons.chevron_right_rounded,
+                color: isDark ? const Color(0xFF4C658A) : const Color(0xFF8D827A),
+                size: 20,
+              ),
           ],
         ),
       ),
