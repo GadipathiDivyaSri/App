@@ -103,7 +103,7 @@ class AppTheme {
   static ThemeData lightTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,
-    fontFamily: 'Poppins',
+    
     scaffoldBackgroundColor: background,
     primaryColor: primaryAccent,
     colorScheme: ColorScheme.fromSeed(
@@ -122,7 +122,7 @@ class AppTheme {
         color: textPrimary,
         fontSize: 22,
         fontWeight: FontWeight.w800,
-        fontFamily: 'Poppins',
+        
       ),
     ),
     cardTheme: CardThemeData(
@@ -143,7 +143,7 @@ class AppTheme {
         textStyle: const TextStyle(
           fontWeight: FontWeight.bold,
           fontSize: 15,
-          fontFamily: 'Poppins',
+          
         ),
       ),
     ),
@@ -152,7 +152,7 @@ class AppTheme {
   static ThemeData darkTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
-    fontFamily: 'Poppins',
+    
     scaffoldBackgroundColor: darkBg,
     primaryColor: darkPrimary,
     colorScheme: ColorScheme.fromSeed(
@@ -171,7 +171,7 @@ class AppTheme {
         color: Colors.white,
         fontSize: 22,
         fontWeight: FontWeight.w800,
-        fontFamily: 'Poppins',
+        
       ),
     ),
     cardTheme: CardThemeData(
