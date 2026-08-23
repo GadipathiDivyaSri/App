@@ -101762,10 +101762,10 @@ m.push(A.X(r,A.m(""+f,r,r,r,r,A.J(r,r,d?B.d:B.B,r,r,r,r,r,r,r,r,10,r,r,B.x,r,r,!
 m=A.m(g,r,r,r,r,A.J(r,r,d?B.d:B.B,r,r,r,r,r,r,r,r,14,r,r,B.K,r,r,!0,r,r,r,r,r,r,r,r),r,r,r)
 return A.X(r,A.a0(A.a([n,A.a0(A.a([m,B.ce,A.m(e,r,r,r,r,A.J(r,r,d?B.as:B.a6,r,r,r,r,r,r,r,r,10,r,r,B.a2,r,1.2,!0,r,r,r,r,r,r,r,r),r,r,r)],l),B.w,B.h,B.f,0,B.m)],l),B.w,B.ap,B.f,0,B.m),B.j,r,r,new A.O(a,r,p,q,o,r,B.o),r,r,r,B.mN,r,r,r)},
 apJ(a,b){var s,r,q={},p=$.a9()
-q.a="Today, 5:00 PM"
+q.a="Due Today (Urgent)"
 s=A.p(a).ax.a===B.A
 r=s?B.ah:B.d
-A.iG(r,new A.aB7(q,this,b,s,new A.bI(B.aE,p),"WORK"),a,!0,B.cv,t.z)},
+A.iG(r,new A.aB7(q,this,b,s,new A.bI(B.aE,p),"STUDY"),a,!0,B.cv,t.z)},
 VR(a,b){if(b===1)B.b.F(this.d,a)
 if(b===2)B.b.F(this.e,a)
 if(b===3)B.b.F(this.f,a)},
@@ -101861,7 +101861,7 @@ return new A.hD(new A.aB6(s.a,s.b,s.c,s.d,s.e,s.f),null)},
 $S:44}
 A.aB6.prototype={
 $2(a,b){var s=this,r=null,q=A.ah(a,r,t.w).w,p=s.c,o=s.d,n=A.m("Add Priority "+p+" Task",r,r,r,r,A.J(r,r,o?B.d:B.B,r,r,r,r,r,r,r,r,18,r,r,B.x,r,r,!0,r,r,r,r,r,r,r,r),r,r,r),m=s.e,l=A.bZ(r,B.Z,!1,r,!0,B.z,r,A.c4(),m,r,r,r,r,r,2,B.uc,B.t,!0,r,!0,r,!1,r,B.W,r,r,r,r,r,r,r,r,1,r,r,!1,"\u2022",r,r,r,r,r,!1,r,r,!1,r,!0,r,B.F,r,r,r,r,r,r,r,r,r,r,r,r,!0,B.G,r,B.a3,r,r,r,r),k=s.a,j=t.fD
-j=A.a8(new A.ae(A.a(["Today, 5:00 PM","Tomorrow, 10:00 AM","This Week, Friday","Later"],t.s),new A.aB4(k,o,b),j),j.i("ax.E"))
+j=A.a8(new A.ae(A.a(["Due Today (Urgent)","Due Tomorrow","Due in 3 Days","Custom / Later"],t.s),new A.aB4(k,o,b),j),j.i("ax.E"))
 j=A.aLB(j,8)
 o=o?B.am:B.N
 return new A.aw(new A.a7(20,24,20,q.f.d+20),A.a0(A.a([n,B.a1,l,B.aP,B.a8U,B.ao,j,B.an,A.b_(A.cW(B.pk,new A.aB5(k,s.b,m,s.f,p,a),A.cX(r,r,o,r,r,r,r,r,r,r,r,r,r,r,new A.bb(A.B(14),B.v),r,r,r,r,r)),50,1/0)],t.p),B.w,B.h,B.av,0,B.m),r)},
@@ -110719,7 +110719,7 @@ B.a8O=new A.L("OK",null,B.c2,null,null,null,null,null,null,null,null)
 B.a8P=new A.L("Edit User Name",null,B.c2,null,null,null,null,null,null,null,null)
 B.a8Q=new A.L("Are you sure you want to log out?",null,null,null,null,null,null,null,null,null,null)
 B.a8T=new A.L("Edit Unit",null,B.c2,null,null,null,null,null,null,null,null)
-B.a8U=new A.L("DEADLINE / DUE DATE",null,B.l6,null,null,null,null,null,null,null,null)
+B.a8U=new A.L("MARK DEADLINE (DATE & TIME)",null,B.l6,null,null,null,null,null,null,null,null)
 B.a8W=new A.L("tasks",null,B.Fx,null,null,null,null,null,null,null,null)
 B.a8X=new A.L("UNIT TITLE",null,B.aL,null,null,null,null,null,null,null,null)
 B.a8Z=new A.L("Category pie chart distribution and monthly spending trends.",null,B.dZ,null,null,null,null,null,null,null,null)
@@ -110730,7 +110730,7 @@ B.a96=new A.L("PREFERRED TIME",null,B.aL,null,null,null,null,null,null,null,null
 B.FC=new A.L("CATEGORY",null,B.aL,null,null,null,null,null,null,null,null)
 B.a6l=new A.j(!0,null,null,null,null,null,14,B.x,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
 B.a97=new A.L("Next Billing Discount",null,B.a6l,null,null,null,null,null,null,null,null)
-B.pk=new A.L("Save Task",null,B.cy,null,null,null,null,null,null,null,null)
+B.pk=new A.L("Save Task & Deadline",null,B.cy,null,null,null,null,null,null,null,null)
 B.a9b=new A.L("SUBJECT NAME",null,B.aL,null,null,null,null,null,null,null,null)
 B.a9c=new A.L("I Have Read & Accept All 16 Sections",null,B.Fr,null,null,null,null,null,null,null,null)
 B.a9e=new A.L("MONTHLY CASHFLOW & SPENDING LINE CHART",null,B.aL,null,null,null,null,null,null,null,null)
