@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/app_provider.dart';
+import '../widgets/upgrade_pro_modal.dart';
 import '../theme/app_theme.dart';
 import 'add_subject_screen.dart';
 import 'subject_details_screen.dart';
@@ -46,23 +49,33 @@ class _SubjectPlannerScreenState extends State<SubjectPlannerScreen> {
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => const AddSubjectScreen(),
-            ),
-          ).then((newSubject) {
-            if (newSubject != null && newSubject is String) {
-              setState(() {
-                _subjects.add({
-                  'name': newSubject,
-                  'unitsCount': 0,
-                  'progress': 0.0,
-                  'icon': Icons.school_outlined,
+          final provider = Provider.of<AppProvider>(context, listen: false);
+          final isPremium = provider.user.isPremium;
+          if (!isPremium && _subjects.length >= 2) {
+            showUpgradeProModal(
+              context,
+              featureTitle: 'Subjects',
+              limitExplanation: 'Free plan includes up to 2 active subjects. Upgrade to Pro for ₹49/month to create unlimited subjects and curriculum roadmaps!',
+            );
+          } else {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const AddSubjectScreen(),
+              ),
+            ).then((newSubject) {
+              if (newSubject != null && newSubject is String) {
+                setState(() {
+                  _subjects.add({
+                    'name': newSubject,
+                    'unitsCount': 0,
+                    'progress': 0.0,
+                    'icon': Icons.school_outlined,
+                  });
                 });
-              });
-            }
-          });
+              }
+            });
+          }
         },
       ),
       body: ListView(
