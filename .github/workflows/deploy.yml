@@ -25,8 +25,7 @@ jobs:
         run: flutter pub get
 
       - name: Build Web
-        # Dynamically uses the repository name (e.g. /App/ or /WRINDHA_OS_APP/) with no stale caching
-        run: flutter build web --release --pwa-strategy none --base-href "/${{ github.event.repository.name }}/"
+        run: flutter build web --release --base-href "/${{ github.event.repository.name }}/"
 
       - name: Deploy to gh-pages branch
         uses: peaceiris/actions-gh-pages@v4
