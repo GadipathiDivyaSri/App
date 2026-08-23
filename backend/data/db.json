@@ -13,6 +13,62 @@
       "isPremium": false,
       "referralCode": "WRINDHA1421",
       "createdAt": "2026-08-23T11:15:27.392Z"
+    },
+    {
+      "id": "u_1787496113450",
+      "username": "kalyan",
+      "email": "kalyan@wrindha.org",
+      "name": "kalyan",
+      "password": "demo_password",
+      "contact": "kalyan@wrindha.org",
+      "isEmailVerified": true,
+      "focusScore": 0,
+      "activeStreak": 0,
+      "isPremium": false,
+      "referralCode": "WRINDHA7387",
+      "createdAt": "2026-08-23T14:41:53.451Z"
+    },
+    {
+      "id": "u_1787496113467",
+      "username": "kalyan_google",
+      "email": "google.student@gmail.com",
+      "name": "Kalyan Google",
+      "googleId": "gid_google_123",
+      "contact": "google.student@gmail.com",
+      "isEmailVerified": true,
+      "focusScore": 0,
+      "activeStreak": 0,
+      "isPremium": false,
+      "referralCode": "WRINDHA7710",
+      "createdAt": "2026-08-23T14:41:53.467Z"
+    },
+    {
+      "id": "u_1787496143165",
+      "username": "user_1787496143105",
+      "email": "user_1787496143105@gmail.com",
+      "name": "user_1787496143105",
+      "password": "NewPassword@999",
+      "contact": "user_1787496143105@gmail.com",
+      "isEmailVerified": true,
+      "focusScore": 0,
+      "activeStreak": 0,
+      "isPremium": false,
+      "referralCode": "WRINDHA7289",
+      "createdAt": "2026-08-23T14:42:23.165Z"
+    },
+    {
+      "id": "u_1787496143175",
+      "username": "g_user_1787496143105",
+      "email": "g_user_1787496143105@gmail.com",
+      "name": "Google Student",
+      "googleId": "gid_1787496143174",
+      "contact": "g_user_1787496143105@gmail.com",
+      "isEmailVerified": true,
+      "focusScore": 0,
+      "activeStreak": 0,
+      "isPremium": false,
+      "referralCode": "WRINDHA5326",
+      "createdAt": "2026-08-23T14:42:23.175Z"
     }
   ],
   "tasks": [
@@ -66,6 +122,27 @@
     "test@wrindhaos.in": {
       "code": "9658",
       "expiresAt": 1787417330927
+    },
+    "kalyan@wrindha.org": {
+      "code": "503410",
+      "type": "register",
+      "attempts": 0,
+      "expiresAt": 1787496413456,
+      "lastSentAt": 1787496113456,
+      "payload": {
+        "username": "kalyan",
+        "email": "kalyan@wrindha.org",
+        "password": "default_password"
+      }
+    },
+    "reset_kalyan@example.com": {
+      "code": "223185",
+      "type": "password_reset",
+      "userId": "u_1787483727392",
+      "email": "kalyan@example.com",
+      "attempts": 0,
+      "expiresAt": 1787496413477,
+      "lastSentAt": 1787496113477
     }
   }
 }

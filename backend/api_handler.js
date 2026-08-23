@@ -68,7 +68,8 @@ function parseBody(req) {
 // Main API Handler
 async function handleApiRequest(req, res) {
   const parsedUrl = url.parse(req.url, true);
-  const pathname = parsedUrl.pathname;
+  const rawPath = parsedUrl.pathname;
+  const pathname = rawPath.replace(/^\/api\/v1\//, '/api/');
   const method = req.method.toUpperCase();
 
   // Handle CORS Preflight
@@ -83,7 +84,7 @@ async function handleApiRequest(req, res) {
 
   const body = method === 'POST' || method === 'PATCH' || method === 'DELETE' ? await parseBody(req) : {};
 
-  console.log(`[API ${method}] ${pathname}`);
+  console.log(`[API ${method}] ${rawPath} -> ${pathname}`);
 
   // 1. HEALTH CHECK
   if (pathname === '/api/health' && method === 'GET') {
@@ -626,6 +627,14 @@ async function handleApiRequest(req, res) {
       success: true,
       user: user,
       message: 'Session is active.',
+    });
+  }
+
+  // 2.12 Invalidate Session / Logout
+  if (pathname === '/api/auth/logout' && method === 'POST') {
+    return sendJSON(res, 200, {
+      success: true,
+      message: 'Logged out successfully. Session invalidated.',
     });
   }
 
