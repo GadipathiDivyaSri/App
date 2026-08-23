@@ -556,7 +556,7 @@ class _CareerRoadmapScreenState extends State<CareerRoadmapScreen> {
             ),
             const SizedBox(height: 12),
             TextField(
-              controller: descCtrl,
+              controller: subCtrl,
               decoration: const InputDecoration(
                 hintText: 'Subtitle / Description',
                 border: OutlineInputBorder(),
