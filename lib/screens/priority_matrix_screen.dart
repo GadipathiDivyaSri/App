@@ -13,22 +13,18 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
   final List<Map<String, dynamic>> _p1Tasks = [
     {
       'id': 't_p1_1',
-      'title': 'Finish Physics Thermodynamics Revision',
+      'title': 'Complete Physics Thermodynamics Assignment',
       'tag': 'STUDY',
-      'dueDate': DateTime.now().add(const Duration(hours: 3)),
-      'timeOfDay': const TimeOfDay(hour: 17, minute: 0),
-      'tagColor': const Color(0xFFFEE2E2),
-      'textColor': const Color(0xFFDC2626),
+      'dueDate': DateTime.now(),
+      'dueTime': const TimeOfDay(hour: 18, minute: 30),
       'priority': 1,
     },
     {
       'id': 't_p1_2',
-      'title': 'Submit Mock Test Answer Key',
+      'title': 'Submit Mock Exam Test Series 04',
       'tag': 'EXAM',
-      'dueDate': DateTime.now().add(const Duration(hours: 6)),
-      'timeOfDay': const TimeOfDay(hour: 20, minute: 30),
-      'tagColor': const Color(0xFFFEF3C7),
-      'textColor': const Color(0xFFD97706),
+      'dueDate': DateTime.now(),
+      'dueTime': const TimeOfDay(hour: 21, minute: 0),
       'priority': 1,
     },
   ];
@@ -36,22 +32,18 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
   final List<Map<String, dynamic>> _p2Tasks = [
     {
       'id': 't_p2_1',
-      'title': 'Draft Weekly Study Timetable',
-      'tag': 'PLANNING',
+      'title': 'Prepare Chemistry Organic Synthesis Notes',
+      'tag': 'STUDY',
       'dueDate': DateTime.now().add(const Duration(days: 1)),
-      'timeOfDay': const TimeOfDay(hour: 10, minute: 0),
-      'tagColor': const Color(0xFFE0E7FF),
-      'textColor': const Color(0xFF4338CA),
+      'dueTime': const TimeOfDay(hour: 11, minute: 0),
       'priority': 2,
     },
     {
       'id': 't_p2_2',
-      'title': 'Organic Chemistry Chapter 4 Summary',
-      'tag': 'STUDY',
+      'title': 'Review Mathematics Calculus Formulas',
+      'tag': 'PLANNING',
       'dueDate': DateTime.now().add(const Duration(days: 2)),
-      'timeOfDay': const TimeOfDay(hour: 15, minute: 0),
-      'tagColor': const Color(0xFFEDE9FE),
-      'textColor': const Color(0xFF7C3AED),
+      'dueTime': const TimeOfDay(hour: 16, minute: 0),
       'priority': 2,
     },
   ];
@@ -59,12 +51,10 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
   final List<Map<String, dynamic>> _p3Tasks = [
     {
       'id': 't_p3_1',
-      'title': 'Organize Desk & Archive Old Notes',
+      'title': 'Organize Digital Workspace & Archive Question Banks',
       'tag': 'PERSONAL',
-      'dueDate': DateTime.now().add(const Duration(days: 5)),
-      'timeOfDay': const TimeOfDay(hour: 18, minute: 0),
-      'tagColor': const Color(0xFFDCFCE7),
-      'textColor': const Color(0xFF15803D),
+      'dueDate': DateTime.now().add(const Duration(days: 6)),
+      'dueTime': const TimeOfDay(hour: 20, minute: 0),
       'priority': 3,
     },
   ];
@@ -96,7 +86,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
         ),
         actions: [
           IconButton(
-            tooltip: _sortByUrgentTime ? 'Group by Priority' : 'Sort by Urgency Time',
+            tooltip: _sortByUrgentTime ? 'Group by Priority' : 'Sort by Deadline Time',
             icon: Icon(
               _sortByUrgentTime ? Icons.schedule_rounded : Icons.sort_rounded,
               color: isDark ? Colors.white70 : AppTheme.lightTextPrimary,
@@ -108,7 +98,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(_sortByUrgentTime
-                      ? 'Sorted chronologically by nearest deadline time'
+                      ? 'Sorted chronologically by nearest deadline'
                       : 'Grouped by Priority Matrix (P1 → P2 → P3)'),
                   duration: const Duration(seconds: 2),
                 ),
@@ -122,7 +112,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
         backgroundColor: isDark ? AppTheme.darkPrimary : AppTheme.primaryAccent,
         icon: const Icon(Icons.add_task_rounded, color: Colors.white),
         label: const Text(
-          'Add Task & Time',
+          'Set Task & Deadline',
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
       ),
@@ -131,16 +121,14 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Top Pastel / Dark Banner
+            // Top Banner
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: isDark ? AppTheme.darkCardBg : AppTheme.pastelPriority,
                 borderRadius: BorderRadius.circular(22),
-                border: isDark
-                    ? Border.all(color: AppTheme.darkCardBorder, width: 1)
-                    : null,
+                border: isDark ? Border.all(color: AppTheme.darkCardBorder, width: 1) : null,
               ),
               child: Row(
                 children: [
@@ -148,9 +136,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                     width: 52,
                     height: 52,
                     decoration: BoxDecoration(
-                      color: isDark
-                          ? AppTheme.darkIconBg
-                          : AppTheme.pastelPriorityIcon,
+                      color: isDark ? AppTheme.darkIconBg : AppTheme.pastelPriorityIcon,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Icon(
@@ -165,7 +151,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Smart Priority Matrix',
+                          'Deadline-Driven Priorities',
                           style: TextStyle(
                             color: isDark ? Colors.white : AppTheme.lightTextPrimary,
                             fontSize: 18,
@@ -174,7 +160,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Tasks auto-prioritize based on scheduled date & time ⏰',
+                          'Mark task dates & deadlines to auto-structure your daily focus ⭐',
                           style: TextStyle(
                             color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
                             fontSize: 12,
@@ -189,17 +175,17 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
             ),
             const SizedBox(height: 20),
 
-            // Upcoming Deadlines Card
+            // Upcoming Deadlines Summary Card
             _buildUpcomingDeadlinesCard(context),
             const SizedBox(height: 24),
 
             if (_sortByUrgentTime) ...[
               _buildChronologicalTasksSection(context),
             ] else ...[
-              // Priority 1 Section (Urgent & Important / Today)
+              // Priority 1 Section
               _buildPriorityHeader(
                 title: 'PRIORITY 1',
-                subtitle: 'High Priority (Due Today / <24h)',
+                subtitle: 'Urgent & Important (Due Today / Within 24h)',
                 badgeCount: _p1Tasks.length.toString(),
                 color: Colors.redAccent,
               ),
@@ -213,10 +199,10 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                     .map((t) => _buildPriorityTaskCard(context, t, Colors.redAccent, priorityLevel: 1)),
               const SizedBox(height: 24),
 
-              // Priority 2 Section (Medium / Tomorrow & Soon)
+              // Priority 2 Section
               _buildPriorityHeader(
                 title: 'PRIORITY 2',
-                subtitle: 'Medium Priority (Due in 1-3 Days)',
+                subtitle: 'Important (Due in 1–3 Days)',
                 badgeCount: _p2Tasks.length.toString(),
                 color: Colors.amber.shade800,
               ),
@@ -230,10 +216,10 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                     .map((t) => _buildPriorityTaskCard(context, t, Colors.amber.shade800, priorityLevel: 2)),
               const SizedBox(height: 24),
 
-              // Priority 3 Section (Low / Later)
+              // Priority 3 Section
               _buildPriorityHeader(
                 title: 'PRIORITY 3',
-                subtitle: 'Low Priority (Due Next Week / Later)',
+                subtitle: 'Flexible / Next Week & Later',
                 badgeCount: _p3Tasks.length.toString(),
                 color: const Color(0xFF10B981),
               ),
@@ -281,7 +267,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
 
   DateTime _getTaskFullDateTime(Map<String, dynamic> task) {
     final date = task['dueDate'] as DateTime? ?? DateTime.now();
-    final time = task['timeOfDay'] as TimeOfDay? ?? const TimeOfDay(hour: 17, minute: 0);
+    final time = task['dueTime'] as TimeOfDay? ?? const TimeOfDay(hour: 18, minute: 0);
     return DateTime(date.year, date.month, date.day, time.hour, time.minute);
   }
 
@@ -294,7 +280,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
       children: [
         _buildPriorityHeader(
           title: 'ALL TASKS BY DEADLINE',
-          subtitle: 'Sorted by Date & Time (Urgent First)',
+          subtitle: 'Sorted Chronologically (Urgent First)',
           badgeCount: sorted.length.toString(),
           color: const Color(0xFF0D5CE5),
         ),
@@ -382,11 +368,10 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
             children: [
               const Row(
                 children: [
-                  Icon(Icons.access_time_filled_rounded,
-                      color: Color(0xFF0D5CE5), size: 22),
+                  Icon(Icons.timer_outlined, color: Color(0xFF0D5CE5), size: 22),
                   SizedBox(width: 8),
                   Text(
-                    'Upcoming Deadlines & Times',
+                    'Upcoming Deadlines',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -406,15 +391,14 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                 child: const Row(
                   children: [
                     Text(
-                      'Calendar',
+                      'Calendar View',
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color: Color(0xFF0D5CE5),
                       ),
                     ),
-                    Icon(Icons.chevron_right_rounded,
-                        color: Color(0xFF0D5CE5), size: 18),
+                    Icon(Icons.chevron_right_rounded, color: Color(0xFF0D5CE5), size: 18),
                   ],
                 ),
               ),
@@ -426,7 +410,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
               Expanded(
                 child: _buildDeadlineBox(
                   context,
-                  label: 'TODAY',
+                  label: 'DUE TODAY',
                   count: todayCount.toString(),
                   color: Colors.redAccent,
                 ),
@@ -557,7 +541,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
             Text(
               subtitle,
               style: TextStyle(
-                fontSize: 15,
+                fontSize: 14.5,
                 fontWeight: FontWeight.bold,
                 color: isDark ? Colors.white : const Color(0xFF1E293B),
               ),
@@ -600,7 +584,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
             const Icon(Icons.add_rounded, color: Color(0xFF0D5CE5), size: 18),
             const SizedBox(width: 6),
             Text(
-              'Add Priority $priorityLevel Task (Mark Date & Time)',
+              'Add Task & Pick Deadline',
               style: const TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.bold,
@@ -634,7 +618,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
       dateLabel = '${_monthName(targetDt.month)} ${targetDt.day}, ${targetDt.year}';
     }
 
-    final time = task['timeOfDay'] as TimeOfDay? ?? const TimeOfDay(hour: 17, minute: 0);
+    final time = task['dueTime'] as TimeOfDay? ?? const TimeOfDay(hour: 18, minute: 0);
     final timeStr = _formatTimeOfDay(time);
 
     String urgencyBadge;
@@ -644,7 +628,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
       urgencyColor = Colors.red.shade700;
     } else if (isToday) {
       final diffHrs = targetDt.difference(now).inHours;
-      urgencyBadge = diffHrs <= 0 ? '🚨 DUE SOON' : '⏰ DUE TODAY (in ${diffHrs}h)';
+      urgencyBadge = diffHrs <= 0 ? '🚨 DUE SOON' : '⏰ TODAY (${diffHrs}h left)';
       urgencyColor = Colors.redAccent;
     } else if (isTomorrow) {
       urgencyBadge = '⏳ TOMORROW';
@@ -654,6 +638,8 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
       urgencyBadge = '📅 IN ${diffDays} DAYS';
       urgencyColor = const Color(0xFF0D5CE5);
     }
+
+    final tag = task['tag'] as String? ?? 'STUDY';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -713,8 +699,6 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                                 _completedTasks.insert(0, {
                                   'title': task['title'],
                                   'tag': task['tag'],
-                                  'tagColor': task['tagColor'],
-                                  'textColor': task['textColor'],
                                 });
                               });
                             } else if (val == 'delete') {
@@ -728,11 +712,11 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                               value: 'edit',
                               child: Row(
                                 children: [
-                                  Icon(Icons.edit_outlined,
+                                  Icon(Icons.edit_calendar_outlined,
                                       size: 18,
                                       color: isDark ? AppTheme.darkPrimary : const Color(0xFF0D5CE5)),
                                   const SizedBox(width: 8),
-                                  const Text('Edit Task / Reschedule'),
+                                  const Text('Reschedule / Edit'),
                                 ],
                               ),
                             ),
@@ -763,10 +747,10 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                     const SizedBox(height: 6),
                     Row(
                       children: [
-                        const Icon(Icons.calendar_month_outlined, size: 13, color: Color(0xFF6366F1)),
-                        const SizedBox(width: 4),
+                        const Icon(Icons.access_alarm_rounded, size: 14, color: Color(0xFF6366F1)),
+                        const SizedBox(width: 5),
                         Text(
-                          '$dateLabel • $timeStr',
+                          'Deadline: $dateLabel at $timeStr',
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -797,16 +781,16 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                           decoration: BoxDecoration(
-                            color: task['tagColor'] as Color? ?? const Color(0xFFE0F2FE),
+                            color: _getTagBgColor(tag),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            task['tag'] as String? ?? 'TASK',
+                            tag,
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
                               letterSpacing: 0.8,
-                              color: task['textColor'] as Color? ?? const Color(0xFF0284C7),
+                              color: _getTagTextColor(tag),
                             ),
                           ),
                         ),
@@ -818,7 +802,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            'P$priorityLevel',
+                            'Priority $priorityLevel',
                             style: const TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w800,
@@ -892,7 +876,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
     final titleCtrl = TextEditingController();
     String selectedTag = 'STUDY';
     DateTime selectedDate = DateTime.now();
-    TimeOfDay selectedTime = TimeOfDay.fromDateTime(DateTime.now().add(const Duration(hours: 2)));
+    TimeOfDay selectedTime = TimeOfDay.now();
     int assignedPriority = defaultPriority ?? _computePriorityFromDate(selectedDate);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -913,9 +897,9 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
 
           String dateFormatted;
           if (isToday) {
-            dateFormatted = 'Today';
+            dateFormatted = 'Today (${_monthName(selectedDate.month)} ${selectedDate.day})';
           } else if (isTomorrow) {
-            dateFormatted = 'Tomorrow';
+            dateFormatted = 'Tomorrow (${_monthName(selectedDate.month)} ${selectedDate.day})';
           } else {
             dateFormatted = '${_monthName(selectedDate.month)} ${selectedDate.day}, ${selectedDate.year}';
           }
@@ -938,7 +922,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Add Task & Schedule',
+                        'Set Task & Deadline',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -958,7 +942,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                     controller: titleCtrl,
                     decoration: InputDecoration(
                       labelText: 'Task Title',
-                      hintText: 'e.g. Physics Mechanics Chapter 3',
+                      hintText: 'Enter task description or goal...',
                       prefixIcon: const Icon(Icons.task_alt_rounded, size: 20),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     ),
@@ -989,9 +973,9 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Date & Time Picker Section
+                  // Date & Time Deadline Selector
                   const Text(
-                    'SELECT DUE DATE & TIME',
+                    'MARK DEADLINE DATE & TIME',
                     style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF94A3B8)),
                   ),
                   const SizedBox(height: 8),
@@ -1024,13 +1008,13 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                             ),
                             child: Row(
                               children: [
-                                const Icon(Icons.calendar_today_rounded, size: 18, color: Color(0xFF6366F1)),
+                                const Icon(Icons.calendar_month_rounded, size: 18, color: Color(0xFF6366F1)),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      const Text('Date', style: TextStyle(fontSize: 10, color: Color(0xFF94A3B8))),
+                                      const Text('Deadline Date', style: TextStyle(fontSize: 10, color: Color(0xFF94A3B8))),
                                       Text(dateFormatted, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
                                     ],
                                   ),
@@ -1072,7 +1056,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      const Text('Time', style: TextStyle(fontSize: 10, color: Color(0xFF94A3B8))),
+                                      const Text('Deadline Time', style: TextStyle(fontSize: 10, color: Color(0xFF94A3B8))),
                                       Text(timeFormatted, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
                                     ],
                                   ),
@@ -1086,16 +1070,16 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Priority Level Selector with Auto-Computed recommendation
+                  // Priority Selector
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
-                        'ASSIGNED PRIORITY',
+                        'PRIORITY ASSIGNMENT',
                         style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF94A3B8)),
                       ),
                       Text(
-                        'Auto-detected: P${_computePriorityFromDate(selectedDate)}',
+                        'Deadline suggests: P${_computePriorityFromDate(selectedDate)}',
                         style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF6366F1)),
                       ),
                     ],
@@ -1105,7 +1089,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                     children: [
                       _buildPriorityOption(
                         level: 1,
-                        label: 'P1: High',
+                        label: 'P1: Urgent (Today)',
                         color: Colors.redAccent,
                         isSelected: assignedPriority == 1,
                         onTap: () => setModalState(() => assignedPriority = 1),
@@ -1113,7 +1097,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                       const SizedBox(width: 8),
                       _buildPriorityOption(
                         level: 2,
-                        label: 'P2: Medium',
+                        label: 'P2: Upcoming (1-3d)',
                         color: Colors.amber.shade800,
                         isSelected: assignedPriority == 2,
                         onTap: () => setModalState(() => assignedPriority = 2),
@@ -1121,7 +1105,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                       const SizedBox(width: 8),
                       _buildPriorityOption(
                         level: 3,
-                        label: 'P3: Low',
+                        label: 'P3: Later (>3d)',
                         color: const Color(0xFF10B981),
                         isSelected: assignedPriority == 3,
                         onTap: () => setModalState(() => assignedPriority = 3),
@@ -1149,9 +1133,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                               'title': titleCtrl.text.trim(),
                               'tag': selectedTag,
                               'dueDate': selectedDate,
-                              'timeOfDay': selectedTime,
-                              'tagColor': _getTagBgColor(selectedTag),
-                              'textColor': _getTagTextColor(selectedTag),
+                              'dueTime': selectedTime,
                               'priority': assignedPriority,
                             };
                             if (assignedPriority == 1) _p1Tasks.add(newTask);
@@ -1162,7 +1144,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                         }
                       },
                       child: const Text(
-                        'Save Task & Priority',
+                        'Set Deadline & Save Task',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 16,
@@ -1202,7 +1184,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
             child: Text(
               label,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 11,
                 fontWeight: FontWeight.bold,
                 color: isSelected ? Colors.white : color,
               ),
@@ -1216,9 +1198,9 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
   int _computePriorityFromDate(DateTime date) {
     final now = DateTime.now();
     final diffDays = date.difference(DateTime(now.year, now.month, now.day)).inDays;
-    if (diffDays <= 0) return 1; // Due Today -> P1
-    if (diffDays <= 2) return 2; // Due Tomorrow or in 2 days -> P2
-    return 3; // Later -> P3
+    if (diffDays <= 0) return 1;
+    if (diffDays <= 2) return 2;
+    return 3;
   }
 
   Color _getTagBgColor(String tag) {
@@ -1262,7 +1244,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
   void _showEditTaskDialog(BuildContext context, Map<String, dynamic> task, int currentPriority) {
     final titleCtrl = TextEditingController(text: task['title'] as String);
     DateTime selectedDate = task['dueDate'] as DateTime? ?? DateTime.now();
-    TimeOfDay selectedTime = task['timeOfDay'] as TimeOfDay? ?? const TimeOfDay(hour: 17, minute: 0);
+    TimeOfDay selectedTime = task['dueTime'] as TimeOfDay? ?? const TimeOfDay(hour: 18, minute: 0);
     int selectedPriority = task['priority'] as int? ?? currentPriority;
 
     showDialog(
@@ -1270,7 +1252,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: const Text('Edit Priority & Time', style: TextStyle(fontWeight: FontWeight.bold)),
+          title: const Text('Edit Deadline & Priority', style: TextStyle(fontWeight: FontWeight.bold)),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -1281,13 +1263,13 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                   decoration: const InputDecoration(labelText: 'Task Title', border: OutlineInputBorder()),
                 ),
                 const SizedBox(height: 14),
-                const Text('DUE DATE & TIME', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF94A3B8))),
+                const Text('DEADLINE DATE & TIME', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF94A3B8))),
                 const SizedBox(height: 8),
                 Row(
                   children: [
                     Expanded(
                       child: OutlinedButton.icon(
-                        icon: const Icon(Icons.calendar_today, size: 14),
+                        icon: const Icon(Icons.calendar_month, size: 14),
                         label: Text('${selectedDate.month}/${selectedDate.day}/${selectedDate.year}', style: const TextStyle(fontSize: 12)),
                         onPressed: () async {
                           final picked = await showDatePicker(
@@ -1327,7 +1309,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                   children: [
                     _buildPriorityOption(
                       level: 1,
-                      label: 'P1',
+                      label: 'P1: Urgent',
                       color: Colors.redAccent,
                       isSelected: selectedPriority == 1,
                       onTap: () => setDialogState(() => selectedPriority = 1),
@@ -1335,7 +1317,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                     const SizedBox(width: 6),
                     _buildPriorityOption(
                       level: 2,
-                      label: 'P2',
+                      label: 'P2: Medium',
                       color: Colors.amber.shade800,
                       isSelected: selectedPriority == 2,
                       onTap: () => setDialogState(() => selectedPriority = 2),
@@ -1343,7 +1325,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                     const SizedBox(width: 6),
                     _buildPriorityOption(
                       level: 3,
-                      label: 'P3',
+                      label: 'P3: Low',
                       color: const Color(0xFF10B981),
                       isSelected: selectedPriority == 3,
                       onTap: () => setDialogState(() => selectedPriority = 3),
@@ -1362,7 +1344,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                     _removeTaskFromList(task, currentPriority);
                     task['title'] = titleCtrl.text.trim();
                     task['dueDate'] = selectedDate;
-                    task['timeOfDay'] = selectedTime;
+                    task['dueTime'] = selectedTime;
                     task['priority'] = selectedPriority;
 
                     if (selectedPriority == 1) _p1Tasks.add(task);
