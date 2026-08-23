@@ -100879,7 +100879,7 @@ m=A.a([],m)
 if(k)m.push(new A.aK(0,B.E,A.Z(B.e.aG(76.5),e.m()>>>16&255,e.m()>>>8&255,e.m()&255),B.bu,8))
 m=A.X(q,A.as(b,c?B.X:B.d,q,22),B.j,q,q,new A.O(s,q,q,r,m,q,B.o),q,44,q,q,q,q,44)
 k=t.p
-m=A.a4(A.a([m,A.as(B.eh,c?B.hQ:B.JJ,q,20)],k),B.i,B.ap,B.f,0,q,q)
+var isLockedModule=(h==="Career"||h==="Priority"||h==="Analytics")&&(!A.f1(a,!0,t.T).c.f);m=A.a4(A.a([m,isLockedModule?A.m("🔒 PRO",q,q,q,q,A.J(q,q,c?B.as:B.a6,q,q,q,q,q,q,q,q,11,q,q,B.K,q,q,!0,q,q,q,q,q,q,q,q),q,q,q):A.as(B.eh,c?B.hQ:B.JJ,q,20)],k),B.i,B.ap,B.f,0,q,q);if(isLockedModule)f=new A.aiy(a);
 s=A.m(h,q,q,q,q,A.J(q,q,c?B.d:B.B,q,q,q,q,q,q,q,q,16,q,q,B.K,q,1.2,!0,q,q,q,q,q,q,q,q),q,q,q)
 return A.cc(q,A.X(q,A.a0(A.a([m,A.a0(A.a([s,B.aW,A.m(g,1,B.bs,q,q,A.J(q,q,c?B.as:B.a6,q,q,q,q,q,q,q,q,11,q,q,B.a2,q,q,!0,q,q,q,q,q,q,q,q),q,q,q)],k),B.w,B.h,B.f,0,B.m)],k),B.w,B.ap,B.f,0,B.m),B.j,q,q,new A.O(p,q,n,o,l,q,B.o),q,q,q,B.cD,q,q,q),B.t,!1,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,f,q,q,q,q,q,q)}}
 A.abY.prototype={
@@ -101601,7 +101601,7 @@ $S:635}
 A.rD.prototype={
 a5(){return new A.YR()}}
 A.YR.prototype={
-E(a4){var s,r,q,p,o,n,m,l,k,j,i,h,g,f=this,e=null,d=A.p(a4).ax.a===B.A,c=A.f1(a4,!0,t.T),b=c.c,a=b.f,a0=b.Q,a1=59-59*a0/100,a2=d?B.aZ:B.aV,a3=A.c3(e,e,e,A.as(B.bm,d?B.d:B.B,e,20),e,e,new A.aAO(a4),e,e,e,e)
+E(a4){var s,r,q,p,o,n,m,l,k,j,i,h,g,f=this,e=null,d=A.p(a4).ax.a===B.A,c=A.f1(a4,!0,t.T),b=c.c,a=b.f,a0=b.Q,a1=49-49*a0/100,a2=d?B.aZ:B.aV,a3=A.c3(e,e,e,A.as(B.bm,d?B.d:B.B,e,20),e,e,new A.aAO(a4),e,e,e,e)
 a3=A.da(e,e,e,e,e,a3,A.m("Pricing & Plans",e,e,e,e,A.J(e,e,d?B.d:B.B,e,e,e,e,e,e,e,e,e,e,e,B.K,e,e,!0,e,e,e,e,e,e,e,e),e,e,e))
 s=A.m("Focus on what matters",e,e,e,e,A.J(e,e,d?B.d:B.B,e,e,e,e,e,e,e,e,24,e,e,B.K,e,e,!0,e,e,e,e,e,e,e,e),e,e,e)
 r=A.m("Unlock your cognitive clarity with tailored focus plans.",e,e,e,e,A.J(e,e,d?B.as:B.a6,e,e,e,e,e,e,e,e,13,e,e,e,e,1.4,!0,e,e,e,e,e,e,e,e),B.cI,e,e)
@@ -101625,10 +101625,10 @@ if(!d)l.push(new A.aK(0,B.E,A.Z(20,B.u.m()>>>16&255,B.u.m()>>>8&255,B.u.m()&255)
 j=A.a([A.m("Pro Plan",e,e,e,e,A.J(e,e,d?B.d:B.af,e,e,e,e,e,e,e,e,22,e,e,B.K,e,e,!0,e,e,e,e,e,e,e,e),e,e,e)],m)
 if(a)j.push(A.X(e,B.a7W,B.j,e,e,new A.O(A.Z(38,B.al.m()>>>16&255,B.al.m()>>>8&255,B.al.m()&255),e,e,A.B(10),e,e,B.o),e,e,e,B.dJ,e,e,e))
 j=A.a([A.a4(j,B.i,B.ap,B.f,0,e,e),B.ao],m)
-if(a0>0){i=A.a4(A.a([A.m("\u20b9"+B.e.ag(a1,2),e,e,e,e,B.Fk,e,e,e),B.aq,A.m("\u20b9"+B.l.ag(59,0),e,e,e,e,B.a4F,e,e,e),B.a7R],m),B.eK,B.h,B.f,0,B.O,e)
+if(a0>0){i=A.a4(A.a([A.m("\u20b9"+B.e.ag(a1,2),e,e,e,e,B.Fk,e,e,e),B.aq,A.m("\u20b9"+B.l.ag(49,0),e,e,e,e,B.a4F,e,e,e),B.a7R],m),B.eK,B.h,B.f,0,B.O,e)
 h=A.Z(38,B.al.m()>>>16&255,B.al.m()>>>8&255,B.al.m()&255)
 g=A.B(8)
-B.b.M(j,A.a([i,B.aW,A.X(e,A.m(""+a0+"% Referral Discount Applied (Next cycle)",e,e,e,e,B.a3b,e,e,e),B.j,e,e,new A.O(h,e,e,g,e,e,B.o),e,e,e,B.mR,e,e,e)],m))}else B.b.M(j,A.a([A.wO(e,e,e,B.c1,e,e,!0,e,A.dh(B.Sj,e,e,e,e,e,e,e,e,B.Fk,"\u20b9"+B.l.ag(59,0)),B.G,e,e,B.ac,B.aF)],m))
+B.b.M(j,A.a([i,B.aW,A.X(e,A.m(""+a0+"% Referral Discount Applied (Next cycle)",e,e,e,e,B.a3b,e,e,e),B.j,e,e,new A.O(h,e,e,g,e,e,B.o),e,e,e,B.mR,e,e,e)],m))}else B.b.M(j,A.a([A.wO(e,e,e,B.c1,e,e,!0,e,A.dh(B.Sj,e,e,e,e,e,e,e,e,B.Fk,"\u20b9"+B.l.ag(49,0)),B.G,e,e,B.ac,B.aF)],m))
 j.push(B.kX)
 j.push(f.l_("Everything Unlimited"))
 j.push(f.l_("Infinite Habit Tracking"))
@@ -101656,7 +101656,7 @@ var $async$$0=A.W(function(a,b){if(a===1)return A.S(b,r)
 for(;;)switch(s){case 0:o=q.a
 o.K(new A.aAM(o))
 s=2
-return A.P(q.b.BX("PREMIUM",59),$async$$0)
+return A.P(q.b.BX("PREMIUM",49),$async$$0)
 case 2:o.K(new A.aAN(o))
 if(o.c!=null){o=q.c.Y(t.J).f
 p=q.d
@@ -101919,7 +101919,7 @@ o=a2?B.d:B.B
 o=A.a4(A.a([p,B.bx,A.aD(b.R3(a5,"ACTIVE STREAK",""+q+" Days",o),1)],r),B.i,B.h,B.f,0,a,a)
 q=b.Gk("ACCOUNT")
 p=t._O
-n=b.QT(a5,A.a([new A.jl(B.nD,"About Us",new A.ait(a5),a,a),new A.jl(B.tN,"Terms & Conditions",new A.aix(a5),a,a),new A.jl(B.Ns,"Pricing",new A.aiy(a5),a,a),new A.jl(B.NX,"Payment History",new A.aiz(a5),a,a),new A.jl(B.tL,"Delete Account",new A.aiA(b,a5,a0),B.bG,B.bG)],p))
+n=b.QT(a5,A.a([new A.jl(B.nD,"About Us",new A.ait(a5),a,a),new A.jl(B.tN,"Terms & Conditions",new A.aix(a5),a,a),new A.jl(B.Ns,"Pricing Plans (₹49/month)",new A.aiy(a5),a,a),new A.jl(B.NX,"Payment History",new A.aiz(a5),a,a),new A.jl(B.tL,"Delete Account",new A.aiA(b,a5,a0),B.bG,B.bG)],p))
 m=b.Gk("PREFERENCES")
 l=a2?B.T:B.d
 k=A.B(18)
