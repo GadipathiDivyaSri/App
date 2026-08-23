@@ -1,7 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <base href="/">
+  <script>
+    // Dynamically set base href to support both root (localhost) and subpath hosting (GitHub Pages)
+    var pathname = window.location.pathname;
+    if (!pathname.endsWith('/')) {
+      pathname = pathname.substring(0, pathname.lastIndexOf('/') + 1);
+    }
+    document.write('<base href="' + pathname + '">');
+  </script>
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="WrindhaOS Productivity App">
