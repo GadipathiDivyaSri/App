@@ -1,6 +1,4 @@
-import { readFileSync } from 'fs';
-
-export const SUPABASE_SQL_SCHEMA = `-- =============================================================================
+-- =============================================================================
 -- WRINDHAOS COMPLETE UPDATED SUPABASE PRODUCTION DATABASE SCHEMA
 -- Version: 2.1.0 (Includes Email OTP Verification, Task Priority Matrix, 
 --                 Direct Date & Deadline Scheduling, 2FA, and Admin Backoffice)
@@ -155,7 +153,7 @@ CREATE TABLE IF NOT EXISTS public.expenses (
     user_id UUID NOT NULL REFERENCES public.user_profiles(user_id) ON DELETE CASCADE,
     title VARCHAR(200) NOT NULL,
     amount NUMERIC(12, 2) NOT NULL CHECK (amount > 0),
-    category VARCHAR(100) NOT NULL,
+    category VARCHAR(100) NOT NULL, -- 'Food & Drinks', 'Education', 'Transport', 'Shopping', 'Others'
     is_income BOOLEAN DEFAULT FALSE,
     payment_method VARCHAR(50) DEFAULT 'UPI',
     expense_date DATE NOT NULL DEFAULT CURRENT_DATE,
@@ -297,7 +295,7 @@ CREATE TABLE IF NOT EXISTS public.admin_audit_logs (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     admin_id UUID REFERENCES public.admin_users(id) ON DELETE SET NULL,
     target_user_id UUID REFERENCES public.user_profiles(user_id) ON DELETE SET NULL,
-    action VARCHAR(100) NOT NULL,
+    action VARCHAR(100) NOT NULL, -- e.g. 'USER_BANNED', 'PRICE_CHANGED', 'NOTIFICATION_BROADCAST'
     resource_type VARCHAR(100),
     resource_id UUID,
     details JSONB,
@@ -405,15 +403,48 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- User Policies: Read/Write Own Data Only
-CREATE POLICY "Users access own profile" ON public.user_profiles FOR ALL TO authenticated USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
-CREATE POLICY "Users access own tasks" ON public.tasks FOR ALL TO authenticated USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
-CREATE POLICY "Users access own habits" ON public.habits FOR ALL TO authenticated USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
-CREATE POLICY "Users access own expenses" ON public.expenses FOR ALL TO authenticated USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
-CREATE POLICY "Users access own goals" ON public.goals FOR ALL TO authenticated USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
-CREATE POLICY "Users access own subjects" ON public.study_subjects FOR ALL TO authenticated USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
-CREATE POLICY "Users access own calendar" ON public.calendar_events FOR ALL TO authenticated USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
-CREATE POLICY "Users view own subscriptions" ON public.subscriptions FOR SELECT TO authenticated USING (user_id = auth.uid());
-CREATE POLICY "Users view public app settings" ON public.app_settings FOR SELECT USING (is_public = TRUE);
+CREATE POLICY "Users access own profile" ON public.user_profiles 
+    FOR ALL TO authenticated 
+    USING (user_id = auth.uid()) 
+    WITH CHECK (user_id = auth.uid());
+
+CREATE POLICY "Users access own tasks" ON public.tasks 
+    FOR ALL TO authenticated 
+    USING (user_id = auth.uid()) 
+    WITH CHECK (user_id = auth.uid());
+
+CREATE POLICY "Users access own habits" ON public.habits 
+    FOR ALL TO authenticated 
+    USING (user_id = auth.uid()) 
+    WITH CHECK (user_id = auth.uid());
+
+CREATE POLICY "Users access own expenses" ON public.expenses 
+    FOR ALL TO authenticated 
+    USING (user_id = auth.uid()) 
+    WITH CHECK (user_id = auth.uid());
+
+CREATE POLICY "Users access own goals" ON public.goals 
+    FOR ALL TO authenticated 
+    USING (user_id = auth.uid()) 
+    WITH CHECK (user_id = auth.uid());
+
+CREATE POLICY "Users access own subjects" ON public.study_subjects 
+    FOR ALL TO authenticated 
+    USING (user_id = auth.uid()) 
+    WITH CHECK (user_id = auth.uid());
+
+CREATE POLICY "Users access own calendar" ON public.calendar_events 
+    FOR ALL TO authenticated 
+    USING (user_id = auth.uid()) 
+    WITH CHECK (user_id = auth.uid());
+
+CREATE POLICY "Users view own subscriptions" ON public.subscriptions 
+    FOR SELECT TO authenticated 
+    USING (user_id = auth.uid());
+
+CREATE POLICY "Users view public app settings" ON public.app_settings 
+    FOR SELECT 
+    USING (is_public = TRUE);
 
 -- Admin Policies: Full Access to all tables for authenticated Admins
 CREATE POLICY "Admins full user_profiles" ON public.user_profiles FOR ALL TO authenticated USING (public.is_admin());
@@ -425,4 +456,3 @@ CREATE POLICY "Admins full moderation" ON public.user_moderation FOR ALL TO auth
 CREATE POLICY "Admins full app_settings" ON public.app_settings FOR ALL TO authenticated USING (public.is_admin());
 CREATE POLICY "Admins full analytics_snapshots" ON public.analytics_snapshots FOR ALL TO authenticated USING (public.is_admin());
 CREATE POLICY "Admins full broadcast_campaigns" ON public.broadcast_campaigns FOR ALL TO authenticated USING (public.is_admin());
-`;
