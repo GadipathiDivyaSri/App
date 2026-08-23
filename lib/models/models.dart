@@ -60,14 +60,16 @@ class Task {
       };
 
   factory Task.fromJson(Map<String, dynamic> json) => Task(
-        id: json['id'],
-        title: json['title'],
-        category: json['category'],
+        id: json['id'] ?? 't_${DateTime.now().millisecondsSinceEpoch}',
+        title: json['title'] ?? 'Untitled Task',
+        category: json['category'] ?? 'Studies',
         dueDateLabel: json['dueDateLabel'] ?? 'Today',
-        dueDate: DateTime.parse(json['dueDate']),
+        dueDate: json['dueDate'] != null
+            ? (DateTime.tryParse(json['dueDate'].toString()) ?? DateTime.now())
+            : DateTime.now(),
         isCompleted: json['isCompleted'] ?? false,
         completedDate: json['completedDate'] != null
-            ? DateTime.parse(json['completedDate'])
+            ? DateTime.tryParse(json['completedDate'].toString())
             : null,
       );
 }
@@ -105,11 +107,15 @@ class CalendarEvent {
       };
 
   factory CalendarEvent.fromJson(Map<String, dynamic> json) => CalendarEvent(
-        id: json['id'],
-        title: json['title'],
-        description: json['description'],
-        startTime: DateTime.parse(json['startTime']),
-        endTime: DateTime.parse(json['endTime']),
+        id: json['id'] ?? 'ev_${DateTime.now().millisecondsSinceEpoch}',
+        title: json['title'] ?? 'Event',
+        description: json['description'] ?? '',
+        startTime: json['startTime'] != null
+            ? (DateTime.tryParse(json['startTime'].toString()) ?? DateTime.now())
+            : DateTime.now(),
+        endTime: json['endTime'] != null
+            ? (DateTime.tryParse(json['endTime'].toString()) ?? DateTime.now().add(const Duration(hours: 1)))
+            : DateTime.now().add(const Duration(hours: 1)),
         location: json['location'] ?? 'Workspace A',
         type: json['type'] ?? 'Focus Session',
         isCompleted: json['isCompleted'] ?? false,
@@ -147,11 +153,13 @@ class AppNotification {
 
   factory AppNotification.fromJson(Map<String, dynamic> json) =>
       AppNotification(
-        id: json['id'],
-        title: json['title'],
-        header: json['header'],
-        message: json['message'],
-        timestamp: DateTime.parse(json['timestamp']),
+        id: json['id'] ?? 'notif_${DateTime.now().millisecondsSinceEpoch}',
+        title: json['title'] ?? 'Notification',
+        header: json['header'] ?? 'Update',
+        message: json['message'] ?? '',
+        timestamp: json['timestamp'] != null
+            ? (DateTime.tryParse(json['timestamp'].toString()) ?? DateTime.now())
+            : DateTime.now(),
         category: json['category'] ?? 'RECENT',
         colorHex: json['colorHex'] ?? 0xFF0D5CE5,
       );
@@ -196,7 +204,7 @@ class ExpenseTransaction {
             : double.tryParse(json['amount']?.toString() ?? '0') ?? 0.0,
         isIncome: json['isIncome'] ?? false,
         date: json['date'] != null
-            ? DateTime.parse(json['date'])
+            ? (DateTime.tryParse(json['date'].toString()) ?? DateTime.now())
             : DateTime.now(),
         paymentMethod: json['paymentMethod'] ?? 'UPI',
       );

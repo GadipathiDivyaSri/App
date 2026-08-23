@@ -1,7 +1,26 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <base href="$FLUTTER_BASE_HREF">
+  <!-- Dynamic Base Href Auto-Detection for Root and Subpaths (/App/, /WRINDHA_OS_APP/, /) -->
+  <script>
+    (function() {
+      var baseEl = document.querySelector('base');
+      if (!baseEl) {
+        baseEl = document.createElement('base');
+        document.head.prepend(baseEl);
+      }
+      var href = baseEl.getAttribute('href');
+      if (!href || href === '$FLUTTER_BASE_HREF' || href === '/') {
+        var path = window.location.pathname;
+        if (!path.endsWith('/')) {
+          path = path.substring(0, path.lastIndexOf('/') + 1);
+        }
+        baseEl.setAttribute('href', path || './');
+      }
+    })();
+  </script>
+  <base href="./">
+
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="WrindhaOS Productivity App">
@@ -26,7 +45,7 @@
       overflow: hidden;
       background-color: #FFF9F0;
     }
-    #loading {
+    #loading-indicator {
       position: fixed;
       top: 0;
       left: 0;
@@ -39,6 +58,7 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: #FFF9F0;
       z-index: 99999;
+      transition: opacity 0.3s ease;
     }
     .spinner {
       width: 44px;
@@ -51,50 +71,76 @@
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
+    .loading-text {
+      margin-top: 16px;
+      font-weight: 700;
+      font-size: 16px;
+      color: #1E293B;
+    }
+    .loading-subtext {
+      margin-top: 6px;
+      font-size: 13px;
+      color: #64748B;
+    }
   </style>
 </head>
 <body>
-  <div id="loading">
+  <div id="loading-indicator">
     <div class="spinner"></div>
-    <p style="margin-top: 16px; font-weight: 600; font-size: 15px; color: #1E293B;">Starting WrindhaOS...</p>
+    <div class="loading-text">Starting WrindhaOS...</div>
+    <div class="loading-subtext">Loading productivity modules</div>
   </div>
 
-  <script src="flutter.js" defer></script>
   <script>
-    window.addEventListener('load', function() {
-      // Unregister any stale service workers
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-          for (var r of registrations) { r.unregister(); }
-        });
-      }
-
-      _flutter.loader.loadEntrypoint({
-        entrypointUrl: 'main.dart.js?v=' + Date.now(),
-        onEntrypointLoaded: async function(engineInitializer) {
-          try {
-            let appRunner = await engineInitializer.initializeEngine({
-              useColorEmoji: true
-            });
-            var loading = document.getElementById('loading');
-            if (loading) loading.remove();
-            await appRunner.runApp();
-          } catch (e) {
-            console.warn('Engine init fallback:', e);
-            try {
-              let appRunner = await engineInitializer.initializeEngine();
-              var loading = document.getElementById('loading');
-              if (loading) loading.remove();
-              await appRunner.runApp();
-            } catch (err) {
-              console.error('Fatal engine error:', err);
-              var loading = document.getElementById('loading');
-              if (loading) loading.innerHTML = '<p style="color:red;padding:20px;">Failed to start app. Please refresh.</p>';
-            }
-          }
-        }
+    // Unregister legacy service workers to prevent stale asset cache locks
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function(registrations) {
+        for (var r of registrations) { r.unregister(); }
       });
+    }
+
+    // Hide loader once Flutter renders
+    window.addEventListener('flutter-first-frame', function() {
+      var loader = document.getElementById('loading-indicator');
+      if (loader) {
+        loader.style.opacity = '0';
+        setTimeout(function() { loader.remove(); }, 300);
+      }
     });
+
+    // Fallback: hide loader after timeout if event already fired
+    setTimeout(function() {
+      var loader = document.getElementById('loading-indicator');
+      if (loader && document.querySelector('flt-glass-pane, flutter-view, canvas')) {
+        loader.style.opacity = '0';
+        setTimeout(function() { loader.remove(); }, 300);
+      }
+    }, 4000);
+  </script>
+
+  <!-- Modern Flutter Bootstrap Loader with fallback -->
+  <script src="flutter_bootstrap.js" async onerror="loadFlutterFallback()"></script>
+
+  <script>
+    function loadFlutterFallback() {
+      console.warn('flutter_bootstrap.js not found, loading flutter.js fallback...');
+      var script = document.createElement('script');
+      script.src = 'flutter.js';
+      script.onload = function() {
+        if (window._flutter && window._flutter.loader) {
+          _flutter.loader.loadEntrypoint({
+            onEntrypointLoaded: function(engineInitializer) {
+              engineInitializer.initializeEngine().then(function(appRunner) {
+                var loader = document.getElementById('loading-indicator');
+                if (loader) loader.remove();
+                appRunner.runApp();
+              });
+            }
+          });
+        }
+      };
+      document.body.appendChild(script);
+    }
   </script>
 </body>
 </html>

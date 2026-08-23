@@ -287,90 +287,76 @@ class AppProvider extends ChangeNotifier {
 
   // Initial Mock Data Setup & Persistence
   Future<void> _initData() async {
-    final prefs = await SharedPreferences.getInstance();
+    try {
+      final prefs = await SharedPreferences.getInstance();
 
-    // Force clean slate cache reset for v4 profile update
-    final isV4Clean = prefs.getBool('is_v4_profile_clean') ?? false;
-    if (!isV4Clean) {
-      await prefs.clear();
-      await prefs.setBool('is_v4_profile_clean', true);
+      // Force clean slate cache reset for v4 profile update
+      final isV4Clean = prefs.getBool('is_v4_profile_clean') ?? false;
+      if (!isV4Clean) {
+        await prefs.clear();
+        await prefs.setBool('is_v4_profile_clean', true);
+      }
+
+      // Load Monthly Budget
+      _monthlyBudget = prefs.getDouble('saved_monthly_budget') ?? 10000.0;
+
+      // Load Theme
+      final isDark = prefs.getBool('isDarkTheme') ?? false;
+      _themeMode = isDark ? ThemeMode.dark : ThemeMode.light;
+
+      // Load Tasks
+      final tasksJson = prefs.getString('saved_tasks');
+      if (tasksJson != null) {
+        final List decoded = jsonDecode(tasksJson);
+        _tasks = decoded.map((item) => Task.fromJson(item)).toList();
+      } else {
+        _tasks = [];
+      }
+
+      // Load Calendar Events
+      final eventsJson = prefs.getString('saved_events');
+      if (eventsJson != null) {
+        final List decoded = jsonDecode(eventsJson);
+        _calendarEvents =
+            decoded.map((item) => CalendarEvent.fromJson(item)).toList();
+      } else {
+        _calendarEvents = [];
+      }
+
+      // Load Notifications
+      final notifsJson = prefs.getString('saved_notifications');
+      if (notifsJson != null) {
+        final List decoded = jsonDecode(notifsJson);
+        _notifications =
+            decoded.map((item) => AppNotification.fromJson(item)).toList();
+      } else {
+        _notifications = [];
+      }
+
+      // Load Expenses
+      final expensesJson = prefs.getString('saved_expenses');
+      if (expensesJson != null) {
+        final List decoded = jsonDecode(expensesJson);
+        _expenses =
+            decoded.map((item) => ExpenseTransaction.fromJson(item)).toList();
+      } else {
+        _expenses = [];
+      }
+
+      // Load Referrals
+      final referralsJson = prefs.getString('saved_referrals');
+      if (referralsJson != null) {
+        final List decoded = jsonDecode(referralsJson);
+        _referralActivities =
+            decoded.map((item) => ReferralActivity.fromJson(item)).toList();
+      }
+
+      _recalculateMetrics();
+      notifyListeners();
+    } catch (e, stack) {
+      debugPrint('Error loading saved state in AppProvider: $e\n$stack');
+      notifyListeners();
     }
-
-    // Load Monthly Budget
-    _monthlyBudget = prefs.getDouble('saved_monthly_budget') ?? 10000.0;
-
-    // Load Theme
-    final isDark = prefs.getBool('isDarkTheme') ?? false;
-    _themeMode = isDark ? ThemeMode.dark : ThemeMode.light;
-
-    // Load Tasks
-    final tasksJson = prefs.getString('saved_tasks');
-    if (tasksJson != null) {
-      final List decoded = jsonDecode(tasksJson);
-      _tasks = decoded.map((item) => Task.fromJson(item)).toList();
-    } else {
-      _tasks = [];
-    }
-
-    // Load Calendar Events
-    final eventsJson = prefs.getString('saved_events');
-    if (eventsJson != null) {
-      final List decoded = jsonDecode(eventsJson);
-      _calendarEvents =
-          decoded.map((item) => CalendarEvent.fromJson(item)).toList();
-    } else {
-      _calendarEvents = [];
-    }
-
-    // Load Notifications
-    final notifsJson = prefs.getString('saved_notifications');
-    if (notifsJson != null) {
-      final List decoded = jsonDecode(notifsJson);
-      _notifications =
-          decoded.map((item) => AppNotification.fromJson(item)).toList();
-    } else {
-      _notifications = [];
-    }
-
-    // Load Expenses
-    final expensesJson = prefs.getString('saved_expenses');
-    if (expensesJson != null) {
-      final List decoded = jsonDecode(expensesJson);
-      _expenses =
-          decoded.map((item) => ExpenseTransaction.fromJson(item)).toList();
-    } else {
-      _expenses = [
-        ExpenseTransaction(
-          id: 'e_1',
-          title: 'Lunch with Client',
-          category: 'Food & Drinks',
-          amount: 45.20,
-          isIncome: false,
-          date: DateTime.now().subtract(const Duration(hours: 2)),
-          paymentMethod: 'UPI',
-        ),
-        ExpenseTransaction(
-          id: 'e_2',
-          title: 'Freelance Payout',
-          category: 'Income',
-          amount: 1200.00,
-          isIncome: true,
-          date: DateTime.now().subtract(const Duration(days: 1)),
-          paymentMethod: 'Bank Transfer',
-        ),
-      ];
-    }
-
-    // Load Referrals
-    final referralsJson = prefs.getString('saved_referrals');
-    if (referralsJson != null) {
-      final List decoded = jsonDecode(referralsJson);
-      _referralActivities =
-          decoded.map((item) => ReferralActivity.fromJson(item)).toList();
-    }
-
-    _recalculateMetrics();
-    notifyListeners();
   }
 
   // Task Operations
