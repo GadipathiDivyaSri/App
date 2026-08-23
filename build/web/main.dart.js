@@ -100879,7 +100879,7 @@ m=A.a([],m)
 if(k)m.push(new A.aK(0,B.E,A.Z(B.e.aG(76.5),e.m()>>>16&255,e.m()>>>8&255,e.m()&255),B.bu,8))
 m=A.X(q,A.as(b,c?B.X:B.d,q,22),B.j,q,q,new A.O(s,q,q,r,m,q,B.o),q,44,q,q,q,q,44)
 k=t.p
-m=A.a4(A.a([m,A.as(B.eh,c?B.hQ:B.JJ,q,20)],k),B.i,B.ap,B.f,0,q,q)
+var isLockedModule=(h==="Career"||h==="Priority"||h==="Analytics")&&(!A.f1(a,!0,t.T).c.f);m=A.a4(A.a([m,isLockedModule?A.m("🔒 PRO",q,q,q,q,A.J(q,q,c?B.as:B.a6,q,q,q,q,q,q,q,q,11,q,q,B.K,q,q,!0,q,q,q,q,q,q,q,q),q,q,q):A.as(B.eh,c?B.hQ:B.JJ,q,20)],k),B.i,B.ap,B.f,0,q,q);if(isLockedModule)f=new A.aiy(a);
 s=A.m(h,q,q,q,q,A.J(q,q,c?B.d:B.B,q,q,q,q,q,q,q,q,16,q,q,B.K,q,1.2,!0,q,q,q,q,q,q,q,q),q,q,q)
 return A.cc(q,A.X(q,A.a0(A.a([m,A.a0(A.a([s,B.aW,A.m(g,1,B.bs,q,q,A.J(q,q,c?B.as:B.a6,q,q,q,q,q,q,q,q,11,q,q,B.a2,q,q,!0,q,q,q,q,q,q,q,q),q,q,q)],k),B.w,B.h,B.f,0,B.m)],k),B.w,B.ap,B.f,0,B.m),B.j,q,q,new A.O(p,q,n,o,l,q,B.o),q,q,q,B.cD,q,q,q),B.t,!1,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,f,q,q,q,q,q,q)}}
 A.abY.prototype={
@@ -101919,7 +101919,7 @@ o=a2?B.d:B.B
 o=A.a4(A.a([p,B.bx,A.aD(b.R3(a5,"ACTIVE STREAK",""+q+" Days",o),1)],r),B.i,B.h,B.f,0,a,a)
 q=b.Gk("ACCOUNT")
 p=t._O
-n=b.QT(a5,A.a([new A.jl(B.nD,"About Us",new A.ait(a5),a,a),new A.jl(B.tN,"Terms & Conditions",new A.aix(a5),a,a),new A.jl(B.Ns,"Pricing",new A.aiy(a5),a,a),new A.jl(B.NX,"Payment History",new A.aiz(a5),a,a),new A.jl(B.tL,"Delete Account",new A.aiA(b,a5,a0),B.bG,B.bG)],p))
+n=b.QT(a5,A.a([new A.jl(B.nD,"About Us",new A.ait(a5),a,a),new A.jl(B.tN,"Terms & Conditions",new A.aix(a5),a,a),new A.jl(B.Ns,"Pricing Plans (₹49/month)",new A.aiy(a5),a,a),new A.jl(B.NX,"Payment History",new A.aiz(a5),a,a),new A.jl(B.tL,"Delete Account",new A.aiA(b,a5,a0),B.bG,B.bG)],p))
 m=b.Gk("PREFERENCES")
 l=a2?B.T:B.d
 k=A.B(18)

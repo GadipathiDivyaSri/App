@@ -43,6 +43,15 @@
       "isIncome": false,
       "paymentMethod": "UPI",
       "date": "2026-08-23T13:30:24.602Z"
+    },
+    {
+      "id": "e_1787492172865",
+      "title": "Food & Drinks",
+      "category": "Food & Drinks",
+      "amount": 10,
+      "isIncome": false,
+      "paymentMethod": "UPI",
+      "date": "2026-08-23T13:36:12.865Z"
     }
   ],
   "goals": {

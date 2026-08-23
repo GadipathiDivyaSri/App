@@ -247,26 +247,31 @@ class StudiesScreen extends StatelessWidget {
             ),
             if (isLocked)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF2A2B3D) : Colors.black.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(8),
+                  color: const Color(0xFFF59E0B).withOpacity(0.18),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: const Color(0xFFF59E0B).withOpacity(0.5),
+                    width: 1,
+                  ),
                 ),
-                child: Row(
+                child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
                       Icons.lock_rounded,
                       size: 13,
-                      color: isDark ? const Color(0xFFF59E0B) : const Color(0xFFB45309),
+                      color: Color(0xFFD97706),
                     ),
-                    const SizedBox(width: 3),
+                    SizedBox(width: 4),
                     Text(
                       'PRO',
                       style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w800,
-                        color: isDark ? const Color(0xFFF59E0B) : const Color(0xFFB45309),
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFFD97706),
+                        letterSpacing: 0.5,
                       ),
                     ),
                   ],
