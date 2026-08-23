@@ -497,6 +497,99 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Enforce Free Tier Habit Limit (Max 2 Active Habits)
+CREATE OR REPLACE FUNCTION public.check_free_tier_habit_limit()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_is_premium BOOLEAN;
+    v_active_count INT;
+BEGIN
+    SELECT is_premium INTO v_is_premium 
+    FROM public.user_profiles 
+    WHERE user_id = NEW.user_id;
+
+    IF v_is_premium IS NOT TRUE THEN
+        SELECT COUNT(*) INTO v_active_count 
+        FROM public.habits 
+        WHERE user_id = NEW.user_id AND deleted_at IS NULL;
+
+        IF v_active_count >= 2 THEN
+            RAISE EXCEPTION 'Free plan limit reached: Maximum 2 active habits allowed. Upgrade to Pro for ₹49/month for unlimited habits.'
+            USING ERRCODE = 'P0001';
+        END IF;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Enforce Free Tier Subject Limit (Max 2 Active Subjects)
+CREATE OR REPLACE FUNCTION public.check_free_tier_subject_limit()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_is_premium BOOLEAN;
+    v_active_count INT;
+BEGIN
+    SELECT is_premium INTO v_is_premium 
+    FROM public.user_profiles 
+    WHERE user_id = NEW.user_id;
+
+    IF v_is_premium IS NOT TRUE THEN
+        SELECT COUNT(*) INTO v_active_count 
+        FROM public.study_subjects 
+        WHERE user_id = NEW.user_id;
+
+        IF v_active_count >= 2 THEN
+            RAISE EXCEPTION 'Free plan limit reached: Maximum 2 active subjects allowed. Upgrade to Pro for ₹49/month for unlimited subjects.'
+            USING ERRCODE = 'P0001';
+        END IF;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Enforce Free Tier Goal Limit (Max 2 Active Goals)
+CREATE OR REPLACE FUNCTION public.check_free_tier_goal_limit()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_is_premium BOOLEAN;
+    v_active_count INT;
+BEGIN
+    SELECT is_premium INTO v_is_premium 
+    FROM public.user_profiles 
+    WHERE user_id = NEW.user_id;
+
+    IF v_is_premium IS NOT TRUE THEN
+        SELECT COUNT(*) INTO v_active_count 
+        FROM public.goals 
+        WHERE user_id = NEW.user_id AND deleted_at IS NULL;
+
+        IF v_active_count >= 2 THEN
+            RAISE EXCEPTION 'Free plan limit reached: Maximum 2 active goals allowed. Upgrade to Pro for ₹49/month for unlimited goals.'
+            USING ERRCODE = 'P0001';
+        END IF;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Enforce Pro Only on Expenses
+CREATE OR REPLACE FUNCTION public.check_free_tier_expense_access()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_is_premium BOOLEAN;
+BEGIN
+    SELECT is_premium INTO v_is_premium 
+    FROM public.user_profiles 
+    WHERE user_id = NEW.user_id;
+
+    IF v_is_premium IS NOT TRUE THEN
+        RAISE EXCEPTION 'Pro Feature: Expense tracking and finance ledger are exclusive to Pro members. Upgrade to Pro for ₹49/month.'
+        USING ERRCODE = 'P0001';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
 -- =============================================================================
 -- 11. TRIGGERS
 -- =============================================================================
@@ -526,6 +619,23 @@ CREATE TRIGGER update_app_settings_updated_at
 CREATE TRIGGER validate_user_profile_email 
     BEFORE INSERT OR UPDATE ON public.user_profiles 
     FOR EACH ROW EXECUTE FUNCTION public.validate_email_format();
+
+-- Entitlement limit triggers on INSERT
+CREATE TRIGGER enforce_free_tier_habit_limit 
+    BEFORE INSERT ON public.habits 
+    FOR EACH ROW EXECUTE FUNCTION public.check_free_tier_habit_limit();
+
+CREATE TRIGGER enforce_free_tier_subject_limit 
+    BEFORE INSERT ON public.study_subjects 
+    FOR EACH ROW EXECUTE FUNCTION public.check_free_tier_subject_limit();
+
+CREATE TRIGGER enforce_free_tier_goal_limit 
+    BEFORE INSERT ON public.goals 
+    FOR EACH ROW EXECUTE FUNCTION public.check_free_tier_goal_limit();
+
+CREATE TRIGGER enforce_free_tier_expense_access 
+    BEFORE INSERT ON public.expenses 
+    FOR EACH ROW EXECUTE FUNCTION public.check_free_tier_expense_access();
 
 -- Audit triggers on sensitive tables
 CREATE TRIGGER audit_user_profiles 
