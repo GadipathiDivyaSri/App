@@ -653,7 +653,11 @@ async function handleApiRequest(req, res) {
       id: `t_${Date.now()}`,
       title: body.title || 'New Task',
       category: body.category || 'Career Roadmap',
+      tag: body.tag || 'STUDY',
       dueDateLabel: body.dueDateLabel || 'Today',
+      dueDate: body.dueDate || new Date().toISOString(),
+      dueTime: body.dueTime || '05:00 PM',
+      priority: body.priority !== undefined ? Number(body.priority) : 1,
       isCompleted: false,
       createdAt: new Date().toISOString(),
     };
@@ -669,7 +673,11 @@ async function handleApiRequest(req, res) {
       if (body.title !== undefined) task.title = body.title;
       if (body.isCompleted !== undefined) task.isCompleted = body.isCompleted;
       if (body.category !== undefined) task.category = body.category;
+      if (body.tag !== undefined) task.tag = body.tag;
       if (body.dueDateLabel !== undefined) task.dueDateLabel = body.dueDateLabel;
+      if (body.dueDate !== undefined) task.dueDate = body.dueDate;
+      if (body.dueTime !== undefined) task.dueTime = body.dueTime;
+      if (body.priority !== undefined) task.priority = Number(body.priority);
       saveDB(db);
       return sendJSON(res, 200, { success: true, task });
     }

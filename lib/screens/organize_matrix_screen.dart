@@ -357,6 +357,8 @@ class _OrganizeMatrixScreenState extends State<OrganizeMatrixScreen> {
 
   void _showAddTaskDialog(BuildContext context, int qNumber) {
     final titleCtrl = TextEditingController();
+    DateTime selectedDate = DateTime.now();
+    TimeOfDay selectedTime = TimeOfDay.fromDateTime(DateTime.now().add(const Duration(hours: 2)));
 
     showModalBottomSheet(
       context: context,
@@ -364,68 +366,121 @@ class _OrganizeMatrixScreenState extends State<OrganizeMatrixScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
-          top: 24,
-          left: 20,
-          right: 20,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Add Task to Quadrant $qNumber',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setModalState) {
+          final timeFormatted = '${selectedTime.hourOfPeriod == 0 ? 12 : selectedTime.hourOfPeriod}:${selectedTime.minute.toString().padLeft(2, '0')} ${selectedTime.period == DayPeriod.am ? 'AM' : 'PM'}';
+          final dateFormatted = '${selectedDate.month}/${selectedDate.day}/${selectedDate.year}';
+
+          return Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
+              top: 24,
+              left: 20,
+              right: 20,
             ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: titleCtrl,
-              autofocus: true,
-              decoration: const InputDecoration(
-                hintText: 'Task Title',
-                border: OutlineInputBorder(),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Add Task to Quadrant $qNumber',
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: titleCtrl,
+                    autofocus: true,
+                    decoration: const InputDecoration(
+                      hintText: 'Task Title',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  const Text('DUE DATE & TIME', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF94A3B8))),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          icon: const Icon(Icons.calendar_today_rounded, size: 14),
+                          label: Text(dateFormatted, style: const TextStyle(fontSize: 12)),
+                          onPressed: () async {
+                            final picked = await showDatePicker(
+                              context: context,
+                              initialDate: selectedDate,
+                              firstDate: DateTime.now().subtract(const Duration(days: 1)),
+                              lastDate: DateTime.now().add(const Duration(days: 365)),
+                            );
+                            if (picked != null) {
+                              setModalState(() => selectedDate = picked);
+                            }
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          icon: const Icon(Icons.access_time_rounded, size: 14),
+                          label: Text(timeFormatted, style: const TextStyle(fontSize: 12)),
+                          onPressed: () async {
+                            final picked = await showTimePicker(
+                              context: context,
+                              initialTime: selectedTime,
+                            );
+                            if (picked != null) {
+                              setModalState(() => selectedTime = picked);
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF0D5CE5),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      onPressed: () {
+                        if (titleCtrl.text.trim().isNotEmpty) {
+                          setState(() {
+                            final item = {
+                              'title': titleCtrl.text.trim(),
+                              'dueDate': selectedDate,
+                              'timeOfDay': selectedTime,
+                              'timeStr': timeFormatted,
+                              'dateStr': dateFormatted,
+                              'isCompleted': false,
+                            };
+                            if (qNumber == 1) _q1Tasks.add(item);
+                            if (qNumber == 2) _q2Tasks.add(item);
+                            if (qNumber == 3) _q3Tasks.add(item);
+                            if (qNumber == 4) _q4Tasks.add(item);
+                          });
+                          Navigator.pop(ctx);
+                        }
+                      },
+                      child: const Text(
+                        'Save Task',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0D5CE5),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-                onPressed: () {
-                  if (titleCtrl.text.trim().isNotEmpty) {
-                    setState(() {
-                      final item = {
-                        'title': titleCtrl.text.trim(),
-                        'isCompleted': false,
-                      };
-                      if (qNumber == 1) _q1Tasks.add(item);
-                      if (qNumber == 2) _q2Tasks.add(item);
-                      if (qNumber == 3) _q3Tasks.add(item);
-                      if (qNumber == 4) _q4Tasks.add(item);
-                    });
-                    Navigator.pop(ctx);
-                  }
-                },
-                child: const Text(
-                  'Save Task',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
