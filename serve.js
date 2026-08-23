@@ -40,7 +40,7 @@ function createServer() {
 
     if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
       if (path.extname(reqUrl)) {
-        res.writeHead(404, { 'Content-Type': 'text/plain' });
+        res.writeHead(404, { 'Content-Type': 'text/plain', 'Access-Control-Allow-Origin': '*' });
         return res.end('Not Found');
       }
       filePath = path.join(dir, 'index.html');
@@ -48,6 +48,15 @@ function createServer() {
 
     const ext = path.extname(filePath).toLowerCase();
     const contentType = mimeTypes[ext] || 'application/octet-stream';
+
+    if (req.method === 'HEAD') {
+      res.writeHead(200, {
+        'Content-Type': contentType,
+        'Access-Control-Allow-Origin': '*',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+      });
+      return res.end();
+    }
 
     fs.readFile(filePath, (err, content) => {
       if (err) {
