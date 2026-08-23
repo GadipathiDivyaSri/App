@@ -1,7 +1,6 @@
 -- =============================================================================
 -- WRINDHAOS COMPLETE UPDATED SUPABASE PRODUCTION DATABASE SCHEMA
--- Version: 2.1.0 (Includes Email OTP Verification, Task Priority Matrix, 
---                 Direct Date & Deadline Scheduling, 2FA, and Admin Backoffice)
+-- Version: 2.2.0 (Enhanced with Security, Performance, and Audit Features)
 -- =============================================================================
 
 -- Enable required PostgreSQL extensions
@@ -33,6 +32,7 @@ CREATE TABLE IF NOT EXISTS public.user_profiles (
     referred_by_id UUID REFERENCES public.user_profiles(user_id) ON DELETE SET NULL,
     fcm_device_token TEXT,
     account_status VARCHAR(20) DEFAULT 'ACTIVE' CHECK (account_status IN ('ACTIVE', 'SUSPENDED', 'BANNED', 'DELETED')),
+    deleted_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -41,6 +41,39 @@ CREATE INDEX IF NOT EXISTS idx_user_profiles_user_id ON public.user_profiles(use
 CREATE INDEX IF NOT EXISTS idx_user_profiles_username ON public.user_profiles(username);
 CREATE INDEX IF NOT EXISTS idx_user_profiles_email ON public.user_profiles(email);
 CREATE INDEX IF NOT EXISTS idx_user_profiles_referral ON public.user_profiles(referral_code);
+CREATE INDEX IF NOT EXISTS idx_user_profiles_created_at ON public.user_profiles(created_at);
+CREATE INDEX IF NOT EXISTS idx_user_profiles_role_premium ON public.user_profiles(role, is_premium);
+
+-- User Sessions (NEW)
+CREATE TABLE IF NOT EXISTS public.user_sessions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES public.user_profiles(user_id) ON DELETE CASCADE,
+    session_token TEXT UNIQUE NOT NULL,
+    device_info JSONB,
+    ip_address INET,
+    user_agent TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    expires_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    revoked_at TIMESTAMPTZ
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_sessions_token ON public.user_sessions(session_token);
+CREATE INDEX IF NOT EXISTS idx_user_sessions_user_active ON public.user_sessions(user_id, is_active);
+CREATE INDEX IF NOT EXISTS idx_user_sessions_expires ON public.user_sessions(expires_at);
+
+-- Login Attempts (NEW)
+CREATE TABLE IF NOT EXISTS public.login_attempts (
+    identifier VARCHAR(255) NOT NULL,
+    ip_address INET,
+    attempt_count INT DEFAULT 1,
+    last_attempt TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    is_locked BOOLEAN DEFAULT FALSE,
+    locked_until TIMESTAMPTZ,
+    PRIMARY KEY (identifier, ip_address)
+);
+
+CREATE INDEX IF NOT EXISTS idx_login_attempts_locked ON public.login_attempts(is_locked, locked_until);
 
 -- User Notification Preferences
 CREATE TABLE IF NOT EXISTS public.notification_settings (
@@ -57,7 +90,7 @@ CREATE TABLE IF NOT EXISTS public.notification_settings (
 -- Email Verification & 2FA OTP Store
 CREATE TABLE IF NOT EXISTS public.auth_otps (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    identifier VARCHAR(255) NOT NULL, -- Email address or User ID
+    identifier VARCHAR(255) NOT NULL,
     otp_code VARCHAR(10) NOT NULL,
     type VARCHAR(30) NOT NULL CHECK (type IN ('REGISTRATION_EMAIL', 'PASSWORD_RESET', '2FA_LOGIN')),
     is_used BOOLEAN DEFAULT FALSE,
@@ -66,6 +99,7 @@ CREATE TABLE IF NOT EXISTS public.auth_otps (
 );
 
 CREATE INDEX IF NOT EXISTS idx_auth_otps_lookup ON public.auth_otps(identifier, type, is_used);
+CREATE INDEX IF NOT EXISTS idx_auth_otps_expires ON public.auth_otps(expires_at);
 
 -- =============================================================================
 -- 2. TASKS & SMART PRIORITY MATRIX MODULE
@@ -79,18 +113,20 @@ CREATE TABLE IF NOT EXISTS public.tasks (
     category VARCHAR(50) DEFAULT 'Studies' CHECK (category IN ('Studies', 'Career Roadmap', 'Personal Growth', 'Work', 'Others')),
     tag VARCHAR(30) DEFAULT 'STUDY' CHECK (tag IN ('STUDY', 'EXAM', 'WORK', 'PLANNING', 'PERSONAL')),
     priority INT NOT NULL DEFAULT 1 CHECK (priority IN (1, 2, 3, 4)),
-    -- P1: High/Urgent (Today), P2: Medium/Schedule (1-3d), P3: Low/Delegate (Later), P4: Eliminate
     quadrant VARCHAR(30) DEFAULT 'Q1_DO_FIRST' CHECK (quadrant IN ('Q1_DO_FIRST', 'Q2_SCHEDULE', 'Q3_DELEGATE', 'Q4_ELIMINATE')),
     due_date DATE NOT NULL,
     due_time TIME DEFAULT '18:00:00',
     is_completed BOOLEAN DEFAULT FALSE,
     completed_at TIMESTAMPTZ,
+    deleted_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_tasks_user_priority ON public.tasks(user_id, priority, is_completed);
 CREATE INDEX IF NOT EXISTS idx_tasks_deadline ON public.tasks(user_id, due_date, due_time);
+CREATE INDEX IF NOT EXISTS idx_tasks_user_completed ON public.tasks(user_id, is_completed, created_at);
+CREATE INDEX IF NOT EXISTS idx_tasks_title_gin ON public.tasks USING gin(to_tsvector('english', title));
 
 -- =============================================================================
 -- 3. HABITS, STREAKS & REWARDS MODULE
@@ -106,8 +142,11 @@ CREATE TABLE IF NOT EXISTS public.habits (
     icon_name VARCHAR(50) DEFAULT 'auto_awesome_rounded',
     color_hex VARCHAR(10) DEFAULT '#0D5CE5',
     is_archived BOOLEAN DEFAULT FALSE,
+    deleted_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX IF NOT EXISTS idx_habits_title_gin ON public.habits USING gin(to_tsvector('english', title));
 
 CREATE TABLE IF NOT EXISTS public.habit_logs (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -117,6 +156,8 @@ CREATE TABLE IF NOT EXISTS public.habit_logs (
     completed_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT unique_habit_log_per_day UNIQUE (habit_id, completed_date)
 );
+
+CREATE INDEX IF NOT EXISTS idx_habit_logs_user_date ON public.habit_logs(user_id, completed_date);
 
 CREATE TABLE IF NOT EXISTS public.habit_streaks (
     habit_id UUID PRIMARY KEY REFERENCES public.habits(id) ON DELETE CASCADE,
@@ -153,14 +194,16 @@ CREATE TABLE IF NOT EXISTS public.expenses (
     user_id UUID NOT NULL REFERENCES public.user_profiles(user_id) ON DELETE CASCADE,
     title VARCHAR(200) NOT NULL,
     amount NUMERIC(12, 2) NOT NULL CHECK (amount > 0),
-    category VARCHAR(100) NOT NULL, -- 'Food & Drinks', 'Education', 'Transport', 'Shopping', 'Others'
+    category VARCHAR(100) NOT NULL,
     is_income BOOLEAN DEFAULT FALSE,
     payment_method VARCHAR(50) DEFAULT 'UPI',
     expense_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    deleted_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_expenses_user_date ON public.expenses(user_id, expense_date);
+CREATE INDEX IF NOT EXISTS idx_expenses_user_category ON public.expenses(user_id, category, expense_date);
 
 -- =============================================================================
 -- 5. CAREER ROADMAP & GOAL HIERARCHY MODULE
@@ -176,6 +219,7 @@ CREATE TABLE IF NOT EXISTS public.goals (
     progress_percentage INT DEFAULT 0 CHECK (progress_percentage BETWEEN 0 AND 100),
     is_achieved BOOLEAN DEFAULT FALSE,
     achieved_at TIMESTAMPTZ,
+    deleted_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -250,8 +294,8 @@ CREATE TABLE IF NOT EXISTS public.subscriptions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES public.user_profiles(user_id) ON DELETE CASCADE,
     package_name VARCHAR(150) NOT NULL DEFAULT 'com.wrindhaos.productivity',
-    subscription_id VARCHAR(100) NOT NULL, -- Google Play SKU / Product ID
-    purchase_token TEXT NOT NULL UNIQUE,     -- Google Play Purchase Token
+    subscription_id VARCHAR(100) NOT NULL,
+    purchase_token TEXT NOT NULL UNIQUE,
     plan_tier VARCHAR(20) NOT NULL CHECK (plan_tier IN ('PRO_MONTHLY', 'ELITE_ANNUAL')),
     status VARCHAR(30) NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE', 'CANCELED', 'EXPIRED', 'PAUSED')),
     auto_renewing BOOLEAN DEFAULT TRUE,
@@ -259,6 +303,8 @@ CREATE TABLE IF NOT EXISTS public.subscriptions (
     verified_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX IF NOT EXISTS idx_subscriptions_user_status ON public.subscriptions(user_id, status, expiry_timestamp);
 
 CREATE TABLE IF NOT EXISTS public.payment_history (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -284,6 +330,9 @@ CREATE TABLE IF NOT EXISTS public.admin_users (
         CHECK (role IN ('SUPER_ADMIN', 'FINANCE_ADMIN', 'MODERATOR', 'SUPPORT_AGENT')),
     permissions JSONB NOT NULL DEFAULT '["READ_USERS", "VIEW_ANALYTICS"]'::jsonb,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    two_factor_secret VARCHAR(64),
+    is_2fa_enabled BOOLEAN DEFAULT FALSE,
+    password_hash TEXT,
     last_login_at TIMESTAMPTZ,
     last_login_ip VARCHAR(45),
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -295,7 +344,7 @@ CREATE TABLE IF NOT EXISTS public.admin_audit_logs (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     admin_id UUID REFERENCES public.admin_users(id) ON DELETE SET NULL,
     target_user_id UUID REFERENCES public.user_profiles(user_id) ON DELETE SET NULL,
-    action VARCHAR(100) NOT NULL, -- e.g. 'USER_BANNED', 'PRICE_CHANGED', 'NOTIFICATION_BROADCAST'
+    action VARCHAR(100) NOT NULL,
     resource_type VARCHAR(100),
     resource_id UUID,
     details JSONB,
@@ -308,6 +357,7 @@ CREATE TABLE IF NOT EXISTS public.admin_audit_logs (
 );
 
 CREATE INDEX IF NOT EXISTS idx_admin_audit_action ON public.admin_audit_logs(action, created_at);
+CREATE INDEX IF NOT EXISTS idx_admin_audit_target ON public.admin_audit_logs(target_user_id);
 
 -- User Moderation & Suspension
 CREATE TABLE IF NOT EXISTS public.user_moderation (
@@ -361,11 +411,141 @@ CREATE TABLE IF NOT EXISTS public.analytics_snapshots (
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE INDEX IF NOT EXISTS idx_analytics_snapshots_date ON public.analytics_snapshots(snapshot_date DESC);
+
+-- Materialized View for Admin Dashboard (NEW)
+CREATE MATERIALIZED VIEW IF NOT EXISTS public.admin_dashboard_stats AS
+SELECT 
+    COUNT(DISTINCT u.id) AS total_users,
+    COUNT(DISTINCT CASE WHEN u.is_premium THEN u.id END) AS premium_users,
+    COUNT(DISTINCT CASE WHEN u.created_at > CURRENT_DATE - INTERVAL '7 days' THEN u.id END) AS new_users_7d,
+    COUNT(DISTINCT CASE WHEN u.created_at > CURRENT_DATE - INTERVAL '30 days' THEN u.id END) AS new_users_30d,
+    COUNT(DISTINCT CASE WHEN u.last_login_at > CURRENT_DATE - INTERVAL '1 day' THEN u.id END) AS active_users_24h,
+    COUNT(DISTINCT t.id) AS total_tasks,
+    COUNT(DISTINCT CASE WHEN t.is_completed THEN t.id END) AS completed_tasks,
+    COUNT(DISTINCT h.id) AS total_habits,
+    COALESCE(SUM(e.amount_inr), 0) AS total_revenue,
+    COALESCE(AVG(u.focus_score), 0) AS avg_focus_score
+FROM public.user_profiles u
+LEFT JOIN public.tasks t ON t.user_id = u.user_id AND t.deleted_at IS NULL
+LEFT JOIN public.habits h ON h.user_id = u.user_id AND h.deleted_at IS NULL
+LEFT JOIN public.payment_history e ON e.user_id = u.user_id;
+
 -- =============================================================================
--- 10. ROW LEVEL SECURITY (RLS) POLICIES
+-- 10. HELPER FUNCTIONS
 -- =============================================================================
 
+-- Check Admin Permission
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM public.admin_users
+    WHERE (user_id = auth.uid() OR email = auth.jwt()->>'email') 
+      AND is_active = TRUE
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Update updated_at column
+CREATE OR REPLACE FUNCTION public.update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Validate email format
+CREATE OR REPLACE FUNCTION public.validate_email_format()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.email !~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$' THEN
+        RAISE EXCEPTION 'Invalid email format';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Audit trigger function
+CREATE OR REPLACE FUNCTION public.audit_trigger_function()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'DELETE' THEN
+        INSERT INTO public.admin_audit_logs (admin_id, target_user_id, action, resource_type, resource_id, old_value)
+        VALUES (auth.uid(), OLD.user_id, 'DELETE', TG_TABLE_NAME, OLD.id, to_jsonb(OLD));
+        RETURN OLD;
+    ELSIF TG_OP = 'UPDATE' THEN
+        INSERT INTO public.admin_audit_logs (admin_id, target_user_id, action, resource_type, resource_id, old_value, new_value)
+        VALUES (auth.uid(), NEW.user_id, 'UPDATE', TG_TABLE_NAME, NEW.id, to_jsonb(OLD), to_jsonb(NEW));
+        RETURN NEW;
+    ELSIF TG_OP = 'INSERT' THEN
+        INSERT INTO public.admin_audit_logs (admin_id, target_user_id, action, resource_type, resource_id, new_value)
+        VALUES (auth.uid(), NEW.user_id, 'INSERT', TG_TABLE_NAME, NEW.id, to_jsonb(NEW));
+        RETURN NEW;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Refresh admin stats function
+CREATE OR REPLACE FUNCTION public.refresh_admin_stats()
+RETURNS VOID AS $$
+BEGIN
+    REFRESH MATERIALIZED VIEW CONCURRENTLY public.admin_dashboard_stats;
+END;
+$$ LANGUAGE plpgsql;
+
+-- =============================================================================
+-- 11. TRIGGERS
+-- =============================================================================
+
+-- Update updated_at triggers
+CREATE TRIGGER update_user_profiles_updated_at 
+    BEFORE UPDATE ON public.user_profiles 
+    FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+CREATE TRIGGER update_tasks_updated_at 
+    BEFORE UPDATE ON public.tasks 
+    FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+CREATE TRIGGER update_admin_users_updated_at 
+    BEFORE UPDATE ON public.admin_users 
+    FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+CREATE TRIGGER update_notification_settings_updated_at 
+    BEFORE UPDATE ON public.notification_settings 
+    FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+CREATE TRIGGER update_app_settings_updated_at 
+    BEFORE UPDATE ON public.app_settings 
+    FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+-- Validate email triggers
+CREATE TRIGGER validate_user_profile_email 
+    BEFORE INSERT OR UPDATE ON public.user_profiles 
+    FOR EACH ROW EXECUTE FUNCTION public.validate_email_format();
+
+-- Audit triggers on sensitive tables
+CREATE TRIGGER audit_user_profiles 
+    AFTER INSERT OR UPDATE OR DELETE ON public.user_profiles
+    FOR EACH ROW EXECUTE FUNCTION public.audit_trigger_function();
+
+CREATE TRIGGER audit_subscriptions 
+    AFTER INSERT OR UPDATE OR DELETE ON public.subscriptions
+    FOR EACH ROW EXECUTE FUNCTION public.audit_trigger_function();
+
+CREATE TRIGGER audit_user_moderation 
+    AFTER INSERT OR UPDATE ON public.user_moderation
+    FOR EACH ROW EXECUTE FUNCTION public.audit_trigger_function();
+
+-- =============================================================================
+-- 12. ROW LEVEL SECURITY (RLS) POLICIES
+-- =============================================================================
+
+-- Enable RLS on all tables
 ALTER TABLE public.user_profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.notification_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.tasks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.habits ENABLE ROW LEVEL SECURITY;
@@ -382,7 +562,6 @@ ALTER TABLE public.calendar_events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_referrals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.subscriptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.payment_history ENABLE ROW LEVEL SECURITY;
-
 ALTER TABLE public.admin_users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.admin_audit_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_moderation ENABLE ROW LEVEL SECURITY;
@@ -390,69 +569,196 @@ ALTER TABLE public.app_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.broadcast_campaigns ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.analytics_snapshots ENABLE ROW LEVEL SECURITY;
 
--- Helper Function: Check Admin Permission
-CREATE OR REPLACE FUNCTION public.is_admin()
-RETURNS BOOLEAN AS $$
-BEGIN
-  RETURN EXISTS (
-    SELECT 1 FROM public.admin_users
-    WHERE (user_id = auth.uid() OR email = auth.jwt()->>'email') 
-      AND is_active = TRUE
-  );
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+-- =============================================================================
+-- USER POLICIES
+-- =============================================================================
 
--- User Policies: Read/Write Own Data Only
+-- User Profiles
 CREATE POLICY "Users access own profile" ON public.user_profiles 
     FOR ALL TO authenticated 
+    USING (user_id = auth.uid() AND deleted_at IS NULL) 
+    WITH CHECK (user_id = auth.uid());
+
+-- User Sessions
+CREATE POLICY "Users access own sessions" ON public.user_sessions 
+    FOR ALL TO authenticated 
     USING (user_id = auth.uid()) 
     WITH CHECK (user_id = auth.uid());
 
+-- Notification Settings
+CREATE POLICY "Users access own notification_settings" ON public.notification_settings 
+    FOR ALL TO authenticated 
+    USING (user_id = auth.uid()) 
+    WITH CHECK (user_id = auth.uid());
+
+-- Tasks
 CREATE POLICY "Users access own tasks" ON public.tasks 
     FOR ALL TO authenticated 
-    USING (user_id = auth.uid()) 
+    USING (user_id = auth.uid() AND deleted_at IS NULL) 
     WITH CHECK (user_id = auth.uid());
 
+-- Habits
 CREATE POLICY "Users access own habits" ON public.habits 
     FOR ALL TO authenticated 
+    USING (user_id = auth.uid() AND deleted_at IS NULL) 
+    WITH CHECK (user_id = auth.uid());
+
+-- Habit Logs
+CREATE POLICY "Users access own habit_logs" ON public.habit_logs 
+    FOR ALL TO authenticated 
     USING (user_id = auth.uid()) 
     WITH CHECK (user_id = auth.uid());
 
+-- Habit Streaks
+CREATE POLICY "Users access own habit_streaks" ON public.habit_streaks 
+    FOR ALL TO authenticated 
+    USING (user_id = auth.uid()) 
+    WITH CHECK (user_id = auth.uid());
+
+-- Habit Rewards
+CREATE POLICY "Users access own habit_rewards" ON public.habit_rewards 
+    FOR ALL TO authenticated 
+    USING (user_id = auth.uid()) 
+    WITH CHECK (user_id = auth.uid());
+
+-- Monthly Budgets
+CREATE POLICY "Users access own monthly_budgets" ON public.monthly_budgets 
+    FOR ALL TO authenticated 
+    USING (user_id = auth.uid()) 
+    WITH CHECK (user_id = auth.uid());
+
+-- Expenses
 CREATE POLICY "Users access own expenses" ON public.expenses 
     FOR ALL TO authenticated 
-    USING (user_id = auth.uid()) 
+    USING (user_id = auth.uid() AND deleted_at IS NULL) 
     WITH CHECK (user_id = auth.uid());
 
+-- Goals
 CREATE POLICY "Users access own goals" ON public.goals 
+    FOR ALL TO authenticated 
+    USING (user_id = auth.uid() AND deleted_at IS NULL) 
+    WITH CHECK (user_id = auth.uid());
+
+-- Career Milestones
+CREATE POLICY "Users access own career_milestones" ON public.career_milestones 
     FOR ALL TO authenticated 
     USING (user_id = auth.uid()) 
     WITH CHECK (user_id = auth.uid());
 
+-- Study Subjects
 CREATE POLICY "Users access own subjects" ON public.study_subjects 
     FOR ALL TO authenticated 
     USING (user_id = auth.uid()) 
     WITH CHECK (user_id = auth.uid());
 
+-- Study Units
+CREATE POLICY "Users access own study_units" ON public.study_units 
+    FOR ALL TO authenticated 
+    USING (subject_id IN (SELECT id FROM public.study_subjects WHERE user_id = auth.uid())) 
+    WITH CHECK (subject_id IN (SELECT id FROM public.study_subjects WHERE user_id = auth.uid()));
+
+-- Calendar Events
 CREATE POLICY "Users access own calendar" ON public.calendar_events 
     FOR ALL TO authenticated 
     USING (user_id = auth.uid()) 
     WITH CHECK (user_id = auth.uid());
 
+-- User Referrals
+CREATE POLICY "Users access own referrals" ON public.user_referrals 
+    FOR ALL TO authenticated 
+    USING (referrer_id = auth.uid() OR referee_id = auth.uid()) 
+    WITH CHECK (referrer_id = auth.uid());
+
+-- Subscriptions
 CREATE POLICY "Users view own subscriptions" ON public.subscriptions 
     FOR SELECT TO authenticated 
     USING (user_id = auth.uid());
 
+-- Payment History
+CREATE POLICY "Users view own payment_history" ON public.payment_history 
+    FOR SELECT TO authenticated 
+    USING (user_id = auth.uid());
+
+-- App Settings (Public)
 CREATE POLICY "Users view public app settings" ON public.app_settings 
     FOR SELECT 
     USING (is_public = TRUE);
 
--- Admin Policies: Full Access to all tables for authenticated Admins
-CREATE POLICY "Admins full user_profiles" ON public.user_profiles FOR ALL TO authenticated USING (public.is_admin());
-CREATE POLICY "Admins full tasks" ON public.tasks FOR ALL TO authenticated USING (public.is_admin());
-CREATE POLICY "Admins full expenses" ON public.expenses FOR ALL TO authenticated USING (public.is_admin());
-CREATE POLICY "Admins full subscriptions" ON public.subscriptions FOR ALL TO authenticated USING (public.is_admin());
-CREATE POLICY "Admins full audit_logs" ON public.admin_audit_logs FOR ALL TO authenticated USING (public.is_admin());
-CREATE POLICY "Admins full moderation" ON public.user_moderation FOR ALL TO authenticated USING (public.is_admin());
-CREATE POLICY "Admins full app_settings" ON public.app_settings FOR ALL TO authenticated USING (public.is_admin());
-CREATE POLICY "Admins full analytics_snapshots" ON public.analytics_snapshots FOR ALL TO authenticated USING (public.is_admin());
-CREATE POLICY "Admins full broadcast_campaigns" ON public.broadcast_campaigns FOR ALL TO authenticated USING (public.is_admin());
+-- =============================================================================
+-- ADMIN POLICIES
+-- =============================================================================
+
+-- Admin Users
+CREATE POLICY "Admins view other admins" ON public.admin_users 
+    FOR SELECT TO authenticated 
+    USING (public.is_admin() OR user_id = auth.uid());
+
+CREATE POLICY "Admins manage admin_users" ON public.admin_users 
+    FOR ALL TO authenticated 
+    USING (public.is_admin() AND (SELECT role FROM public.admin_users WHERE user_id = auth.uid()) IN ('SUPER_ADMIN', 'FINANCE_ADMIN'));
+
+-- Full Access for Admins
+CREATE POLICY "Admins full user_profiles" ON public.user_profiles 
+    FOR ALL TO authenticated 
+    USING (public.is_admin());
+
+CREATE POLICY "Admins full tasks" ON public.tasks 
+    FOR ALL TO authenticated 
+    USING (public.is_admin());
+
+CREATE POLICY "Admins full expenses" ON public.expenses 
+    FOR ALL TO authenticated 
+    USING (public.is_admin());
+
+CREATE POLICY "Admins full subscriptions" ON public.subscriptions 
+    FOR ALL TO authenticated 
+    USING (public.is_admin());
+
+CREATE POLICY "Admins full audit_logs" ON public.admin_audit_logs 
+    FOR ALL TO authenticated 
+    USING (public.is_admin());
+
+CREATE POLICY "Admins full moderation" ON public.user_moderation 
+    FOR ALL TO authenticated 
+    USING (public.is_admin());
+
+CREATE POLICY "Admins full app_settings" ON public.app_settings 
+    FOR ALL TO authenticated 
+    USING (public.is_admin());
+
+CREATE POLICY "Admins full analytics_snapshots" ON public.analytics_snapshots 
+    FOR ALL TO authenticated 
+    USING (public.is_admin());
+
+CREATE POLICY "Admins full broadcast_campaigns" ON public.broadcast_campaigns 
+    FOR ALL TO authenticated 
+    USING (public.is_admin());
+
+CREATE POLICY "Admins full habits" ON public.habits 
+    FOR ALL TO authenticated 
+    USING (public.is_admin());
+
+CREATE POLICY "Admins full goals" ON public.goals 
+    FOR ALL TO authenticated 
+    USING (public.is_admin());
+
+CREATE POLICY "Admins full calendar_events" ON public.calendar_events 
+    FOR ALL TO authenticated 
+    USING (public.is_admin());
+
+-- =============================================================================
+-- 13. INITIAL DATA SEEDING (Optional)
+-- =============================================================================
+
+-- Insert default app settings
+INSERT INTO public.app_settings (key, value, description, is_public) VALUES
+('max_free_tasks', '{"value": 50}', 'Maximum tasks for free tier users', true),
+('max_free_habits', '{"value": 10}', 'Maximum habits for free tier users', true),
+('max_free_expenses', '{"value": 100}', 'Maximum expenses for free tier users', true),
+('feature_flags', '{"ai_assistant": true, "dark_mode": true, "voice_input": false}', 'Feature flags for the app', false),
+('default_budget', '{"amount": 5000, "currency": "INR"}', 'Default monthly budget', true)
+ON CONFLICT (key) DO NOTHING;
+
+-- =============================================================================
+-- END OF SCHEMA
+-- =============================================================================
