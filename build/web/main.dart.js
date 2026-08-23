@@ -102261,14 +102261,12 @@ q.N$=s
 q.I$=0
 r.aa7()},
 ajj(){var s,r,q=this,p=null,o="! (Demo OTP: 1234)",n=q.d
-n===$&&A.b()
-s=n.d===0
-r=s?B.c.aN(q.f.a.a):B.c.aN(q.r.a.a)
+r=B.c.aN(q.r.a.a)
 n=t.J
 if(r.length!==0){q.K(new A.aDx(q))
 n=q.c.Y(n).f
-n.d7(A.jd(p,p,p,B.u,p,B.z,p,A.m(s?"4-digit OTP sent to "+r+o:"4-digit verification code sent to "+r+o,p,p,p,p,p,p,p,p),p,B.b7,p,p,p,p,p,p,p,p,p,p))}else{n=q.c.Y(n).f
-n.d7(A.jd(p,p,p,B.Vg,p,B.z,p,A.m("Please enter your "+(s?"mobile number":"email address"),p,p,p,p,p,p,p,p),p,B.b7,p,p,p,p,p,p,p,p,p,p))}},
+n.d7(A.jd(p,p,p,B.u,p,B.z,p,A.m("6-digit verification code sent to "+r+o,p,p,p,p,p,p,p,p),p,B.b7,p,p,p,p,p,p,p,p,p,p))}else{n=q.c.Y(n).f
+n.d7(A.jd(p,p,p,B.Vg,p,B.z,p,A.m("Please enter your email address",p,p,p,p,p,p,p,p),p,B.b7,p,p,p,p,p,p,p,p,p,p))}},
 ny(){var s=0,r=A.V(t.H),q=this,p,o
 var $async$ny=A.W(function(a,b){if(a===1)return A.S(b,r)
 for(;;)switch(s){case 0:o=q.c
@@ -102282,7 +102280,10 @@ return A.U($async$ny,r)},
 ajp(){var s,r,q,p,o,n=this,m=null,l=B.c.aN(n.e.a.a),r=B.c.aN(n.r.a.a),q=B.c.aN(n.x.a.a),p=B.c.aN(n.y.a.a),k=n.c
 if(l.length===0){n.c.Y(t.J).f.d7(B.a0h)
 return}if(r.length===0){k.Y(t.J).f.d7(A.jd(m,m,m,m,m,B.z,m,A.m("Please enter your email address",m,m,m,m,m,m,m,m),m,B.b7,m,m,m,m,m,m,m,m,m,m))
+return}if(!n.z){k.Y(t.J).f.d7(A.jd(m,m,m,m,m,B.z,m,A.m("Please tap 'Send OTP' to verify your email",m,m,m,m,m,m,m,m),m,B.b7,m,m,m,m,m,m,m,m,m,m))
+return}if(B.c.aN(n.w.a.a).length===0){k.Y(t.J).f.d7(A.jd(m,m,m,m,m,B.z,m,A.m("Please enter the verification code sent to your email",m,m,m,m,m,m,m,m),m,B.b7,m,m,m,m,m,m,m,m,m,m))
 return}if(q.length<6){n.c.Y(t.J).f.d7(B.a0p)
+return}if(p!==q){k.Y(t.J).f.d7(A.jd(m,m,m,m,m,B.z,m,A.m("Passwords do not match",m,m,m,m,m,m,m,m),m,B.b7,m,m,m,m,m,m,m,m,m,m))
 return}if(!n.Q){n.c.Y(t.J).f.d7(B.ET)
 n.ny()
 return}k=n.c
@@ -102320,7 +102321,12 @@ r=A.B(14)
 q=f?B.bl:B.aR
 p=A.B(14)
 m=f?B.bl:B.aR
-a0=A.bZ(j,B.Z,!1,j,!0,B.z,j,A.c4(),k.r,j,j,j,j,j,2,A.dW(j,new A.bB(4,r,new A.am(q,1,B.p,-1)),j,j,j,j,j,j,!0,new A.bB(4,p,new A.am(m,1,B.p,-1)),j,j,j,j,j,s,!0,j,j,j,j,new A.bB(4,A.B(14),new A.am(e,1.5,B.p,-1)),j,j,j,j,j,j,j,j,a4,"",j,j,j,j,j,j,j,j,j,!0,!0,!1,j,a5,j,j,j,j,j,j,j,j,j,j,j,j),B.t,!0,j,!0,j,!1,j,B.W,j,j,j,j,B.pa,j,j,j,1,j,j,!1,h,j,j,j,j,j,!1,j,j,!1,j,!0,j,B.F,j,j,j,j,j,j,j,j,j,j,j,j,!0,B.G,j,B.a3,j,j,j,j)
+o=k.gaji()
+a5=A.a([A.a4(A.a([A.aD(A.bZ(j,B.Z,!1,j,!0,B.z,j,A.c4(),k.r,j,j,j,j,j,2,A.dW(j,new A.bB(4,r,new A.am(q,1,B.p,-1)),j,j,j,j,j,j,!0,new A.bB(4,p,new A.am(m,1,B.p,-1)),j,j,j,j,j,s,!0,j,j,j,j,new A.bB(4,A.B(14),new A.am(e,1.5,B.p,-1)),j,j,j,j,j,j,j,j,a4,"",j,j,j,j,j,j,j,j,j,!0,!0,!1,j,a5,j,j,j,j,j,j,j,j,j,j,j,j),B.t,!0,j,!0,j,!1,j,B.W,j,j,j,j,B.pa,j,j,j,1,j,j,!1,h,j,j,j,j,j,!1,j,j,!1,j,!0,j,B.F,j,j,j,j,j,j,j,j,j,j,j,j,!0,B.G,j,B.a3,j,j,j,j),1),B.aq,A.cW(B.FD,o,A.cX(j,j,e,j,j,j,0,j,j,j,j,j,B.fA,j,new A.bb(A.B(14),B.v),j,j,j,j,j))],n),B.i,B.h,B.f,0,j,j)],n)
+if(k.z){a4=A.J(j,j,A.b1(i),j,j,j,j,j,j,j,j,13.5,j,j,j,j,j,!0,j,j,j,j,j,j,j,j)
+a6=A.as(B.nC,e,j,20)
+B.b.M(a5,A.a([B.a4,A.bZ(j,B.Z,!1,j,!0,B.z,j,A.c4(),k.w,j,j,j,j,j,2,A.dW(j,new A.bB(4,r,new A.am(q,1,B.p,-1)),j,j,j,j,"",j,!0,new A.bB(4,p,new A.am(m,1,B.p,-1)),j,j,j,j,j,s,!0,j,j,j,j,new A.bB(4,A.B(14),new A.am(e,1.5,B.p,-1)),j,j,j,j,j,j,j,j,a4,"Enter 6-digit OTP (Demo: 1234)",j,j,j,j,j,j,j,j,j,!0,!0,!1,j,a6,j,j,j,j,j,j,j,j,j,j,j,j),B.t,!0,j,!0,j,!1,j,B.W,j,j,j,j,B.iS,j,6,j,1,j,j,!1,h,j,j,j,j,j,!1,j,j,!1,j,!0,j,B.F,j,j,j,j,j,j,j,j,j,j,j,j,!0,B.G,j,B.a3,j,j,j,j)],n))}
+a0=A.a0(a5,B.w,B.h,B.f,0,B.m)
 a3=k.as
 a4=A.J(j,j,A.b1(i),j,j,j,j,j,j,j,j,13.5,j,j,j,j,j,!0,j,j,j,j,j,j,j,j)
 a5=A.as(B.tQ,e,j,20)
@@ -110756,7 +110762,7 @@ B.a9I=new A.L("PROGRESS",null,B.Fp,null,null,null,null,null,null,null,null)
 B.a9J=new A.L("Upgrade Plan",null,B.Ft,null,null,null,null,null,null,null,null)
 B.a9K=new A.L("SELECT TIER",null,B.l6,null,null,null,null,null,null,null,null)
 B.a9L=new A.L("25m Focus \u26a1",null,null,null,null,null,null,null,null,null,null)
-B.FD=new A.L("OTP",null,B.fb,null,null,null,null,null,null,null,null)
+B.FD=new A.L("Send OTP",null,B.fb,null,null,null,null,null,null,null,null)
 B.a9M=new A.L("Save Changes",null,B.fb,null,null,null,null,null,null,null,null)
 B.a9O=new A.L("MODULE PERFORMANCE COMPARISON",null,B.aL,null,null,null,null,null,null,null,null)
 B.a9Q=new A.L("Edit Event",null,B.dd,null,null,null,null,null,null,null,null)
