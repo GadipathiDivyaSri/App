@@ -100,14 +100,14 @@ async function handleApiRequest(req, res) {
     });
   }
 
-  // 2. AUTH & 2FA OTP
+  // 2. AUTH & OTP
   if (pathname === '/api/auth/send-otp' && method === 'POST') {
     const contact = body.contact || 'demo@wrindhaos.in';
     const code = Math.floor(1000 + Math.random() * 9000).toString(); // 4-digit OTP
     db.otpStore[contact] = { code, expiresAt: Date.now() + 5 * 60 * 1000 };
     saveDB(db);
 
-    console.log(`[AUTH] 2FA OTP generated for ${contact}: ${code}`);
+    console.log(`[AUTH] OTP generated for ${contact}: ${code}`);
     return sendJSON(res, 200, {
       success: true,
       message: `OTP sent successfully to ${contact}`,

@@ -47,19 +47,19 @@ class _LoginScreenState extends State<LoginScreen>
   void _handleMobileLogin() async {
     if (!_otpSent) {
       if (_phoneCtrl.text.trim().length >= 10) {
-        final res = await ApiService.send2FAOTP(_phoneCtrl.text.trim());
+        final res = await ApiService.sendOTP(_phoneCtrl.text.trim());
         setState(() {
           _otpSent = true;
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(res['message'] ?? '2FA OTP sent successfully! (Use code: 1234)'),
+            content: Text(res['message'] ?? 'OTP sent successfully! (Use code: 1234)'),
             backgroundColor: AppTheme.primaryAccent,
           ),
         );
       }
     } else {
-      final res = await ApiService.verify2FAOTP(
+      final res = await ApiService.verifyOTP(
           _phoneCtrl.text.trim(), _otpCtrl.text.trim());
       if (res['success'] == true || _otpCtrl.text.trim() == '1234') {
         final provider = Provider.of<AppProvider>(context, listen: false);
@@ -67,7 +67,7 @@ class _LoginScreenState extends State<LoginScreen>
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(res['message'] ?? 'Invalid 2FA OTP code. Please enter 1234'),
+            content: Text(res['message'] ?? 'Invalid OTP code. Please enter 1234'),
             backgroundColor: Colors.redAccent,
           ),
         );

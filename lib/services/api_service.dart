@@ -5,9 +5,9 @@ class ApiService {
   static const String baseUrl = 'http://localhost:3000/api';
 
   // ---------------------------------------------------------------------------
-  // AUTHENTICATION & 2FA OTP
+  // AUTHENTICATION & OTP
   // ---------------------------------------------------------------------------
-  static Future<Map<String, dynamic>> send2FAOTP(String contact) async {
+  static Future<Map<String, dynamic>> sendOTP(String contact) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/auth/send-otp'),
@@ -20,7 +20,7 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> verify2FAOTP(
+  static Future<Map<String, dynamic>> verifyOTP(
       String contact, String code) async {
     try {
       final response = await http.post(
@@ -33,6 +33,10 @@ class ApiService {
       return {'success': false, 'message': 'Verification failed: $e'};
     }
   }
+
+  // Backward compatibility alias
+  static Future<Map<String, dynamic>> send2FAOTP(String contact) => sendOTP(contact);
+  static Future<Map<String, dynamic>> verify2FAOTP(String contact, String code) => verifyOTP(contact, code);
 
   static Future<Map<String, dynamic>> googleSignIn(String token) async {
     try {

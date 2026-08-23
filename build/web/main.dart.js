@@ -100966,7 +100966,7 @@ case 7:o=b
 q.K(new A.axW(q))
 p=q.c.Y(t.J).f
 n=o.h(0,"message")
-p.d7(A.jd(null,null,null,B.N,null,B.z,null,A.m(n==null?"2FA OTP sent successfully! (Use code: 1234)":n,null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null))
+p.d7(A.jd(null,null,null,B.N,null,B.z,null,A.m(n==null?"OTP sent successfully! (Use code: 1234)":n,null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null))
 case 6:s=3
 break
 case 4:p=q.e
@@ -100979,7 +100979,7 @@ m=q.c
 if(n){m.toString
 A.f1(m,!1,t.T).MG("Alex Johnson",B.c.aN(p.a.a))}else{p=m.Y(t.J).f
 n=o.h(0,"message")
-p.d7(A.jd(null,null,null,B.cE,null,B.z,null,A.m(n==null?"Invalid 2FA OTP code. Please enter 1234":n,null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null))}case 3:return A.T(null,r)}})
+p.d7(A.jd(null,null,null,B.cE,null,B.z,null,A.m(n==null?"Invalid OTP code. Please enter 1234":n,null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null))}case 3:return A.T(null,r)}})
 return A.U($async$vv,r)},
 agN(){var s=this.w,r=B.c.aN(s.a.a).length!==0&&B.c.aN(this.x.a.a).length!==0,q=this.c
 if(r){q.toString
