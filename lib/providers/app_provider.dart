@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/models.dart';
 import '../services/api_service.dart';
+import '../services/auth_api_service.dart';
 
 class AppProvider extends ChangeNotifier {
   ThemeMode _themeMode = ThemeMode.light;
@@ -92,6 +93,25 @@ class AppProvider extends ChangeNotifier {
     _initData();
   }
 
+  void setAuthenticatedSession({
+    required Map<String, dynamic> userMap,
+    required String token,
+  }) {
+    _isLoggedIn = true;
+    _user = UserProfile(
+      id: userMap['id'] ?? 'u_1',
+      name: userMap['full_name'] ?? 'Student User',
+      contact: userMap['email'] ?? '',
+      focusScore: userMap['focus_score'] ?? 0,
+      activeStreak: userMap['active_streak'] ?? 0,
+      isPremium: (userMap['subscription_plan'] == 'PREMIUM'),
+      token: token,
+      referralCode: userMap['referral_code'] ?? 'WRINDHA',
+      referredByCode: userMap['referred_by_code'],
+    );
+    notifyListeners();
+  }
+
   void login(String name, String contact, {String? id, String? token, String? refCode}) {
     _isLoggedIn = true;
     _user = UserProfile(
@@ -130,8 +150,17 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void logout() {
+  Future<void> logout() async {
     _isLoggedIn = false;
+    _user = UserProfile(
+      id: 'u_1',
+      name: 'Student User',
+      contact: '',
+      focusScore: 0,
+      activeStreak: 0,
+      isPremium: false,
+    );
+    await AuthApiService.clearSession();
     notifyListeners();
   }
 
@@ -299,6 +328,13 @@ class AppProvider extends ChangeNotifier {
 
       // Load Monthly Budget
       _monthlyBudget = prefs.getDouble('saved_monthly_budget') ?? 10000.0;
+
+      // Restore authenticated session from secure storage
+      final storedToken = await AuthApiService.getSessionToken();
+      final cachedUser = await AuthApiService.getCachedUser();
+      if (storedToken != null && storedToken.isNotEmpty && cachedUser != null) {
+        setAuthenticatedSession(userMap: cachedUser, token: storedToken);
+      }
 
       // Load Theme
       final isDark = prefs.getBool('isDarkTheme') ?? false;
