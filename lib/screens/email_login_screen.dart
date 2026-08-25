@@ -159,7 +159,7 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                           color: primaryColor,
                           borderRadius: BorderRadius.circular(14),
                           boxShadow: [
-                            BoxDecoration(
+                            BoxShadow(
                               color: primaryColor.withOpacity(0.3),
                               blurRadius: 12,
                               offset: const Offset(0, 4),
