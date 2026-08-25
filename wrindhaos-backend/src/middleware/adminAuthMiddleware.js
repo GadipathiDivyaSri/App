@@ -1,6 +1,11 @@
 const { sendError } = require('../utils/response');
 
 /**
+ * Approved Administrative Roles
+ */
+const ADMIN_ROLES = new Set(['SUPER_ADMIN', 'ADMIN', 'SUPPORT_AGENT', 'MODERATOR']);
+
+/**
  * Allowed Non-Private Operational Admin Permissions
  */
 const ALLOWED_ADMIN_PERMISSIONS = new Set([
@@ -43,7 +48,13 @@ function authorizeAdminPermission(requiredPermission) {
       return sendError(res, 'Authentication required for administrative endpoints.', 'UNAUTHORIZED', 401);
     }
 
-    // 2. Reject any attempt to request forbidden private permissions
+    // 2. Ensure user possesses an approved administrative role
+    const userRole = req.user.role;
+    if (!userRole || !ADMIN_ROLES.has(userRole)) {
+      return sendError(res, 'Access denied: Administrative privileges required.', 'FORBIDDEN_ROLE', 403);
+    }
+
+    // 3. Reject any attempt to request forbidden private permissions
     if (FORBIDDEN_PRIVATE_PERMISSIONS.has(requiredPermission)) {
       return sendError(
         res,
@@ -53,15 +64,13 @@ function authorizeAdminPermission(requiredPermission) {
       );
     }
 
-    // 3. Ensure required permission is an approved operational permission
+    // 4. Ensure required permission is an approved operational permission
     if (!ALLOWED_ADMIN_PERMISSIONS.has(requiredPermission)) {
       return sendError(res, 'Invalid operational administrative permission specified.', 'INVALID_PERMISSION', 403);
     }
 
-    // 4. Verify Admin Role & Active Account Status (Demo fallback for testing / admin_users DB lookup)
-    const userRole = req.user.role || 'SUPER_ADMIN';
+    // 5. Verify Active Account Status
     const isActive = req.user.is_active ?? true;
-
     if (!isActive) {
       return sendError(res, 'Administrator account is deactivated.', 'ACCOUNT_DEACTIVATED', 403);
     }
@@ -79,6 +88,7 @@ function authorizeAdminPermission(requiredPermission) {
 
 module.exports = {
   authorizeAdminPermission,
+  ADMIN_ROLES,
   ALLOWED_ADMIN_PERMISSIONS,
   FORBIDDEN_PRIVATE_PERMISSIONS,
 };
