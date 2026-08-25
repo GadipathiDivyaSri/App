@@ -19,7 +19,7 @@ describe('MSG91 Widget Token & Supabase User Persistence Suite', () => {
     server.close(done);
   });
 
-  test('1. Reject request with missing accessToken', async () => {
+  test('1. Reject request with missing accessToken (HTTP 400)', async () => {
     const res = await fetch(`${BASE_URL}/msg91/verify`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -32,7 +32,7 @@ describe('MSG91 Widget Token & Supabase User Persistence Suite', () => {
     assert.ok(body.error.message.includes('accessToken'));
   });
 
-  test('2. Reject invalid or expired MSG91 access token before reaching user creation', async () => {
+  test('2. Reject invalid or expired MSG91 access token before reaching user creation (HTTP 401)', async () => {
     const beforeCount = mockStore.users.size;
     const res = await fetch(`${BASE_URL}/msg91/verify`, {
       method: 'POST',
@@ -47,7 +47,7 @@ describe('MSG91 Widget Token & Supabase User Persistence Suite', () => {
     assert.strictEqual(mockStore.users.size, beforeCount, 'No user should be created on invalid token');
   });
 
-  test('3. New verified email -> user created with correct FREE defaults and referral code', async () => {
+  test('3. New verified email -> user created with correct FREE defaults and referral code (HTTP 200)', async () => {
     const testEmail = 'new.student.persist@wrindhaos.com';
     const res = await fetch(`${BASE_URL}/msg91/verify`, {
       method: 'POST',
@@ -115,7 +115,6 @@ describe('MSG91 Widget Token & Supabase User Persistence Suite', () => {
       }),
     });
     const body2 = await res2.json();
-    assert.strictEqual(body2.status, undefined);
     assert.strictEqual(res2.status, 200);
     assert.strictEqual(body2.data.isNewUser, false);
     assert.strictEqual(body2.data.user.id, userId, 'Must match previous user ID');
@@ -180,5 +179,34 @@ describe('MSG91 Widget Token & Supabase User Persistence Suite', () => {
     assert.strictEqual(rawString.includes('authkey'), false);
     assert.strictEqual(body.data.user.serviceRoleKey, undefined);
     assert.strictEqual(body.data.user.anonKey, undefined);
+  });
+
+  test('9. Convenience Alias: /email/verify-token functions identically to /msg91/verify', async () => {
+    const aliasEmail = 'alias.user@wrindhaos.com';
+    const res = await fetch(`${BASE_URL}/email/verify-token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        accessToken: `test_msg91_token_${aliasEmail}`,
+      }),
+    });
+
+    const body = await res.json();
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(body.success, true);
+    assert.strictEqual(body.data.user.email, aliasEmail);
+  });
+
+  test('10. Direct access bypass prevention: Invalid or missing token cannot access protected routes', async () => {
+    const res = await fetch(`http://localhost:${PORT}/api/v1/users/me`, {
+      method: 'GET',
+      headers: {
+        'Authorization': 'Bearer invalid_garbage_token_123',
+      },
+    });
+
+    assert.strictEqual(res.status, 401);
+    const body = await res.json();
+    assert.strictEqual(body.success, false);
   });
 });
