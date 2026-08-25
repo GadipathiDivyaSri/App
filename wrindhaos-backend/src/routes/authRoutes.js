@@ -4,6 +4,10 @@ const authController = require('../controllers/authController');
 const { otpRateLimiter } = require('../middleware/rateLimitMiddleware');
 const { validateBody } = require('../middleware/validationMiddleware');
 
+// MSG91 Widget Access Token Verification Endpoint
+router.post('/msg91/verify', validateBody(['accessToken']), authController.verifyMsg91Token);
+router.post('/email/verify-token', validateBody(['accessToken']), authController.verifyMsg91Token);
+
 // Email OTP Endpoints
 router.post('/email/request-otp', otpRateLimiter, validateBody(['email']), authController.requestEmailOTP);
 router.post('/email/verify-otp', validateBody(['email', 'otp']), authController.verifyEmailOTP);

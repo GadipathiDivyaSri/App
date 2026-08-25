@@ -1,6 +1,22 @@
+const msg91Service = require('../services/msg91Service');
 const otpService = require('../services/otpService');
 const authService = require('../services/authService');
 const { sendSuccess, sendError } = require('../utils/response');
+
+/**
+ * Verify MSG91 Widget Access Token & Issue WrindhaOS App Session
+ * Architecture: Flutter (Widget) -> accessToken -> Backend -> MSG91 Server -> Verified Email -> Supabase User -> App JWT
+ */
+async function verifyMsg91Token(req, res, next) {
+  try {
+    const { accessToken, referredByCode } = req.body;
+    const { email } = await msg91Service.verifyAccessToken(accessToken);
+    const authResult = await authService.authenticateEmail(email, req.ip, referredByCode);
+    sendSuccess(res, authResult, 'MSG91 Email authentication verified successfully.');
+  } catch (err) {
+    next(err);
+  }
+}
 
 async function requestEmailOTP(req, res, next) {
   try {
@@ -55,6 +71,7 @@ async function googleSignIn(req, res, next) {
 }
 
 module.exports = {
+  verifyMsg91Token,
   requestEmailOTP,
   verifyEmailOTP,
   requestMobileOTP,

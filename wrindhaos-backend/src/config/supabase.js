@@ -1,14 +1,18 @@
 const { createClient } = require('@supabase/supabase-js');
 const config = require('./env');
 
-let supabase;
-let supabaseAdmin;
+let supabase = null;
+let supabaseAdmin = null;
 
-try {
-  supabase = createClient(config.supabase.url, config.supabase.anonKey);
-  supabaseAdmin = createClient(config.supabase.url, config.supabase.serviceRoleKey);
-} catch (err) {
-  console.warn('[SUPABASE] Could not initialize live Supabase client. Operating in safe fallback mode.');
+if (config.supabase.url && config.supabase.anonKey) {
+  try {
+    supabase = createClient(config.supabase.url, config.supabase.anonKey);
+    if (config.supabase.serviceRoleKey) {
+      supabaseAdmin = createClient(config.supabase.url, config.supabase.serviceRoleKey);
+    }
+  } catch (err) {
+    console.warn('[SUPABASE] Could not initialize live Supabase client. Operating in safe fallback mode.');
+  }
 }
 
 // Memory database cache fallback

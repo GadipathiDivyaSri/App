@@ -52,8 +52,16 @@ node_modules/
 admin-portal/node_modules/
 admin-portal/dist/
 wrindhaos-backend/node_modules/
-wrindhaos-backend/npm-debug.log
+# Environment files
 .env
+.env.*
+.env.local
+.env.development
+.env.production
+!.env.example
 wrindhaos-backend/.env
+wrindhaos-backend/.env.*
+!wrindhaos-backend/.env.example
 wrindhaos-backend/powershell.cmd
 wrindhaos-backend/powershell.bat
+
