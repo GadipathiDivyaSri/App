@@ -101,7 +101,7 @@ class HomeScreen extends StatelessWidget {
                       isDark: isDark,
                       icon: Icons.spa_outlined,
                       title: 'Personal\nGrowth',
-                      subtitle: 'Habits & Milestones',
+                      subtitle: 'Habits & Streaks',
                       lightCardBg: AppTheme.pastelPersonalGrowth,
                       lightIconContainerColor: const Color(0xFF4A9B65),
                       onTap: () {

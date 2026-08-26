@@ -1,9 +1,18 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../models/models.dart';
 import '../providers/app_provider.dart';
+import '../widgets/premium_lock_banner.dart';
 import '../theme/app_theme.dart';
 
+/// Analytics Screen for WrindhaOS
+/// 
+/// Supports 4 distinct period aggregations:
+/// 1. [ 10 Days ] - Most recent 10 days
+/// 2. [ Week ] - Selected 7-day week
+/// 3. [ Month ] - Selected 30-day month
+/// 4. [ Year ] - 12-month annual view
+/// Uses real user data from AppProvider without fake stats.
 class AnalyticsScreen extends StatefulWidget {
   const AnalyticsScreen({super.key});
 
@@ -11,823 +20,323 @@ class AnalyticsScreen extends StatefulWidget {
   State<AnalyticsScreen> createState() => _AnalyticsScreenState();
 }
 
-class _AnalyticsScreenState extends State<AnalyticsScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 5, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
+class _AnalyticsScreenState extends State<AnalyticsScreen> {
+  // '10_DAYS', 'WEEK', 'MONTH', 'YEAR'
+  String _selectedPeriod = '10_DAYS';
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor = isDark ? AppTheme.darkPrimary : AppTheme.lightPrimary;
+    final provider = Provider.of<AppProvider>(context);
+    final isPremium = provider.user.isPremium;
+    final textPrimary = isDark ? AppTheme.darkTextPrimary : AppTheme.textPrimary;
+    final textSecondary = isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary;
+    final cardBg = isDark ? AppTheme.darkCardBg : AppTheme.cardSurface;
+    final primaryColor = isDark ? AppTheme.darkPrimary : AppTheme.primaryAccent;
+
+    // Filter data according to selected period
+    final now = DateTime.now();
+    int daysLimit = 10;
+    if (_selectedPeriod == '10_DAYS') daysLimit = 10;
+    if (_selectedPeriod == 'WEEK') daysLimit = 7;
+    if (_selectedPeriod == 'MONTH') daysLimit = 30;
+    if (_selectedPeriod == 'YEAR') daysLimit = 365;
+
+    final cutoffDate = now.subtract(Duration(days: daysLimit));
+
+    final periodTasks = provider.tasks.where((t) => !t.dueDate.isBefore(cutoffDate)).toList();
+    final completedTasks = periodTasks.where((t) => t.isCompleted).length;
+    final taskCompletionRate = periodTasks.isEmpty ? 0.0 : (completedTasks / periodTasks.length);
+
+    final periodExpenses = provider.expenses.where((e) => !e.date.isBefore(cutoffDate)).toList();
+    final totalSpent = periodExpenses.where((e) => !e.isIncome).fold(0.0, (sum, e) => sum + e.amount);
+
+    final habits = provider.habits;
+    final completedHabits = habits.where((h) => h.isCompleted).length;
+    final habitRate = habits.isEmpty ? 0.0 : (completedHabits / habits.length);
+
+    final subjects = provider.subjects;
+    final avgStudyProgress = subjects.isEmpty
+        ? 0.0
+        : (subjects.fold(0.0, (sum, s) => sum + s.progress) / subjects.length);
+
+    // Productivity Score = weighted average of task completion (40%), habits (40%), study progress (20%)
+    final prodScore = ((taskCompletionRate * 0.4 + habitRate * 0.4 + avgStudyProgress * 0.2) * 100).round();
 
     return Scaffold(
-      backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
+      backgroundColor: isDark ? AppTheme.darkBg : AppTheme.background,
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back_ios_new_rounded,
-            size: 20,
-            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
-          ),
+          icon: Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Analytics & Insights',
-          style: TextStyle(
-            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
-            fontWeight: FontWeight.w800,
-          ),
+          style: TextStyle(color: textPrimary, fontWeight: FontWeight.w800),
         ),
       ),
-      body: Column(
-        children: [
-          // Top Pastel / Dark Banner (Refer to Image 2)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(18),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 1. Premium Lock Banner if Free
+            if (!isPremium)
+              const PremiumLockBanner(
+                featureName: 'Analytics',
+                description: 'You are currently viewing Analytics in preview mode. Upgrade to Pro for ₹49/month to unlock detailed visual charts and historical productivity trends.',
+              ),
+
+            // 2. Period Selector [ 10 Days ] [ Week ] [ Month ] [ Year ]
+            Container(
+              padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
-                color: isDark ? AppTheme.darkCardBg : AppTheme.pastelAnalytics,
-                borderRadius: BorderRadius.circular(22),
-                border: isDark
-                    ? Border.all(color: AppTheme.darkCardBorder, width: 1)
-                    : null,
+                color: isDark ? const Color(0xFF242321) : const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: isDark ? AppTheme.darkCardBorder : AppTheme.borderLight),
               ),
               child: Row(
                 children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? AppTheme.darkIconBg
-                          : AppTheme.pastelAnalyticsIcon,
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Icon(
-                      Icons.bar_chart_rounded,
-                      color: isDark ? AppTheme.darkIconGlow : Colors.white,
-                      size: 26,
-                    ),
+                  _buildPeriodTab('10_DAYS', '10 Days', isDark, cardBg, textSecondary, primaryColor),
+                  _buildPeriodTab('WEEK', 'Week', isDark, cardBg, textSecondary, primaryColor),
+                  _buildPeriodTab('MONTH', 'Month', isDark, cardBg, textSecondary, primaryColor),
+                  _buildPeriodTab('YEAR', 'Year', isDark, cardBg, textSecondary, primaryColor),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // 3. Top Productivity Score Banner
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: isDark
+                      ? [const Color(0xFF1E1F30), const Color(0xFF2A2B42)]
+                      : [const Color(0xFF0D5CE5), const Color(0xFF2563EB)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(22),
+                boxShadow: [
+                  BoxShadow(
+                    color: (isDark ? const Color(0xFF6366F1) : const Color(0xFF0D5CE5)).withOpacity(0.25),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
                   ),
-                  const SizedBox(width: 14),
+                ],
+              ),
+              child: Row(
+                children: [
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'Analytics',
-                          style: TextStyle(
-                            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
-                            fontSize: 17,
-                            fontWeight: FontWeight.w800,
-                          ),
+                        const Text(
+                          'PRODUCTIVITY SCORE',
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.1, color: Colors.white70),
                         ),
-                        const SizedBox(height: 3),
+                        const SizedBox(height: 6),
                         Text(
-                          'Track your progress 📈',
-                          style: TextStyle(
-                            color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                          ),
+                          '$prodScore / 100',
+                          style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: Colors.white),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          prodScore >= 70 ? 'Excellent momentum! Keep it going 🔥' : 'Good start. Consistent focus is key 🎯',
+                          style: const TextStyle(fontSize: 12.5, color: Colors.white),
                         ),
                       ],
+                    ),
+                  ),
+                  Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: Text(
+                        '$prodScore%',
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white),
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
-          ),
-          const SizedBox(height: 8),
-          // Module Tabs
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 20),
-            height: 40,
-            decoration: BoxDecoration(
-              color: isDark ? AppTheme.darkCardBg : Colors.white,
-              borderRadius: BorderRadius.circular(14),
-              border: isDark ? Border.all(color: AppTheme.darkCardBorder, width: 1) : null,
-            ),
-            child: TabBar(
-              controller: _tabController,
-              isScrollable: true,
-              indicatorColor: Colors.transparent,
-              dividerColor: Colors.transparent,
-              indicator: BoxDecoration(
-                color: primaryColor,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              labelColor: Colors.white,
-              unselectedLabelColor: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
-              labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-              tabs: const [
-                Tab(text: 'Overview'),
-                Tab(text: 'Habits'),
-                Tab(text: 'Expenses'),
-                Tab(text: 'Milestones'),
-                Tab(text: 'Studies'),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
+            const SizedBox(height: 24),
 
-          // Tab Views
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
+            // 4. Metric Grid
+            Row(
               children: [
-                _buildOverviewTab(context),
-                _buildHabitsAnalyticsTab(context),
-                _buildExpensesAnalyticsTab(context),
-                _buildMilestonesAnalyticsTab(context),
-                _buildStudiesAnalyticsTab(context),
+                Expanded(
+                  child: _buildMetricCard(
+                    'Habit Consistency',
+                    '${(habitRate * 100).round()}%',
+                    '${habits.where((h) => h.streakDay > 0).length} active streaks',
+                    const Color(0xFF10B981),
+                    Icons.spa_rounded,
+                    cardBg,
+                    isDark,
+                    textPrimary,
+                    textSecondary,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildMetricCard(
+                    'Task Completion',
+                    '${(taskCompletionRate * 100).round()}%',
+                    '$completedTasks of ${periodTasks.length} tasks',
+                    const Color(0xFF3B82F6),
+                    Icons.task_alt_rounded,
+                    cardBg,
+                    isDark,
+                    textPrimary,
+                    textSecondary,
+                  ),
+                ),
               ],
             ),
-          ),
-        ],
+            const SizedBox(height: 12),
+
+            Row(
+              children: [
+                Expanded(
+                  child: _buildMetricCard(
+                    'Study Progress',
+                    '${(avgStudyProgress * 100).round()}%',
+                    '${subjects.length} enrolled subjects',
+                    const Color(0xFF8B5CF6),
+                    Icons.school_rounded,
+                    cardBg,
+                    isDark,
+                    textPrimary,
+                    textSecondary,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildMetricCard(
+                    'Period Spending',
+                    '₹${totalSpent.toStringAsFixed(0)}',
+                    '${periodExpenses.length} transactions',
+                    const Color(0xFFF59E0B),
+                    Icons.account_balance_wallet_outlined,
+                    cardBg,
+                    isDark,
+                    textPrimary,
+                    textSecondary,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+
+            // 5. Insights Breakdown Card
+            Text(
+              'Performance Breakdown',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: textPrimary),
+            ),
+            const SizedBox(height: 12),
+
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: cardBg,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: isDark ? AppTheme.darkCardBorder : AppTheme.borderLight),
+              ),
+              child: Column(
+                children: [
+                  _buildProgressRow('Habit Execution', habitRate, const Color(0xFF10B981), textPrimary, textSecondary, isDark),
+                  const SizedBox(height: 14),
+                  _buildProgressRow('Task Goals Done', taskCompletionRate, const Color(0xFF3B82F6), textPrimary, textSecondary, isDark),
+                  const SizedBox(height: 14),
+                  _buildProgressRow('Academic Milestones', avgStudyProgress, const Color(0xFF8B5CF6), textPrimary, textSecondary, isDark),
+                ],
+              ),
+            ),
+            const SizedBox(height: 40),
+          ],
+        ),
       ),
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // 1. OVERVIEW TAB
-  // ---------------------------------------------------------------------------
-  Widget _buildOverviewTab(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final provider = Provider.of<AppProvider>(context);
-
-    final habitStreak = '${provider.user.activeStreak}';
-    final totalHabits = '${provider.habits.length > 0 ? provider.habits.length : 18}';
-    final activeGoals = '${provider.tasks.where((t) => !t.isCompleted).length > 0 ? provider.tasks.where((t) => !t.isCompleted).length : 7}';
-
-    return ListView(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
-      children: [
-        Text(
-          'Overview',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+  Widget _buildPeriodTab(String key, String label, bool isDark, Color cardBg, Color textSecondary, Color primaryColor) {
+    final isSelected = _selectedPeriod == key;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _selectedPeriod = key),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: isSelected ? cardBg : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: isSelected
+                ? [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 6, offset: const Offset(0, 2))]
+                : null,
           ),
-        ),
-        const SizedBox(height: 12),
-
-        // 3-Column Stat Cards (Habits, Streak, Goals) - Matching Reference Design
-        Row(
-          children: [
-            Expanded(
-              child: _buildThreeColumnStatCard(
-                title: 'Habits',
-                value: totalHabits,
-                subtitle: 'Total',
-                isDark: isDark,
-              ),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+              color: isSelected ? primaryColor : textSecondary,
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildThreeColumnStatCard(
-                title: 'Streak',
-                value: habitStreak,
-                subtitle: 'Days',
-                isDark: isDark,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildThreeColumnStatCard(
-                title: 'Goals',
-                value: activeGoals,
-                subtitle: 'Active',
-                isDark: isDark,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 24),
-
-        Text(
-          'Progress',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
           ),
         ),
-        const SizedBox(height: 12),
-
-        // Quick Overview Chart Card
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: isDark ? AppTheme.darkCardBg : Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            border: isDark ? Border.all(color: AppTheme.darkCardBorder, width: 1) : null,
-            boxShadow: isDark ? AppTheme.darkCardShadow : AppTheme.cardShadow,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'MODULE PERFORMANCE COMPARISON',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.1,
-                  color: Color(0xFF94A3B8),
-                ),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                height: 180,
-                width: double.infinity,
-                child: CustomPaint(
-                  painter: ComparisonBarChartPainter(isDark: isDark),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 30),
-      ],
+      ),
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // 2. HABIT TRACKER ANALYTICS TAB
-  // ---------------------------------------------------------------------------
-  Widget _buildHabitsAnalyticsTab(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return ListView(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
-      children: [
-        Text(
-          'Habit Momentum & Consistency',
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w800,
-            color: isDark ? Colors.white : const Color(0xFF1E293B),
-          ),
-        ),
-        const SizedBox(height: 4),
-        const Text(
-          'Track your daily habit completions and 4-week streak trends.',
-          style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
-        ),
-        const SizedBox(height: 20),
-
-        // Bar Graph: Habits with Week
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E1F2B) : Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              if (!isDark)
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.03),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'WEEKLY HABITS COMPLETED',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.1,
-                      color: Color(0xFF94A3B8),
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEEF2FF),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Text(
-                      'Avg: 4.8 / day',
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF0D5CE5),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                height: 180,
-                width: double.infinity,
-                child: CustomPaint(
-                  painter: HabitsBarChartPainter(isDark: isDark),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 20),
-
-        // Line Chart: Streak Trend over 4 Weeks
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E1F2B) : Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              if (!isDark)
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.03),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                '4-WEEK STREAK LINE TREND',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.1,
-                  color: Color(0xFF94A3B8),
-                ),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                height: 160,
-                width: double.infinity,
-                child: CustomPaint(
-                  painter: LineChartPainter(
-                    isDark: isDark,
-                    points: const [0.4, 0.6, 0.75, 0.92],
-                    labels: const ['W1', 'W2', 'W3', 'W4'],
-                    lineColor: const Color(0xFF0D5CE5),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 30),
-      ],
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // 3. EXPENSE TRACKER ANALYTICS TAB
-  // ---------------------------------------------------------------------------
-  Widget _buildExpensesAnalyticsTab(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return ListView(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
-      children: [
-        Text(
-          'Financial Breakdown & Cashflow',
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w800,
-            color: isDark ? Colors.white : const Color(0xFF1E293B),
-          ),
-        ),
-        const SizedBox(height: 4),
-        const Text(
-          'Category pie chart distribution and monthly spending trends.',
-          style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
-        ),
-        const SizedBox(height: 20),
-
-        // Pie Chart Card
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E1F2B) : Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              if (!isDark)
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.03),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'CATEGORY SPENDING PIE CHART',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.1,
-                  color: Color(0xFF94A3B8),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  SizedBox(
-                    height: 160,
-                    width: 160,
-                    child: CustomPaint(
-                      painter: ExpensePieChartPainter(),
-                    ),
-                  ),
-                  const SizedBox(width: 20),
-                  Expanded(
-                    child: Column(
-                      children: const [
-                        _LegendItem(color: Color(0xFF0D5CE5), label: 'Food (35%)'),
-                        SizedBox(height: 8),
-                        _LegendItem(color: Color(0xFF3B82F6), label: 'Shopping (25%)'),
-                        SizedBox(height: 8),
-                        _LegendItem(color: Color(0xFF60A5FA), label: 'Transport (15%)'),
-                        SizedBox(height: 8),
-                        _LegendItem(color: Color(0xFF10B981), label: 'Income (25%)'),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 20),
-
-        // Line Chart: Weekly & Monthly Distribution
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E1F2B) : Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              if (!isDark)
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.03),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'MONTHLY CASHFLOW & SPENDING LINE CHART',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.1,
-                  color: Color(0xFF94A3B8),
-                ),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                height: 160,
-                width: double.infinity,
-                child: CustomPaint(
-                  painter: LineChartPainter(
-                    isDark: isDark,
-                    points: const [0.3, 0.7, 0.45, 0.85, 0.6],
-                    labels: const ['Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-                    lineColor: const Color(0xFF10B981),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 30),
-      ],
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // 4. MILESTONES & GOALS ANALYTICS TAB
-  // ---------------------------------------------------------------------------
-  Widget _buildMilestonesAnalyticsTab(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return ListView(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
-      children: [
-        Text(
-          'Milestones & Goals Progress',
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w800,
-            color: isDark ? Colors.white : const Color(0xFF1E293B),
-          ),
-        ),
-        const SizedBox(height: 4),
-        const Text(
-          'Status pie chart distribution & overall milestone completion score.',
-          style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
-        ),
-        const SizedBox(height: 20),
-
-        // Pie Chart: Achieved vs In Progress vs Not Started
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E1F2B) : Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              if (!isDark)
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.03),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'GOALS STATUS PIE CHART',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.1,
-                  color: Color(0xFF94A3B8),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  SizedBox(
-                    height: 160,
-                    width: 160,
-                    child: CustomPaint(
-                      painter: GoalsPieChartPainter(),
-                    ),
-                  ),
-                  const SizedBox(width: 20),
-                  Expanded(
-                    child: Column(
-                      children: const [
-                        _LegendItem(
-                            color: Color(0xFF0D5CE5), label: 'Achieved (40%)'),
-                        SizedBox(height: 10),
-                        _LegendItem(
-                            color: Color(0xFFF59E0B), label: 'In Progress (45%)'),
-                        SizedBox(height: 10),
-                        _LegendItem(
-                            color: Color(0xFFCBD5E1), label: 'Not Started (15%)'),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 20),
-
-        // Overall Completion Percentage Card
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E1F2B) : const Color(0xFFEEF2FF),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 60,
-                height: 60,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF0D5CE5),
-                  shape: BoxShape.circle,
-                ),
-                child: const Center(
-                  child: Text(
-                    '78%',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Milestone Fulfillment Rate',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      '5 Achieved • 5 In Progress • 2 Not Started',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFF64748B),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 30),
-      ],
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // 5. STUDIES ANALYTICS TAB
-  // ---------------------------------------------------------------------------
-  Widget _buildStudiesAnalyticsTab(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return ListView(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
-      children: [
-        Text(
-          'Academic Study Analytics',
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w800,
-            color: isDark ? Colors.white : const Color(0xFF1E293B),
-          ),
-        ),
-        const SizedBox(height: 4),
-        const Text(
-          'Subject-wise completion line chart & study hours distribution.',
-          style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
-        ),
-        const SizedBox(height: 20),
-
-        // Line Chart: Subject Completion Rate Over Time
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E1F2B) : Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              if (!isDark)
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.03),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'SUBJECT COMPLETION RATE OVER TIME',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.1,
-                  color: Color(0xFF94A3B8),
-                ),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                height: 160,
-                width: double.infinity,
-                child: CustomPaint(
-                  painter: LineChartPainter(
-                    isDark: isDark,
-                    points: const [0.35, 0.55, 0.70, 0.88],
-                    labels: const ['W1', 'W2', 'W3', 'W4'],
-                    lineColor: const Color(0xFF8B5CF6),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 20),
-
-        // Bar Chart: Subject Study Hours Logged
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E1F2B) : Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              if (!isDark)
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.03),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'SUBJECT STUDY HOURS LOGGED',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.1,
-                  color: Color(0xFF94A3B8),
-                ),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                height: 180,
-                width: double.infinity,
-                child: CustomPaint(
-                  painter: StudiesBarChartPainter(isDark: isDark),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 30),
-      ],
-    );
-  }
-
-  Widget _buildMetricBox(
-    BuildContext context, {
-    required String title,
-    required String value,
-    required IconData icon,
-    required Color color,
-  }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
+  Widget _buildMetricCard(
+    String title,
+    String stat,
+    String subtitle,
+    Color color,
+    IconData icon,
+    Color cardBg,
+    bool isDark,
+    Color textPrimary,
+    Color textSecondary,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1F2B) : Colors.white,
+        color: cardBg,
         borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          if (!isDark)
-            BoxShadow(
-              color: Colors.black.withOpacity(0.02),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
-            ),
-        ],
+        border: Border.all(color: isDark ? AppTheme.darkCardBorder : AppTheme.borderLight),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 22, color: color),
-          const SizedBox(height: 10),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1.0,
-              color: Color(0xFF94A3B8),
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, color: color, size: 18),
+              ),
+              Icon(Icons.trending_up_rounded, color: color, size: 18),
+            ],
           ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-              color: isDark ? Colors.white : const Color(0xFF1E293B),
-            ),
-          ),
+          const SizedBox(height: 14),
+          Text(stat, style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: textPrimary)),
+          const SizedBox(height: 2),
+          Text(title, style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: textPrimary)),
+          const SizedBox(height: 2),
+          Text(subtitle, style: TextStyle(fontSize: 11, color: textSecondary)),
         ],
       ),
     );
@@ -895,304 +404,24 @@ class _LegendItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Container(
-          width: 12,
-          height: 12,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(3),
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(label, style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: textPrimary)),
+            Text('${(value * 100).round()}%', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800, color: color)),
+          ],
         ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            label,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF64748B),
-            ),
+        const SizedBox(height: 6),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(
+            value: value,
+            minHeight: 6,
+            backgroundColor: isDark ? Colors.white10 : Colors.black12,
+            valueColor: AlwaysStoppedAnimation<Color>(color),
           ),
         ),
       ],
     );
   }
-}
-
-class HabitsBarChartPainter extends CustomPainter {
-  final bool isDark;
-  HabitsBarChartPainter({required this.isDark});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final values = [4, 5, 3, 6, 5, 4, 6];
-    final labels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-    final maxVal = 6.0;
-
-    final barWidth = 24.0;
-    final space = (size.width - (values.length * barWidth)) / (values.length + 1);
-
-    final paint = Paint()..color = const Color(0xFF0D5CE5);
-    final textPainter = TextPainter(textDirection: TextDirection.ltr);
-
-    for (int i = 0; i < values.length; i++) {
-      final x = space + i * (barWidth + space);
-      final heightRatio = values[i] / maxVal;
-      final barHeight = (size.height - 30) * heightRatio;
-      final y = (size.height - 30) - barHeight;
-
-      final rect = RRect.fromRectAndRadius(
-        Rect.fromLTWH(x, y, barWidth, barHeight),
-        const Radius.circular(6),
-      );
-      canvas.drawRRect(rect, paint);
-
-      // Label
-      textPainter.text = TextSpan(
-        text: labels[i],
-        style: TextStyle(
-          color: isDark ? Colors.white70 : const Color(0xFF64748B),
-          fontSize: 11,
-          fontWeight: FontWeight.bold,
-        ),
-      );
-      textPainter.layout();
-      textPainter.paint(
-          canvas, Offset(x + (barWidth - textPainter.width) / 2, size.height - 20));
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-class StudiesBarChartPainter extends CustomPainter {
-  final bool isDark;
-  StudiesBarChartPainter({required this.isDark});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final values = [14, 18, 16];
-    final labels = ['Algebra', 'Physics', 'CS Algo'];
-    final maxVal = 20.0;
-
-    final barWidth = 44.0;
-    final space = (size.width - (values.length * barWidth)) / (values.length + 1);
-
-    final paint = Paint()..color = const Color(0xFF8B5CF6);
-    final textPainter = TextPainter(textDirection: TextDirection.ltr);
-
-    for (int i = 0; i < values.length; i++) {
-      final x = space + i * (barWidth + space);
-      final heightRatio = values[i] / maxVal;
-      final barHeight = (size.height - 30) * heightRatio;
-      final y = (size.height - 30) - barHeight;
-
-      final rect = RRect.fromRectAndRadius(
-        Rect.fromLTWH(x, y, barWidth, barHeight),
-        const Radius.circular(8),
-      );
-      canvas.drawRRect(rect, paint);
-
-      // Value label on top
-      textPainter.text = TextSpan(
-        text: '${values[i]}h',
-        style: const TextStyle(
-          color: Color(0xFF8B5CF6),
-          fontSize: 10,
-          fontWeight: FontWeight.bold,
-        ),
-      );
-      textPainter.layout();
-      textPainter.paint(
-          canvas, Offset(x + (barWidth - textPainter.width) / 2, y - 16));
-
-      // Label below
-      textPainter.text = TextSpan(
-        text: labels[i],
-        style: TextStyle(
-          color: isDark ? Colors.white70 : const Color(0xFF64748B),
-          fontSize: 11,
-          fontWeight: FontWeight.bold,
-        ),
-      );
-      textPainter.layout();
-      textPainter.paint(
-          canvas, Offset(x + (barWidth - textPainter.width) / 2, size.height - 20));
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-class ComparisonBarChartPainter extends CustomPainter {
-  final bool isDark;
-  ComparisonBarChartPainter({required this.isDark});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final values = [0.88, 0.70, 0.78, 0.85];
-    final labels = ['Habits', 'Expenses', 'Goals', 'Studies'];
-    final colors = [
-      const Color(0xFF0D5CE5),
-      const Color(0xFF10B981),
-      const Color(0xFF8B5CF6),
-      const Color(0xFFF59E0B),
-    ];
-
-    final barWidth = 36.0;
-    final space = (size.width - (values.length * barWidth)) / (values.length + 1);
-
-    final textPainter = TextPainter(textDirection: TextDirection.ltr);
-
-    for (int i = 0; i < values.length; i++) {
-      final x = space + i * (barWidth + space);
-      final barHeight = (size.height - 30) * values[i];
-      final y = (size.height - 30) - barHeight;
-
-      final paint = Paint()..color = colors[i];
-      final rect = RRect.fromRectAndRadius(
-        Rect.fromLTWH(x, y, barWidth, barHeight),
-        const Radius.circular(8),
-      );
-      canvas.drawRRect(rect, paint);
-
-      // Label
-      textPainter.text = TextSpan(
-        text: labels[i],
-        style: TextStyle(
-          color: isDark ? Colors.white70 : const Color(0xFF64748B),
-          fontSize: 10,
-          fontWeight: FontWeight.bold,
-        ),
-      );
-      textPainter.layout();
-      textPainter.paint(
-          canvas, Offset(x + (barWidth - textPainter.width) / 2, size.height - 20));
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-class LineChartPainter extends CustomPainter {
-  final bool isDark;
-  final List<double> points;
-  final List<String> labels;
-  final Color lineColor;
-
-  LineChartPainter({
-    required this.isDark,
-    required this.points,
-    required this.labels,
-    required this.lineColor,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (points.isEmpty) return;
-
-    final widthStep = size.width / (points.length - 1);
-    final chartHeight = size.height - 30;
-
-    final path = Path();
-    final dotPaint = Paint()..color = lineColor;
-    final strokePaint = Paint()
-      ..color = lineColor
-      ..strokeWidth = 3
-      ..style = PaintingStyle.stroke;
-
-    for (int i = 0; i < points.length; i++) {
-      final x = i * widthStep;
-      final y = chartHeight - (points[i] * chartHeight);
-
-      if (i == 0) {
-        path.moveTo(x, y);
-      } else {
-        path.lineTo(x, y);
-      }
-      canvas.drawCircle(Offset(x, y), 5, dotPaint);
-
-      // Label below
-      if (i < labels.length) {
-        final textPainter = TextPainter(
-          text: TextSpan(
-            text: labels[i],
-            style: TextStyle(
-              color: isDark ? Colors.white70 : const Color(0xFF64748B),
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          textDirection: TextDirection.ltr,
-        );
-        textPainter.layout();
-        textPainter.paint(
-            canvas, Offset(x - (textPainter.width / 2), size.height - 20));
-      }
-    }
-    canvas.drawPath(path, strokePaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-class ExpensePieChartPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = min(size.width, size.height) / 2;
-
-    final rect = Rect.fromCircle(center: center, radius: radius);
-
-    final slices = [
-      {'pct': 0.35, 'color': const Color(0xFF0D5CE5)},
-      {'pct': 0.25, 'color': const Color(0xFF3B82F6)},
-      {'pct': 0.15, 'color': const Color(0xFF60A5FA)},
-      {'pct': 0.25, 'color': const Color(0xFF10B981)},
-    ];
-
-    double startAngle = -pi / 2;
-
-    for (final s in slices) {
-      final sweepAngle = (s['pct'] as double) * 2 * pi;
-      final paint = Paint()..color = s['color'] as Color;
-      canvas.drawArc(rect, startAngle, sweepAngle, true, paint);
-      startAngle += sweepAngle;
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-class GoalsPieChartPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = min(size.width, size.height) / 2;
-
-    final rect = Rect.fromCircle(center: center, radius: radius);
-
-    final slices = [
-      {'pct': 0.40, 'color': const Color(0xFF0D5CE5)},
-      {'pct': 0.45, 'color': const Color(0xFFF59E0B)},
-      {'pct': 0.15, 'color': const Color(0xFFCBD5E1)},
-    ];
-
-    double startAngle = -pi / 2;
-
-    for (final s in slices) {
-      final sweepAngle = (s['pct'] as double) * 2 * pi;
-      final paint = Paint()..color = s['color'] as Color;
-      canvas.drawArc(rect, startAngle, sweepAngle, true, paint);
-      startAngle += sweepAngle;
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

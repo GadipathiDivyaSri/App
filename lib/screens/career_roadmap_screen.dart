@@ -1,35 +1,58 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
-class CareerRoadmapScreen extends StatefulWidget {
+/// Floating / Flexible Career Roadmap Screen for WrindhaOS
+/// 
+/// Flexible structure:
+/// Career Goal → Skills → Learning → Projects → Experience → Career Opportunities
+/// Completely free of rigid milestone stages.
+class CareerRoadmapScreen extends StatelessWidget {
   const CareerRoadmapScreen({super.key});
 
-  @override
-  State<CareerRoadmapScreen> createState() => _CareerRoadmapScreenState();
-}
-
-class _CareerRoadmapScreenState extends State<CareerRoadmapScreen> {
-  List<Map<String, dynamic>> _nodes = [];
-
-  int get _highestCompletedIndex {
-    int lastIdx = 0;
-    for (int i = 0; i < _nodes.length; i++) {
-      if (_nodes[i]['isCompleted'] == true) {
-        lastIdx = i;
-      }
-    }
-    return lastIdx;
-  }
-
-  int get _totalXp {
-    int xp = 0;
-    for (var node in _nodes) {
-      if (node['isCompleted'] == true) {
-        xp += (node['xp'] as int);
-      }
-    }
-    return xp;
-  }
+  static const List<Map<String, dynamic>> _sections = [
+    {
+      'key': 'GOAL',
+      'title': 'Career Goal',
+      'icon': Icons.flag_rounded,
+      'color': Color(0xFF6366F1),
+      'desc': 'Your primary career aspiration & north star',
+    },
+    {
+      'key': 'SKILLS',
+      'title': 'Skills Mastery',
+      'icon': Icons.psychology_rounded,
+      'color': Color(0xFF0D5CE5),
+      'desc': 'Core technical and leadership competencies',
+    },
+    {
+      'key': 'LEARNING',
+      'title': 'Learning & Certifications',
+      'icon': Icons.school_rounded,
+      'color': Color(0xFF10B981),
+      'desc': 'Deep-dive courses, books, and credentials',
+    },
+    {
+      'key': 'PROJECTS',
+      'title': 'Projects & Portfolio',
+      'icon': Icons.terminal_rounded,
+      'color': Color(0xFFF59E0B),
+      'desc': 'Practical builds and verifiable proof of work',
+    },
+    {
+      'key': 'EXPERIENCE',
+      'title': 'Experience & Contributions',
+      'icon': Icons.work_outline_rounded,
+      'color': Color(0xFF8B5CF6),
+      'desc': 'Internships, freelance, open source impact',
+    },
+    {
+      'key': 'OPPORTUNITY',
+      'title': 'Career Opportunities',
+      'icon': Icons.rocket_launch_rounded,
+      'color': Color(0xFFEC4899),
+      'desc': 'Target roles, companies, and next big steps',
+    },
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -37,14 +60,12 @@ class _CareerRoadmapScreenState extends State<CareerRoadmapScreen> {
     final currentActiveIdx = _highestCompletedIndex;
 
     return Scaffold(
-      backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
+      backgroundColor: isDark ? AppTheme.darkBg : AppTheme.background,
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back_ios_new_rounded,
-            size: 20,
-            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
-          ),
+          icon: Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
@@ -101,6 +122,7 @@ class _CareerRoadmapScreenState extends State<CareerRoadmapScreen> {
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Floating Stage Header Banner
             Container(
@@ -266,74 +288,122 @@ class _CareerRoadmapScreenState extends State<CareerRoadmapScreen> {
                                     size: 20,
                                   ),
                                 ),
-                                const SizedBox(width: 12),
-                                Column(
+                                child: Icon(icon, color: color, size: 22),
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Row(
-                                      children: [
-                                        Text(
-                                          'Lvl ${node['level']}',
-                                          style: TextStyle(
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.bold,
-                                            color: isDark ? AppTheme.darkIconGlow : AppTheme.pastelCareerIcon,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 6),
-                                        if (isCompleted)
-                                          Icon(Icons.check_circle_rounded,
-                                              size: 12, color: isDark ? AppTheme.darkIconGlow : AppTheme.pastelCareerIcon),
-                                      ],
-                                    ),
+                                    Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: textPrimary)),
                                     const SizedBox(height: 2),
-                                    Text(
-                                      node['title'] as String,
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                        color: isDark
-                                            ? Colors.white
-                                            : const Color(0xFF1E293B),
-                                      ),
-                                    ),
-                                    Text(
-                                      '+${node['xp']} XP • ${node['date']}',
-                                      style: const TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w600,
-                                        color: Color(0xFF64748B),
-                                      ),
-                                    ),
+                                    Text(desc, style: TextStyle(fontSize: 12, color: textSecondary)),
                                   ],
                                 ),
-                              ],
-                            ),
+                              ),
+                              IconButton(
+                                icon: Icon(Icons.add_circle_outline_rounded, color: color, size: 24),
+                                onPressed: () {
+                                  if (!isPremium) {
+                                    showUpgradeProModal(
+                                      context,
+                                      featureTitle: 'Career Roadmap',
+                                      limitExplanation: 'Free mode includes read-only preview. Upgrade to Pro for ₹49/month to customize your career growth trajectory.',
+                                    );
+                                  } else {
+                                    _showAddNodeDialog(context, sectionKey, title);
+                                  }
+                                },
+                              ),
+                            ],
                           ),
-                        ),
+                          const SizedBox(height: 14),
 
-                        // Right Avatar Character
-                        if (isCurrentAvatarNode && alignOffset >= 0) ...[
-                          const SizedBox(width: 8),
-                          _buildFloatingPersonAvatar(context, idx + 1),
+                          // Section Items
+                          if (items.isEmpty)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              child: Text(
+                                'Tap (+) to add items to $title',
+                                style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic, color: textSecondary),
+                              ),
+                            )
+                          else
+                            Column(
+                              children: items.map((node) {
+                                return Container(
+                                  margin: const EdgeInsets.only(bottom: 8),
+                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                                  decoration: BoxDecoration(
+                                    color: isDark ? const Color(0xFF242321) : const Color(0xFFF8FAFC),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: color.withOpacity(0.2)),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: 8,
+                                        height: 8,
+                                        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(node.title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: textPrimary)),
+                                            if (node.description.isNotEmpty) ...[
+                                              const SizedBox(height: 2),
+                                              Text(node.description, style: TextStyle(fontSize: 12, color: textSecondary)),
+                                            ],
+                                          ],
+                                        ),
+                                      ),
+                                      PopupMenuButton<String>(
+                                        icon: Icon(Icons.more_vert_rounded, size: 18, color: textSecondary),
+                                        onSelected: (act) {
+                                          if (act == 'delete') {
+                                            provider.deleteCareerNode(node.id);
+                                          }
+                                        },
+                                        itemBuilder: (ctx) => [
+                                          const PopupMenuItem(
+                                            value: 'delete',
+                                            child: Row(children: [Icon(Icons.delete_outline, size: 16, color: Colors.redAccent), SizedBox(width: 6), Text('Delete')]),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }).toList(),
+                            ),
                         ],
-                      ],
-                    ),
-                  ),
-
-                  if (idx < _nodes.length - 1)
-                    CustomPaint(
-                      size: const Size(160, 60),
-                      painter: ElectricCurvePainter(
-                        isLeftToRight: (idx % 2 == 0),
-                        isCompleted: isCompleted,
                       ),
                     ),
-                ],
-              );
-            }).toList(),
 
-            const SizedBox(height: 90),
+                    // Floating Vertical Connector (if not last)
+                    if (!isLast)
+                      Container(
+                        width: 2,
+                        height: 28,
+                        margin: const EdgeInsets.symmetric(vertical: 2),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              color.withOpacity(0.6),
+                              (_sections[idx + 1]['color'] as Color).withOpacity(0.6),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 40),
           ],
         ),
       ),
@@ -521,144 +591,49 @@ class _CareerRoadmapScreenState extends State<CareerRoadmapScreen> {
 
   void _showAddMilestoneDialog(BuildContext context) {
     final titleCtrl = TextEditingController();
-    final subCtrl = TextEditingController();
-    final xpCtrl = TextEditingController(text: '500');
+    final descCtrl = TextEditingController();
 
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
-          top: 24,
-          left: 20,
-          right: 20,
-        ),
-        child: Column(
+      builder: (ctx) => AlertDialog(
+        title: Text('Add to $sectionTitle', style: const TextStyle(fontWeight: FontWeight.w800)),
+        content: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Add New Career Milestone',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
             TextField(
               controller: titleCtrl,
               autofocus: true,
-              decoration: const InputDecoration(
-                hintText: 'Milestone Title',
-                border: OutlineInputBorder(),
-              ),
+              decoration: const InputDecoration(labelText: 'Title (e.g. React & Flutter Architecture)'),
             ),
             const SizedBox(height: 12),
             TextField(
-              controller: subCtrl,
-              decoration: const InputDecoration(
-                hintText: 'Subtitle / Description',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: xpCtrl,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                hintText: 'XP Reward',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0D5CE5),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-                onPressed: () {
-                  if (titleCtrl.text.trim().isNotEmpty) {
-                    setState(() {
-                      _nodes.add({
-                        'level': _nodes.length + 1,
-                        'title': titleCtrl.text.trim(),
-                        'subtitle': subCtrl.text.trim(),
-                        'icon': Icons.stars_rounded,
-                        'xp': int.tryParse(xpCtrl.text.trim()) ?? 500,
-                        'date': 'Planned',
-                        'isCompleted': false,
-                        'deliverables': [
-                          'Define core requirements',
-                          'Execute deliverables',
-                        ],
-                      });
-                    });
-                    Navigator.pop(ctx);
-                  }
-                },
-                child: const Text(
-                  'Add Milestone',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
+              controller: descCtrl,
+              decoration: const InputDecoration(labelText: 'Details / Description (Optional)'),
             ),
           ],
         ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () {
+              final title = titleCtrl.text.trim();
+              if (title.isNotEmpty) {
+                final provider = Provider.of<AppProvider>(context, listen: false);
+                provider.addCareerNode(
+                  CareerRoadmapNode(
+                    id: 'cr_${DateTime.now().millisecondsSinceEpoch}',
+                    section: sectionKey,
+                    title: title,
+                    description: descCtrl.text.trim(),
+                  ),
+                );
+                Navigator.pop(ctx);
+              }
+            },
+            child: const Text('Add'),
+          ),
+        ],
       ),
     );
   }
-}
-
-class ElectricCurvePainter extends CustomPainter {
-  final bool isLeftToRight;
-  final bool isCompleted;
-
-  ElectricCurvePainter({
-    required this.isLeftToRight,
-    required this.isCompleted,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = isCompleted ? const Color(0xFF0D5CE5) : const Color(0xFF93C5FD)
-      ..strokeWidth = isCompleted ? 3.5 : 2.5
-      ..style = PaintingStyle.stroke;
-
-    final path = Path();
-    final double startX = isLeftToRight ? size.width * 0.25 : size.width * 0.75;
-    final double endX = isLeftToRight ? size.width * 0.75 : size.width * 0.25;
-
-    path.moveTo(startX, 0);
-    path.cubicTo(
-        startX, size.height * 0.5, endX, size.height * 0.5, endX, size.height);
-
-    // Draw dashed path
-    const dashWidth = 6.0;
-    const dashSpace = 4.0;
-    double distance = 0.0;
-
-    for (final pathMetric in path.computeMetrics()) {
-      while (distance < pathMetric.length) {
-        canvas.drawPath(
-          pathMetric.extractPath(distance, distance + dashWidth),
-          paint,
-        );
-        distance += dashWidth + dashSpace;
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }

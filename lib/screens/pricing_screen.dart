@@ -3,6 +3,11 @@ import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
 import '../theme/app_theme.dart';
 
+/// Pricing & Plans Screen for WrindhaOS
+/// 
+/// Compares:
+/// - Free Plan (₹0): 2 Habits, 2 Subjects, To-Do List, Calendar
+/// - Pro Plan (₹49/month): Unlimited Habits, Subjects, Expense Tracker, Eisenhower, Journal, Career Roadmap, Analytics
 class PricingScreen extends StatefulWidget {
   const PricingScreen({super.key});
 
@@ -12,6 +17,26 @@ class PricingScreen extends StatefulWidget {
 
 class _PricingScreenState extends State<PricingScreen> {
   bool _isProcessing = false;
+
+  void _handleUpgrade() async {
+    setState(() => _isProcessing = true);
+    final provider = Provider.of<AppProvider>(context, listen: false);
+
+    // Simulate payment / instant unlock
+    await Future.delayed(const Duration(milliseconds: 600));
+    provider.upgradeToPremium();
+
+    if (!mounted) return;
+    setState(() => _isProcessing = false);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('🎉 Welcome to WrindhaOS Pro! All features unlocked.'),
+        backgroundColor: Color(0xFF10B981),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,20 +53,15 @@ class _PricingScreenState extends State<PricingScreen> {
     return Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.background,
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back_ios_new_rounded,
-            size: 20,
-            color: isDark ? Colors.white : AppTheme.textPrimary,
-          ),
+          icon: Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Pricing & Plans',
-          style: TextStyle(
-            color: isDark ? Colors.white : AppTheme.textPrimary,
-            fontWeight: FontWeight.w800,
-          ),
+          style: TextStyle(color: textPrimary, fontWeight: FontWeight.w800),
         ),
       ),
       body: SingleChildScrollView(
@@ -49,32 +69,24 @@ class _PricingScreenState extends State<PricingScreen> {
         child: Column(
           children: [
             Text(
-              'Focus on what matters',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w800,
-                color: isDark ? Colors.white : AppTheme.textPrimary,
-              ),
+              'Choose Your Plan',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: textPrimary),
             ),
             const SizedBox(height: 6),
             Text(
-              'Unlock your cognitive clarity with tailored focus plans.',
+              'Simple and transparent pricing for students and professionals.',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 13,
-                height: 1.4,
-                color: isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary,
-              ),
+              style: TextStyle(fontSize: 13, height: 1.4, color: textSecondary),
             ),
             const SizedBox(height: 24),
 
-            // Card 1: Free Plan
+            // Card 1: FREE PLAN (₹0)
             Container(
               padding: const EdgeInsets.all(22),
               decoration: BoxDecoration(
-                color: isDark ? AppTheme.darkCardBg : AppTheme.cardSurface,
+                color: cardBg,
                 borderRadius: BorderRadius.circular(22),
-                border: isDark ? Border.all(color: AppTheme.darkCardBorder, width: 1) : null,
+                border: Border.all(color: isDark ? AppTheme.darkCardBorder : AppTheme.borderLight),
                 boxShadow: isDark ? AppTheme.darkCardShadow : AppTheme.cardShadow,
               ),
               child: Column(
@@ -84,28 +96,19 @@ class _PricingScreenState extends State<PricingScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Free',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                          color: isDark ? Colors.white : AppTheme.textPrimary,
-                        ),
+                        'FREE',
+                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: textPrimary),
                       ),
                       if (!isPremium)
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: isDark ? AppTheme.darkIconBg : AppTheme.inputBg,
+                            color: isDark ? AppTheme.darkIconBg : const Color(0xFFF1F5F9),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Text(
                             'CURRENT PLAN',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.8,
-                              color: isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary,
-                            ),
+                            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.8, color: textSecondary),
                           ),
                         ),
                     ],
@@ -114,53 +117,59 @@ class _PricingScreenState extends State<PricingScreen> {
                   RichText(
                     text: TextSpan(
                       text: '₹0',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w800,
-                        color: isDark ? AppTheme.darkIconGlow : AppTheme.primaryAccent,
-                      ),
+                      style: TextStyle(fontSize: 30, fontWeight: FontWeight.w900, color: textPrimary),
                       children: [
                         TextSpan(
-                          text: '/forever',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.normal,
-                            color: isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary,
-                          ),
+                          text: ' / forever',
+                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.normal, color: textSecondary),
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 18),
-                  _buildCheckItem('2 Habits trackable daily'),
-                  _buildCheckItem('2 Studies active focus'),
-                  _buildCheckItem('Standard To-Do list'),
-                  _buildCheckItem('Eisenhower Matrix view'),
+                  _buildFeatureRow('2 Habits', isIncluded: true),
+                  _buildFeatureRow('2 Subjects', isIncluded: true),
+                  _buildFeatureRow('To-Do List', isIncluded: true),
+                  _buildFeatureRow('Calendar', isIncluded: true),
+                  _buildFeatureRow('Expense Tracker', isIncluded: false),
+                  _buildFeatureRow('Eisenhower Matrix', isIncluded: false),
+                  _buildFeatureRow('Personal Journal / Diary', isIncluded: false),
+                  _buildFeatureRow('Career Roadmap', isIncluded: false),
+                  _buildFeatureRow('Multi-Period Analytics', isIncluded: false),
+                  const SizedBox(height: 18),
+
+                  SizedBox(
+                    width: double.infinity,
+                    height: 44,
+                    child: OutlinedButton(
+                      onPressed: isPremium ? () {} : null,
+                      style: OutlinedButton.styleFrom(
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: Text(!isPremium ? 'Current Plan' : 'Downgrade to Free'),
+                    ),
+                  ),
                 ],
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
 
-            // Card 2: Pro Plan (POPULAR Ribbon)
+            // Card 2: PRO PLAN (₹49/month)
             Stack(
               clipBehavior: Clip.none,
               children: [
                 Container(
                   padding: const EdgeInsets.all(22),
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF1E1F2B) : Colors.white,
+                    color: isDark ? const Color(0xFF1E1F30) : Colors.white,
                     borderRadius: BorderRadius.circular(22),
-                    border: Border.all(
-                      color: const Color(0xFF0D5CE5),
-                      width: 2,
-                    ),
+                    border: Border.all(color: const Color(0xFF0D5CE5), width: 2),
                     boxShadow: [
-                      if (!isDark)
-                        BoxShadow(
-                          color: const Color(0xFF0D5CE5).withOpacity(0.08),
-                          blurRadius: 16,
-                          offset: const Offset(0, 6),
-                        ),
+                      BoxShadow(
+                        color: const Color(0xFF0D5CE5).withOpacity(0.12),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
+                      ),
                     ],
                   ),
                   child: Column(
@@ -169,13 +178,9 @@ class _PricingScreenState extends State<PricingScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            'Pro Plan',
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w800,
-                              color: isDark ? Colors.white : const Color(0xFF1E293B),
-                            ),
+                          const Text(
+                            'PRO',
+                            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF0D5CE5)),
                           ),
                           if (isPremium)
                             Container(
@@ -186,140 +191,52 @@ class _PricingScreenState extends State<PricingScreen> {
                               ),
                               child: const Text(
                                 'ACTIVE SUBSCRIBER',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 0.8,
-                                  color: Color(0xFF10B981),
-                                ),
+                                style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.8, color: Color(0xFF10B981)),
                               ),
                             ),
                         ],
                       ),
                       const SizedBox(height: 8),
-
-                      if (discountPercent > 0) ...[
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.baseline,
-                          textBaseline: TextBaseline.alphabetic,
+                      RichText(
+                        text: TextSpan(
+                          text: '₹49',
+                          style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: textPrimary),
                           children: [
-                            Text(
-                              '₹${finalPrice.toStringAsFixed(2)}',
-                              style: const TextStyle(
-                                fontSize: 28,
-                                fontWeight: FontWeight.w800,
-                                color: Color(0xFF0D5CE5),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              '₹${basePrice.toStringAsFixed(0)}',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                decoration: TextDecoration.lineThrough,
-                                color: Color(0xFF94A3B8),
-                              ),
-                            ),
-                            const Text(
-                              '/month',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Color(0xFF64748B),
-                              ),
+                            TextSpan(
+                              text: ' / month',
+                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.normal, color: textSecondary),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 4),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF10B981).withOpacity(0.15),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            '$discountPercent% Referral Discount Applied (Next cycle)',
-                            style: const TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF10B981),
-                            ),
-                          ),
-                        ),
-                      ] else ...[
-                        RichText(
-                          text: TextSpan(
-                            text: '₹${basePrice.toStringAsFixed(0)}',
-                            style: const TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.w800,
-                              color: Color(0xFF0D5CE5),
-                            ),
-                            children: const [
-                              TextSpan(
-                                text: '/month',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.normal,
-                                  color: Color(0xFF64748B),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                      ),
                       const SizedBox(height: 18),
-
-                      _buildCheckItem('Everything Unlimited'),
-                      _buildCheckItem('Infinite Habit Tracking'),
-                      _buildCheckItem('Custom Focus Timers & Themes'),
-                      _buildCheckItem('Advanced Insights & Trends'),
-                      _buildCheckItem('Ad-Free Productivity Mode'),
-                      _buildCheckItem('Priority Support'),
-                      const SizedBox(height: 20),
+                      _buildFeatureRow('Unlimited Habits & Streaks', isIncluded: true),
+                      _buildFeatureRow('Unlimited Subjects & Syllabi', isIncluded: true),
+                      _buildFeatureRow('Full To-Do List & Priority Scheduling', isIncluded: true),
+                      _buildFeatureRow('Full Calendar Scheduling', isIncluded: true),
+                      _buildFeatureRow('Expense Tracker & Budget Ledger', isIncluded: true),
+                      _buildFeatureRow('Eisenhower Matrix Organization', isIncluded: true),
+                      _buildFeatureRow('Encrypted Personal Journal / Diary', isIncluded: true),
+                      _buildFeatureRow('Floating Career Roadmap', isIncluded: true),
+                      _buildFeatureRow('Multi-Period Analytics (10 Days, Week, Month, Year)', isIncluded: true),
+                      const SizedBox(height: 22),
 
                       SizedBox(
                         width: double.infinity,
-                        height: 50,
+                        height: 48,
                         child: ElevatedButton(
+                          onPressed: isPremium || _isProcessing ? null : _handleUpgrade,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: isPremium ? const Color(0xFF10B981) : const Color(0xFF0D5CE5),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
+                            backgroundColor: const Color(0xFF0D5CE5),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            elevation: 0,
                           ),
-                          onPressed: (isPremium || _isProcessing)
-                              ? null
-                              : () async {
-                                  setState(() => _isProcessing = true);
-                                  await provider.checkoutSubscription('PREMIUM', basePrice);
-                                  setState(() => _isProcessing = false);
-
-                                  if (mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          discountPercent > 0
-                                              ? 'Upgraded to Premium with $discountPercent% referral discount (₹${finalPrice.toStringAsFixed(2)})!'
-                                              : 'Upgraded to Premium successfully!',
-                                        ),
-                                        backgroundColor: const Color(0xFF0D5CE5),
-                                      ),
-                                    );
-                                  }
-                                },
                           child: _isProcessing
-                              ? const SizedBox(
-                                  width: 22,
-                                  height: 22,
-                                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                                )
+                              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                               : Text(
-                                  isPremium ? 'Currently Subscribed' : 'Upgrade Now',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                  isPremium ? 'Already Subscribed' : 'Upgrade to Pro',
+                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                 ),
                         ),
                       ),
@@ -327,56 +244,54 @@ class _PricingScreenState extends State<PricingScreen> {
                   ),
                 ),
                 Positioned(
-                  top: 14,
-                  right: 14,
+                  top: -12,
+                  right: 20,
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
                       color: const Color(0xFF0D5CE5),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF0D5CE5).withOpacity(0.4),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
                     child: const Text(
-                      'POPULAR',
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.0,
-                        color: Colors.white,
-                      ),
+                      'RECOMMENDED',
+                      style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 0.8),
                     ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 30),
+            const SizedBox(height: 40),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildCheckItem(String text) {
+  Widget _buildFeatureRow(String text, {required bool isIncluded}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10.0),
       child: Row(
         children: [
-          Container(
-            width: 20,
-            height: 20,
-            decoration: const BoxDecoration(
-              color: Color(0xFF0D5CE5),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.check, size: 14, color: Colors.white),
+          Icon(
+            isIncluded ? Icons.check_circle_rounded : Icons.lock_outline_rounded,
+            size: 16,
+            color: isIncluded ? const Color(0xFF10B981) : Colors.grey,
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 10),
           Expanded(
             child: Text(
               text,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF64748B),
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: isIncluded ? FontWeight.w600 : FontWeight.normal,
+                color: isIncluded ? null : Colors.grey,
               ),
             ),
           ),

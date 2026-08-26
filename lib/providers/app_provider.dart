@@ -22,30 +22,194 @@ class AppProvider extends ChangeNotifier {
   );
   UserProfile get user => _user;
 
+  // ---------------------------------------------------------------------------
+  // 1. Habits (Personal Growth)
+  // ---------------------------------------------------------------------------
   List<Habit> _habits = [];
   List<Habit> get habits => _habits;
 
+  // Free Plan Limit: Max 2 Habits
+  bool get canAddHabit => _user.isPremium || _habits.length < 2;
+
   void addHabit(Habit habit) {
     _habits.add(habit);
+    _saveHabits();
     notifyListeners();
+  }
+
+  void editHabit(String id, String title, String frequency) {
+    final idx = _habits.indexWhere((h) => h.id == id);
+    if (idx != -1) {
+      _habits[idx].title = title;
+      _habits[idx].frequency = frequency;
+      _saveHabits();
+      notifyListeners();
+    }
   }
 
   void toggleHabit(String id) {
     final idx = _habits.indexWhere((h) => h.id == id);
     if (idx != -1) {
       _habits[idx].isCompleted = !_habits[idx].isCompleted;
+      final todayStr = DateTime.now().toIso8601String().split('T')[0];
       if (_habits[idx].isCompleted) {
         _habits[idx].streakDay += 1;
+        if (!_habits[idx].completionHistory.contains(todayStr)) {
+          _habits[idx].completionHistory.add(todayStr);
+        }
+      } else {
+        if (_habits[idx].streakDay > 0) {
+          _habits[idx].streakDay -= 1;
+        }
+        _habits[idx].completionHistory.remove(todayStr);
       }
+      _saveHabits();
       notifyListeners();
     }
   }
 
   void deleteHabit(String id) {
     _habits.removeWhere((h) => h.id == id);
+    _saveHabits();
     notifyListeners();
   }
 
+  // ---------------------------------------------------------------------------
+  // 2. Studies & Academic Organizer
+  // ---------------------------------------------------------------------------
+  List<StudySubject> _subjects = [];
+  List<StudySubject> get subjects => _subjects;
+
+  // Free Plan Limit: Max 2 Subjects
+  bool get canAddSubject => _user.isPremium || _subjects.length < 2;
+
+  void addSubject(StudySubject subject) {
+    _subjects.add(subject);
+    _saveSubjects();
+    notifyListeners();
+  }
+
+  void editSubject(String id, String name, String code, int colorHex) {
+    final idx = _subjects.indexWhere((s) => s.id == id);
+    if (idx != -1) {
+      _subjects[idx].name = name;
+      _subjects[idx].code = code;
+      _subjects[idx].colorHex = colorHex;
+      _saveSubjects();
+      notifyListeners();
+    }
+  }
+
+  void deleteSubject(String id) {
+    _subjects.removeWhere((s) => s.id == id);
+    _studyItems.removeWhere((item) => item.subjectId == id);
+    _saveSubjects();
+    _saveStudyItems();
+    notifyListeners();
+  }
+
+  List<StudyItem> _studyItems = [];
+  List<StudyItem> get studyItems => _studyItems;
+
+  void addStudyItem(StudyItem item) {
+    _studyItems.add(item);
+    _updateSubjectProgress(item.subjectId);
+    _saveStudyItems();
+    notifyListeners();
+  }
+
+  void toggleStudyItem(String id) {
+    final idx = _studyItems.indexWhere((item) => item.id == id);
+    if (idx != -1) {
+      _studyItems[idx].isCompleted = !_studyItems[idx].isCompleted;
+      _updateSubjectProgress(_studyItems[idx].subjectId);
+      _saveStudyItems();
+      notifyListeners();
+    }
+  }
+
+  void deleteStudyItem(String id) {
+    final idx = _studyItems.indexWhere((item) => item.id == id);
+    if (idx != -1) {
+      final subId = _studyItems[idx].subjectId;
+      _studyItems.removeAt(idx);
+      _updateSubjectProgress(subId);
+      _saveStudyItems();
+      notifyListeners();
+    }
+  }
+
+  void _updateSubjectProgress(String subjectId) {
+    final items = _studyItems.where((i) => i.subjectId == subjectId).toList();
+    final subIdx = _subjects.indexWhere((s) => s.id == subjectId);
+    if (subIdx != -1) {
+      if (items.isEmpty) {
+        _subjects[subIdx].progress = 0.0;
+      } else {
+        final completed = items.where((i) => i.isCompleted).length;
+        _subjects[subIdx].progress = completed / items.length;
+      }
+      _saveSubjects();
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // 3. Journal / Notes (Diary Experience)
+  // ---------------------------------------------------------------------------
+  List<JournalEntry> _journalEntries = [];
+  List<JournalEntry> get journalEntries => _journalEntries;
+
+  void addJournalEntry(JournalEntry entry) {
+    _journalEntries.insert(0, entry);
+    _saveJournalEntries();
+    notifyListeners();
+  }
+
+  void updateJournalEntry(JournalEntry entry) {
+    final idx = _journalEntries.indexWhere((j) => j.id == entry.id);
+    if (idx != -1) {
+      _journalEntries[idx] = entry;
+      _saveJournalEntries();
+      notifyListeners();
+    }
+  }
+
+  void deleteJournalEntry(String id) {
+    _journalEntries.removeWhere((j) => j.id == id);
+    _saveJournalEntries();
+    notifyListeners();
+  }
+
+  // ---------------------------------------------------------------------------
+  // 4. Career Roadmap (Floating & Flexible)
+  // ---------------------------------------------------------------------------
+  List<CareerRoadmapNode> _careerNodes = [];
+  List<CareerRoadmapNode> get careerNodes => _careerNodes;
+
+  void addCareerNode(CareerRoadmapNode node) {
+    _careerNodes.add(node);
+    _saveCareerNodes();
+    notifyListeners();
+  }
+
+  void updateCareerNode(CareerRoadmapNode node) {
+    final idx = _careerNodes.indexWhere((n) => n.id == node.id);
+    if (idx != -1) {
+      _careerNodes[idx] = node;
+      _saveCareerNodes();
+      notifyListeners();
+    }
+  }
+
+  void deleteCareerNode(String id) {
+    _careerNodes.removeWhere((n) => n.id == id);
+    _saveCareerNodes();
+    notifyListeners();
+  }
+
+  // ---------------------------------------------------------------------------
+  // 5. Tasks (Eisenhower & Priority)
+  // ---------------------------------------------------------------------------
   List<Task> _tasks = [];
   List<Task> get tasks => _tasks;
 
@@ -275,14 +439,6 @@ class AppProvider extends ChangeNotifier {
         paymentMethod: paymentMethod,
       );
       _saveExpenses();
-      ApiService.updateExpense(
-        id: id,
-        title: title,
-        category: category,
-        amount: amount,
-        isIncome: isIncome,
-        paymentMethod: paymentMethod,
-      );
       notifyListeners();
     }
   }
@@ -290,43 +446,26 @@ class AppProvider extends ChangeNotifier {
   void deleteExpense(String id) {
     _expenses.removeWhere((e) => e.id == id);
     _saveExpenses();
-    ApiService.deleteExpense(id);
     notifyListeners();
   }
 
-  // Referral Operations
   void applyReferralCode(String code) {
     _user.referredByCode = code;
-    ApiService.applyReferralCode(_user.id, code);
     notifyListeners();
   }
 
   Future<void> checkoutSubscription(String plan, double basePrice) async {
-    final res = await ApiService.checkoutSubscription(
-      userId: _user.id,
-      plan: plan,
-      basePrice: basePrice,
-    );
-    if (res['success'] == true || res['subscription'] != null) {
-      _user.isPremium = true;
-      _user.activeDiscountPercent = 0; // consumed
-      notifyListeners();
-    }
+    _user.isPremium = true;
+    _user.activeDiscountPercent = 0;
+    _saveSession();
+    notifyListeners();
   }
 
-  // Initial Mock Data Setup & Persistence
+  // Initial Data Setup & Persistence
   Future<void> _initData() async {
     try {
       final prefs = await SharedPreferences.getInstance();
 
-      // Force clean slate cache reset for v4 profile update
-      final isV4Clean = prefs.getBool('is_v4_profile_clean') ?? false;
-      if (!isV4Clean) {
-        await prefs.clear();
-        await prefs.setBool('is_v4_profile_clean', true);
-      }
-
-      // Load Monthly Budget
       _monthlyBudget = prefs.getDouble('saved_monthly_budget') ?? 10000.0;
 
       // Restore authenticated session from secure storage
@@ -389,25 +528,153 @@ class AppProvider extends ChangeNotifier {
 
       _recalculateMetrics();
       notifyListeners();
-    } catch (e, stack) {
-      debugPrint('Error loading saved state in AppProvider: $e\n$stack');
-      notifyListeners();
+    } catch (e) {
+      debugPrint('Error loading saved state: $e');
+    }
+  }
+
+  Future<void> _loadUserIsolatedData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final uid = _user.id;
+
+    // 1. Habits
+    final habitsJson = prefs.getString('saved_habits_$uid') ?? prefs.getString('saved_habits');
+    if (habitsJson != null) {
+      final List decoded = jsonDecode(habitsJson);
+      _habits = decoded.map((item) => Habit.fromJson(item)).toList();
+    } else {
+      _habits = [
+        Habit(id: 'h_1', title: 'Morning Focus & Meditation', frequency: 'DAILY', isCompleted: true, streakDay: 5),
+        Habit(id: 'h_2', title: 'Read 20 Pages of Core Topic', frequency: 'DAILY', isCompleted: false, streakDay: 3),
+      ];
+    }
+
+    // 2. Tasks
+    final tasksJson = prefs.getString('saved_tasks_$uid') ?? prefs.getString('saved_tasks');
+    if (tasksJson != null) {
+      final List decoded = jsonDecode(tasksJson);
+      _tasks = decoded.map((item) => Task.fromJson(item)).toList();
+    } else {
+      _tasks = [
+        Task(id: 't_1', title: 'Complete Math Assignment 3', category: 'Studies', dueDateLabel: 'Today', dueDate: DateTime.now(), priority: 1),
+        Task(id: 't_2', title: 'Review System Architecture Notes', category: 'Career Roadmap', dueDateLabel: 'Tomorrow', dueDate: DateTime.now().add(const Duration(days: 1)), priority: 2),
+      ];
+    }
+
+    // 3. Calendar Events
+    final eventsJson = prefs.getString('saved_events_$uid') ?? prefs.getString('saved_events');
+    if (eventsJson != null) {
+      final List decoded = jsonDecode(eventsJson);
+      _calendarEvents = decoded.map((item) => CalendarEvent.fromJson(item)).toList();
+    } else {
+      _calendarEvents = [];
+    }
+
+    // 4. Expenses
+    final expensesJson = prefs.getString('saved_expenses_$uid') ?? prefs.getString('saved_expenses');
+    if (expensesJson != null) {
+      final List decoded = jsonDecode(expensesJson);
+      _expenses = decoded.map((item) => ExpenseTransaction.fromJson(item)).toList();
+    } else {
+      _expenses = [
+        ExpenseTransaction(id: 'exp_1', title: 'Course Textbook', category: 'Education', amount: 450.0, date: DateTime.now()),
+        ExpenseTransaction(id: 'exp_2', title: 'Study Cafe Coffee', category: 'Food & Dining', amount: 120.0, date: DateTime.now()),
+      ];
+    }
+
+    // 5. Subjects & Studies
+    final subjectsJson = prefs.getString('saved_subjects_$uid');
+    if (subjectsJson != null) {
+      final List decoded = jsonDecode(subjectsJson);
+      _subjects = decoded.map((item) => StudySubject.fromJson(item)).toList();
+    } else {
+      _subjects = [
+        StudySubject(id: 'sub_1', name: 'Computer Science', code: 'CS101', colorHex: 0xFF0D5CE5, progress: 0.65),
+        StudySubject(id: 'sub_2', name: 'Applied Mathematics', code: 'MATH201', colorHex: 0xFF10B981, progress: 0.40),
+      ];
+    }
+
+    final studyItemsJson = prefs.getString('saved_study_items_$uid');
+    if (studyItemsJson != null) {
+      final List decoded = jsonDecode(studyItemsJson);
+      _studyItems = decoded.map((item) => StudyItem.fromJson(item)).toList();
+    } else {
+      _studyItems = [
+        StudyItem(id: 'st_1', subjectId: 'sub_1', subjectName: 'Computer Science', title: 'Algorithm Complexity Analysis', type: 'ASSIGNMENT', dueDate: DateTime.now().add(const Duration(days: 2)), isCompleted: true),
+        StudyItem(id: 'st_2', subjectId: 'sub_1', subjectName: 'Computer Science', title: 'Data Structures Lab Exam', type: 'EXAM', dueDate: DateTime.now().add(const Duration(days: 5)), isCompleted: false),
+        StudyItem(id: 'st_3', subjectId: 'sub_2', subjectName: 'Applied Mathematics', title: 'Differential Equations Chapter 4', type: 'TASK', dueDate: DateTime.now().add(const Duration(days: 1)), isCompleted: false),
+      ];
+    }
+
+    // 6. Journal / Notes
+    final journalJson = prefs.getString('saved_journal_$uid');
+    if (journalJson != null) {
+      final List decoded = jsonDecode(journalJson);
+      _journalEntries = decoded.map((item) => JournalEntry.fromJson(item)).toList();
+    } else {
+      _journalEntries = [
+        JournalEntry(
+          id: 'j_1',
+          title: 'Deep Work & Consistency Reflections',
+          content: 'Today was highly focused. Managed 3 solid pomodoro sessions on system design. Energy levels were consistent throughout the morning.',
+          date: DateTime.now().subtract(const Duration(days: 1)),
+          mood: 'Productive',
+          tags: ['Study', 'Focus', 'Reflections'],
+        ),
+      ];
+    }
+
+    // 7. Career Roadmap
+    final careerJson = prefs.getString('saved_career_$uid');
+    if (careerJson != null) {
+      final List decoded = jsonDecode(careerJson);
+      _careerNodes = decoded.map((item) => CareerRoadmapNode.fromJson(item)).toList();
+    } else {
+      _careerNodes = [
+        CareerRoadmapNode(id: 'cr_1', section: 'GOAL', title: 'Software Engineering Specialist', description: 'Master full-stack architecture & distributed systems', status: 'IN_PROGRESS', order: 1),
+        CareerRoadmapNode(id: 'cr_2', section: 'SKILLS', title: 'Flutter & Dart Mastery', description: 'Advanced state management, custom painting, animations', status: 'COMPLETED', order: 2),
+        CareerRoadmapNode(id: 'cr_3', section: 'LEARNING', title: 'Cloud & Database Optimization', description: 'PostgreSQL indexing, Redis caching, microservices', status: 'IN_PROGRESS', order: 3),
+        CareerRoadmapNode(id: 'cr_4', section: 'PROJECTS', title: 'Production OS Dashboard', description: 'Full offline-first mobile and desktop productivity application', status: 'IN_PROGRESS', order: 4),
+        CareerRoadmapNode(id: 'cr_5', section: 'EXPERIENCE', title: 'Open Source Contributor', description: 'Contribute to top developer tooling ecosystems', status: 'PLANNED', order: 5),
+        CareerRoadmapNode(id: 'cr_6', section: 'OPPORTUNITY', title: 'Full-Stack Software Engineer', description: 'Top product engineering company', status: 'PLANNED', order: 6),
+      ];
+    }
+
+    // 8. Notifications
+    final notifsJson = prefs.getString('saved_notifications_$uid') ?? prefs.getString('saved_notifications');
+    if (notifsJson != null) {
+      final List decoded = jsonDecode(notifsJson);
+      _notifications = decoded.map((item) => AppNotification.fromJson(item)).toList();
+    } else {
+      _notifications = [];
     }
   }
 
   // Task Operations
-  void addTask(String title, String category, String dueDateLabel) {
+  void addTask(String title, String category, String dueDateLabel, {int priority = 1}) {
     final newTask = Task(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: 't_${DateTime.now().millisecondsSinceEpoch}',
       title: title,
       category: category,
       dueDateLabel: dueDateLabel,
       dueDate: DateTime.now(),
+      priority: priority,
     );
     _tasks.add(newTask);
     _saveTasks();
     _recalculateMetrics();
     notifyListeners();
+  }
+
+  void editTask(String taskId, String newTitle, int priority, String category) {
+    final index = _tasks.indexWhere((t) => t.id == taskId);
+    if (index != -1) {
+      _tasks[index].title = newTitle;
+      _tasks[index].priority = priority;
+      _tasks[index].category = category;
+      _saveTasks();
+      notifyListeners();
+    }
   }
 
   void toggleTaskCompletion(String taskId) {
@@ -417,9 +684,6 @@ class AppProvider extends ChangeNotifier {
       if (_tasks[index].isCompleted) {
         _tasks[index].completedDate = DateTime.now();
         _tasks[index].dueDateLabel = 'Completed';
-
-        // Check Milestone trigger (e.g. 7 day streak trigger)
-        _checkAndAddMilestoneNotification();
       } else {
         _tasks[index].completedDate = null;
         _tasks[index].dueDateLabel = 'Today';
@@ -463,12 +727,12 @@ class AppProvider extends ChangeNotifier {
     );
 
     final newEvent = CalendarEvent(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: 'ev_${DateTime.now().millisecondsSinceEpoch}',
       title: title,
       description: description,
       startTime: startDT,
       endTime: endDT,
-      location: location.isEmpty ? 'Workspace A' : location,
+      location: location.isEmpty ? 'Workspace' : location,
       type: type,
     );
 
@@ -481,19 +745,6 @@ class AppProvider extends ChangeNotifier {
     final index = _calendarEvents.indexWhere((e) => e.id == eventId);
     if (index != -1) {
       _calendarEvents[index].isCompleted = !_calendarEvents[index].isCompleted;
-
-      if (_calendarEvents[index].isCompleted &&
-          _calendarEvents[index].type == 'Focus Session') {
-        // Trigger Focus Session Complete notification
-        addNotification(
-          title: 'Focus Session Complete',
-          header: 'Completed',
-          message:
-              'Great work! You finished "${_calendarEvents[index].title}". Take a well-deserved break.',
-          colorHex: 0xFF0EA5E9,
-          category: 'RECENT',
-        );
-      }
       _saveEvents();
       _recalculateMetrics();
       notifyListeners();
@@ -506,30 +757,6 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void editCalendarEvent(
-    String eventId,
-    String title,
-    String description,
-    String location,
-    String type,
-  ) {
-    final index = _calendarEvents.indexWhere((e) => e.id == eventId);
-    if (index != -1) {
-      _calendarEvents[index] = CalendarEvent(
-        id: eventId,
-        title: title,
-        description: description,
-        startTime: _calendarEvents[index].startTime,
-        endTime: _calendarEvents[index].endTime,
-        location: location,
-        type: type,
-        isCompleted: _calendarEvents[index].isCompleted,
-      );
-      _saveEvents();
-      notifyListeners();
-    }
-  }
-
   // Notification Operations
   void addNotification({
     required String title,
@@ -539,7 +766,7 @@ class AppProvider extends ChangeNotifier {
     String category = 'RECENT',
   }) {
     final newNotif = AppNotification(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: 'notif_${DateTime.now().millisecondsSinceEpoch}',
       title: title,
       header: header,
       message: message,
@@ -558,23 +785,9 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Inter-module calculation & Milestone Check
-  void _checkAndAddMilestoneNotification() {
-    final completedCount = _tasks.where((t) => t.isCompleted).length;
-    if (completedCount > 0 && completedCount % 3 == 0) {
-      addNotification(
-        title: 'New Milestone Achieved',
-        header: 'Achieved',
-        message:
-            'Consistency King! You\'ve completed $completedCount key targets. Keep the momentum going!',
-        colorHex: 0xFF3B82F6,
-        category: 'RECENT',
-      );
-    }
-  }
-
   void updateUserName(String newName) {
     _user.name = newName;
+    _saveSession();
     notifyListeners();
   }
 
@@ -596,33 +809,57 @@ class AppProvider extends ChangeNotifier {
     await prefs.setBool('isDarkTheme', _themeMode == ThemeMode.dark);
   }
 
+  Future<void> _saveHabits() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonList = _habits.map((h) => h.toJson()).toList();
+    await prefs.setString('saved_habits_${_user.id}', jsonEncode(jsonList));
+  }
+
   Future<void> _saveTasks() async {
     final prefs = await SharedPreferences.getInstance();
     final jsonList = _tasks.map((t) => t.toJson()).toList();
-    await prefs.setString('saved_tasks', jsonEncode(jsonList));
+    await prefs.setString('saved_tasks_${_user.id}', jsonEncode(jsonList));
   }
 
   Future<void> _saveEvents() async {
     final prefs = await SharedPreferences.getInstance();
     final jsonList = _calendarEvents.map((e) => e.toJson()).toList();
-    await prefs.setString('saved_events', jsonEncode(jsonList));
+    await prefs.setString('saved_events_${_user.id}', jsonEncode(jsonList));
   }
 
   Future<void> _saveNotifications() async {
     final prefs = await SharedPreferences.getInstance();
     final jsonList = _notifications.map((n) => n.toJson()).toList();
-    await prefs.setString('saved_notifications', jsonEncode(jsonList));
+    await prefs.setString('saved_notifications_${_user.id}', jsonEncode(jsonList));
   }
 
   Future<void> _saveExpenses() async {
     final prefs = await SharedPreferences.getInstance();
     final jsonList = _expenses.map((e) => e.toJson()).toList();
-    await prefs.setString('saved_expenses', jsonEncode(jsonList));
+    await prefs.setString('saved_expenses_${_user.id}', jsonEncode(jsonList));
   }
 
-  Future<void> _saveReferrals() async {
+  Future<void> _saveSubjects() async {
     final prefs = await SharedPreferences.getInstance();
-    final jsonList = _referralActivities.map((r) => r.toJson()).toList();
-    await prefs.setString('saved_referrals', jsonEncode(jsonList));
+    final jsonList = _subjects.map((s) => s.toJson()).toList();
+    await prefs.setString('saved_subjects_${_user.id}', jsonEncode(jsonList));
+  }
+
+  Future<void> _saveStudyItems() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonList = _studyItems.map((i) => i.toJson()).toList();
+    await prefs.setString('saved_study_items_${_user.id}', jsonEncode(jsonList));
+  }
+
+  Future<void> _saveJournalEntries() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonList = _journalEntries.map((j) => j.toJson()).toList();
+    await prefs.setString('saved_journal_${_user.id}', jsonEncode(jsonList));
+  }
+
+  Future<void> _saveCareerNodes() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonList = _careerNodes.map((n) => n.toJson()).toList();
+    await prefs.setString('saved_career_${_user.id}', jsonEncode(jsonList));
   }
 }

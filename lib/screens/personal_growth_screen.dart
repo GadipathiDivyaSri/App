@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import 'habit_tracker_screen.dart';
 import 'expense_tracker_screen.dart';
-import 'milestones_screen.dart';
+import 'career_roadmap_screen.dart';
 import 'organize_matrix_screen.dart';
 import 'notes_screen.dart';
 
@@ -132,14 +132,14 @@ class PersonalGrowthScreen extends StatelessWidget {
             _buildMenuCard(
               context,
               category: 'CAREER ROADMAP',
-              title: 'Track your Milestones',
-              icon: Icons.flag_outlined,
+              title: 'Career Roadmap & Growth',
+              icon: Icons.alt_route_rounded,
               isDark: isDark,
               onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => const MilestonesScreen(),
+                    builder: (_) => const CareerRoadmapScreen(),
                   ),
                 );
               },

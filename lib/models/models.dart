@@ -4,6 +4,7 @@ class Habit {
   String frequency;
   bool isCompleted;
   int streakDay;
+  List<String> completionHistory; // List of 'yyyy-MM-dd' dates
 
   Habit({
     required this.id,
@@ -11,7 +12,8 @@ class Habit {
     this.frequency = 'DAILY',
     this.isCompleted = false,
     this.streakDay = 0,
-  });
+    List<String>? completionHistory,
+  }) : completionHistory = completionHistory ?? [];
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -19,6 +21,7 @@ class Habit {
         'frequency': frequency,
         'isCompleted': isCompleted,
         'streakDay': streakDay,
+        'completionHistory': completionHistory,
       };
 
   factory Habit.fromJson(Map<String, dynamic> json) => Habit(
@@ -27,6 +30,10 @@ class Habit {
         frequency: json['frequency'] ?? 'DAILY',
         isCompleted: json['isCompleted'] ?? false,
         streakDay: json['streakDay'] ?? 0,
+        completionHistory: (json['completionHistory'] as List<dynamic>?)
+                ?.map((e) => e.toString())
+                .toList() ??
+            [],
       );
 }
 
@@ -247,6 +254,163 @@ class ReferralActivity {
       );
 }
 
+class JournalEntry {
+  final String id;
+  String title;
+  String content;
+  DateTime date;
+  String mood; // 'Happy', 'Productive', 'Reflective', 'Calm', 'Stressed'
+  List<String> tags;
+
+  JournalEntry({
+    required this.id,
+    required this.title,
+    required this.content,
+    required this.date,
+    this.mood = 'Reflective',
+    List<String>? tags,
+  }) : tags = tags ?? [];
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'title': title,
+        'content': content,
+        'date': date.toIso8601String(),
+        'mood': mood,
+        'tags': tags,
+      };
+
+  factory JournalEntry.fromJson(Map<String, dynamic> json) => JournalEntry(
+        id: json['id'] ?? 'j_${DateTime.now().millisecondsSinceEpoch}',
+        title: json['title'] ?? 'Journal Entry',
+        content: json['content'] ?? '',
+        date: json['date'] != null
+            ? (DateTime.tryParse(json['date'].toString()) ?? DateTime.now())
+            : DateTime.now(),
+        mood: json['mood'] ?? 'Reflective',
+        tags: (json['tags'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
+      );
+}
+
+class StudySubject {
+  final String id;
+  String name;
+  String code;
+  int colorHex;
+  double progress; // 0.0 to 1.0
+  List<String> topics;
+
+  StudySubject({
+    required this.id,
+    required this.name,
+    this.code = '',
+    this.colorHex = 0xFF0D5CE5,
+    this.progress = 0.0,
+    List<String>? topics,
+  }) : topics = topics ?? [];
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'code': code,
+        'colorHex': colorHex,
+        'progress': progress,
+        'topics': topics,
+      };
+
+  factory StudySubject.fromJson(Map<String, dynamic> json) => StudySubject(
+        id: json['id'] ?? 'sub_${DateTime.now().millisecondsSinceEpoch}',
+        name: json['name'] ?? 'Subject',
+        code: json['code'] ?? '',
+        colorHex: json['colorHex'] != null
+            ? int.tryParse(json['colorHex'].toString()) ?? 0xFF0D5CE5
+            : 0xFF0D5CE5,
+        progress: (json['progress'] is num)
+            ? (json['progress'] as num).toDouble()
+            : 0.0,
+        topics: (json['topics'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
+      );
+}
+
+class StudyItem {
+  final String id;
+  String subjectId;
+  String subjectName;
+  String title;
+  String type; // 'TASK', 'ASSIGNMENT', 'EXAM'
+  DateTime dueDate;
+  bool isCompleted;
+
+  StudyItem({
+    required this.id,
+    required this.subjectId,
+    required this.subjectName,
+    required this.title,
+    this.type = 'TASK',
+    required this.dueDate,
+    this.isCompleted = false,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'subjectId': subjectId,
+        'subjectName': subjectName,
+        'title': title,
+        'type': type,
+        'dueDate': dueDate.toIso8601String(),
+        'isCompleted': isCompleted,
+      };
+
+  factory StudyItem.fromJson(Map<String, dynamic> json) => StudyItem(
+        id: json['id'] ?? 'st_${DateTime.now().millisecondsSinceEpoch}',
+        subjectId: json['subjectId'] ?? '',
+        subjectName: json['subjectName'] ?? '',
+        title: json['title'] ?? 'Study Item',
+        type: json['type'] ?? 'TASK',
+        dueDate: json['dueDate'] != null
+            ? (DateTime.tryParse(json['dueDate'].toString()) ?? DateTime.now())
+            : DateTime.now(),
+        isCompleted: json['isCompleted'] ?? false,
+      );
+}
+
+class CareerRoadmapNode {
+  final String id;
+  String section; // 'GOAL', 'SKILLS', 'LEARNING', 'PROJECTS', 'EXPERIENCE', 'OPPORTUNITY'
+  String title;
+  String description;
+  String status; // 'IN_PROGRESS', 'PLANNED', 'COMPLETED'
+  int order;
+
+  CareerRoadmapNode({
+    required this.id,
+    required this.section,
+    required this.title,
+    this.description = '',
+    this.status = 'PLANNED',
+    this.order = 0,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'section': section,
+        'title': title,
+        'description': description,
+        'status': status,
+        'order': order,
+      };
+
+  factory CareerRoadmapNode.fromJson(Map<String, dynamic> json) =>
+      CareerRoadmapNode(
+        id: json['id'] ?? 'cr_${DateTime.now().millisecondsSinceEpoch}',
+        section: json['section'] ?? 'SKILLS',
+        title: json['title'] ?? 'Career Item',
+        description: json['description'] ?? '',
+        status: json['status'] ?? 'PLANNED',
+        order: json['order'] != null ? int.tryParse(json['order'].toString()) ?? 0 : 0,
+      );
+}
+
 class UserProfile {
   String id;
   String name;
@@ -297,7 +461,7 @@ class UserProfile {
         contact: json['contact'] ?? '',
         focusScore: json['focusScore'] ?? 92,
         activeStreak: json['activeStreak'] ?? 14,
-        isPremium: json['isPremium'] ?? true,
+        isPremium: json['isPremium'] ?? false,
         token: json['token'],
         referralCode: json['referralCode'] ?? 'WRINDHA7K92',
         referredByCode: json['referredByCode'],
