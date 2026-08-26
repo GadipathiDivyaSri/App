@@ -1,6 +1,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const { handleApiRequest } = require('./api_handler');
 
 const PORT = process.env.WEB_PORT || 8080;
 const WEB_DIR = path.join(__dirname, '..', 'build', 'web');
@@ -25,36 +26,59 @@ const MIME_TYPES = {
 const server = http.createServer((req, res) => {
   // CORS Headers
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') {
     res.writeHead(204);
     return res.end();
   }
 
+  // 1. API Route Proxy/Handler directly on same port (http://localhost:8080/api/*)
+  if (req.url.startsWith('/api/')) {
+    return handleApiRequest(req, res);
+  }
+
+  // 2. Static Web App Files
   let cleanUrl = req.url.split('?')[0];
-  if (cleanUrl === '/') cleanUrl = '/index.html';
+  if (cleanUrl.startsWith('/App')) {
+    cleanUrl = cleanUrl.replace(/^\/App/, '') || '/';
+  }
+  if (cleanUrl === '/' || cleanUrl === '') cleanUrl = '/index.html';
 
   let filePath = path.join(WEB_DIR, cleanUrl);
 
-  // Fallback to index.html for SPA client routing
-  if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
-    filePath = path.join(WEB_DIR, 'index.html');
+  // If specific file exists, serve it
+  if (fs.existsSync(filePath) && !fs.statSync(filePath).isDirectory()) {
+    const ext = path.extname(filePath).toLowerCase();
+    const contentType = MIME_TYPES[ext] || 'application/octet-stream';
+
+    fs.readFile(filePath, (err, content) => {
+      if (err) {
+        res.writeHead(500, { 'Content-Type': 'text/plain' });
+        return res.end(`Server Error: ${err.message}`);
+      }
+      res.writeHead(200, { 'Content-Type': contentType });
+      res.end(content);
+    });
+    return;
   }
 
-  const ext = path.extname(filePath).toLowerCase();
-  const contentType = MIME_TYPES[ext] || 'application/octet-stream';
-
-  fs.readFile(filePath, (err, content) => {
+  // Fallback to index.html for Single Page Application
+  const indexPath = path.join(WEB_DIR, 'index.html');
+  fs.readFile(indexPath, (err, content) => {
     if (err) {
       res.writeHead(500, { 'Content-Type': 'text/plain' });
-      return res.end(`Server Error: ${err.message}`);
+      return res.end(`Server Error loading index.html: ${err.message}`);
     }
-    res.writeHead(200, { 'Content-Type': contentType });
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=UTF-8' });
     res.end(content);
   });
 });
 
 server.listen(PORT, () => {
-  console.log(`🌐 WrindhaOS Web App running at: http://localhost:${PORT}`);
+  console.log(`=======================================================`);
+  console.log(`🌐 WrindhaOS App + Backend running at: http://localhost:${PORT}`);
+  console.log(`📡 API Health: http://localhost:${PORT}/api/health`);
+  console.log(`=======================================================`);
 });
