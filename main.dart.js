@@ -101007,15 +101007,15 @@ j=a0?B.bl:B.aR
 i=A.B(14)
 h=a0?B.bl:B.aR
 m=A.a([B.a7n,B.ao,A.bZ(b,B.Z,!1,b,!0,B.z,b,A.c4(),c.e,b,b,b,b,b,2,A.dW(b,new A.bB(4,k,new A.am(j,1,B.p,-1)),b,b,b,b,b,b,!0,new A.bB(4,i,new A.am(h,1,B.p,-1)),b,b,b,b,b,l,!0,b,b,b,b,new A.bB(4,A.B(14),new A.am(a1,1.5,B.p,-1)),b,b,b,b,b,b,b,b,n,"",b,b,b,b,b,b,b,b,b,!0,!0,!1,b,m,b,b,b,b,b,b,b,b,b,b,b,b),B.t,!0,b,!0,b,!1,b,B.W,b,b,b,b,B.p9,b,b,b,1,b,b,!1,"\u2022",b,b,b,b,b,!1,b,b,!1,b,!0,b,B.F,b,b,b,b,b,b,b,b,b,b,b,b,!0,B.G,b,B.a3,b,b,b,b),B.a1],s)
-if(c.r){n=A.J(b,b,A.b1(a),b,b,b,b,b,b,b,b,13.5,b,b,b,b,b,!0,b,b,b,b,b,b,b,b)
+if(true){n=A.J(b,b,A.b1(a),b,b,b,b,b,b,b,b,13.5,b,b,b,b,b,!0,b,b,b,b,b,b,b,b)
 l=A.as(B.nC,a1,b,20)
 k=a0?B.T:B.b3
 j=A.B(14)
 i=a0?B.bl:B.aR
 h=A.B(14)
 g=a0?B.bl:B.aR
-B.b.M(m,A.a([B.a77,B.ao,A.bZ(b,B.Z,!1,b,!0,B.z,b,A.c4(),c.f,b,b,b,b,b,2,A.dW(b,new A.bB(4,j,new A.am(i,1,B.p,-1)),b,b,b,b,"",b,!0,new A.bB(4,h,new A.am(g,1,B.p,-1)),b,b,b,b,b,k,!0,b,b,b,b,new A.bB(4,A.B(14),new A.am(a1,1.5,B.p,-1)),b,b,b,b,b,b,b,b,n,"Enter 4-digit OTP",b,b,b,b,b,b,b,b,b,!0,!0,!1,b,l,b,b,b,b,b,b,b,b,b,b,b,b),B.t,!0,b,!0,b,!1,b,B.W,b,b,b,b,B.iS,b,4,b,1,b,b,!1,"\u2022",b,b,b,b,b,!1,b,b,!1,b,!0,b,B.F,b,b,b,b,b,b,b,b,b,b,b,b,!0,B.G,b,B.a3,b,b,b,b),B.a1],s))}n=A.cX(b,b,a1,b,b,b,0,b,b,b,b,b,b,b,new A.bb(A.B(14),B.v),b,b,b,b,b)
-l=c.r?"Verify & Log In":"Send OTP"
+B.b.M(m,A.a([B.a77,B.ao,A.bZ(b,B.Z,!1,b,!0,B.z,b,A.c4(),c.f,b,b,b,b,b,2,A.dW(b,new A.bB(4,j,new A.am(i,1,B.p,-1)),b,b,b,b,"",b,!0,new A.bB(4,h,new A.am(g,1,B.p,-1)),b,b,b,b,b,k,!0,b,b,b,b,new A.bB(4,A.B(14),new A.am(a1,1.5,B.p,-1)),b,b,b,b,b,b,b,b,n,"Enter your password",b,b,b,b,b,b,b,b,b,!0,!0,!1,b,l,b,b,b,b,b,b,b,b,b,b,b,b),B.t,!0,b,!0,b,!1,b,B.W,b,b,b,b,B.iS,b,4,b,1,b,b,!1,"\u2022",b,b,b,b,b,!1,b,b,!1,b,!0,b,B.F,b,b,b,b,b,b,b,b,b,b,b,b,!0,B.G,b,B.a3,b,b,b,b),B.a1],s))}n=A.cX(b,b,a1,b,b,b,0,b,b,b,b,b,b,b,new A.bb(A.B(14),B.v),b,b,b,b,b)
+l=c.r?"Verify & Log In":"Sign In"
 m.push(A.b_(A.cW(A.m(l,b,b,b,b,A.J(b,b,B.d,b,b,b,b,b,b,b,b,15,b,b,B.x,b,b,!0,b,b,b,b,b,b,b,b),b,b,b),c.gahN(),n),50,1/0))
 m.push(B.a4)
 n=c.Q
@@ -102313,7 +102313,7 @@ p.MH(s,"alex.google@gmail.com",r.length!==0?r:null)
 q=o.c
 q.toString
 A.ad(q,!1).Na(new A.aDw())},
-E(a7){var s,r,q,p,o,n,m,l,k=this,j=null,i=4287931320,h="\u2022",g="Enter 4-digit OTP",f=A.p(a7).ax.a===B.A,e=f?B.am:B.N,d=f?B.aZ:B.aV,c=A.da(j,j,j,j,j,A.c3(j,j,j,A.as(B.bm,f?B.d:B.B,j,20),j,j,new A.aDE(a7),j,j,j,j),j),b=A.m("Create Account",j,j,j,j,A.J(j,j,f?B.d:B.B,j,j,j,j,j,j,j,j,28,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j),a=A.m("Sign up with your details to unlock personal growth and study dashboards.",j,j,j,j,A.J(j,j,f?B.as:B.a6,j,j,j,j,j,j,j,j,13,j,j,j,j,1.4,!0,j,j,j,j,j,j,j,j),j,j,j),a0=A.J(j,j,A.b1(i),j,j,j,j,j,j,j,j,13.5,j,j,j,j,j,!0,j,j,j,j,j,j,j,j),a1=A.as(B.nF,e,j,20),a2=f?B.T:B.b3,a3=A.B(14),a4=f?B.bl:B.aR,a5=A.B(14),a6=f?B.bl:B.aR
+E(a7){var s,r,q,p,o,n,m,l,k=this,j=null,i=4287931320,h="\u2022",g="Enter your password",f=A.p(a7).ax.a===B.A,e=f?B.am:B.N,d=f?B.aZ:B.aV,c=A.da(j,j,j,j,j,A.c3(j,j,j,A.as(B.bm,f?B.d:B.B,j,20),j,j,new A.aDE(a7),j,j,j,j),j),b=A.m("Create Account",j,j,j,j,A.J(j,j,f?B.d:B.B,j,j,j,j,j,j,j,j,28,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j),a=A.m("Sign up with your details to unlock personal growth and study dashboards.",j,j,j,j,A.J(j,j,f?B.as:B.a6,j,j,j,j,j,j,j,j,13,j,j,j,j,1.4,!0,j,j,j,j,j,j,j,j),j,j,j),a0=A.J(j,j,A.b1(i),j,j,j,j,j,j,j,j,13.5,j,j,j,j,j,!0,j,j,j,j,j,j,j,j),a1=A.as(B.nF,e,j,20),a2=f?B.T:B.b3,a3=A.B(14),a4=f?B.bl:B.aR,a5=A.B(14),a6=f?B.bl:B.aR
 a1=A.bZ(j,B.Z,!1,j,!0,B.z,j,A.c4(),k.e,j,j,j,j,j,2,A.dW(j,new A.bB(4,a3,new A.am(a4,1,B.p,-1)),j,j,j,j,j,j,!0,new A.bB(4,a5,new A.am(a6,1,B.p,-1)),j,j,j,j,j,a2,!0,j,j,j,j,new A.bB(4,A.B(14),new A.am(e,1.5,B.p,-1)),j,j,j,j,j,j,j,j,a0,"",j,j,j,j,j,j,j,j,j,!0,!0,!1,j,a1,j,j,j,j,j,j,j,j,j,j,j,j),B.t,!0,j,!0,j,!1,j,B.W,j,j,j,j,j,j,j,j,1,j,j,!1,h,j,j,j,j,j,!1,j,j,!1,j,!0,j,B.F,j,j,j,j,j,j,j,j,j,j,j,j,!0,B.G,j,B.a3,j,j,j,j)
 a0=f?B.T:B.bC
 a2=A.B(14)
@@ -110663,7 +110663,7 @@ B.a74=new A.L("POPULAR",null,B.a2V,null,null,null,null,null,null,null,null)
 B.FA=new A.L("Edit",null,null,null,null,null,null,null,null,null,null)
 B.a4O=new A.j(!0,B.a_,null,null,null,null,15,B.b4,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
 B.FB=new A.L("Cancel",null,B.a4O,null,null,null,null,null,null,null,null)
-B.a77=new A.L("ENTER OTP CODE",null,B.aL,null,null,null,null,null,null,null,null)
+B.a77=new A.L("PASSWORD",null,B.aL,null,null,null,null,null,null,null,null)
 B.a78=new A.L("10% Max / Cycle",null,B.Fw,null,null,null,null,null,null,null,null)
 B.a79=new A.L("PASSWORD",null,B.aL,null,null,null,null,null,null,null,null)
 B.a7b=new A.L("GOALS STATUS PIE CHART",null,B.aL,null,null,null,null,null,null,null,null)
@@ -110675,7 +110675,7 @@ B.a7h=new A.L("Edit Journal Entry",null,B.dd,null,null,null,null,null,null,null,
 B.a7i=new A.L("Continue with Google",null,B.Fq,null,null,null,null,null,null,null,null)
 B.a7l=new A.L("Edit Entry",null,null,null,null,null,null,null,null,null,null)
 B.a7m=new A.L("Schedule Event",null,B.dd,null,null,null,null,null,null,null,null)
-B.a7n=new A.L("MOBILE NUMBER",null,B.aL,null,null,null,null,null,null,null,null)
+B.a7n=new A.L("USERNAME OR EMAIL",null,B.aL,null,null,null,null,null,null,null,null)
 B.a7p=new A.L("FULL NAME",null,B.aL,null,null,null,null,null,null,null,null)
 B.a59=new A.j(!0,B.u,null,null,null,null,11,B.x,null,1.1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
 B.a7q=new A.L("NEW ENTRY",null,B.a59,null,null,null,null,null,null,null,null)
