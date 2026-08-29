@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'email_login_screen.dart';
+import 'auth_entry_screen.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const EmailLoginScreen();
+    return const AuthEntryScreen();
   }
 }
