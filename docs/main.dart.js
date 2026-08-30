@@ -100861,7 +100861,7 @@ A.ad(r.e,!1).aI(null)}},
 $S:0}
 A.awt.prototype={
 $0(){var s=this,r=s.a
-s.b.d.push(A.af(["id",B.l.k(Date.now()),"title",B.c.aN(s.c.a.a),"frequency",r.b.toUpperCase()+" \u2022 "+r.a.fJ(s.d),"icon",B.NK,"isCompleted",!1,"streakDay",1],t.N,t.z))},
+s.b.d.push(A.af(["id",B.l.k(Date.now()),"title",B.c.aN(s.c.a.a),"frequency",r.b.toUpperCase()+" \u2022 "+r.a.fJ(s.d),"icon",B.NK,"isCompleted",!1,"streakDay",0],t.N,t.z))},
 $S:0}
 
 A.Os.prototype={

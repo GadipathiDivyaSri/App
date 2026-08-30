@@ -112,55 +112,136 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
   // ---------------------------------------------------------------------------
-  // 1. Habits (Personal Growth)
+  // 1. Habits (Personal Growth & Habit Tracker)
   // ---------------------------------------------------------------------------
   List<Habit> _habits = [];
   List<Habit> get habits => _habits;
 
-  // Centralized Plan Limits
+  DateTime _selectedHabitDate = DateTime.now();
+  DateTime get selectedHabitDate => _selectedHabitDate;
+
+  String get selectedHabitDateStr =>
+      '${_selectedHabitDate.year}-${_selectedHabitDate.month.toString().padLeft(2, '0')}-${_selectedHabitDate.day.toString().padLeft(2, '0')}';
+
+  void setSelectedHabitDate(DateTime date) {
+    _selectedHabitDate = date;
+    notifyListeners();
+  }
+
+  // Habits scheduled for the currently selected date
+  List<Habit> get scheduledHabitsForSelectedDate =>
+      _habits.where((h) => h.status != 'archived' && h.isScheduledForDate(_selectedHabitDate)).toList();
+
+  int get completedHabitsCountForSelectedDate {
+    final dateStr = selectedHabitDateStr;
+    return _habits.where((h) => h.status != 'archived' && h.isScheduledForDate(_selectedHabitDate) && h.isCompletedOnDate(dateStr)).length;
+  }
+
+  double get habitProgressForSelectedDate {
+    final scheduled = scheduledHabitsForSelectedDate;
+    if (scheduled.isEmpty) return 0.0;
+    return completedHabitsCountForSelectedDate / scheduled.length;
+  }
+
+  // Centralized Plan Limits (Max 2 for Free, Unlimited for Pro)
   bool get canAddHabit =>
-      FeatureAccessService.canCreateHabit(currentHabitCount: _habits.length, plan: currentPlan);
+      FeatureAccessService.canCreateHabit(currentHabitCount: _habits.where((h) => h.status == 'active').length, plan: currentPlan);
 
   int get maxHabits => FeatureAccessService.getHabitLimit(currentPlan);
 
   int get remainingHabitSlots =>
-      FeatureAccessService.getRemainingHabitSlots(currentCount: _habits.length, plan: currentPlan);
+      FeatureAccessService.getRemainingHabitSlots(currentCount: _habits.where((h) => h.status == 'active').length, plan: currentPlan);
 
   void addHabit(Habit habit) {
     _habits.add(habit);
     _saveHabits();
     notifyListeners();
-    ApiService.createHabitOnBackend(habit.title, habit.frequency);
+    ApiService.createHabitOnBackend(habit);
   }
 
-  void editHabit(String id, String title, String frequency) {
+  void editHabit(
+    String id, {
+    required String title,
+    required String category,
+    required String frequency,
+    required List<int> selectedDays,
+    String description = '',
+    int colorHex = 0xFF10B981,
+    String iconName = 'repeat',
+  }) {
     final idx = _habits.indexWhere((h) => h.id == id);
     if (idx != -1) {
       _habits[idx].title = title;
+      _habits[idx].category = category;
       _habits[idx].frequency = frequency;
+      _habits[idx].selectedDays = selectedDays;
+      _habits[idx].description = description;
+      _habits[idx].colorHex = colorHex;
+      _habits[idx].iconName = iconName;
       _saveHabits();
       notifyListeners();
+      ApiService.updateHabitOnBackend(_habits[idx]);
     }
   }
 
-  void toggleHabit(String id) {
+  void pauseHabit(String id) {
     final idx = _habits.indexWhere((h) => h.id == id);
     if (idx != -1) {
-      _habits[idx].isCompleted = !_habits[idx].isCompleted;
-      final todayStr = DateTime.now().toIso8601String().split('T')[0];
-      if (_habits[idx].isCompleted) {
-        _habits[idx].streakDay += 1;
-        if (!_habits[idx].completionHistory.contains(todayStr)) {
-          _habits[idx].completionHistory.add(todayStr);
-        }
-      } else {
-        if (_habits[idx].streakDay > 0) {
-          _habits[idx].streakDay -= 1;
-        }
-        _habits[idx].completionHistory.remove(todayStr);
-      }
+      _habits[idx].status = 'paused';
       _saveHabits();
       notifyListeners();
+      ApiService.updateHabitStatusOnBackend(id, 'paused');
+    }
+  }
+
+  void resumeHabit(String id) {
+    final idx = _habits.indexWhere((h) => h.id == id);
+    if (idx != -1) {
+      _habits[idx].status = 'active';
+      _saveHabits();
+      notifyListeners();
+      ApiService.updateHabitStatusOnBackend(id, 'active');
+    }
+  }
+
+  void toggleHabit(String id, {DateTime? targetDate}) {
+    final date = targetDate ?? _selectedHabitDate;
+    final dateStr = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+    final todayStr = DateTime.now().toIso8601String().split('T')[0];
+
+    final idx = _habits.indexWhere((h) => h.id == id);
+    if (idx != -1) {
+      final habit = _habits[idx];
+      final isCurrentlyCompleted = habit.completionHistory.contains(dateStr);
+
+      if (isCurrentlyCompleted) {
+        habit.completionHistory.remove(dateStr);
+        if (dateStr == todayStr) {
+          habit.isCompleted = false;
+          if (habit.streakDay > 0) habit.streakDay -= 1;
+        }
+      } else {
+        if (!habit.completionHistory.contains(dateStr)) {
+          habit.completionHistory.add(dateStr);
+        }
+        if (dateStr == todayStr) {
+          habit.isCompleted = true;
+          habit.streakDay += 1;
+          if (habit.streakDay > habit.longestStreak) {
+            habit.longestStreak = habit.streakDay;
+          }
+        }
+      }
+
+      habit.totalCompletions = habit.completionHistory.length;
+      _saveHabits();
+      notifyListeners();
+
+      ApiService.toggleHabitCompletionOnBackend(
+        id,
+        date: dateStr,
+        isCompleted: !isCurrentlyCompleted,
+      );
     }
   }
 
@@ -168,6 +249,7 @@ class AppProvider extends ChangeNotifier {
     _habits.removeWhere((h) => h.id == id);
     _saveHabits();
     notifyListeners();
+    ApiService.deleteHabitOnBackend(id);
   }
 
   // ---------------------------------------------------------------------------

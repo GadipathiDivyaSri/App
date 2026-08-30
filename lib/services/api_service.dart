@@ -397,17 +397,31 @@ class ApiService {
   }
 
   // ---------------------------------------------------------------------------
-  // 6. MODULE REST APIS (Habits, Subjects, Tasks, Goals, Expenses, etc.)
+  // 6. HABIT TRACKER REST APIS (Production-Ready Backend Sync)
   // ---------------------------------------------------------------------------
 
-  /// Habits API (Free plan limit: Max 2 Habits)
-  static Future<Map<String, dynamic>> createHabitOnBackend(String title, String frequency) async {
+  /// Fetch user's habits with streak & completion status for a specific date
+  static Future<List<Habit>> fetchHabits({String? date}) async {
+    try {
+      final headers = await _getHeaders();
+      final uri = Uri.parse('$baseUrl/habits').replace(queryParameters: date != null ? {'date': date} : null);
+      final response = await http.get(uri, headers: headers);
+      if (response.statusCode == 200) {
+        final List<dynamic> list = jsonDecode(response.body);
+        return list.map((json) => Habit.fromJson(json)).toList();
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  /// Create Habit with Free tier enforcement (Max 2 Habits)
+  static Future<Map<String, dynamic>> createHabitOnBackend(Habit habit) async {
     try {
       final headers = await _getHeaders();
       final response = await http.post(
         Uri.parse('$baseUrl/habits'),
         headers: headers,
-        body: jsonEncode({'title': title, 'frequency': frequency}),
+        body: jsonEncode(habit.toJson()),
       );
       return {
         'statusCode': response.statusCode,
@@ -416,6 +430,97 @@ class ApiService {
     } catch (e) {
       return {'statusCode': 500, 'data': {'success': false, 'message': '$e'}};
     }
+  }
+
+  /// Update existing Habit
+  static Future<Map<String, dynamic>> updateHabitOnBackend(Habit habit) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.put(
+        Uri.parse('$baseUrl/habits/${habit.id}'),
+        headers: headers,
+        body: jsonEncode(habit.toJson()),
+      );
+      return {
+        'statusCode': response.statusCode,
+        'data': jsonDecode(response.body),
+      };
+    } catch (e) {
+      return {'statusCode': 500, 'data': {'success': false, 'message': '$e'}};
+    }
+  }
+
+  /// Delete Habit and cascade completion records
+  static Future<Map<String, dynamic>> deleteHabitOnBackend(String habitId) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.delete(
+        Uri.parse('$baseUrl/habits/$habitId'),
+        headers: headers,
+      );
+      return {
+        'statusCode': response.statusCode,
+        'data': jsonDecode(response.body),
+      };
+    } catch (e) {
+      return {'statusCode': 500, 'data': {'success': false, 'message': '$e'}};
+    }
+  }
+
+  /// Pause, Resume, or Archive a Habit
+  static Future<Map<String, dynamic>> updateHabitStatusOnBackend(String habitId, String status) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.patch(
+        Uri.parse('$baseUrl/habits/$habitId/status'),
+        headers: headers,
+        body: jsonEncode({'status': status}),
+      );
+      return {
+        'statusCode': response.statusCode,
+        'data': jsonDecode(response.body),
+      };
+    } catch (e) {
+      return {'statusCode': 500, 'data': {'success': false, 'message': '$e'}};
+    }
+  }
+
+  /// Toggle habit completion for a specific date
+  static Future<Map<String, dynamic>> toggleHabitCompletionOnBackend(
+    String habitId, {
+    required String date,
+    bool? isCompleted,
+  }) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.post(
+        Uri.parse('$baseUrl/habits/$habitId/toggle'),
+        headers: headers,
+        body: jsonEncode({
+          'date': date,
+          if (isCompleted != null) 'status': isCompleted ? 'completed' : 'uncompleted',
+        }),
+      );
+      return {
+        'statusCode': response.statusCode,
+        'data': jsonDecode(response.body),
+      };
+    } catch (e) {
+      return {'statusCode': 500, 'data': {'success': false, 'message': '$e'}};
+    }
+  }
+
+  /// Fetch habit analytics summary
+  static Future<Map<String, dynamic>> fetchHabitAnalytics({String? date}) async {
+    try {
+      final headers = await _getHeaders();
+      final uri = Uri.parse('$baseUrl/habits/analytics').replace(queryParameters: date != null ? {'date': date} : null);
+      final response = await http.get(uri, headers: headers);
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
   }
 
   /// Subjects API (Free plan limit: Max 2 Subjects)

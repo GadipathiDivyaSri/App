@@ -55,6 +55,36 @@
       "referralCode": "WOS5532",
       "createdAt": "2026-08-30T06:47:14.591Z",
       "updatedAt": "2026-08-30T06:47:14.591Z"
+    },
+    {
+      "id": "u_1788088608484",
+      "username": "habit_tester_1788088608467",
+      "name": "Habit Audit User",
+      "email": "habit_tester_1788088608467@wrindhaos.in",
+      "googleId": "g_ht_1788088608467",
+      "photoUrl": null,
+      "isEmailVerified": true,
+      "focusScore": 85,
+      "activeStreak": 1,
+      "isPremium": true,
+      "referralCode": "WOS6793",
+      "createdAt": "2026-08-30T11:16:48.484Z",
+      "updatedAt": "2026-08-30T11:16:48.484Z"
+    },
+    {
+      "id": "u_1788088739720",
+      "username": "habit_tester_1788088739613",
+      "name": "Habit Audit User",
+      "email": "habit_tester_1788088739613@wrindhaos.in",
+      "googleId": "g_ht_1788088739615",
+      "photoUrl": null,
+      "isEmailVerified": true,
+      "focusScore": 85,
+      "activeStreak": 1,
+      "isPremium": true,
+      "referralCode": "WOS3109",
+      "createdAt": "2026-08-30T11:18:59.720Z",
+      "updatedAt": "2026-08-30T11:18:59.741Z"
     }
   ],
   "subscriptions": [
@@ -105,6 +135,30 @@
       "transaction_id": null,
       "created_at": "2026-08-30T06:54:00.705Z",
       "updated_at": "2026-08-30T06:54:00.705Z"
+    },
+    {
+      "id": "sub_free_u_1788088608484",
+      "user_id": "u_1788088608484",
+      "plan": "pro",
+      "status": "active",
+      "started_at": "2026-08-30T11:16:48.545Z",
+      "expires_at": null,
+      "payment_provider": "GOOGLE_PLAY",
+      "transaction_id": "tx_1788088608545",
+      "created_at": "2026-08-30T11:16:48.484Z",
+      "updated_at": "2026-08-30T11:16:48.545Z"
+    },
+    {
+      "id": "sub_free_u_1788088739720",
+      "user_id": "u_1788088739720",
+      "plan": "pro",
+      "status": "active",
+      "started_at": "2026-08-30T11:18:59.774Z",
+      "expires_at": null,
+      "payment_provider": "GOOGLE_PLAY",
+      "transaction_id": "tx_1788088739774",
+      "created_at": "2026-08-30T11:18:59.741Z",
+      "updated_at": "2026-08-30T11:18:59.774Z"
     }
   ],
   "tasks": [
@@ -133,6 +187,69 @@
       "id": "h_1788068295181",
       "title": "Meditate 10 mins",
       "frequency": "DAILY"
+    },
+    {
+      "id": "h_1788088608548",
+      "userId": "u_1788088608484",
+      "title": "Read 20 pages",
+      "frequency": "DAILY",
+      "streak": 0,
+      "createdAt": "2026-08-30T11:16:48.548Z"
+    },
+    {
+      "id": "h_1788088739766",
+      "userId": "u_1788088739720",
+      "title": "Daily Morning Meditation",
+      "category": "Mindfulness",
+      "frequency": "DAILY",
+      "selectedDays": [],
+      "startDate": "2026-08-30",
+      "status": "active",
+      "description": "",
+      "colorHex": "0xFF10B981",
+      "iconName": "repeat",
+      "currentStreak": 0,
+      "longestStreak": 0,
+      "createdAt": "2026-08-30T11:18:59.766Z",
+      "updatedAt": "2026-08-30T11:18:59.766Z"
+    },
+    {
+      "id": "h_1788088739769",
+      "userId": "u_1788088739720",
+      "title": "Gym Workout (Mon, Wed, Fri)",
+      "category": "Health & Fitness",
+      "frequency": "CUSTOM",
+      "selectedDays": [
+        1,
+        3,
+        5
+      ],
+      "startDate": "2026-08-30",
+      "status": "active",
+      "description": "",
+      "colorHex": "0xFF10B981",
+      "iconName": "repeat",
+      "currentStreak": 0,
+      "longestStreak": 0,
+      "createdAt": "2026-08-30T11:18:59.769Z",
+      "updatedAt": "2026-08-30T11:18:59.769Z"
+    },
+    {
+      "id": "h_1788088739778",
+      "userId": "u_1788088739720",
+      "title": "Read 20 pages",
+      "category": "Study & Learning",
+      "frequency": "DAILY",
+      "selectedDays": [],
+      "startDate": "2026-08-30",
+      "status": "active",
+      "description": "",
+      "colorHex": "0xFF10B981",
+      "iconName": "repeat",
+      "currentStreak": 0,
+      "longestStreak": 0,
+      "createdAt": "2026-08-30T11:18:59.778Z",
+      "updatedAt": "2026-08-30T11:18:59.778Z"
     }
   ],
   "subjects": [
@@ -321,6 +438,51 @@
       "discountApplied": 24.5,
       "paymentStatus": "success",
       "createdAt": "2026-08-30T07:25:48.979Z"
+<<<<<<< HEAD
+=======
+    },
+    {
+      "id": "cu_1788077581154",
+      "userId": "u_1788077581098",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-08-30T08:13:01.154Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-08-30T08:13:01.154Z"
+    },
+    {
+      "id": "cu_1788089081757",
+      "userId": "u_1788089081729",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-08-30T11:24:41.757Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-08-30T11:24:41.757Z"
+    },
+    {
+      "id": "cu_1788089155929",
+      "userId": "u_1788089155891",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-08-30T11:25:55.929Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-08-30T11:25:55.929Z"
+>>>>>>> 37a39bc (feat(habits): complete production Habit Tracker with custom frequency scheduling, accurate streak engine, date carousel, and full backend integration)
     }
   ],
   "referralCodes": [
@@ -347,23 +509,68 @@
       "status": "active",
       "totalCount": 0,
       "createdAt": "2026-08-30T06:47:14.593Z"
+    },
+    {
+      "id": "ref_u_1788088608484",
+      "userId": "u_1788088608484",
+      "referralCode": "WOS6793",
+      "status": "active",
+      "totalCount": 0,
+      "createdAt": "2026-08-30T11:16:48.485Z"
+    },
+    {
+      "id": "ref_u_1788088739720",
+      "userId": "u_1788088739720",
+      "referralCode": "WOS3109",
+      "status": "active",
+      "totalCount": 0,
+      "createdAt": "2026-08-30T11:18:59.744Z"
     }
   ],
   "referralTrackings": [],
   "otpStore": {
-    "mothukurumadhuri@gmail.com": {
-      "code": "947501",
+    "habit_tester_1788088564158@wrindhaos.in": {
+      "code": "440756",
+      "type": "register",
+      "attempts": 1,
+      "maxAttempts": 5,
+      "createdAt": 1788088564268,
+      "expiresAt": 1788089164268,
+      "lastSentAt": 1788088564268,
+      "pendingUser": {
+        "username": "ht_1788088564158",
+        "email": "habit_tester_1788088564158@wrindhaos.in",
+        "passwordHash": "3e66f26cd920ecde509ac94bac0be205:8907f84279441ed0108d2619f2bf2ba2f62ce9c828a9fc3e4aedfe14f9337a796b177a9eaba0999a4c58f0ef2d148c1045e42d283172619aea918f0840286a95"
+      }
+    },
+    "audit_user_1788089081670@wrindhaos.in": {
+      "code": "846583",
       "type": "register",
       "attempts": 0,
       "maxAttempts": 5,
-      "createdAt": 1788087352398,
-      "expiresAt": 1788087952398,
-      "lastSentAt": 1788087352398,
+      "createdAt": 1788089081692,
+      "expiresAt": 1788089681692,
+      "lastSentAt": 1788089081692,
       "pendingUser": {
-        "username": "madhuri_2253",
-        "email": "mothukurumadhuri@gmail.com",
-        "passwordHash": "b3e510db40b4d0c22e27cde7bdf10b9e:de7b6664bd9d7f3258e389185fbceed3c38ee866e51c2e333501d962e8469bd7415d460e17c9811ab82a77def5a0cb1577a93501a31bccfd09533cf6be17ce0d"
+        "username": "audit_1788089081670",
+        "email": "audit_user_1788089081670@wrindhaos.in",
+        "passwordHash": "290534d98a92c3229a153d09164f4832:d10817f31c0d7fa09b0dd05f96bb6426138e5a93a6a51900654f647be6924f3dff7a7a755f75246bf3bff1619872f60a9ebf363ebb810e24bbfeb0d13199a4b1"
+      }
+    },
+    "audit_user_1788089155825@wrindhaos.in": {
+      "code": "801222",
+      "type": "register",
+      "attempts": 0,
+      "maxAttempts": 5,
+      "createdAt": 1788089155854,
+      "expiresAt": 1788089755854,
+      "lastSentAt": 1788089155854,
+      "pendingUser": {
+        "username": "audit_1788089155825",
+        "email": "audit_user_1788089155825@wrindhaos.in",
+        "passwordHash": "7178985af1736c9eee07a21c00a86ba4:dbcd70b537005fa75c8164d9df812266e737ec6208f6b77d09e62a9f3a8010f421e6cfb1d1e5b7bed28c7711310593e4c1c5d78a4a40a3b571646bafbe6529d7"
       }
     }
-  }
+  },
+  "habitCompletions": []
 }

@@ -3,16 +3,16 @@ import 'package:provider/provider.dart';
 import '../models/models.dart';
 import '../providers/app_provider.dart';
 import '../widgets/pro_upgrade_dialog.dart';
-import '../widgets/upgrade_pro_modal.dart';
 import '../theme/app_theme.dart';
 
 /// Habit Tracker Screen for WrindhaOS
 /// 
-/// Manages:
-/// - Habits CRUD (Create, Edit, Delete)
-/// - Toggle completion & streak updates
-/// - Completion history tracking
-/// - Free Plan Limit (Max 2 habits)
+/// Features:
+/// - Daily, Weekdays, Weekends, and Custom Weekday frequency schedules
+/// - Date Carousel / Navigator with history tracking
+/// - Real-time Streak Engine (Current Streak 🔥, Longest Streak, Consistency Score)
+/// - Pause, Resume, Edit, and Delete (with confirmation dialog)
+/// - Dynamic Plan Limit enforcement (Free: Max 2 Habits, Pro: Unlimited)
 class HabitTrackerScreen extends StatefulWidget {
   const HabitTrackerScreen({super.key});
 
@@ -21,18 +21,30 @@ class HabitTrackerScreen extends StatefulWidget {
 }
 
 class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
+  DateTime _weekStartDate = DateTime.now().subtract(Duration(days: (DateTime.now().weekday - 1)));
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final provider = Provider.of<AppProvider>(context);
-    final habits = provider.habits;
+    final selectedDate = provider.selectedHabitDate;
+    final selectedDateStr = provider.selectedHabitDateStr;
+    final todayStr = DateTime.now().toIso8601String().split('T')[0];
+    final isViewingToday = selectedDateStr == todayStr;
+
+    final habits = provider.habits.where((h) => h.status != 'archived').toList();
+    final scheduledHabits = provider.scheduledHabitsForSelectedDate;
+    final completedCount = provider.completedHabitsCountForSelectedDate;
+    final progress = provider.habitProgressForSelectedDate;
+
     final primaryColor = isDark ? AppTheme.darkPrimary : AppTheme.personalGrowthIcon;
     final textPrimary = isDark ? AppTheme.darkTextPrimary : AppTheme.textPrimary;
     final textSecondary = isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary;
     final cardBg = isDark ? AppTheme.darkCardBg : AppTheme.cardSurface;
 
-    final completedCount = habits.where((h) => h.isCompleted).length;
-    final progress = habits.isEmpty ? 0.0 : (completedCount / habits.length);
+    // Calculate active streaks across user habits
+    final totalStreaks = habits.where((h) => h.streakDay > 0).length;
+    final bestStreak = habits.fold<int>(0, (max, h) => h.longestStreak > max ? h.longestStreak : max);
 
     return Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.background,
@@ -54,6 +66,19 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
             fontWeight: FontWeight.w800,
           ),
         ),
+        actions: [
+          if (!isViewingToday)
+            TextButton.icon(
+              onPressed: () {
+                provider.setSelectedHabitDate(DateTime.now());
+                setState(() {
+                  _weekStartDate = DateTime.now().subtract(Duration(days: (DateTime.now().weekday - 1)));
+                });
+              },
+              icon: const Icon(Icons.today_rounded, size: 18),
+              label: const Text('Today', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         heroTag: 'habit_fab',
@@ -62,7 +87,6 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
         elevation: 4,
         child: const Icon(Icons.add, color: Colors.white, size: 28),
         onPressed: () {
-          final provider = Provider.of<AppProvider>(context, listen: false);
           if (!provider.canAddHabit) {
             ProUpgradeDialog.showHabitLimitDialog(context);
           } else {
@@ -75,7 +99,11 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. Progress & Streak Summary Card
+            // 1. Date Strip / Week Navigator
+            _buildDateNavigator(context, isDark, provider),
+            const SizedBox(height: 16),
+
+            // 2. Progress & Metrics Summary Card
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
@@ -94,7 +122,9 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Today\'s Habit Progress',
+                            isViewingToday
+                                ? "Today's Habit Progress"
+                                : "Progress for ${_formatDisplayDate(selectedDate)}",
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w800,
@@ -103,7 +133,9 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '$completedCount of ${habits.length} completed',
+                            scheduledHabits.isEmpty
+                                ? 'No habits scheduled for this day'
+                                : '$completedCount of ${scheduledHabits.length} completed',
                             style: TextStyle(
                               fontSize: 13,
                               color: textSecondary,
@@ -139,17 +171,48 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                       valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
                     ),
                   ),
+                  const SizedBox(height: 16),
+                  // Streaks & Stats Row
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _buildMiniStat(
+                        icon: Icons.local_fire_department_rounded,
+                        iconColor: const Color(0xFFF59E0B),
+                        label: 'Active Streaks',
+                        value: '$totalStreaks 🔥',
+                        textPrimary: textPrimary,
+                        textSecondary: textSecondary,
+                      ),
+                      _buildMiniStat(
+                        icon: Icons.emoji_events_rounded,
+                        iconColor: const Color(0xFF3B82F6),
+                        label: 'Best Streak',
+                        value: '$bestStreak Days',
+                        textPrimary: textPrimary,
+                        textSecondary: textSecondary,
+                      ),
+                      _buildMiniStat(
+                        icon: Icons.repeat_rounded,
+                        iconColor: const Color(0xFF10B981),
+                        label: 'Total Habits',
+                        value: '${habits.length}',
+                        textPrimary: textPrimary,
+                        textSecondary: textSecondary,
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
             const SizedBox(height: 24),
 
-            // 2. Active Habit Streaks Grid
+            // 3. Habits Section Header
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Active Streaks',
+                  isViewingToday ? "Today's Schedule" : "Scheduled Habits",
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
@@ -157,7 +220,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                   ),
                 ),
                 Text(
-                  '${habits.where((h) => h.streakDay > 0).length} STREAKS',
+                  '${scheduledHabits.length} SCHEDULED',
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
@@ -169,7 +232,31 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
             ),
             const SizedBox(height: 12),
 
+            // 4. Habits List
             if (habits.isEmpty)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(28),
+                decoration: BoxDecoration(
+                  color: cardBg,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: isDark ? AppTheme.darkCardBorder : AppTheme.borderLight),
+                ),
+                child: Center(
+                  child: Column(
+                    children: [
+                      Icon(Icons.spa_outlined, size: 48, color: primaryColor.withOpacity(0.5)),
+                      const SizedBox(height: 12),
+                      Text(
+                        'No habits created yet.\nTap (+) below to start building your first habit!',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: textSecondary, height: 1.4, fontSize: 14),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else if (scheduledHabits.isEmpty)
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(24),
@@ -180,7 +267,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                 ),
                 child: Center(
                   child: Text(
-                    'No habits added yet.\nTap (+) below to add your first habit!',
+                    'No habits scheduled for this day.\nEnjoy your rest or select another date!',
                     textAlign: TextAlign.center,
                     style: TextStyle(color: textSecondary, height: 1.4),
                   ),
@@ -188,7 +275,10 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
               )
             else
               Column(
-                children: habits.map((habit) {
+                children: scheduledHabits.map((habit) {
+                  final isDone = habit.isCompletedOnDate(selectedDateStr);
+                  final isPaused = habit.status == 'paused';
+
                   return Container(
                     margin: const EdgeInsets.only(bottom: 12),
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -196,29 +286,41 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                       color: cardBg,
                       borderRadius: BorderRadius.circular(18),
                       border: Border.all(
-                        color: habit.isCompleted
-                            ? const Color(0xFF10B981).withOpacity(0.4)
-                            : (isDark ? AppTheme.darkCardBorder : AppTheme.borderLight),
+                        color: isDone
+                            ? const Color(0xFF10B981).withOpacity(0.5)
+                            : (isPaused
+                                ? Colors.amber.withOpacity(0.3)
+                                : (isDark ? AppTheme.darkCardBorder : AppTheme.borderLight)),
                       ),
                     ),
                     child: Row(
                       children: [
                         GestureDetector(
-                          onTap: () => provider.toggleHabit(habit.id),
+                          onTap: isPaused
+                              ? () {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Resume this habit to mark it completed.')),
+                                  );
+                                }
+                              : () => provider.toggleHabit(habit.id, targetDate: selectedDate),
                           child: Container(
-                            width: 28,
-                            height: 28,
+                            width: 32,
+                            height: 32,
                             decoration: BoxDecoration(
-                              color: habit.isCompleted ? const Color(0xFF10B981) : Colors.transparent,
-                              borderRadius: BorderRadius.circular(8),
+                              color: isDone
+                                  ? const Color(0xFF10B981)
+                                  : (isPaused ? Colors.amber.withOpacity(0.1) : Colors.transparent),
+                              borderRadius: BorderRadius.circular(10),
                               border: Border.all(
-                                color: habit.isCompleted ? const Color(0xFF10B981) : textSecondary,
+                                color: isDone
+                                    ? const Color(0xFF10B981)
+                                    : (isPaused ? Colors.amber : textSecondary.withOpacity(0.6)),
                                 width: 2,
                               ),
                             ),
-                            child: habit.isCompleted
-                                ? const Icon(Icons.check, size: 18, color: Colors.white)
-                                : null,
+                            child: isDone
+                                ? const Icon(Icons.check, size: 20, color: Colors.white)
+                                : (isPaused ? const Icon(Icons.pause, size: 16, color: Colors.amber) : null),
                           ),
                         ),
                         const SizedBox(width: 14),
@@ -226,28 +328,60 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                habit.title,
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700,
-                                  color: textPrimary,
-                                  decoration: habit.isCompleted ? TextDecoration.lineThrough : null,
-                                ),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      habit.title,
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w700,
+                                        color: isPaused ? textSecondary : textPrimary,
+                                        decoration: isDone ? TextDecoration.lineThrough : null,
+                                      ),
+                                    ),
+                                  ),
+                                  if (isPaused)
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: Colors.amber.withOpacity(0.2),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: const Text(
+                                        'PAUSED',
+                                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.amber),
+                                      ),
+                                    ),
+                                ],
                               ),
                               const SizedBox(height: 4),
                               Row(
                                 children: [
-                                  Icon(Icons.local_fire_department_rounded, size: 14, color: const Color(0xFFF59E0B)),
+                                  const Icon(Icons.local_fire_department_rounded, size: 14, color: Color(0xFFF59E0B)),
                                   const SizedBox(width: 4),
                                   Text(
-                                    '${habit.streakDay} day streak • ${habit.frequency}',
+                                    '${habit.streakDay} day streak • ${_formatFrequencyLabel(habit)}',
                                     style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w500,
                                       color: textSecondary,
                                     ),
                                   ),
+                                  if (habit.category.isNotEmpty && habit.category != 'General') ...[
+                                    const SizedBox(width: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: primaryColor.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text(
+                                        habit.category,
+                                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: primaryColor),
+                                      ),
+                                    ),
+                                  ],
                                 ],
                               ),
                             ],
@@ -258,8 +392,12 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                           onSelected: (action) {
                             if (action == 'edit') {
                               _showEditHabitDialog(context, habit);
+                            } else if (action == 'pause') {
+                              provider.pauseHabit(habit.id);
+                            } else if (action == 'resume') {
+                              provider.resumeHabit(habit.id);
                             } else if (action == 'delete') {
-                              provider.deleteHabit(habit.id);
+                              _showDeleteConfirmationDialog(context, habit);
                             }
                           },
                           itemBuilder: (ctx) => [
@@ -267,6 +405,16 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                               value: 'edit',
                               child: Row(children: [Icon(Icons.edit_outlined, size: 18), SizedBox(width: 8), Text('Edit')]),
                             ),
+                            if (!isPaused)
+                              const PopupMenuItem(
+                                value: 'pause',
+                                child: Row(children: [Icon(Icons.pause_circle_outline, size: 18), SizedBox(width: 8), Text('Pause')]),
+                              )
+                            else
+                              const PopupMenuItem(
+                                value: 'resume',
+                                child: Row(children: [Icon(Icons.play_circle_outline, size: 18, color: Colors.green), SizedBox(width: 8), Text('Resume', style: TextStyle(color: Colors.green))]),
+                              ),
                             const PopupMenuItem(
                               value: 'delete',
                               child: Row(children: [Icon(Icons.delete_outline, color: Colors.redAccent, size: 18), SizedBox(width: 8), Text('Delete', style: TextStyle(color: Colors.redAccent))]),
@@ -285,44 +433,243 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
     );
   }
 
+  Widget _buildDateNavigator(BuildContext context, bool isDark, AppProvider provider) {
+    final textPrimary = isDark ? AppTheme.darkTextPrimary : AppTheme.textPrimary;
+    final textSecondary = isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary;
+    final primaryColor = isDark ? AppTheme.darkPrimary : AppTheme.personalGrowthIcon;
+    final selectedDate = provider.selectedHabitDate;
+
+    final weekDays = List.generate(7, (i) => _weekStartDate.add(Duration(days: i)));
+    final dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            IconButton(
+              icon: Icon(Icons.chevron_left, color: textPrimary),
+              onPressed: () {
+                setState(() {
+                  _weekStartDate = _weekStartDate.subtract(const Duration(days: 7));
+                });
+              },
+            ),
+            Text(
+              '${_formatMonthHeader(_weekStartDate)} - ${_formatMonthHeader(_weekStartDate.add(const Duration(days: 6)))}',
+              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: textPrimary),
+            ),
+            IconButton(
+              icon: Icon(Icons.chevron_right, color: textPrimary),
+              onPressed: () {
+                setState(() {
+                  _weekStartDate = _weekStartDate.add(const Duration(days: 7));
+                });
+              },
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: List.generate(7, (idx) {
+            final dayDate = weekDays[idx];
+            final isSelected = dayDate.year == selectedDate.year &&
+                dayDate.month == selectedDate.month &&
+                dayDate.day == selectedDate.day;
+            final isToday = dayDate.year == DateTime.now().year &&
+                dayDate.month == DateTime.now().month &&
+                dayDate.day == DateTime.now().day;
+
+            return Expanded(
+              child: GestureDetector(
+                onTap: () => provider.setSelectedHabitDate(dayDate),
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 3),
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? primaryColor
+                        : (isDark ? AppTheme.darkCardBg : Colors.white),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: isSelected
+                          ? primaryColor
+                          : (isToday ? primaryColor.withOpacity(0.5) : (isDark ? AppTheme.darkCardBorder : AppTheme.borderLight)),
+                      width: isToday ? 1.5 : 1,
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        dayNames[idx],
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: isSelected ? Colors.white : textSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${dayDate.day}',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          color: isSelected ? Colors.white : textPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMiniStat({
+    required IconData icon,
+    required Color iconColor,
+    required String label,
+    required String value,
+    required Color textPrimary,
+    required Color textSecondary,
+  }) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: iconColor),
+        const SizedBox(width: 6),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              value,
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: textPrimary),
+            ),
+            Text(
+              label,
+              style: TextStyle(fontSize: 10, color: textSecondary, fontWeight: FontWeight.w500),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  String _formatFrequencyLabel(Habit habit) {
+    final freq = habit.frequency.toUpperCase();
+    if (freq == 'DAILY') return 'Daily';
+    if (freq == 'WEEKDAYS') return 'Weekdays';
+    if (freq == 'WEEKENDS') return 'Weekends';
+    if (freq == 'WEEKLY') return 'Weekly';
+    if (freq == 'CUSTOM') {
+      final names = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+      final days = habit.selectedDays.map((d) => (d >= 1 && d <= 7) ? names[d - 1] : '').join(', ');
+      return 'Custom ($days)';
+    }
+    return habit.frequency;
+  }
+
+  String _formatDisplayDate(DateTime date) {
+    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return '${months[date.month - 1]} ${date.day}';
+  }
+
+  String _formatMonthHeader(DateTime date) {
+    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return '${months[date.month - 1]} ${date.day}';
+  }
+
   void _showAddHabitDialog(BuildContext context) {
     final titleController = TextEditingController();
+    final descController = TextEditingController();
+    String category = 'General';
     String frequency = 'DAILY';
+    List<int> selectedDays = [1, 2, 3, 4, 5, 6, 7];
 
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDlgState) {
           final isDark = Theme.of(context).brightness == Brightness.dark;
+          final textPrimary = isDark ? AppTheme.darkTextPrimary : AppTheme.textPrimary;
+
           return AlertDialog(
             backgroundColor: isDark ? AppTheme.darkCardBg : Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            title: const Text('Add New Habit', style: TextStyle(fontWeight: FontWeight.w800)),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: titleController,
-                  autofocus: true,
-                  decoration: const InputDecoration(
-                    hintText: 'e.g. Read 20 pages',
-                    labelText: 'Habit Title',
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+            title: Text('Add New Habit', style: TextStyle(fontWeight: FontWeight.w800, color: textPrimary)),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextField(
+                    controller: titleController,
+                    autofocus: true,
+                    decoration: const InputDecoration(
+                      hintText: 'e.g. Read 20 pages',
+                      labelText: 'Habit Title *',
+                    ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  value: frequency,
-                  decoration: const InputDecoration(labelText: 'Frequency'),
-                  items: const [
-                    DropdownMenuItem(value: 'DAILY', child: Text('Daily')),
-                    DropdownMenuItem(value: 'WEEKLY', child: Text('Weekly')),
-                    DropdownMenuItem(value: 'WEEKDAYS', child: Text('Weekdays')),
+                  const SizedBox(height: 14),
+                  DropdownButtonFormField<String>(
+                    value: category,
+                    decoration: const InputDecoration(labelText: 'Category'),
+                    items: const [
+                      DropdownMenuItem(value: 'General', child: Text('General')),
+                      DropdownMenuItem(value: 'Health & Fitness', child: Text('Health & Fitness')),
+                      DropdownMenuItem(value: 'Study & Learning', child: Text('Study & Learning')),
+                      DropdownMenuItem(value: 'Mindfulness', child: Text('Mindfulness')),
+                      DropdownMenuItem(value: 'Productivity', child: Text('Productivity')),
+                      DropdownMenuItem(value: 'Finance', child: Text('Finance')),
+                    ],
+                    onChanged: (val) {
+                      if (val != null) setDlgState(() => category = val);
+                    },
+                  ),
+                  const SizedBox(height: 14),
+                  DropdownButtonFormField<String>(
+                    value: frequency,
+                    decoration: const InputDecoration(labelText: 'Frequency'),
+                    items: const [
+                      DropdownMenuItem(value: 'DAILY', child: Text('Every Day')),
+                      DropdownMenuItem(value: 'WEEKDAYS', child: Text('Weekdays (Mon - Fri)')),
+                      DropdownMenuItem(value: 'WEEKENDS', child: Text('Weekends (Sat - Sun)')),
+                      DropdownMenuItem(value: 'CUSTOM', child: Text('Specific Days of Week')),
+                      DropdownMenuItem(value: 'WEEKLY', child: Text('Once a Week')),
+                    ],
+                    onChanged: (val) {
+                      if (val != null) {
+                        setDlgState(() {
+                          frequency = val;
+                          if (val == 'WEEKDAYS') selectedDays = [1, 2, 3, 4, 5];
+                          if (val == 'WEEKENDS') selectedDays = [6, 7];
+                          if (val == 'DAILY') selectedDays = [1, 2, 3, 4, 5, 6, 7];
+                        });
+                      }
+                    },
+                  ),
+                  if (frequency == 'CUSTOM') ...[
+                    const SizedBox(height: 14),
+                    const Text('Select Scheduled Days:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    _buildWeekdaySelector(selectedDays, (days) {
+                      setDlgState(() => selectedDays = days);
+                    }),
                   ],
-                  onChanged: (val) {
-                    if (val != null) setDlgState(() => frequency = val);
-                  },
-                ),
-              ],
+                  const SizedBox(height: 14),
+                  TextField(
+                    controller: descController,
+                    maxLines: 2,
+                    decoration: const InputDecoration(
+                      hintText: 'Optional notes or motivation...',
+                      labelText: 'Description (Optional)',
+                    ),
+                  ),
+                ],
+              ),
             ),
             actions: [
               TextButton(
@@ -343,13 +690,17 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                       Habit(
                         id: 'h_${DateTime.now().millisecondsSinceEpoch}',
                         title: text,
+                        category: category,
                         frequency: frequency,
+                        selectedDays: selectedDays,
+                        description: descController.text.trim(),
+                        startDate: DateTime.now().toIso8601String().split('T')[0],
                       ),
                     );
                     Navigator.pop(ctx);
                   }
                 },
-                child: const Text('Add Habit'),
+                child: const Text('Create Habit'),
               ),
             ],
           );
@@ -360,38 +711,85 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
 
   void _showEditHabitDialog(BuildContext context, Habit habit) {
     final titleController = TextEditingController(text: habit.title);
+    final descController = TextEditingController(text: habit.description);
+    String category = habit.category;
     String frequency = habit.frequency;
+    List<int> selectedDays = List.from(habit.selectedDays);
 
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDlgState) {
           final isDark = Theme.of(context).brightness == Brightness.dark;
+          final textPrimary = isDark ? AppTheme.darkTextPrimary : AppTheme.textPrimary;
+
           return AlertDialog(
             backgroundColor: isDark ? AppTheme.darkCardBg : Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            title: const Text('Edit Habit', style: TextStyle(fontWeight: FontWeight.w800)),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: titleController,
-                  decoration: const InputDecoration(labelText: 'Habit Title'),
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  value: frequency,
-                  decoration: const InputDecoration(labelText: 'Frequency'),
-                  items: const [
-                    DropdownMenuItem(value: 'DAILY', child: Text('Daily')),
-                    DropdownMenuItem(value: 'WEEKLY', child: Text('Weekly')),
-                    DropdownMenuItem(value: 'WEEKDAYS', child: Text('Weekdays')),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+            title: Text('Edit Habit', style: TextStyle(fontWeight: FontWeight.w800, color: textPrimary)),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextField(
+                    controller: titleController,
+                    decoration: const InputDecoration(labelText: 'Habit Title *'),
+                  ),
+                  const SizedBox(height: 14),
+                  DropdownButtonFormField<String>(
+                    value: category,
+                    decoration: const InputDecoration(labelText: 'Category'),
+                    items: const [
+                      DropdownMenuItem(value: 'General', child: Text('General')),
+                      DropdownMenuItem(value: 'Health & Fitness', child: Text('Health & Fitness')),
+                      DropdownMenuItem(value: 'Study & Learning', child: Text('Study & Learning')),
+                      DropdownMenuItem(value: 'Mindfulness', child: Text('Mindfulness')),
+                      DropdownMenuItem(value: 'Productivity', child: Text('Productivity')),
+                      DropdownMenuItem(value: 'Finance', child: Text('Finance')),
+                    ],
+                    onChanged: (val) {
+                      if (val != null) setDlgState(() => category = val);
+                    },
+                  ),
+                  const SizedBox(height: 14),
+                  DropdownButtonFormField<String>(
+                    value: frequency,
+                    decoration: const InputDecoration(labelText: 'Frequency'),
+                    items: const [
+                      DropdownMenuItem(value: 'DAILY', child: Text('Every Day')),
+                      DropdownMenuItem(value: 'WEEKDAYS', child: Text('Weekdays (Mon - Fri)')),
+                      DropdownMenuItem(value: 'WEEKENDS', child: Text('Weekends (Sat - Sun)')),
+                      DropdownMenuItem(value: 'CUSTOM', child: Text('Specific Days of Week')),
+                      DropdownMenuItem(value: 'WEEKLY', child: Text('Once a Week')),
+                    ],
+                    onChanged: (val) {
+                      if (val != null) {
+                        setDlgState(() {
+                          frequency = val;
+                          if (val == 'WEEKDAYS') selectedDays = [1, 2, 3, 4, 5];
+                          if (val == 'WEEKENDS') selectedDays = [6, 7];
+                          if (val == 'DAILY') selectedDays = [1, 2, 3, 4, 5, 6, 7];
+                        });
+                      }
+                    },
+                  ),
+                  if (frequency == 'CUSTOM') ...[
+                    const SizedBox(height: 14),
+                    const Text('Select Scheduled Days:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    _buildWeekdaySelector(selectedDays, (days) {
+                      setDlgState(() => selectedDays = days);
+                    }),
                   ],
-                  onChanged: (val) {
-                    if (val != null) setDlgState(() => frequency = val);
-                  },
-                ),
-              ],
+                  const SizedBox(height: 14),
+                  TextField(
+                    controller: descController,
+                    maxLines: 2,
+                    decoration: const InputDecoration(labelText: 'Description'),
+                  ),
+                ],
+              ),
             ),
             actions: [
               TextButton(
@@ -403,16 +801,91 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                   final text = titleController.text.trim();
                   if (text.isNotEmpty) {
                     final provider = Provider.of<AppProvider>(context, listen: false);
-                    provider.editHabit(habit.id, text, frequency);
+                    provider.editHabit(
+                      habit.id,
+                      title: text,
+                      category: category,
+                      frequency: frequency,
+                      selectedDays: selectedDays,
+                      description: descController.text.trim(),
+                    );
                     Navigator.pop(ctx);
                   }
                 },
-                child: const Text('Save'),
+                child: const Text('Save Changes'),
               ),
             ],
           );
         },
       ),
+    );
+  }
+
+  void _showDeleteConfirmationDialog(BuildContext context, Habit habit) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Delete Habit?', style: TextStyle(fontWeight: FontWeight.w800)),
+        content: Text('Are you sure you want to delete "${habit.title}"? All completion history and streak data will be permanently removed.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            onPressed: () {
+              final provider = Provider.of<AppProvider>(context, listen: false);
+              provider.deleteHabit(habit.id);
+              Navigator.pop(ctx);
+            },
+            child: const Text('Delete', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWeekdaySelector(List<int> selectedDays, ValueChanged<List<int>> onChanged) {
+    final dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: List.generate(7, (idx) {
+        final dayNum = idx + 1;
+        final isSelected = selectedDays.contains(dayNum);
+
+        return GestureDetector(
+          onTap: () {
+            final updated = List<int>.from(selectedDays);
+            if (isSelected) {
+              if (updated.length > 1) updated.remove(dayNum);
+            } else {
+              updated.add(dayNum);
+            }
+            onChanged(updated);
+          },
+          child: Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: isSelected ? const Color(0xFF10B981) : Colors.black12,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Center(
+              child: Text(
+                dayLabels[idx],
+                style: TextStyle(
+                  color: isSelected ? Colors.white : Colors.black87,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ),
+        );
+      }),
     );
   }
 }

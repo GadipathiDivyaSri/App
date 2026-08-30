@@ -251,6 +251,180 @@ setInterval(() => {
 // Rate limiting in-memory store
 const rateLimitStore = new Map();
 
+/**
+ * Habit Scheduling & Streak Calculation Engine
+ */
+function isHabitScheduledForDate(habit, dateStr) {
+  if (!habit) return false;
+  if (habit.status === 'archived' || habit.status === 'paused') return false;
+
+  const date = new Date(dateStr + 'T00:00:00Z');
+  let dayOfWeek = date.getUTCDay();
+  if (dayOfWeek === 0) dayOfWeek = 7; // 1 = Monday, 7 = Sunday
+
+  const freq = (habit.frequency || 'DAILY').toUpperCase();
+  if (freq === 'DAILY') return true;
+  if (freq === 'WEEKDAYS') return dayOfWeek >= 1 && dayOfWeek <= 5;
+  if (freq === 'WEEKENDS') return dayOfWeek === 6 || dayOfWeek === 7;
+  if (freq === 'CUSTOM') {
+    const selected = habit.selectedDays || [];
+    return selected.includes(dayOfWeek) || selected.includes(dayOfWeek.toString());
+  }
+  if (freq === 'WEEKLY') {
+    return dayOfWeek === 1;
+  }
+  return true;
+}
+
+function calculateHabitStreaks(habit, completionDates, todayStr) {
+  const compSet = new Set(completionDates || []);
+  const sortedComps = (completionDates || []).slice().sort();
+  const earliestComp = sortedComps[0];
+  let effectiveStart = habit.startDate || habit.createdAt?.split('T')[0] || todayStr;
+  if (earliestComp && earliestComp < effectiveStart) {
+    effectiveStart = earliestComp;
+  }
+  
+  const start = new Date(effectiveStart + 'T00:00:00Z');
+  const today = new Date(todayStr + 'T00:00:00Z');
+
+  if (start > today) {
+    return { currentStreak: 0, longestStreak: 0, totalCompletions: compSet.size };
+  }
+
+  const scheduledDates = [];
+  let cur = new Date(start);
+  while (cur <= today) {
+    const dStr = cur.toISOString().split('T')[0];
+    if (isHabitScheduledForDate(habit, dStr)) {
+      scheduledDates.push(dStr);
+    }
+    cur.setUTCDate(cur.getUTCDate() + 1);
+  }
+
+  let maxStreak = 0;
+  let runningStreak = 0;
+  for (const dStr of scheduledDates) {
+    if (compSet.has(dStr)) {
+      runningStreak++;
+      if (runningStreak > maxStreak) maxStreak = runningStreak;
+    } else {
+      if (dStr < todayStr) {
+        runningStreak = 0;
+      }
+    }
+  }
+
+  let currentStreak = 0;
+  if (scheduledDates.length > 0) {
+    let idx = scheduledDates.length - 1;
+    const lastDate = scheduledDates[idx];
+
+    if (lastDate === todayStr && !compSet.has(todayStr)) {
+      idx--;
+    }
+
+    while (idx >= 0) {
+      const dStr = scheduledDates[idx];
+      if (compSet.has(dStr)) {
+        currentStreak++;
+        idx--;
+      } else {
+        break;
+      }
+    }
+  }
+
+  return {
+    currentStreak,
+    longestStreak: Math.max(maxStreak, currentStreak),
+    totalCompletions: compSet.size,
+  };
+}
+
+function calculateHabitAnalytics(userId, db, todayStr = new Date().toISOString().split('T')[0]) {
+  const userHabits = (db.habits || []).filter((h) => h.userId === userId && h.status !== 'archived');
+  const userCompletions = (db.habitCompletions || []).filter((hc) => hc.userId === userId && hc.status === 'completed');
+
+  const today = new Date(todayStr + 'T00:00:00Z');
+  let todayScheduledCount = 0;
+  let todayCompletedCount = 0;
+
+  // 7-day window stats
+  let weekScheduledCount = 0;
+  let weekCompletedCount = 0;
+
+  // 30-day window stats
+  let monthScheduledCount = 0;
+  let monthCompletedCount = 0;
+
+  userHabits.forEach((habit) => {
+    const habitComps = userCompletions.filter((c) => c.habitId === habit.id).map((c) => c.completionDate);
+    const compSet = new Set(habitComps);
+
+    // Check today
+    if (isHabitScheduledForDate(habit, todayStr)) {
+      todayScheduledCount++;
+      if (compSet.has(todayStr)) {
+        todayCompletedCount++;
+      }
+    }
+
+    // Check last 7 days
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(today);
+      d.setUTCDate(d.getUTCDate() - i);
+      const dStr = d.toISOString().split('T')[0];
+      if (isHabitScheduledForDate(habit, dStr)) {
+        weekScheduledCount++;
+        if (compSet.has(dStr)) weekCompletedCount++;
+      }
+    }
+
+    // Check last 30 days
+    for (let i = 0; i < 30; i++) {
+      const d = new Date(today);
+      d.setUTCDate(d.getUTCDate() - i);
+      const dStr = d.toISOString().split('T')[0];
+      if (isHabitScheduledForDate(habit, dStr)) {
+        monthScheduledCount++;
+        if (compSet.has(dStr)) monthCompletedCount++;
+      }
+    }
+  });
+
+  const todayCompletionRate = todayScheduledCount > 0 ? Math.round((todayCompletedCount / todayScheduledCount) * 100) : 0;
+  const weeklyCompletionRate = weekScheduledCount > 0 ? Math.round((weekCompletedCount / weekScheduledCount) * 100) : 0;
+  const monthlyCompletionRate = monthScheduledCount > 0 ? Math.round((monthCompletedCount / monthScheduledCount) * 100) : 0;
+
+  // Overall Consistency score (weighted 40% weekly, 40% monthly, 20% today)
+  const consistencyScore = userHabits.length === 0 ? 0 : Math.round(
+    weeklyCompletionRate * 0.4 + monthlyCompletionRate * 0.4 + todayCompletionRate * 0.2
+  );
+
+  let bestStreak = 0;
+  let activeStreaksCount = 0;
+  userHabits.forEach((habit) => {
+    const habitComps = userCompletions.filter((c) => c.habitId === habit.id).map((c) => c.completionDate);
+    const streaks = calculateHabitStreaks(habit, habitComps, todayStr);
+    if (streaks.currentStreak > 0) activeStreaksCount++;
+    if (streaks.longestStreak > bestStreak) bestStreak = streaks.longestStreak;
+  });
+
+  return {
+    totalHabits: userHabits.length,
+    todayScheduled: todayScheduledCount,
+    todayCompleted: todayCompletedCount,
+    todayCompletionRate,
+    weeklyCompletionRate,
+    monthlyCompletionRate,
+    totalCompletions: userCompletions.length,
+    consistencyScore,
+    activeStreaksCount,
+    bestStreak,
+  };
+}
+
 function isRateLimited(ip, endpoint, limit = 30, windowMs = 60000) {
   const key = `${ip}:${endpoint}`;
   const now = Date.now();
@@ -361,7 +535,11 @@ function getAuthUserId(req) {
   if (authHeader.startsWith('Bearer ')) {
     const token = authHeader.replace('Bearer ', '').trim();
     const verifiedUserId = verifyJwtToken(token);
-    if (verifiedUserId) return verifiedUserId;
+    if (verifiedUserId) {
+      const userExists = (db.users || []).some((u) => u.id === verifiedUserId);
+      return userExists ? verifiedUserId : null;
+    }
+    return null;
   }
   return 'u_1001';
 }
@@ -402,7 +580,6 @@ function checkFeatureEntitlement(userId, featureKey) {
     'milestones',
     'careerRoadmap',
     'focusTimer',
-    'analytics',
   ];
 
   if (proOnlyFeatures.includes(featureKey) && !isPro) {
@@ -427,9 +604,14 @@ async function handleApiRequest(req, res) {
 
   const parsedUrl = url.parse(req.url, true);
   const pathname = parsedUrl.pathname;
+  const query = parsedUrl.query || {};
   const method = req.method.toUpperCase();
   const body = await parseBody(req);
   const userId = getAuthUserId(req);
+
+  if (!userId && !pathname.startsWith('/api/auth/')) {
+    return sendJSON(res, 401, { success: false, message: 'Invalid or expired user session.' });
+  }
 
   // Rate Limiting check on Auth endpoints
   const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1';
@@ -779,6 +961,7 @@ async function handleApiRequest(req, res) {
       db.subscriptions = (db.subscriptions || []).filter((s) => s.user_id !== userId);
       db.tasks = (db.tasks || []).filter((t) => t.userId !== userId);
       db.habits = (db.habits || []).filter((h) => h.userId !== userId);
+      db.habitCompletions = (db.habitCompletions || []).filter((hc) => hc.userId !== userId);
       db.subjects = (db.subjects || []).filter((s) => s.userId !== userId);
       db.calendarEvents = (db.calendarEvents || []).filter((c) => c.userId !== userId);
       db.expenses = (db.expenses || []).filter((e) => e.userId !== userId);
@@ -853,35 +1036,212 @@ async function handleApiRequest(req, res) {
       return sendJSON(res, 201, newEvent);
     }
 
-    // 2.3 Habits (Free Plan limit: Max 2 Habits)
-    if (pathname === '/api/habits' && method === 'GET') {
-      const habits = db.habits.filter((h) => h.userId === userId || !h.userId);
-      return sendJSON(res, 200, habits);
+    // 2.3 Habits System (Full Production CRUD, Custom Frequencies, Daily Completions, Streaks & Analytics)
+    if (pathname === '/api/habits/analytics' && method === 'GET') {
+      const queryDate = query.date || new Date().toISOString().split('T')[0];
+      const analytics = calculateHabitAnalytics(userId, db, queryDate);
+      return sendJSON(res, 200, { success: true, analytics });
     }
+
+    if (pathname === '/api/habits/completions' && method === 'GET') {
+      const { startDate, endDate, habitId } = query;
+      let comps = (db.habitCompletions || []).filter((hc) => hc.userId === userId);
+      if (habitId) comps = comps.filter((hc) => hc.habitId === habitId);
+      if (startDate) comps = comps.filter((hc) => hc.completionDate >= startDate);
+      if (endDate) comps = comps.filter((hc) => hc.completionDate <= endDate);
+      return sendJSON(res, 200, { success: true, completions: comps });
+    }
+
+    if (pathname.startsWith('/api/habits/') && pathname.endsWith('/toggle') && method === 'POST') {
+      const habitId = pathname.split('/')[3];
+      const habit = (db.habits || []).find((h) => h.id === habitId && h.userId === userId);
+      if (!habit) {
+        return sendJSON(res, 404, { success: false, message: 'Habit not found.' });
+      }
+
+      const targetDate = body.date || new Date().toISOString().split('T')[0];
+      db.habitCompletions = db.habitCompletions || [];
+      const existingIdx = db.habitCompletions.findIndex(
+        (hc) => hc.habitId === habitId && hc.userId === userId && hc.completionDate === targetDate
+      );
+
+      let isNowCompleted = false;
+      if (body.status === 'completed' || (body.status === undefined && existingIdx === -1)) {
+        if (existingIdx === -1) {
+          db.habitCompletions.push({
+            id: 'hc_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+            habitId,
+            userId,
+            completionDate: targetDate,
+            status: 'completed',
+            completedAt: new Date().toISOString(),
+          });
+        }
+        isNowCompleted = true;
+      } else {
+        if (existingIdx !== -1) {
+          db.habitCompletions.splice(existingIdx, 1);
+        }
+        isNowCompleted = false;
+      }
+
+      // Recalculate streaks
+      const habitComps = db.habitCompletions.filter((c) => c.habitId === habitId && c.userId === userId).map((c) => c.completionDate);
+      const streakInfo = calculateHabitStreaks(habit, habitComps, new Date().toISOString().split('T')[0]);
+      habit.currentStreak = streakInfo.currentStreak;
+      habit.longestStreak = streakInfo.longestStreak;
+      habit.updatedAt = new Date().toISOString();
+
+      saveDB(db);
+
+      return sendJSON(res, 200, {
+        success: true,
+        isCompleted: isNowCompleted,
+        habitId,
+        date: targetDate,
+        currentStreak: habit.currentStreak,
+        longestStreak: habit.longestStreak,
+        totalCompletions: streakInfo.totalCompletions,
+      });
+    }
+
+    if (pathname.startsWith('/api/habits/') && pathname.endsWith('/status') && method === 'PATCH') {
+      const habitId = pathname.split('/')[3];
+      const habit = (db.habits || []).find((h) => h.id === habitId && h.userId === userId);
+      if (!habit) {
+        return sendJSON(res, 404, { success: false, message: 'Habit not found.' });
+      }
+
+      const nextStatus = (body.status || 'active').toLowerCase();
+      if (!['active', 'paused', 'archived'].includes(nextStatus)) {
+        return sendJSON(res, 400, { success: false, message: 'Invalid status. Must be active, paused, or archived.' });
+      }
+
+      habit.status = nextStatus;
+      habit.updatedAt = new Date().toISOString();
+      saveDB(db);
+
+      return sendJSON(res, 200, { success: true, message: `Habit marked as ${nextStatus}`, habit });
+    }
+
+    if (pathname.startsWith('/api/habits/') && method === 'PUT') {
+      const habitId = pathname.split('/')[3];
+      const habit = (db.habits || []).find((h) => h.id === habitId && h.userId === userId);
+      if (!habit) {
+        return sendJSON(res, 404, { success: false, message: 'Habit not found.' });
+      }
+
+      habit.title = body.title !== undefined ? body.title : habit.title;
+      habit.category = body.category !== undefined ? body.category : (habit.category || 'General');
+      habit.frequency = body.frequency !== undefined ? body.frequency : (habit.frequency || 'DAILY');
+      habit.selectedDays = body.selectedDays !== undefined ? body.selectedDays : (habit.selectedDays || []);
+      habit.description = body.description !== undefined ? body.description : (habit.description || '');
+      habit.colorHex = body.colorHex !== undefined ? body.colorHex : (habit.colorHex || '0xFF10B981');
+      habit.iconName = body.iconName !== undefined ? body.iconName : (habit.iconName || 'repeat');
+      habit.updatedAt = new Date().toISOString();
+
+      saveDB(db);
+      return sendJSON(res, 200, { success: true, habit });
+    }
+
+    if (pathname.startsWith('/api/habits/') && method === 'DELETE') {
+      const habitId = pathname.split('/')[3];
+      const beforeCount = (db.habits || []).length;
+      db.habits = (db.habits || []).filter((h) => !(h.id === habitId && h.userId === userId));
+      
+      if (db.habits.length === beforeCount) {
+        return sendJSON(res, 404, { success: false, message: 'Habit not found.' });
+      }
+
+      // Cascade delete completions
+      db.habitCompletions = (db.habitCompletions || []).filter((hc) => hc.habitId !== habitId);
+      saveDB(db);
+
+      return sendJSON(res, 200, { success: true, message: 'Habit deleted successfully.' });
+    }
+
+    if (pathname === '/api/habits' && method === 'GET') {
+      const targetDate = query.date || new Date().toISOString().split('T')[0];
+      const userHabits = (db.habits || []).filter((h) => h.userId === userId && h.status !== 'archived');
+      const userCompletions = (db.habitCompletions || []).filter((hc) => hc.userId === userId && hc.status === 'completed');
+
+      const enriched = userHabits.map((h) => {
+        const habitComps = userCompletions.filter((c) => c.habitId === h.id).map((c) => c.completionDate);
+        const compSet = new Set(habitComps);
+        const streaks = calculateHabitStreaks(h, habitComps, targetDate);
+
+        return {
+          id: h.id,
+          userId: h.userId || userId,
+          title: h.title,
+          category: h.category || 'General',
+          frequency: h.frequency || 'DAILY',
+          selectedDays: h.selectedDays || [],
+          startDate: h.startDate || h.createdAt?.split('T')[0] || targetDate,
+          status: h.status || 'active',
+          description: h.description || '',
+          colorHex: h.colorHex || '0xFF10B981',
+          iconName: h.iconName || 'repeat',
+          isScheduled: isHabitScheduledForDate(h, targetDate),
+          isCompleted: compSet.has(targetDate),
+          currentStreak: streaks.currentStreak,
+          longestStreak: streaks.longestStreak,
+          totalCompletions: streaks.totalCompletions,
+          completionHistory: habitComps,
+          createdAt: h.createdAt,
+          updatedAt: h.updatedAt,
+        };
+      });
+
+      return sendJSON(res, 200, enriched);
+    }
+
     if (pathname === '/api/habits' && method === 'POST') {
       const sub = getUserSubscription(userId);
-      const userHabits = db.habits.filter((h) => h.userId === userId || !h.userId);
-      if (sub.plan === 'free' && userHabits.length >= 2) {
+      const activeUserHabits = (db.habits || []).filter(
+        (h) => h.userId === userId && h.status === 'active'
+      );
+
+      if (sub.plan === 'free' && activeUserHabits.length >= 2) {
         return sendJSON(res, 403, {
           success: false,
           code: 'LIMIT_REACHED',
           title: 'Unlock Unlimited Habits',
-          message: "You've reached the Free plan limit of 2 habits. Upgrade to WrindhaOS Pro to create and track unlimited habits.",
+          message: "You've reached the Free plan limit of 2 habits. Upgrade to WrindhaOS Pro (₹49/month) to track unlimited habits.",
           requiresUpgrade: true,
         });
       }
 
+      const todayStr = new Date().toISOString().split('T')[0];
       const newHabit = {
         id: 'h_' + Date.now(),
         userId,
         title: body.title || 'New Habit',
+        category: body.category || 'General',
         frequency: body.frequency || 'DAILY',
-        streak: 0,
+        selectedDays: Array.isArray(body.selectedDays) ? body.selectedDays : [],
+        startDate: body.startDate || todayStr,
+        status: 'active',
+        description: body.description || '',
+        colorHex: body.colorHex || '0xFF10B981',
+        iconName: body.iconName || 'repeat',
+        currentStreak: 0,
+        longestStreak: 0,
         createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
+
+      db.habits = db.habits || [];
       db.habits.push(newHabit);
       saveDB(db);
-      return sendJSON(res, 201, newHabit);
+
+      return sendJSON(res, 201, {
+        ...newHabit,
+        isScheduled: isHabitScheduledForDate(newHabit, todayStr),
+        isCompleted: false,
+        totalCompletions: 0,
+        completionHistory: [],
+      });
     }
 
     // 2.4 Subjects (Free Plan limit: Max 2 Subjects)
