@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/app_provider.dart';
+import '../models/models.dart';
+import '../widgets/premium_lock_banner.dart';
+import '../widgets/upgrade_pro_modal.dart';
 import '../theme/app_theme.dart';
 
 /// Eisenhower Matrix Screen for WrindhaOS
@@ -8,12 +13,26 @@ import '../theme/app_theme.dart';
 /// 2. Not Urgent & Important (Schedule)
 /// 3. Urgent & Not Important (Delegate)
 /// 4. Not Urgent & Not Important (Eliminate)
-class OrganizeMatrixScreen extends StatelessWidget {
+class OrganizeMatrixScreen extends StatefulWidget {
   const OrganizeMatrixScreen({super.key});
 
   @override
+  State<OrganizeMatrixScreen> createState() => _OrganizeMatrixScreenState();
+}
+
+class _OrganizeMatrixScreenState extends State<OrganizeMatrixScreen> {
+  @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final provider = Provider.of<AppProvider>(context);
+    final isPremium = provider.user.isPremium;
+    final textPrimary = isDark ? AppTheme.darkTextPrimary : AppTheme.textPrimary;
+    final textSecondary = isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary;
+
+    final q1Tasks = provider.tasks.where((t) => t.priority == 1).toList();
+    final q2Tasks = provider.tasks.where((t) => t.priority == 2).toList();
+    final q3Tasks = provider.tasks.where((t) => t.priority == 3).toList();
+    final q4Tasks = provider.tasks.where((t) => t.priority == 4).toList();
 
     return Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.background,
@@ -41,13 +60,20 @@ class OrganizeMatrixScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Reusable Premium Lock Banner for Free users
+            if (!isPremium)
+              const PremiumLockBanner(
+                featureName: 'Eisenhower Matrix',
+                description: 'You are currently viewing Eisenhower Matrix in preview mode. Upgrade to Pro for ₹49/month to manage all four priority quadrants with live scheduling.',
+              ),
+
             const Text(
-              'PRODUCTIVITY STRATEGY',
+              'PRODUCTIVITY MATRIX',
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 1.1,
-                color: const Color(0xFF94A3B8),
+                color: Color(0xFF94A3B8),
               ),
             ),
             const SizedBox(height: 4),
@@ -186,16 +212,19 @@ class OrganizeMatrixScreen extends StatelessWidget {
                 ),
                 child: Icon(icon, size: 16, color: iconColor),
               ),
-              GestureDetector(
-                onTap: onAddTask,
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: isDark ? AppTheme.darkIconBg : Colors.white.withOpacity(0.8),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(Icons.add, size: 14, color: isDark ? AppTheme.darkIconGlow : iconColor),
-                ),
+              IconButton(
+                icon: const Icon(Icons.add_rounded, size: 20),
+                onPressed: () {
+                  if (!isPremium) {
+                    showUpgradeProModal(
+                      context,
+                      featureTitle: 'Eisenhower Matrix',
+                      limitExplanation: 'Free mode includes read-only preview. Upgrade to Pro for ₹49/month to add and manage matrix tasks.',
+                    );
+                  } else {
+                    _showAddTaskDialog(context, priority);
+                  }
+                },
               ),
             ],
           ),
@@ -234,21 +263,11 @@ class OrganizeMatrixScreen extends StatelessWidget {
               ),
             )
           else
-            ...tasks.asMap().entries.map((entry) {
-              final idx = entry.key;
-              final t = entry.value;
-              final isCompleted = t['isCompleted'] == true;
-
-              return GestureDetector(
-                onTap: () {
-                  setState(() {
-                    tasks[idx]['isCompleted'] = !isCompleted;
-                  });
-                },
-                child: Container(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            Column(
+              children: tasks.map((task) {
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                   decoration: BoxDecoration(
                     color: isDark ? const Color(0xFF242321) : Colors.white,
                     borderRadius: BorderRadius.circular(10),
@@ -276,26 +295,10 @@ class OrganizeMatrixScreen extends StatelessWidget {
                         ),
                       ),
                       PopupMenuButton<String>(
-                        padding: EdgeInsets.zero,
-                        icon: Icon(
-                          Icons.more_vert_rounded,
-                          size: 16,
-                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        onSelected: (val) {
-                          if (val == 'edit') {
-                            _showEditTaskDialog(context, tasks, idx);
-                          } else if (val == 'complete') {
-                            setState(() {
-                              tasks[idx]['isCompleted'] = !isCompleted;
-                            });
-                          } else if (val == 'delete') {
-                            setState(() {
-                              tasks.removeAt(idx);
-                            });
+                        icon: const Icon(Icons.more_vert_rounded, size: 16, color: Colors.grey),
+                        onSelected: (action) {
+                          if (action == 'delete') {
+                            provider.deleteTask(task.id);
                           }
                         },
                         itemBuilder: (ctx) => [
@@ -315,142 +318,12 @@ class OrganizeMatrixScreen extends StatelessWidget {
     );
   }
 
-  void _showAddTaskDialog(BuildContext context, int qNumber) {
+  void _showAddTaskDialog(BuildContext context, int priority) {
     final titleCtrl = TextEditingController();
-    DateTime selectedDate = DateTime.now();
-    TimeOfDay selectedTime = TimeOfDay.fromDateTime(DateTime.now().add(const Duration(hours: 2)));
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setModalState) {
-          final timeFormatted = '${selectedTime.hourOfPeriod == 0 ? 12 : selectedTime.hourOfPeriod}:${selectedTime.minute.toString().padLeft(2, '0')} ${selectedTime.period == DayPeriod.am ? 'AM' : 'PM'}';
-          final dateFormatted = '${selectedDate.month}/${selectedDate.day}/${selectedDate.year}';
-
-          return Padding(
-            padding: EdgeInsets.only(
-              bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
-              top: 24,
-              left: 20,
-              right: 20,
-            ),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Add Task to Quadrant $qNumber',
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: titleCtrl,
-                    autofocus: true,
-                    decoration: const InputDecoration(
-                      hintText: 'Task Title',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  const Text('DUE DATE & TIME', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF94A3B8))),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          icon: const Icon(Icons.calendar_today_rounded, size: 14),
-                          label: Text(dateFormatted, style: const TextStyle(fontSize: 12)),
-                          onPressed: () async {
-                            final picked = await showDatePicker(
-                              context: context,
-                              initialDate: selectedDate,
-                              firstDate: DateTime.now().subtract(const Duration(days: 1)),
-                              lastDate: DateTime.now().add(const Duration(days: 365)),
-                            );
-                            if (picked != null) {
-                              setModalState(() => selectedDate = picked);
-                            }
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          icon: const Icon(Icons.access_time_rounded, size: 14),
-                          label: Text(timeFormatted, style: const TextStyle(fontSize: 12)),
-                          onPressed: () async {
-                            final picked = await showTimePicker(
-                              context: context,
-                              initialTime: selectedTime,
-                            );
-                            if (picked != null) {
-                              setModalState(() => selectedTime = picked);
-                            }
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0D5CE5),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                      ),
-                      onPressed: () {
-                        if (titleCtrl.text.trim().isNotEmpty) {
-                          setState(() {
-                            final item = {
-                              'title': titleCtrl.text.trim(),
-                              'dueDate': selectedDate,
-                              'timeOfDay': selectedTime,
-                              'timeStr': timeFormatted,
-                              'dateStr': dateFormatted,
-                              'isCompleted': false,
-                            };
-                            if (qNumber == 1) _q1Tasks.add(item);
-                            if (qNumber == 2) _q2Tasks.add(item);
-                            if (qNumber == 3) _q3Tasks.add(item);
-                            if (qNumber == 4) _q4Tasks.add(item);
-                          });
-                          Navigator.pop(ctx);
-                        }
-                      },
-                      child: const Text(
-                        'Save Task',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  void _showEditTaskDialog(BuildContext context, List<Map<String, dynamic>> tasks, int idx) {
-    final titleCtrl = TextEditingController(text: tasks[idx]['title'] as String);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Add Matrix Task', style: TextStyle(fontWeight: FontWeight.w800)),
+        title: Text('Add Quadrant $priority Task', style: const TextStyle(fontWeight: FontWeight.w800)),
         content: TextField(
           controller: titleCtrl,
           autofocus: true,

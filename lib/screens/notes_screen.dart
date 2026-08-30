@@ -1,4 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
+import '../models/models.dart';
+import '../providers/app_provider.dart';
+import '../widgets/premium_lock_banner.dart';
+import '../widgets/upgrade_pro_modal.dart';
 import '../theme/app_theme.dart';
 
 /// Journal / Notes Screen for WrindhaOS
@@ -29,6 +35,20 @@ class _NotesScreenState extends State<NotesScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final provider = Provider.of<AppProvider>(context);
+    final isPremium = provider.user.isPremium;
+    final textPrimary = isDark ? AppTheme.darkTextPrimary : AppTheme.textPrimary;
+    final textSecondary = isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary;
+    final cardBg = isDark ? AppTheme.darkCardBg : AppTheme.cardSurface;
+    final primaryColor = isDark ? AppTheme.darkPrimary : AppTheme.primaryAccent;
+
+    final allEntries = provider.journalEntries;
+    final filteredEntries = _searchQuery.isEmpty
+        ? allEntries
+        : allEntries.where((e) {
+            final q = _searchQuery.toLowerCase();
+            return e.title.toLowerCase().contains(q) || e.content.toLowerCase().contains(q);
+          }).toList();
 
     return Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.background,
@@ -72,72 +92,236 @@ class _NotesScreenState extends State<NotesScreen> {
         backgroundColor: primaryColor,
         shape: const CircleBorder(),
         elevation: 4,
-        child: const Icon(Icons.add, color: Colors.white, size: 28),
-        onPressed: () => _showAddJournalDialog(context),
+        child: Icon(
+          !isPremium ? Icons.lock_rounded : Icons.edit_note_rounded,
+          color: Colors.white,
+          size: 26,
+        ),
+        onPressed: () {
+          if (!isPremium) {
+            showUpgradeProModal(
+              context,
+              featureTitle: 'Journal & Notes',
+              limitExplanation: 'Free plan includes read-only preview of Journal. Upgrade to Pro for ₹49/month to write unlimited personal diary entries.',
+            );
+          } else {
+            _showEntryEditor(context, null);
+          }
+        },
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
-        children: [
-          if (_journalEntries.isEmpty)
-            Container(
-              padding: const EdgeInsets.all(24),
-              margin: const EdgeInsets.only(bottom: 16),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E1F2B) : Colors.white,
-                borderRadius: BorderRadius.circular(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 1. Premium Lock Banner if Free
+            if (!isPremium)
+              const PremiumLockBanner(
+                featureName: 'Journal / Notes',
+                description: 'You are currently viewing Journal / Notes in preview mode. Upgrade to Pro for ₹49/month to write, search, and store unlimited encrypted diary entries.',
               ),
-              child: const Center(
-                child: Text(
-                  'No journal entries written yet.\nTap + or click below to record your first entry.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Color(0xFF64748B), height: 1.4),
-                ),
-              ),
-            )
-          else
-            ..._journalEntries.asMap().entries.map((entry) {
-              final index = entry.key;
-              final item = entry.value;
-              return _buildJournalCard(context, item, index);
-            }).toList(),
 
-          // Dashed Quick Journal Entry Container
-          GestureDetector(
-            onTap: () => _showAddJournalDialog(context),
-            child: Container(
-              height: 110,
-              decoration: BoxDecoration(
-                color: isDark ? AppTheme.darkCardBg : AppTheme.pastelGrowth,
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(
-                  color: isDark ? AppTheme.darkCardBorder : const Color(0xFFB4DEBF),
-                  width: 1.5,
-                  style: BorderStyle.solid,
-                ),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.edit_note_rounded,
-                    color: isDark ? AppTheme.darkIconGlow : AppTheme.pastelGrowthIcon,
-                    size: 30,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Click to write a quick journal entry',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: isDark ? Colors.white : AppTheme.lightTextPrimary,
-                    ),
-                  ),
-                ],
+            // 2. Search Bar
+            TextField(
+              controller: _searchController,
+              onChanged: (val) => setState(() => _searchQuery = val.trim()),
+              style: TextStyle(color: textPrimary, fontSize: 14),
+              decoration: InputDecoration(
+                hintText: 'Search journal entries...',
+                prefixIcon: Icon(Icons.search_rounded, color: textSecondary, size: 20),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear_rounded, size: 18),
+                        onPressed: () {
+                          _searchController.clear();
+                          setState(() => _searchQuery = '');
+                        },
+                      )
+                    : null,
+                filled: true,
+                fillColor: isDark ? const Color(0xFF242321) : AppTheme.inputBg,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               ),
             ),
-          ),
-          const SizedBox(height: 80),
-        ],
+            const SizedBox(height: 20),
+
+            // 3. Entries List Header
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Your Reflections',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: textPrimary),
+                ),
+                Text(
+                  '${filteredEntries.length} ${filteredEntries.length == 1 ? 'ENTRY' : 'ENTRIES'}',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.1, color: primaryColor),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+
+            if (filteredEntries.isEmpty)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(28),
+                decoration: BoxDecoration(
+                  color: cardBg,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: isDark ? AppTheme.darkCardBorder : AppTheme.borderLight),
+                ),
+                child: Column(
+                  children: [
+                    Icon(Icons.auto_stories_outlined, size: 48, color: textSecondary.withOpacity(0.5)),
+                    const SizedBox(height: 12),
+                    Text(
+                      _searchQuery.isEmpty
+                          ? 'Your journal is empty.\nTap "+ New Entry" to capture your thoughts!'
+                          : 'No matching entries found for "$_searchQuery".',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: textSecondary, height: 1.4),
+                    ),
+                  ],
+                ),
+              )
+            else
+              Column(
+                children: filteredEntries.map((entry) {
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 14),
+                    decoration: BoxDecoration(
+                      color: cardBg,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: isDark ? AppTheme.darkCardBorder : AppTheme.borderLight),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(isDark ? 0.15 : 0.03),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(20),
+                        onTap: () => _showEntryReader(context, entry, isPremium),
+                        child: Padding(
+                          padding: const EdgeInsets.all(18.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Top Row: Date & Mood
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(Icons.calendar_today_rounded, size: 13, color: textSecondary),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        DateFormat('EEEE, MMM d, yyyy • h:mm a').format(entry.date),
+                                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: textSecondary),
+                                      ),
+                                    ],
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                    decoration: BoxDecoration(
+                                      color: primaryColor.withOpacity(0.12),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      entry.mood,
+                                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: primaryColor),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+
+                              // Title
+                              Text(
+                                entry.title,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w800,
+                                  color: textPrimary,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+
+                              // Content Snippet
+                              Text(
+                                entry.content,
+                                maxLines: 3,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 13.5,
+                                  height: 1.4,
+                                  color: textSecondary,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+
+                              // Footer Row: Tags and Options
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Wrap(
+                                    spacing: 6,
+                                    children: entry.tags.map((tag) {
+                                      return Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: isDark ? const Color(0xFF242321) : const Color(0xFFF1F5F9),
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                        child: Text(
+                                          '#$tag',
+                                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: textSecondary),
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
+                                  PopupMenuButton<String>(
+                                    icon: Icon(Icons.more_horiz_rounded, size: 20, color: textSecondary),
+                                    onSelected: (action) {
+                                      if (action == 'edit') {
+                                        if (!isPremium) {
+                                          showUpgradeProModal(context, featureTitle: 'Journal Editing', limitExplanation: 'Upgrade to Pro for ₹49/month to edit past journal logs.');
+                                        } else {
+                                          _showEntryEditor(context, entry);
+                                        }
+                                      } else if (action == 'delete') {
+                                        provider.deleteJournalEntry(entry.id);
+                                      }
+                                    },
+                                    itemBuilder: (ctx) => [
+                                      const PopupMenuItem(
+                                        value: 'edit',
+                                        child: Row(children: [Icon(Icons.edit_outlined, size: 18), SizedBox(width: 8), Text('Edit')]),
+                                      ),
+                                      const PopupMenuItem(
+                                        value: 'delete',
+                                        child: Row(children: [Icon(Icons.delete_outline, color: Colors.redAccent, size: 18), SizedBox(width: 8), Text('Delete', style: TextStyle(color: Colors.redAccent))]),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            const SizedBox(height: 40),
+          ],
+        ),
       ),
     );
   }
