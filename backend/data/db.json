@@ -40,6 +40,59 @@
       "referralCode": "WOS6565",
       "createdAt": "2026-08-30T04:44:54.520Z",
       "onboardingCompleted": false
+    },
+    {
+      "id": "u_1788072434591",
+      "username": "audit_user_1788072434578",
+      "name": "Audit User",
+      "email": "audit_user_1788072434578@wrindhaos.in",
+      "googleId": "g_123456789",
+      "photoUrl": null,
+      "isEmailVerified": true,
+      "focusScore": 85,
+      "activeStreak": 1,
+      "isPremium": true,
+      "referralCode": "WOS5532",
+      "createdAt": "2026-08-30T06:47:14.591Z",
+      "updatedAt": "2026-08-30T06:47:14.591Z"
+    }
+  ],
+  "subscriptions": [
+    {
+      "id": "sub_free_u_1",
+      "user_id": "u_1",
+      "plan": "free",
+      "status": "active",
+      "started_at": "2026-08-30T05:21:43.064Z",
+      "expires_at": null,
+      "payment_provider": "NONE",
+      "transaction_id": null,
+      "created_at": "2026-08-30T05:21:43.072Z",
+      "updated_at": "2026-08-30T05:21:43.072Z"
+    },
+    {
+      "id": "sub_free_��m�G�",
+      "user_id": "��m�G�",
+      "plan": "free",
+      "status": "active",
+      "started_at": "2026-08-30T05:38:15.133Z",
+      "expires_at": null,
+      "payment_provider": "NONE",
+      "transaction_id": null,
+      "created_at": "2026-08-30T05:38:15.134Z",
+      "updated_at": "2026-08-30T05:38:15.134Z"
+    },
+    {
+      "id": "sub_free_u_1788072434591",
+      "user_id": "u_1788072434591",
+      "plan": "pro",
+      "status": "active",
+      "started_at": "2026-08-30T06:47:14.610Z",
+      "expires_at": null,
+      "payment_provider": "PLAY_STORE",
+      "transaction_id": "tx_1788072434610",
+      "created_at": "2026-08-30T06:47:14.591Z",
+      "updated_at": "2026-08-30T06:47:14.610Z"
     }
   ],
   "tasks": [
@@ -52,6 +105,56 @@
       "createdAt": "2026-08-22T16:44:03.560Z"
     }
   ],
+  "calendarEvents": [],
+  "habits": [
+    {
+      "id": "h_1788068295168",
+      "title": "Drink Water 2L",
+      "frequency": "DAILY"
+    },
+    {
+      "id": "h_1788068295176",
+      "title": "Read 20 pages",
+      "frequency": "DAILY"
+    },
+    {
+      "id": "h_1788068295181",
+      "title": "Meditate 10 mins",
+      "frequency": "DAILY"
+    }
+  ],
+  "subjects": [
+    {
+      "id": "sub_1788068421393",
+      "userId": "u_1",
+      "name": "Mathematics"
+    },
+    {
+      "id": "sub_1788068421404",
+      "userId": "u_1",
+      "name": "Computer Science"
+    },
+    {
+      "id": "sub_1788072434602",
+      "userId": "u_1788072434591",
+      "name": "Subject 1",
+      "code": "",
+      "instructor": "",
+      "createdAt": "2026-08-30T06:47:14.602Z"
+    },
+    {
+      "id": "sub_1788072434604",
+      "userId": "u_1788072434591",
+      "name": "Subject 2",
+      "code": "",
+      "instructor": "",
+      "createdAt": "2026-08-30T06:47:14.604Z"
+    }
+  ],
+  "studyItems": [],
+  "timetable": [],
+  "careerNodes": [],
+  "goals": [],
   "expenses": [
     {
       "id": "e_1787417087573",
@@ -81,30 +184,118 @@
       "date": "2026-08-23T13:36:12.865Z"
     }
   ],
-  "goals": {
-    "short": [],
-    "medium": [],
-    "long": []
-  },
-  "habits": [
+  "journalEntries": [],
+  "milestones": [],
+  "notifications": [],
+  "coupons": [
     {
-      "id": "h_1788068295168",
-      "title": "Drink Water 2L",
-      "frequency": "DAILY"
+      "id": "c_welcome50",
+      "code": "WELCOME50",
+      "title": "50% Off WrindhaOS Pro",
+      "description": "Get 50% off your first month of WrindhaOS Pro!",
+      "discountType": "percentage",
+      "discountValue": 50,
+      "product": "pro_monthly",
+      "googlePlayOfferId": "play_offer_welcome50",
+      "startDate": "2026-01-01T00:00:00.000Z",
+      "expiryDate": "2027-12-31T23:59:59.000Z",
+      "usageLimit": 1000,
+      "perUserLimit": 1,
+      "active": true,
+      "campaignSource": "LAUNCH2026",
+      "creator": "WrindhaOS Team",
+      "createdAt": "2026-08-30T06:45:50.714Z"
     },
     {
-      "id": "h_1788068295176",
-      "title": "Read 20 pages",
-      "frequency": "DAILY"
-    },
-    {
-      "id": "h_1788068295181",
-      "title": "Meditate 10 mins",
-      "frequency": "DAILY"
+      "id": "c_pro1monthfree",
+      "code": "PROFREE",
+      "title": "30 Days Free Trial",
+      "description": "Enjoy 30 days of full WrindhaOS Pro access on us!",
+      "discountType": "free_trial",
+      "discountValue": 100,
+      "product": "pro_monthly",
+      "googlePlayOfferId": "play_offer_30day_trial",
+      "startDate": "2026-01-01T00:00:00.000Z",
+      "expiryDate": "2027-12-31T23:59:59.000Z",
+      "usageLimit": 500,
+      "perUserLimit": 1,
+      "active": true,
+      "campaignSource": "INFLUENCER_CAMPAIGN",
+      "creator": "Growth Team",
+      "createdAt": "2026-08-30T06:45:50.715Z"
     }
   ],
-  "calendarEvents": [],
-  "referrals": [],
+  "couponUsages": [
+    {
+      "id": "cu_1788072376691",
+      "userId": "u_1788072376658",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-08-30T06:46:16.692Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-08-30T06:46:16.692Z"
+    },
+    {
+      "id": "cu_1788072434617",
+      "userId": "u_1788072434591",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-08-30T06:47:14.617Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-08-30T06:47:14.617Z"
+    },
+    {
+      "id": "cu_1788072462155",
+      "userId": "u_1788072462125",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-08-30T06:47:42.155Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-08-30T06:47:42.155Z"
+    }
+  ],
+  "referralCodes": [
+    {
+      "id": "ref_u_1001",
+      "userId": "u_1001",
+      "referralCode": "WRINDHA2026",
+      "status": "active",
+      "totalCount": 0,
+      "createdAt": "2026-08-30T06:45:50.715Z"
+    },
+    {
+      "id": "ref_u_1788072376658",
+      "userId": "u_1788072376658",
+      "referralCode": "WOS3777",
+      "status": "active",
+      "totalCount": 0,
+      "createdAt": "2026-08-30T06:46:16.659Z"
+    },
+    {
+      "id": "ref_u_1788072434591",
+      "userId": "u_1788072434591",
+      "referralCode": "WOS5532",
+      "status": "active",
+      "totalCount": 0,
+      "createdAt": "2026-08-30T06:47:14.593Z"
+    }
+  ],
+  "referralTrackings": [],
   "otpStore": {
     "test@wrindhaos.in": {
       "code": "9658",
@@ -140,44 +331,48 @@
       "expiresAt": 1788065683995,
       "lastSentAt": 1788065083995,
       "userId": "u_1001"
-    }
-  },
-  "subscriptions": [
-    {
-      "id": "sub_free_u_1",
-      "user_id": "u_1",
-      "plan": "free",
-      "status": "active",
-      "started_at": "2026-08-30T05:21:43.064Z",
-      "expires_at": null,
-      "payment_provider": "NONE",
-      "transaction_id": null,
-      "created_at": "2026-08-30T05:21:43.072Z",
-      "updated_at": "2026-08-30T05:21:43.072Z"
     },
-    {
-      "id": "sub_free_��m�G�",
-      "user_id": "��m�G�",
-      "plan": "free",
-      "status": "active",
-      "started_at": "2026-08-30T05:38:15.133Z",
-      "expires_at": null,
-      "payment_provider": "NONE",
-      "transaction_id": null,
-      "created_at": "2026-08-30T05:38:15.134Z",
-      "updated_at": "2026-08-30T05:38:15.134Z"
-    }
-  ],
-  "subjects": [
-    {
-      "id": "sub_1788068421393",
-      "userId": "u_1",
-      "name": "Mathematics"
+    "audit_user_1788072376634@wrindhaos.in": {
+      "code": "797860",
+      "type": "register",
+      "attempts": 0,
+      "maxAttempts": 5,
+      "createdAt": 1788072376649,
+      "expiresAt": 1788072976649,
+      "lastSentAt": 1788072376649,
+      "pendingUser": {
+        "username": "audit_1788072376635",
+        "email": "audit_user_1788072376634@wrindhaos.in",
+        "password": "SecurePassword123!"
+      }
     },
-    {
-      "id": "sub_1788068421404",
-      "userId": "u_1",
-      "name": "Computer Science"
+    "audit_user_1788072434578@wrindhaos.in": {
+      "code": "454935",
+      "type": "register",
+      "attempts": 0,
+      "maxAttempts": 5,
+      "createdAt": 1788072434586,
+      "expiresAt": 1788073034586,
+      "lastSentAt": 1788072434586,
+      "pendingUser": {
+        "username": "audit_1788072434578",
+        "email": "audit_user_1788072434578@wrindhaos.in",
+        "password": "SecurePassword123!"
+      }
+    },
+    "audit_user_1788072462069@wrindhaos.in": {
+      "code": "869027",
+      "type": "register",
+      "attempts": 0,
+      "maxAttempts": 5,
+      "createdAt": 1788072462099,
+      "expiresAt": 1788073062099,
+      "lastSentAt": 1788072462099,
+      "pendingUser": {
+        "username": "audit_1788072462070",
+        "email": "audit_user_1788072462069@wrindhaos.in",
+        "password": "SecurePassword123!"
+      }
     }
-  ]
+  }
 }
