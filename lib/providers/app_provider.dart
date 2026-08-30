@@ -475,20 +475,6 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> logout() async {
-    _isLoggedIn = false;
-    _user = UserProfile(
-      id: 'u_1',
-      name: 'Student User',
-      contact: '',
-      focusScore: 0,
-      activeStreak: 0,
-      isPremium: false,
-    );
-    await AuthApiService.clearSession();
-    notifyListeners();
-  }
-
   Future<void> _saveSession() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('saved_session_user', jsonEncode(_user.toJson()));
