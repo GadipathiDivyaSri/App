@@ -254,11 +254,26 @@ const rateLimitStore = new Map();
 /**
  * Habit Scheduling & Streak Calculation Engine
  */
-function isHabitScheduledForDate(habit, dateStr) {
+function isHabitScheduledForDate(habit, dateStr, db) {
   if (!habit) return false;
-  if (habit.status === 'archived' || habit.status === 'paused') return false;
+  if (habit.isDeleted || habit.status === 'archived') return false;
 
   const date = new Date(dateStr + 'T00:00:00Z');
+
+  // Check if habit is inside an active pause period
+  if (db && db.habitPausePeriods) {
+    const pausePeriods = db.habitPausePeriods.filter((p) => p.habitId === habit.id);
+    for (const p of pausePeriods) {
+      const pStart = p.pausedAt.split('T')[0];
+      const pEnd = p.resumedAt ? p.resumedAt.split('T')[0] : '9999-12-31';
+      if (dateStr >= pStart && dateStr <= pEnd) {
+        return false; // Paused on this date
+      }
+    }
+  } else if (habit.status === 'paused') {
+    return false;
+  }
+
   let dayOfWeek = date.getUTCDay();
   if (dayOfWeek === 0) dayOfWeek = 7; // 1 = Monday, 7 = Sunday
 
@@ -266,9 +281,16 @@ function isHabitScheduledForDate(habit, dateStr) {
   if (freq === 'DAILY') return true;
   if (freq === 'WEEKDAYS') return dayOfWeek >= 1 && dayOfWeek <= 5;
   if (freq === 'WEEKENDS') return dayOfWeek === 6 || dayOfWeek === 7;
-  if (freq === 'CUSTOM') {
+  if (freq === 'CUSTOM' || freq === 'SELECTED_DAYS') {
     const selected = habit.selectedDays || [];
-    return selected.includes(dayOfWeek) || selected.includes(dayOfWeek.toString());
+    return selected.includes(dayOfWeek) || selected.includes(dayOfWeek.toString()) || selected.includes(Number(dayOfWeek));
+  }
+  if (freq === 'CUSTOM_INTERVAL' || freq === 'INTERVAL' || (habit.intervalDays && habit.intervalDays > 1)) {
+    const interval = habit.intervalDays || 2;
+    const startDate = new Date((habit.startDate || dateStr) + 'T00:00:00Z');
+    const diffTime = date.getTime() - startDate.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays >= 0 && (diffDays % interval === 0);
   }
   if (freq === 'WEEKLY') {
     return dayOfWeek === 1;
@@ -276,7 +298,39 @@ function isHabitScheduledForDate(habit, dateStr) {
   return true;
 }
 
-function calculateHabitStreaks(habit, completionDates, todayStr) {
+function getHabitStatus(habit, dateStr, compSet, db, todayStr = new Date().toISOString().split('T')[0]) {
+  if (dateStr > todayStr) return 'FUTURE';
+
+  // Check if paused on this date
+  if (db && db.habitPausePeriods) {
+    const pausePeriods = db.habitPausePeriods.filter((p) => p.habitId === habit.id);
+    for (const p of pausePeriods) {
+      const pStart = p.pausedAt.split('T')[0];
+      const pEnd = p.resumedAt ? p.resumedAt.split('T')[0] : '9999-12-31';
+      if (dateStr >= pStart && dateStr <= pEnd) {
+        return 'PAUSED';
+      }
+    }
+  } else if (habit.status === 'paused') {
+    return 'PAUSED';
+  }
+
+  if (!isHabitScheduledForDate(habit, dateStr, db)) {
+    return 'NOT_SCHEDULED';
+  }
+
+  if (compSet.has(dateStr)) {
+    return 'COMPLETED';
+  }
+
+  if (dateStr === todayStr) {
+    return 'PENDING';
+  }
+
+  return 'MISSED';
+}
+
+function calculateHabitStreaks(habit, completionDates, todayStr, db) {
   const compSet = new Set(completionDates || []);
   const sortedComps = (completionDates || []).slice().sort();
   const earliestComp = sortedComps[0];
@@ -289,19 +343,28 @@ function calculateHabitStreaks(habit, completionDates, todayStr) {
   const today = new Date(todayStr + 'T00:00:00Z');
 
   if (start > today) {
-    return { currentStreak: 0, longestStreak: 0, totalCompletions: compSet.size };
+    return { currentStreak: compSet.has(todayStr) ? 1 : 0, longestStreak: compSet.has(todayStr) ? 1 : 0, totalCompletions: compSet.size };
   }
 
   const scheduledDates = [];
   let cur = new Date(start);
   while (cur <= today) {
     const dStr = cur.toISOString().split('T')[0];
-    if (isHabitScheduledForDate(habit, dStr)) {
+    if (isHabitScheduledForDate(habit, dStr, db)) {
       scheduledDates.push(dStr);
     }
     cur.setUTCDate(cur.getUTCDate() + 1);
   }
 
+  if (scheduledDates.length === 0) {
+    return {
+      currentStreak: compSet.has(todayStr) ? 1 : 0,
+      longestStreak: compSet.has(todayStr) ? 1 : 0,
+      totalCompletions: compSet.size,
+    };
+  }
+
+  // 1. Longest streak scan across historical scheduled days
   let maxStreak = 0;
   let runningStreak = 0;
   for (const dStr of scheduledDates) {
@@ -315,23 +378,23 @@ function calculateHabitStreaks(habit, completionDates, todayStr) {
     }
   }
 
+  // 2. Current streak: step backwards from most recent scheduled day
   let currentStreak = 0;
-  if (scheduledDates.length > 0) {
-    let idx = scheduledDates.length - 1;
-    const lastDate = scheduledDates[idx];
+  let idx = scheduledDates.length - 1;
+  const lastDate = scheduledDates[idx];
 
-    if (lastDate === todayStr && !compSet.has(todayStr)) {
+  // If today is scheduled and not completed yet, start from yesterday's scheduled day
+  if (lastDate === todayStr && !compSet.has(todayStr)) {
+    idx--;
+  }
+
+  while (idx >= 0) {
+    const dStr = scheduledDates[idx];
+    if (compSet.has(dStr)) {
+      currentStreak++;
       idx--;
-    }
-
-    while (idx >= 0) {
-      const dStr = scheduledDates[idx];
-      if (compSet.has(dStr)) {
-        currentStreak++;
-        idx--;
-      } else {
-        break;
-      }
+    } else {
+      break;
     }
   }
 
@@ -343,7 +406,7 @@ function calculateHabitStreaks(habit, completionDates, todayStr) {
 }
 
 function calculateHabitAnalytics(userId, db, todayStr = new Date().toISOString().split('T')[0]) {
-  const userHabits = (db.habits || []).filter((h) => h.userId === userId && h.status !== 'archived');
+  const userHabits = (db.habits || []).filter((h) => h.userId === userId && !h.isDeleted && h.status !== 'archived');
   const userCompletions = (db.habitCompletions || []).filter((hc) => hc.userId === userId && hc.status === 'completed');
 
   const today = new Date(todayStr + 'T00:00:00Z');
@@ -358,12 +421,18 @@ function calculateHabitAnalytics(userId, db, todayStr = new Date().toISOString()
   let monthScheduledCount = 0;
   let monthCompletedCount = 0;
 
+  const habitPerformanceList = [];
+
   userHabits.forEach((habit) => {
     const habitComps = userCompletions.filter((c) => c.habitId === habit.id).map((c) => c.completionDate);
     const compSet = new Set(habitComps);
+    const streaks = calculateHabitStreaks(habit, habitComps, todayStr, db);
+
+    let habitMonthScheduled = 0;
+    let habitMonthCompleted = 0;
 
     // Check today
-    if (isHabitScheduledForDate(habit, todayStr)) {
+    if (isHabitScheduledForDate(habit, todayStr, db)) {
       todayScheduledCount++;
       if (compSet.has(todayStr)) {
         todayCompletedCount++;
@@ -375,7 +444,7 @@ function calculateHabitAnalytics(userId, db, todayStr = new Date().toISOString()
       const d = new Date(today);
       d.setUTCDate(d.getUTCDate() - i);
       const dStr = d.toISOString().split('T')[0];
-      if (isHabitScheduledForDate(habit, dStr)) {
+      if (isHabitScheduledForDate(habit, dStr, db)) {
         weekScheduledCount++;
         if (compSet.has(dStr)) weekCompletedCount++;
       }
@@ -386,30 +455,47 @@ function calculateHabitAnalytics(userId, db, todayStr = new Date().toISOString()
       const d = new Date(today);
       d.setUTCDate(d.getUTCDate() - i);
       const dStr = d.toISOString().split('T')[0];
-      if (isHabitScheduledForDate(habit, dStr)) {
+      if (isHabitScheduledForDate(habit, dStr, db)) {
         monthScheduledCount++;
-        if (compSet.has(dStr)) monthCompletedCount++;
+        habitMonthScheduled++;
+        if (compSet.has(dStr)) {
+          monthCompletedCount++;
+          habitMonthCompleted++;
+        }
       }
     }
+
+    const rate = habitMonthScheduled > 0 ? Math.round((habitMonthCompleted / habitMonthScheduled) * 100) : 0;
+    habitPerformanceList.push({
+      habitId: habit.id,
+      title: habit.title,
+      rate,
+      currentStreak: streaks.currentStreak,
+      longestStreak: streaks.longestStreak,
+      totalCompletions: streaks.totalCompletions,
+    });
   });
 
   const todayCompletionRate = todayScheduledCount > 0 ? Math.round((todayCompletedCount / todayScheduledCount) * 100) : 0;
   const weeklyCompletionRate = weekScheduledCount > 0 ? Math.round((weekCompletedCount / weekScheduledCount) * 100) : 0;
   const monthlyCompletionRate = monthScheduledCount > 0 ? Math.round((monthCompletedCount / monthScheduledCount) * 100) : 0;
 
-  // Overall Consistency score (weighted 40% weekly, 40% monthly, 20% today)
-  const consistencyScore = userHabits.length === 0 ? 0 : Math.round(
-    weeklyCompletionRate * 0.4 + monthlyCompletionRate * 0.4 + todayCompletionRate * 0.2
-  );
-
+  // Consistency score: 70% Completion Performance + 30% Streak Performance
   let bestStreak = 0;
   let activeStreaksCount = 0;
-  userHabits.forEach((habit) => {
-    const habitComps = userCompletions.filter((c) => c.habitId === habit.id).map((c) => c.completionDate);
-    const streaks = calculateHabitStreaks(habit, habitComps, todayStr);
-    if (streaks.currentStreak > 0) activeStreaksCount++;
-    if (streaks.longestStreak > bestStreak) bestStreak = streaks.longestStreak;
+  habitPerformanceList.forEach((p) => {
+    if (p.currentStreak > 0) activeStreaksCount++;
+    if (p.longestStreak > bestStreak) bestStreak = p.longestStreak;
   });
+
+  const streakComponent = Math.min(30, Math.round((bestStreak / 30) * 30));
+  const completionComponent = Math.round(monthlyCompletionRate * 0.7);
+  const consistencyScore = userHabits.length === 0 ? 0 : Math.min(100, completionComponent + streakComponent);
+
+  // Best & lowest performing habits
+  habitPerformanceList.sort((a, b) => b.rate - a.rate);
+  const bestHabit = habitPerformanceList.length > 0 ? habitPerformanceList[0] : null;
+  const lowestHabit = habitPerformanceList.length > 0 ? habitPerformanceList[habitPerformanceList.length - 1] : null;
 
   return {
     totalHabits: userHabits.length,
@@ -422,7 +508,102 @@ function calculateHabitAnalytics(userId, db, todayStr = new Date().toISOString()
     consistencyScore,
     activeStreaksCount,
     bestStreak,
+    bestHabit,
+    lowestHabit,
+    habitPerformanceList,
   };
+}
+
+function generateHabitInsights(userId, db, todayStr = new Date().toISOString().split('T')[0]) {
+  const userHabits = (db.habits || []).filter((h) => h.userId === userId && !h.isDeleted && h.status === 'active');
+  const userCompletions = (db.habitCompletions || []).filter((hc) => hc.userId === userId && hc.status === 'completed');
+  const insights = [];
+
+  const today = new Date(todayStr + 'T00:00:00Z');
+
+  userHabits.forEach((habit) => {
+    const comps = userCompletions.filter((c) => c.habitId === habit.id).map((c) => c.completionDate);
+    const compSet = new Set(comps);
+    const streaks = calculateHabitStreaks(habit, comps, todayStr, db);
+
+    // 1. 7-Day Completion Rate Rule
+    let last7Scheduled = 0;
+    let last7Completed = 0;
+    for (let i = 1; i <= 7; i++) {
+      const d = new Date(today);
+      d.setUTCDate(d.getUTCDate() - i);
+      const dStr = d.toISOString().split('T')[0];
+      if (isHabitScheduledForDate(habit, dStr, db)) {
+        last7Scheduled++;
+        if (compSet.has(dStr)) last7Completed++;
+      }
+    }
+
+    const rate7 = last7Scheduled > 0 ? (last7Completed / last7Scheduled) * 100 : 100;
+    if (last7Scheduled >= 3 && rate7 < 40) {
+      insights.push({
+        type: 'LOW_CONSISTENCY',
+        habitId: habit.id,
+        habitTitle: habit.title,
+        severity: 'warning',
+        message: `You are struggling with "${habit.title}" (${Math.round(rate7)}% completion rate over the last 7 days). Consider reducing the frequency or making it easier.`,
+        action: 'REDUCE_FREQUENCY',
+      });
+    }
+
+    // 2. Multiple Misses Rule (3 consecutive misses)
+    let consecutiveMisses = 0;
+    for (let i = 1; i <= 14; i++) {
+      const d = new Date(today);
+      d.setUTCDate(d.getUTCDate() - i);
+      const dStr = d.toISOString().split('T')[0];
+      if (isHabitScheduledForDate(habit, dStr, db)) {
+        if (!compSet.has(dStr)) {
+          consecutiveMisses++;
+          if (consecutiveMisses >= 3) break;
+        } else {
+          break;
+        }
+      }
+    }
+
+    if (consecutiveMisses >= 3) {
+      insights.push({
+        type: 'MULTIPLE_MISSES',
+        habitId: habit.id,
+        habitTitle: habit.title,
+        severity: 'alert',
+        message: `You missed 3 consecutive scheduled occurrences for "${habit.title}". Would you like to pause or adjust its schedule?`,
+        action: 'PAUSE_OR_ADJUST',
+      });
+    }
+
+    // 3. Strong Streak Celebration Rule
+    if (streaks.currentStreak >= 7) {
+      insights.push({
+        type: 'STRONG_STREAK',
+        habitId: habit.id,
+        habitTitle: habit.title,
+        severity: 'celebration',
+        message: `🔥 Incredible momentum! You have a ${streaks.currentStreak}-day streak on "${habit.title}". Consistency is compounding!`,
+        action: 'CELEBRATE',
+      });
+    }
+
+    // 4. End of Day Incomplete Check
+    if (isHabitScheduledForDate(habit, todayStr, db) && !compSet.has(todayStr)) {
+      insights.push({
+        type: 'PENDING_TODAY',
+        habitId: habit.id,
+        habitTitle: habit.title,
+        severity: 'reminder',
+        message: `"${habit.title}" is scheduled for today and waiting for your check-in.`,
+        action: 'COMPLETE_TODAY',
+      });
+    }
+  });
+
+  return insights;
 }
 
 function isRateLimited(ip, endpoint, limit = 30, windowMs = 60000) {
@@ -1036,27 +1217,129 @@ async function handleApiRequest(req, res) {
       return sendJSON(res, 201, newEvent);
     }
 
-    // 2.3 Habits System (Full Production CRUD, Custom Frequencies, Daily Completions, Streaks & Analytics)
-    if (pathname === '/api/habits/analytics' && method === 'GET') {
+    // 2.3 Habits System (Full Production CRUD, Custom Frequencies, Daily Completions, Streaks, Pause/Resume & Analytics)
+    
+    // Overview & Analytics
+    if ((pathname === '/api/habits/analytics' || pathname === '/api/habits/analytics/overview') && method === 'GET') {
       const queryDate = query.date || new Date().toISOString().split('T')[0];
       const analytics = calculateHabitAnalytics(userId, db, queryDate);
-      return sendJSON(res, 200, { success: true, analytics });
+      return sendJSON(res, 200, { success: true, data: analytics, analytics });
     }
 
+    // Smart Assistant Insights
+    if ((pathname === '/api/habits/insights' || pathname === '/api/assistant/habit-insights') && method === 'GET') {
+      const queryDate = query.date || new Date().toISOString().split('T')[0];
+      const insights = generateHabitInsights(userId, db, queryDate);
+      return sendJSON(res, 200, { success: true, data: insights, insights });
+    }
+
+    // Completions History Query
     if (pathname === '/api/habits/completions' && method === 'GET') {
       const { startDate, endDate, habitId } = query;
       let comps = (db.habitCompletions || []).filter((hc) => hc.userId === userId);
       if (habitId) comps = comps.filter((hc) => hc.habitId === habitId);
       if (startDate) comps = comps.filter((hc) => hc.completionDate >= startDate);
       if (endDate) comps = comps.filter((hc) => hc.completionDate <= endDate);
-      return sendJSON(res, 200, { success: true, completions: comps });
+      return sendJSON(res, 200, { success: true, data: comps, completions: comps });
     }
 
+    // Today's Scheduled Habits
+    if (pathname === '/api/habits/today' && method === 'GET') {
+      const todayStr = query.date || new Date().toISOString().split('T')[0];
+      const userHabits = (db.habits || []).filter((h) => h.userId === userId && !h.isDeleted && h.status !== 'archived');
+      const userCompletions = (db.habitCompletions || []).filter((hc) => hc.userId === userId && hc.status === 'completed');
+
+      const todayHabits = userHabits
+        .filter((h) => isHabitScheduledForDate(h, todayStr, db))
+        .map((h) => {
+          const habitComps = userCompletions.filter((c) => c.habitId === h.id).map((c) => c.completionDate);
+          const compSet = new Set(habitComps);
+          const streaks = calculateHabitStreaks(h, habitComps, todayStr, db);
+
+          return {
+            id: h.id,
+            userId: h.userId || userId,
+            title: h.title,
+            category: h.category || 'General',
+            frequency: h.frequency || 'DAILY',
+            selectedDays: h.selectedDays || [],
+            intervalDays: h.intervalDays || 1,
+            startDate: h.startDate || h.createdAt?.split('T')[0] || todayStr,
+            status: h.status || 'active',
+            description: h.description || '',
+            colorHex: h.colorHex || '0xFF10B981',
+            iconName: h.iconName || 'repeat',
+            isScheduled: true,
+            isCompleted: compSet.has(todayStr),
+            currentStreak: streaks.currentStreak,
+            longestStreak: streaks.longestStreak,
+            totalCompletions: streaks.totalCompletions,
+            createdAt: h.createdAt,
+            updatedAt: h.updatedAt,
+          };
+        });
+
+      return sendJSON(res, 200, { success: true, data: todayHabits, habits: todayHabits });
+    }
+
+    // Individual Habit Complete / Uncomplete
+    if (pathname.startsWith('/api/habits/') && pathname.endsWith('/complete')) {
+      const habitId = pathname.split('/')[3];
+      const habit = (db.habits || []).find((h) => h.id === habitId && h.userId === userId && !h.isDeleted);
+      if (!habit) {
+        return sendJSON(res, 404, { success: false, error: { code: 'NOT_FOUND', message: 'Habit not found.' } });
+      }
+
+      const targetDate = (body && body.date) || query.date || new Date().toISOString().split('T')[0];
+      db.habitCompletions = db.habitCompletions || [];
+      const existingIdx = db.habitCompletions.findIndex(
+        (hc) => hc.habitId === habitId && hc.userId === userId && hc.completionDate === targetDate
+      );
+
+      if (method === 'POST') {
+        if (existingIdx === -1) {
+          db.habitCompletions.push({
+            id: 'hc_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+            habitId,
+            userId,
+            completionDate: targetDate,
+            status: 'completed',
+            completedAt: new Date().toISOString(),
+          });
+        }
+      } else if (method === 'DELETE') {
+        if (existingIdx !== -1) {
+          db.habitCompletions.splice(existingIdx, 1);
+        }
+      }
+
+      const habitComps = db.habitCompletions.filter((c) => c.habitId === habitId && c.userId === userId).map((c) => c.completionDate);
+      const streakInfo = calculateHabitStreaks(habit, habitComps, new Date().toISOString().split('T')[0], db);
+      habit.currentStreak = streakInfo.currentStreak;
+      habit.longestStreak = streakInfo.longestStreak;
+      habit.updatedAt = new Date().toISOString();
+      saveDB(db);
+
+      return sendJSON(res, 200, {
+        success: true,
+        message: method === 'POST' ? 'Habit completed successfully' : 'Habit uncompleted successfully',
+        data: {
+          habitId,
+          date: targetDate,
+          isCompleted: method === 'POST',
+          currentStreak: habit.currentStreak,
+          longestStreak: habit.longestStreak,
+          totalCompletions: streakInfo.totalCompletions,
+        },
+      });
+    }
+
+    // Habit Toggle
     if (pathname.startsWith('/api/habits/') && pathname.endsWith('/toggle') && method === 'POST') {
       const habitId = pathname.split('/')[3];
-      const habit = (db.habits || []).find((h) => h.id === habitId && h.userId === userId);
+      const habit = (db.habits || []).find((h) => h.id === habitId && h.userId === userId && !h.isDeleted);
       if (!habit) {
-        return sendJSON(res, 404, { success: false, message: 'Habit not found.' });
+        return sendJSON(res, 404, { success: false, error: { code: 'NOT_FOUND', message: 'Habit not found.' } });
       }
 
       const targetDate = body.date || new Date().toISOString().split('T')[0];
@@ -1085,9 +1368,8 @@ async function handleApiRequest(req, res) {
         isNowCompleted = false;
       }
 
-      // Recalculate streaks
       const habitComps = db.habitCompletions.filter((c) => c.habitId === habitId && c.userId === userId).map((c) => c.completionDate);
-      const streakInfo = calculateHabitStreaks(habit, habitComps, new Date().toISOString().split('T')[0]);
+      const streakInfo = calculateHabitStreaks(habit, habitComps, new Date().toISOString().split('T')[0], db);
       habit.currentStreak = streakInfo.currentStreak;
       habit.longestStreak = streakInfo.longestStreak;
       habit.updatedAt = new Date().toISOString();
@@ -1102,9 +1384,129 @@ async function handleApiRequest(req, res) {
         currentStreak: habit.currentStreak,
         longestStreak: habit.longestStreak,
         totalCompletions: streakInfo.totalCompletions,
+        data: {
+          isCompleted: isNowCompleted,
+          habitId,
+          date: targetDate,
+          currentStreak: habit.currentStreak,
+          longestStreak: habit.longestStreak,
+          totalCompletions: streakInfo.totalCompletions,
+        },
       });
     }
 
+    // Habit Pause
+    if (pathname.startsWith('/api/habits/') && pathname.endsWith('/pause') && method === 'POST') {
+      const habitId = pathname.split('/')[3];
+      const habit = (db.habits || []).find((h) => h.id === habitId && h.userId === userId);
+      if (!habit) return sendJSON(res, 404, { success: false, error: { code: 'NOT_FOUND', message: 'Habit not found.' } });
+
+      habit.status = 'paused';
+      habit.updatedAt = new Date().toISOString();
+
+      db.habitPausePeriods = db.habitPausePeriods || [];
+      db.habitPausePeriods.push({
+        id: 'pp_' + Date.now(),
+        habitId,
+        userId,
+        pausedAt: new Date().toISOString(),
+        resumedAt: null,
+        createdAt: new Date().toISOString(),
+      });
+
+      saveDB(db);
+      return sendJSON(res, 200, { success: true, message: 'Habit paused successfully.', data: habit });
+    }
+
+    // Habit Resume
+    if (pathname.startsWith('/api/habits/') && pathname.endsWith('/resume') && method === 'POST') {
+      const habitId = pathname.split('/')[3];
+      const habit = (db.habits || []).find((h) => h.id === habitId && h.userId === userId);
+      if (!habit) return sendJSON(res, 404, { success: false, error: { code: 'NOT_FOUND', message: 'Habit not found.' } });
+
+      habit.status = 'active';
+      habit.updatedAt = new Date().toISOString();
+
+      db.habitPausePeriods = db.habitPausePeriods || [];
+      const openPause = db.habitPausePeriods.find((p) => p.habitId === habitId && p.resumedAt === null);
+      if (openPause) {
+        openPause.resumedAt = new Date().toISOString();
+        openPause.updatedAt = new Date().toISOString();
+      }
+
+      saveDB(db);
+      return sendJSON(res, 200, { success: true, message: 'Habit resumed successfully.', data: habit });
+    }
+
+    // Habit Archive
+    if (pathname.startsWith('/api/habits/') && pathname.endsWith('/archive') && method === 'POST') {
+      const habitId = pathname.split('/')[3];
+      const habit = (db.habits || []).find((h) => h.id === habitId && h.userId === userId);
+      if (!habit) return sendJSON(res, 404, { success: false, error: { code: 'NOT_FOUND', message: 'Habit not found.' } });
+
+      habit.status = 'archived';
+      habit.isArchived = true;
+      habit.updatedAt = new Date().toISOString();
+      saveDB(db);
+      return sendJSON(res, 200, { success: true, message: 'Habit archived successfully.', data: habit });
+    }
+
+    // Individual Habit History
+    if (pathname.startsWith('/api/habits/') && pathname.endsWith('/history') && method === 'GET') {
+      const habitId = pathname.split('/')[3];
+      const habit = (db.habits || []).find((h) => h.id === habitId && h.userId === userId);
+      if (!habit) return sendJSON(res, 404, { success: false, error: { code: 'NOT_FOUND', message: 'Habit not found.' } });
+
+      const days = parseInt(query.days || '30', 10);
+      const today = new Date();
+      const todayStr = today.toISOString().split('T')[0];
+      const history = [];
+
+      const habitComps = (db.habitCompletions || []).filter((hc) => hc.habitId === habitId && hc.userId === userId).map((c) => c.completionDate);
+      const compSet = new Set(habitComps);
+
+      for (let i = 0; i < days; i++) {
+        const d = new Date(today);
+        d.setUTCDate(d.getUTCDate() - i);
+        const dStr = d.toISOString().split('T')[0];
+        const status = getHabitStatus(habit, dStr, compSet, db, todayStr);
+        history.push({
+          date: dStr,
+          status,
+          isCompleted: compSet.has(dStr),
+          isScheduled: isHabitScheduledForDate(habit, dStr, db),
+        });
+      }
+
+      return sendJSON(res, 200, { success: true, data: history, habitId, days });
+    }
+
+    // Individual Habit Analytics
+    if (pathname.startsWith('/api/habits/') && pathname.endsWith('/analytics') && method === 'GET') {
+      const habitId = pathname.split('/')[3];
+      const habit = (db.habits || []).find((h) => h.id === habitId && h.userId === userId);
+      if (!habit) return sendJSON(res, 404, { success: false, error: { code: 'NOT_FOUND', message: 'Habit not found.' } });
+
+      const todayStr = query.date || new Date().toISOString().split('T')[0];
+      const habitComps = (db.habitCompletions || []).filter((hc) => hc.habitId === habitId && hc.userId === userId).map((c) => c.completionDate);
+      const compSet = new Set(habitComps);
+      const streaks = calculateHabitStreaks(habit, habitComps, todayStr, db);
+
+      return sendJSON(res, 200, {
+        success: true,
+        data: {
+          habitId: habit.id,
+          title: habit.title,
+          currentStreak: streaks.currentStreak,
+          longestStreak: streaks.longestStreak,
+          totalCompletions: streaks.totalCompletions,
+          frequency: habit.frequency,
+          status: habit.status,
+        },
+      });
+    }
+
+    // Update Habit Status
     if (pathname.startsWith('/api/habits/') && pathname.endsWith('/status') && method === 'PATCH') {
       const habitId = pathname.split('/')[3];
       const habit = (db.habits || []).find((h) => h.id === habitId && h.userId === userId);
@@ -1124,51 +1526,96 @@ async function handleApiRequest(req, res) {
       return sendJSON(res, 200, { success: true, message: `Habit marked as ${nextStatus}`, habit });
     }
 
+    // Get Single Habit
+    if (pathname.startsWith('/api/habits/') && method === 'GET' && pathname.split('/').length === 4) {
+      const habitId = pathname.split('/')[3];
+      const habit = (db.habits || []).find((h) => h.id === habitId && h.userId === userId && !h.isDeleted);
+      if (!habit) {
+        return sendJSON(res, 404, { success: false, error: { code: 'NOT_FOUND', message: 'Habit not found.' } });
+      }
+
+      const todayStr = new Date().toISOString().split('T')[0];
+      const habitComps = (db.habitCompletions || []).filter((hc) => hc.habitId === habitId && hc.userId === userId).map((c) => c.completionDate);
+      const streaks = calculateHabitStreaks(habit, habitComps, todayStr, db);
+
+      return sendJSON(res, 200, {
+        success: true,
+        data: {
+          ...habit,
+          currentStreak: streaks.currentStreak,
+          longestStreak: streaks.longestStreak,
+          totalCompletions: streaks.totalCompletions,
+          completionHistory: habitComps,
+        },
+      });
+    }
+
+    // Edit Habit
     if (pathname.startsWith('/api/habits/') && method === 'PUT') {
       const habitId = pathname.split('/')[3];
-      const habit = (db.habits || []).find((h) => h.id === habitId && h.userId === userId);
+      const habit = (db.habits || []).find((h) => h.id === habitId && h.userId === userId && !h.isDeleted);
       if (!habit) {
-        return sendJSON(res, 404, { success: false, message: 'Habit not found.' });
+        return sendJSON(res, 404, { success: false, error: { code: 'NOT_FOUND', message: 'Habit not found.' } });
+      }
+
+      // Log schedule change if frequency changes
+      if (body.frequency && body.frequency !== habit.frequency) {
+        db.habitScheduleHistory = db.habitScheduleHistory || [];
+        db.habitScheduleHistory.push({
+          id: 'sh_' + Date.now(),
+          habitId,
+          frequency: habit.frequency,
+          selectedDays: habit.selectedDays,
+          intervalDays: habit.intervalDays,
+          effectiveFrom: habit.startDate || habit.createdAt,
+          effectiveTo: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+        });
       }
 
       habit.title = body.title !== undefined ? body.title : habit.title;
       habit.category = body.category !== undefined ? body.category : (habit.category || 'General');
       habit.frequency = body.frequency !== undefined ? body.frequency : (habit.frequency || 'DAILY');
       habit.selectedDays = body.selectedDays !== undefined ? body.selectedDays : (habit.selectedDays || []);
+      habit.intervalDays = body.intervalDays !== undefined ? body.intervalDays : (habit.intervalDays || 1);
       habit.description = body.description !== undefined ? body.description : (habit.description || '');
       habit.colorHex = body.colorHex !== undefined ? body.colorHex : (habit.colorHex || '0xFF10B981');
       habit.iconName = body.iconName !== undefined ? body.iconName : (habit.iconName || 'repeat');
       habit.updatedAt = new Date().toISOString();
 
       saveDB(db);
-      return sendJSON(res, 200, { success: true, habit });
+      return sendJSON(res, 200, { success: true, data: habit, habit });
     }
 
+    // Delete Habit (Soft Delete)
     if (pathname.startsWith('/api/habits/') && method === 'DELETE') {
       const habitId = pathname.split('/')[3];
-      const beforeCount = (db.habits || []).length;
-      db.habits = (db.habits || []).filter((h) => !(h.id === habitId && h.userId === userId));
+      const habit = (db.habits || []).find((h) => h.id === habitId && h.userId === userId);
       
-      if (db.habits.length === beforeCount) {
-        return sendJSON(res, 404, { success: false, message: 'Habit not found.' });
+      if (!habit) {
+        return sendJSON(res, 404, { success: false, error: { code: 'NOT_FOUND', message: 'Habit not found.' } });
       }
 
-      // Cascade delete completions
-      db.habitCompletions = (db.habitCompletions || []).filter((hc) => hc.habitId !== habitId);
+      habit.isDeleted = true;
+      habit.deletedAt = new Date().toISOString();
+      habit.status = 'archived';
+
+      // Keep completions for analytics historical audit
       saveDB(db);
 
       return sendJSON(res, 200, { success: true, message: 'Habit deleted successfully.' });
     }
 
+    // List Habits
     if (pathname === '/api/habits' && method === 'GET') {
       const targetDate = query.date || new Date().toISOString().split('T')[0];
-      const userHabits = (db.habits || []).filter((h) => h.userId === userId && h.status !== 'archived');
+      const userHabits = (db.habits || []).filter((h) => h.userId === userId && !h.isDeleted && h.status !== 'archived');
       const userCompletions = (db.habitCompletions || []).filter((hc) => hc.userId === userId && hc.status === 'completed');
 
       const enriched = userHabits.map((h) => {
         const habitComps = userCompletions.filter((c) => c.habitId === h.id).map((c) => c.completionDate);
         const compSet = new Set(habitComps);
-        const streaks = calculateHabitStreaks(h, habitComps, targetDate);
+        const streaks = calculateHabitStreaks(h, habitComps, targetDate, db);
 
         return {
           id: h.id,
@@ -1177,12 +1624,13 @@ async function handleApiRequest(req, res) {
           category: h.category || 'General',
           frequency: h.frequency || 'DAILY',
           selectedDays: h.selectedDays || [],
+          intervalDays: h.intervalDays || 1,
           startDate: h.startDate || h.createdAt?.split('T')[0] || targetDate,
           status: h.status || 'active',
           description: h.description || '',
           colorHex: h.colorHex || '0xFF10B981',
           iconName: h.iconName || 'repeat',
-          isScheduled: isHabitScheduledForDate(h, targetDate),
+          isScheduled: isHabitScheduledForDate(h, targetDate, db),
           isCompleted: compSet.has(targetDate),
           currentStreak: streaks.currentStreak,
           longestStreak: streaks.longestStreak,
@@ -1196,10 +1644,11 @@ async function handleApiRequest(req, res) {
       return sendJSON(res, 200, enriched);
     }
 
+    // Create Habit
     if (pathname === '/api/habits' && method === 'POST') {
       const sub = getUserSubscription(userId);
       const activeUserHabits = (db.habits || []).filter(
-        (h) => h.userId === userId && h.status === 'active'
+        (h) => h.userId === userId && !h.isDeleted && h.status === 'active'
       );
 
       if (sub.plan === 'free' && activeUserHabits.length >= 2) {
@@ -1212,19 +1661,26 @@ async function handleApiRequest(req, res) {
         });
       }
 
+      if (!body.title || !body.title.trim()) {
+        return sendJSON(res, 400, { success: false, error: { code: 'VALIDATION_ERROR', message: 'Habit name cannot be empty.' } });
+      }
+
       const todayStr = new Date().toISOString().split('T')[0];
       const newHabit = {
         id: 'h_' + Date.now(),
         userId,
-        title: body.title || 'New Habit',
+        title: body.title.trim(),
         category: body.category || 'General',
         frequency: body.frequency || 'DAILY',
         selectedDays: Array.isArray(body.selectedDays) ? body.selectedDays : [],
+        intervalDays: body.intervalDays || 1,
         startDate: body.startDate || todayStr,
         status: 'active',
         description: body.description || '',
         colorHex: body.colorHex || '0xFF10B981',
         iconName: body.iconName || 'repeat',
+        isDeleted: false,
+        deletedAt: null,
         currentStreak: 0,
         longestStreak: 0,
         createdAt: new Date().toISOString(),
@@ -1237,7 +1693,7 @@ async function handleApiRequest(req, res) {
 
       return sendJSON(res, 201, {
         ...newHabit,
-        isScheduled: isHabitScheduledForDate(newHabit, todayStr),
+        isScheduled: isHabitScheduledForDate(newHabit, todayStr, db),
         isCompleted: false,
         totalCompletions: 0,
         completionHistory: [],

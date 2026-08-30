@@ -190,7 +190,7 @@ class AppProvider extends ChangeNotifier {
       _habits[idx].status = 'paused';
       _saveHabits();
       notifyListeners();
-      ApiService.updateHabitStatusOnBackend(id, 'paused');
+      ApiService.pauseHabitOnBackend(id);
     }
   }
 
@@ -200,7 +200,17 @@ class AppProvider extends ChangeNotifier {
       _habits[idx].status = 'active';
       _saveHabits();
       notifyListeners();
-      ApiService.updateHabitStatusOnBackend(id, 'active');
+      ApiService.resumeHabitOnBackend(id);
+    }
+  }
+
+  void archiveHabit(String id) {
+    final idx = _habits.indexWhere((h) => h.id == id);
+    if (idx != -1) {
+      _habits[idx].status = 'archived';
+      _saveHabits();
+      notifyListeners();
+      ApiService.archiveHabitOnBackend(id);
     }
   }
 

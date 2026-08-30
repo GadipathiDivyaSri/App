@@ -1,9 +1,280 @@
 {
-  "users": [],
-  "subscriptions": [],
+  "users": [
+    {
+      "id": "u_1788093195564",
+      "username": "habit_user_a_1788093195357",
+      "name": "User A",
+      "email": "habit_user_a_1788093195357@wrindhaos.in",
+      "googleId": "g_a_1788093195357",
+      "photoUrl": null,
+      "isEmailVerified": true,
+      "focusScore": 85,
+      "activeStreak": 1,
+      "isPremium": true,
+      "referralCode": "WOS1127",
+      "createdAt": "2026-08-30T12:33:15.565Z",
+      "updatedAt": "2026-08-30T12:33:15.566Z"
+    },
+    {
+      "id": "u_1788093195595",
+      "username": "habit_user_b_1788093195357",
+      "name": "User B",
+      "email": "habit_user_b_1788093195357@wrindhaos.in",
+      "googleId": "g_b_1788093195594",
+      "photoUrl": null,
+      "isEmailVerified": true,
+      "focusScore": 85,
+      "activeStreak": 1,
+      "isPremium": false,
+      "referralCode": "WOS2221",
+      "createdAt": "2026-08-30T12:33:15.596Z",
+      "updatedAt": "2026-08-30T12:33:15.596Z"
+    },
+    {
+      "id": "u_1788093267848",
+      "username": "mwf_test",
+      "name": "MWF Tester",
+      "email": "mwf_test@wrindhaos.in",
+      "googleId": "g_1788093267849",
+      "photoUrl": null,
+      "isEmailVerified": true,
+      "focusScore": 85,
+      "activeStreak": 1,
+      "isPremium": false,
+      "referralCode": "WOS1560",
+      "createdAt": "2026-08-30T12:34:27.849Z",
+      "updatedAt": "2026-08-30T12:34:27.849Z"
+    },
+    {
+      "id": "u_1788093302888",
+      "username": "debug_insight",
+      "name": "Insight Tester",
+      "email": "debug_insight@wrindhaos.in",
+      "googleId": "g_1788093302888",
+      "photoUrl": null,
+      "isEmailVerified": true,
+      "focusScore": 85,
+      "activeStreak": 1,
+      "isPremium": false,
+      "referralCode": "WOS1344",
+      "createdAt": "2026-08-30T12:35:02.888Z",
+      "updatedAt": "2026-08-30T12:35:02.888Z"
+    },
+    {
+      "id": "u_1788093367629",
+      "username": "debug_ins2",
+      "name": "Insight Tester 2",
+      "email": "debug_ins2@wrindhaos.in",
+      "googleId": "g_1788093367629",
+      "photoUrl": null,
+      "isEmailVerified": true,
+      "focusScore": 85,
+      "activeStreak": 1,
+      "isPremium": false,
+      "referralCode": "WOS3294",
+      "createdAt": "2026-08-30T12:36:07.629Z",
+      "updatedAt": "2026-08-30T12:36:07.630Z"
+    }
+  ],
+  "subscriptions": [
+    {
+      "id": "sub_free_u_1788093195564",
+      "user_id": "u_1788093195564",
+      "plan": "pro",
+      "status": "active",
+      "started_at": "2026-08-30T12:33:15.632Z",
+      "expires_at": null,
+      "payment_provider": "GOOGLE_PLAY",
+      "transaction_id": "tx_1788093195632",
+      "created_at": "2026-08-30T12:33:15.567Z",
+      "updated_at": "2026-08-30T12:33:15.632Z"
+    },
+    {
+      "id": "sub_free_u_1788093195595",
+      "user_id": "u_1788093195595",
+      "plan": "free",
+      "status": "active",
+      "started_at": "2026-08-30T12:33:15.596Z",
+      "expires_at": null,
+      "payment_provider": "NONE",
+      "transaction_id": null,
+      "created_at": "2026-08-30T12:33:15.596Z",
+      "updated_at": "2026-08-30T12:33:15.596Z"
+    },
+    {
+      "id": "sub_free_u_1788093267848",
+      "user_id": "u_1788093267848",
+      "plan": "free",
+      "status": "active",
+      "started_at": "2026-08-30T12:34:27.849Z",
+      "expires_at": null,
+      "payment_provider": "NONE",
+      "transaction_id": null,
+      "created_at": "2026-08-30T12:34:27.849Z",
+      "updated_at": "2026-08-30T12:34:27.849Z"
+    },
+    {
+      "id": "sub_free_u_1788093302888",
+      "user_id": "u_1788093302888",
+      "plan": "free",
+      "status": "active",
+      "started_at": "2026-08-30T12:35:02.888Z",
+      "expires_at": null,
+      "payment_provider": "NONE",
+      "transaction_id": null,
+      "created_at": "2026-08-30T12:35:02.888Z",
+      "updated_at": "2026-08-30T12:35:02.888Z"
+    },
+    {
+      "id": "sub_free_u_1788093367629",
+      "user_id": "u_1788093367629",
+      "plan": "free",
+      "status": "active",
+      "started_at": "2026-08-30T12:36:07.630Z",
+      "expires_at": null,
+      "payment_provider": "NONE",
+      "transaction_id": null,
+      "created_at": "2026-08-30T12:36:07.630Z",
+      "updated_at": "2026-08-30T12:36:07.630Z"
+    }
+  ],
   "tasks": [],
   "calendarEvents": [],
-  "habits": [],
+  "habits": [
+    {
+      "id": "h_1788093195605",
+      "userId": "u_1788093195564",
+      "title": "Morning Run",
+      "category": "General",
+      "frequency": "DAILY",
+      "selectedDays": [],
+      "startDate": "2026-08-30",
+      "status": "active",
+      "description": "",
+      "colorHex": "0xFF10B981",
+      "iconName": "repeat",
+      "currentStreak": 0,
+      "longestStreak": 0,
+      "createdAt": "2026-08-30T12:33:15.605Z",
+      "updatedAt": "2026-08-30T12:33:15.605Z"
+    },
+    {
+      "id": "h_1788093195611",
+      "userId": "u_1788093195564",
+      "title": "Gym Workout",
+      "category": "General",
+      "frequency": "CUSTOM",
+      "selectedDays": [
+        1,
+        3,
+        5
+      ],
+      "startDate": "2026-08-30",
+      "status": "active",
+      "description": "",
+      "colorHex": "0xFF10B981",
+      "iconName": "repeat",
+      "currentStreak": 0,
+      "longestStreak": 0,
+      "createdAt": "2026-08-30T12:33:15.611Z",
+      "updatedAt": "2026-08-30T12:33:15.611Z"
+    },
+    {
+      "id": "h_1788093195636",
+      "userId": "u_1788093195564",
+      "title": "Evening Reading",
+      "category": "General",
+      "frequency": "DAILY",
+      "selectedDays": [],
+      "startDate": "2026-08-30",
+      "status": "active",
+      "description": "",
+      "colorHex": "0xFF10B981",
+      "iconName": "repeat",
+      "currentStreak": 0,
+      "longestStreak": 0,
+      "createdAt": "2026-08-30T12:33:15.636Z",
+      "updatedAt": "2026-08-30T12:33:15.636Z"
+    },
+    {
+      "id": "h_1788093195641",
+      "userId": "u_1788093195564",
+      "title": "Water Plants",
+      "category": "General",
+      "frequency": "CUSTOM_INTERVAL",
+      "selectedDays": [],
+      "startDate": "2026-08-01",
+      "status": "active",
+      "description": "",
+      "colorHex": "0xFF10B981",
+      "iconName": "repeat",
+      "currentStreak": 0,
+      "longestStreak": 0,
+      "createdAt": "2026-08-30T12:33:15.641Z",
+      "updatedAt": "2026-08-30T12:33:15.641Z"
+    },
+    {
+      "id": "h_1788093267868",
+      "userId": "u_1788093267848",
+      "title": "Gym",
+      "category": "General",
+      "frequency": "CUSTOM",
+      "selectedDays": [
+        1,
+        3,
+        5
+      ],
+      "startDate": "2026-08-30",
+      "status": "active",
+      "description": "",
+      "colorHex": "0xFF10B981",
+      "iconName": "repeat",
+      "currentStreak": 0,
+      "longestStreak": 0,
+      "createdAt": "2026-08-30T12:34:27.868Z",
+      "updatedAt": "2026-08-30T12:34:27.868Z"
+    },
+    {
+      "id": "h_1788093302895",
+      "userId": "u_1788093302888",
+      "title": "Gym",
+      "category": "General",
+      "frequency": "DAILY",
+      "selectedDays": [],
+      "intervalDays": 1,
+      "startDate": "2026-08-30",
+      "status": "active",
+      "description": "",
+      "colorHex": "0xFF10B981",
+      "iconName": "repeat",
+      "isDeleted": false,
+      "deletedAt": null,
+      "currentStreak": 0,
+      "longestStreak": 0,
+      "createdAt": "2026-08-30T12:35:02.895Z",
+      "updatedAt": "2026-08-30T12:35:02.902Z"
+    },
+    {
+      "id": "h_1788093367644",
+      "userId": "u_1788093367629",
+      "title": "Gym",
+      "category": "General",
+      "frequency": "DAILY",
+      "selectedDays": [],
+      "intervalDays": 1,
+      "startDate": "2026-08-30",
+      "status": "active",
+      "description": "",
+      "colorHex": "0xFF10B981",
+      "iconName": "repeat",
+      "isDeleted": false,
+      "deletedAt": null,
+      "currentStreak": 0,
+      "longestStreak": 0,
+      "createdAt": "2026-08-30T12:36:07.644Z",
+      "updatedAt": "2026-08-30T12:36:07.656Z"
+    }
+  ],
   "subjects": [],
   "studyItems": [],
   "timetable": [],
@@ -135,25 +406,91 @@
       "discountApplied": 24.5,
       "paymentStatus": "success",
       "createdAt": "2026-08-30T12:15:43.397Z"
+    },
+    {
+      "id": "cu_1788096678656",
+      "userId": "u_1788096678631",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-08-30T13:31:18.656Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-08-30T13:31:18.656Z"
     }
   ],
-  "referralCodes": [],
+  "referralCodes": [
+    {
+      "id": "ref_u_1788093195564",
+      "userId": "u_1788093195564",
+      "referralCode": "WOS1127",
+      "status": "active",
+      "totalCount": 0,
+      "createdAt": "2026-08-30T12:33:15.574Z"
+    },
+    {
+      "id": "ref_u_1788093195595",
+      "userId": "u_1788093195595",
+      "referralCode": "WOS2221",
+      "status": "active",
+      "totalCount": 0,
+      "createdAt": "2026-08-30T12:33:15.597Z"
+    },
+    {
+      "id": "ref_u_1788093267848",
+      "userId": "u_1788093267848",
+      "referralCode": "WOS1560",
+      "status": "active",
+      "totalCount": 0,
+      "createdAt": "2026-08-30T12:34:27.854Z"
+    },
+    {
+      "id": "ref_u_1788093302888",
+      "userId": "u_1788093302888",
+      "referralCode": "WOS1344",
+      "status": "active",
+      "totalCount": 0,
+      "createdAt": "2026-08-30T12:35:02.889Z"
+    },
+    {
+      "id": "ref_u_1788093367629",
+      "userId": "u_1788093367629",
+      "referralCode": "WOS3294",
+      "status": "active",
+      "totalCount": 0,
+      "createdAt": "2026-08-30T12:36:07.632Z"
+    }
+  ],
   "referralTrackings": [],
   "otpStore": {
-    "audit_user_1788092140541@wrindhaos.in": {
-      "code": "764371",
+    "audit_user_1788096677217@wrindhaos.in": {
+      "code": "734946",
       "type": "register",
       "attempts": 0,
       "maxAttempts": 5,
-      "createdAt": 1788092140556,
-      "expiresAt": 1788092740556,
-      "lastSentAt": 1788092140556,
+      "createdAt": 1788096677230,
+      "expiresAt": 1788097277230,
+      "lastSentAt": 1788096677230,
       "pendingUser": {
-        "username": "audit_1788092140541",
-        "email": "audit_user_1788092140541@wrindhaos.in",
-        "passwordHash": "1bca28053faab36761c68593533ea3d9:9f2c0bd7630926facee576e979b606d15e16b02df106656d7eb4613ad2b8172c847b0f4347517b200120ff3b2af0af993a3c36567b3865038f420b0bbe172448"
+        "username": "audit_1788096677217",
+        "email": "audit_user_1788096677217@wrindhaos.in",
+        "passwordHash": "17e6ae2485fd9feb1e74e5e5fd545ff7:50dae48a10e8f162879fbb00e2af3dd5c702d8c695d0fa10403e5fa7519f9b715fb30accd2ce2af688b6639c7b4272c2d2ecfe230a276f6d44217756206ae074"
       }
     }
   },
-  "habitCompletions": []
+  "habitCompletions": [],
+  "habitPausePeriods": [
+    {
+      "id": "pp_1788096671494",
+      "habitId": "h_1788096671446",
+      "userId": "u_1788096671404",
+      "pausedAt": "2026-08-30T13:31:11.494Z",
+      "resumedAt": "2026-08-30T13:31:11.497Z",
+      "createdAt": "2026-08-30T13:31:11.494Z",
+      "updatedAt": "2026-08-30T13:31:11.497Z"
+    }
+  ]
 }

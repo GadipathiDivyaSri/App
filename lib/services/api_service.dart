@@ -485,6 +485,36 @@ class ApiService {
     }
   }
 
+  static Future<Map<String, dynamic>> pauseHabitOnBackend(String habitId) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.post(Uri.parse('$baseUrl/habits/$habitId/pause'), headers: headers);
+      return {'statusCode': response.statusCode, 'data': jsonDecode(response.body)};
+    } catch (e) {
+      return {'statusCode': 500, 'data': {'success': false, 'message': '$e'}};
+    }
+  }
+
+  static Future<Map<String, dynamic>> resumeHabitOnBackend(String habitId) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.post(Uri.parse('$baseUrl/habits/$habitId/resume'), headers: headers);
+      return {'statusCode': response.statusCode, 'data': jsonDecode(response.body)};
+    } catch (e) {
+      return {'statusCode': 500, 'data': {'success': false, 'message': '$e'}};
+    }
+  }
+
+  static Future<Map<String, dynamic>> archiveHabitOnBackend(String habitId) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.post(Uri.parse('$baseUrl/habits/$habitId/archive'), headers: headers);
+      return {'statusCode': response.statusCode, 'data': jsonDecode(response.body)};
+    } catch (e) {
+      return {'statusCode': 500, 'data': {'success': false, 'message': '$e'}};
+    }
+  }
+
   /// Toggle habit completion for a specific date
   static Future<Map<String, dynamic>> toggleHabitCompletionOnBackend(
     String habitId, {
@@ -521,6 +551,38 @@ class ApiService {
       }
     } catch (_) {}
     return {'success': false};
+  }
+
+  /// Fetch rule-based Smart Assistant habit insights
+  static Future<List<Map<String, dynamic>>> fetchHabitInsights({String? date}) async {
+    try {
+      final headers = await _getHeaders();
+      final uri = Uri.parse('$baseUrl/habits/insights').replace(queryParameters: date != null ? {'date': date} : null);
+      final response = await http.get(uri, headers: headers);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['data'] is List) {
+          return List<Map<String, dynamic>>.from(data['data']);
+        }
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  /// Fetch habit historical status matrix
+  static Future<List<Map<String, dynamic>>> fetchHabitHistory(String habitId, {int days = 30}) async {
+    try {
+      final headers = await _getHeaders();
+      final uri = Uri.parse('$baseUrl/habits/$habitId/history').replace(queryParameters: {'days': days.toString()});
+      final response = await http.get(uri, headers: headers);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['data'] is List) {
+          return List<Map<String, dynamic>>.from(data['data']);
+        }
+      }
+    } catch (_) {}
+    return [];
   }
 
   /// Subjects API (Free plan limit: Max 2 Subjects)
