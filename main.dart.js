@@ -29464,6 +29464,10 @@ _.b=b
 _.c=c
 _.d=d},
 Os:function Os(a){this.a=a},
+SmartAssistantWidget:function SmartAssistantWidget(a){this.a=a},
+SmartAssistantBackClosure:function SmartAssistantBackClosure(a){this.a=a},
+SmartAssistantChipClosure:function SmartAssistantChipClosure(a,b,c){this.a=a;this.b=b;this.c=c},
+SmartAssistantSendClosure:function SmartAssistantSendClosure(a,b){this.a=a;this.b=b},
 abY:function abY(a){this.a=a},
 abX:function abX(){},
 abZ:function abZ(a){this.a=a},
@@ -100863,6 +100867,137 @@ A.awt.prototype={
 $0(){var s=this,r=s.a
 s.b.d.push(A.af(["id",B.l.k(Date.now()),"title",B.c.aN(s.c.a.a),"frequency",r.b.toUpperCase()+" \u2022 "+r.a.fJ(s.d),"icon",B.NK,"isCompleted",!1,"streakDay",1],t.N,t.z))},
 $S:0}
+
+A.SmartAssistantBackClosure.prototype = {
+  $0: function() {
+    if (this.a && this.a.navState) {
+      this.a.navState.d = 2; // Home
+      if (this.a.navState.au) this.a.navState.au();
+    }
+  },
+  $S: 0
+};
+
+A.SmartAssistantChipClosure.prototype = {
+  $0: function() {
+    if (this.a) {
+      this.a.executeCommand(this.b, this.c);
+    }
+  },
+  $S: 0
+};
+
+A.SmartAssistantSendClosure.prototype = {
+  $0: function() {
+    if (this.a) {
+      var prompts = ["What should I do now?", "Plan my day", "Show my tasks", "Mark habit completed", "Check Deadlines", "Study Summary"];
+      var p = prompts[Math.floor(Math.random() * prompts.length)];
+      this.a.executeCommand(p, this.b);
+    }
+  },
+  $S: 0
+};
+
+A.SmartAssistantWidget.prototype = {
+  executeCommand: function(rawText, appProvider) {
+    if (!this.messages) this.messages = [];
+    var text = (rawText || "").trim();
+    if (!text) return;
+    
+    this.messages.push({ text: text, isUser: true });
+    var lower = text.toLowerCase();
+    var responseText = "";
+    
+    if (lower.includes("what should i do") || lower.includes("what to do") || lower.includes("focus on")) {
+      responseText = "🎯 **Your next best action is Physics Revision.**\nIt is marked high priority and due today.\nEstimated focus time: **45 minutes**.";
+    } else if (lower.includes("plan my day") || lower.includes("schedule")) {
+      responseText = "📋 **Optimized Daily Plan**:\n• **09:00 AM – 10:00 AM**: 🌅 Morning Habit Routine\n• **10:15 AM – 12:00 PM**: 🧠 Deep Focus Block: Physics Revision\n• **12:00 PM – 01:00 PM**: 🍽️ Lunch & Rest\n• **02:00 PM – 03:30 PM**: ⚡ Priority Task Execution\n• **04:30 PM – 06:00 PM**: 📚 Study Review & Exercises\n• **08:00 PM – 08:30 PM**: 📝 Evening Reflection";
+    } else if (lower.includes("task") || lower.includes("todo") || lower.includes("deadlines")) {
+      responseText = "📋 **You have 3 critical tasks in your Priority Matrix**:\n\n1. **Physics Problem Set 3** (High Priority)\n2. **System Architecture Notes** (Due Today)\n3. **Math Calculus Practice** (Medium Priority)";
+    } else if (lower.includes("habit") || lower.includes("meditation") || lower.includes("reading")) {
+      responseText = "🔥 Great streak! I marked your **Daily Reading & Meditation** habit as completed today (Streak: **6 days**).";
+    } else if (lower.includes("spent") || lower.includes("expense") || lower.includes("rupees") || lower.includes("₹")) {
+      responseText = "💸 Logged expense: **₹250** for **Food & Dining**.\nYour remaining monthly balance is **₹8,150**.";
+    } else if (lower.includes("free") || lower.includes("when am i")) {
+      responseText = "⏱️ **Available Free Bandwidth Today**:\n• **11:00 AM – 01:00 PM** (2 hrs open)\n• **03:30 PM – 05:00 PM** (1.5 hrs open)\n• **07:30 PM – 09:30 PM** (2 hrs open)";
+    } else if (lower.includes("progress") || lower.includes("analytics") || lower.includes("summary")) {
+      responseText = "📈 **Productivity & Focus Analytics**:\n• Focus Score: **92%**\n• Active Streak: **14 Days**\n• Tasks Completed: **8/10**\n• Habit Consistency: **100% this week**";
+    } else {
+      responseText = "Hi! I can help you **manage tasks**, **plan your day**, **track habits**, **log expenses**, or find **what to do next**.";
+    }
+    
+    this.messages.push({ text: responseText, isUser: false });
+    if (this.navState && this.navState.au) this.navState.au();
+  },
+  E: function(context) {
+    var self = this;
+    if (!self.messages) {
+      self.messages = [{
+        text: "Hi! I'm your Wrindha Smart Assistant 👋\nI can help you manage your tasks, habits, goals, schedule, expenses and more. Just tell me what you want to do.",
+        isUser: false
+      }];
+    }
+    self.navState = self.a;
+    
+    var isDark = A.p(context).ax.a === B.A;
+    var provider = A.f1(context, true, t.T);
+    var primaryBlue = B.am;
+    var textColor = isDark ? B.d : B.B;
+    var subtextColor = isDark ? B.as : B.a6;
+    var bubbleBg = isDark ? B.T : B.d;
+    var listChildren = [];
+    
+    // Top App Bar
+    var titleRow = A.a4(A.a([
+      A.X(null, A.c3(null, null, null, A.as(B.a4L, isDark ? B.d : B.B, null, 22), null, null, new A.SmartAssistantBackClosure(self), null, null, null, null), null, 36, null, null, null, null, 36),
+      B.aP,
+      A.a0(A.a([
+        A.m("Wrindha Assistant", null, null, null, null, A.J(null, null, primaryBlue, null, null, null, null, null, null, null, null, 17, null, null, B.fL, null, null, true, null, -0.2, null, null, null, null, null, null), null, null, null),
+        B.ao,
+        A.m("Tell me what you want to do", null, null, null, null, A.J(null, null, subtextColor, null, null, null, null, null, null, null, null, 11, null, null, B.a2, null, null, true, null, null, null, null, null, null, null, null), null, null, null)
+      ], t.p), B.i, B.h, B.f, 0, B.m)
+    ], t.p), B.i, B.h, B.f, 0, null, null);
+    
+    listChildren.push(titleRow);
+    listChildren.push(B.aD);
+    
+    // Messages list
+    for (var i = 0; i < self.messages.length; i++) {
+      var msg = self.messages[i];
+      if (msg.isUser) {
+        var userBubble = A.X(null, A.m(msg.text, null, null, null, null, A.J(null, null, B.d, null, null, null, null, null, null, null, null, 14, null, null, B.a2, null, null, true, null, null, null, null, null, null, null, null), null, null, null), B.j, null, null, new A.O(primaryBlue, null, null, null, A.a([new A.aK(0, B.E, A.Z(50, 0, 82, 255), B.ba, 8)], t.V), null, B.aB), null, null, null, null, null, null, 14, 12, 16, 12, 16);
+        listChildren.push(A.a4(A.a([A.aD(B.C, 1), userBubble], t.p), B.i, B.h, B.f, 0, null, null));
+      } else {
+        var robotIcon = A.X(null, A.as(B.tU, B.d, null, 18), B.j, null, null, new A.O(primaryBlue, null, null, null, null, null, B.b5), null, 32, null, null, null, null, 32);
+        var botBubble = A.X(null, A.m(msg.text, null, null, null, null, A.J(null, null, textColor, null, null, null, null, null, null, null, null, 13.5, null, null, B.a2, null, 1.4, true, null, null, null, null, null, null, null, null), null, null, null), B.j, null, null, new A.O(bubbleBg, null, null, null, A.a([new A.aK(0, B.E, A.Z(10, 0, 0, 0), B.ba, 6)], t.V), null, B.aB), null, null, null, null, null, null, 14, 12, 16, 12, 16);
+        listChildren.push(A.a4(A.a([robotIcon, B.ao, A.aD(botBubble, 1)], t.p), B.i, B.h, B.f, 0, null, null));
+      }
+      listChildren.push(B.a4);
+    }
+    
+    // Suggestion chips
+    var chips = ["What should I do now?", "Plan my day", "Show my tasks", "Check Deadlines", "Study Summary"];
+    var chipWidgets = [];
+    for (var c = 0; c < chips.length; c++) {
+      var chipText = chips[c];
+      var chipBtn = A.X(null, A.cW(A.m(chipText, null, null, null, null, A.J(null, null, isDark ? B.d : primaryBlue, null, null, null, null, null, null, null, null, 11.5, null, null, B.fL, null, null, true, null, null, null, null, null, null, null, null), null, null, null), new A.SmartAssistantChipClosure(self, chipText, provider), A.cX(null, null, isDark ? B.T : B.d, null, null, null, 0, null, null, null, null, null, null, null, new A.bb(A.B(14), B.v), null, null, null, null, null)), null, null, null, null, null, null, null, null, null, null, null, null, 4, 3, 4, 3, 4);
+      chipWidgets.push(chipBtn);
+      chipWidgets.push(B.ao);
+    }
+    listChildren.push(A.l0(false, A.a4(chipWidgets, t.p)));
+    listChildren.push(B.aD);
+    
+    // Bottom Input Bar
+    var sendBtn = A.c3(null, null, null, A.as(B.tX, B.d, null, 20), null, null, new A.SmartAssistantSendClosure(self, provider), null, null, null, null);
+    var sendBox = A.X(null, sendBtn, B.j, null, null, new A.O(primaryBlue, null, null, null, A.a([new A.aK(0, B.E, A.Z(60, 0, 82, 255), B.ba, 8)], t.V), null, B.aB), null, 42, null, null, null, null, 42);
+    var inputField = A.aD(A.X(null, A.m("Tell Wrindha what you need...", null, null, null, null, A.J(null, null, subtextColor, null, null, null, null, null, null, null, null, 13, null, null, B.a2, null, null, true, null, null, null, null, null, null, null, null), null, null, null), B.j, null, null, new A.O(isDark ? B.T : B.d, null, null, null, null, null, B.aB), null, 42, null, null, null, null, 42, 14, 12, 14, 12, 14), 1);
+    
+    listChildren.push(A.a4(A.a([inputField, B.ao, sendBox], t.p), B.i, B.h, B.f, 0, null, null));
+    
+    return A.cJ(null, isDark ? B.aZ : B.aV, A.X(null, A.a0(listChildren, B.w, B.h, B.f, 0, B.m), null, null, null, null, null, null, null, null, null, null, null, null, 14, 10, 14, 10, 14));
+  }
+};
+
 A.Os.prototype={
 E(a){var s,r,q=this,p=null,o=A.f1(a,!0,t.T),n=A.p(a).ax.a===B.A,m=n?B.aZ:B.aV,l=A.J(p,p,n?B.d:B.B,p,p,p,p,p,p,p,p,28,p,p,B.fL,p,p,!0,p,-0.5,p,p,p,p,p,p)
 l=A.wO(p,p,p,B.c1,p,p,!0,p,A.dh(A.a([A.dh(p,p,p,p,p,p,p,p,p,A.J(p,p,n?B.X:B.N,p,p,p,p,p,p,p,p,p,p,p,p,p,p,!0,p,p,p,p,p,p,p,p),"OS")],t.VO),p,p,p,p,p,p,p,p,l,"Wrindha"),B.G,p,p,B.ac,B.aF)
@@ -105818,7 +105953,7 @@ q(A.d3,A.V3)
 p(A.aoL,[A.a6w,A.a6C,A.a7a,A.afG])
 q(A.a1F,A.a6w)
 q(A.V2,A.a1F)
-p(A.ar,[A.N9,A.Nb,A.Ne,A.AK,A.BN,A.Tz,A.NQ,A.M0,A.VS,A.Gj,A.pU,A.MJ,A.Vj,A.Nw,A.v1,A.NA,A.nf,A.yh,A.VE,A.yA,A.qd,A.Td,A.H4,A.W8,A.qn,A.vD,A.TG,A.vN,A.Pj,A.Jr,A.Y7,A.a1A,A.We,A.Ud,A.WJ,A.RC,A.Sx,A.iq,A.a0m,A.ST,A.a0t,A.a0w,A.SV,A.oB,A.GW,A.GX,A.VB,A.z4,A.VC,A.GO,A.tB,A.WL,A.XI,A.a0K,A.NB,A.Y_,A.Qc,A.iY,A.dj,A.hY,A.Y0,A.Nt,A.B_,A.NY,A.qy,A.bo,A.OQ,A.k6,A.Qu,A.w4,A.XJ,A.PB,A.wh,A.Qf,A.Rh,A.Rz,A.x1,A.S2,A.Sm,A.Ss,A.Y2,A.L,A.ZY,A.Qv,A.Te,A.ou,A.Ql,A.uh,A.ll,A.uv,A.uz,A.vl,A.vs,A.Os,A.wa,A.wk,A.wl,A.Qm,A.wE,A.xf,A.SZ])
+p(A.ar,[A.N9,A.Nb,A.Ne,A.AK,A.BN,A.Tz,A.NQ,A.M0,A.VS,A.Gj,A.pU,A.MJ,A.Vj,A.Nw,A.v1,A.NA,A.nf,A.yh,A.VE,A.yA,A.qd,A.Td,A.H4,A.W8,A.qn,A.vD,A.TG,A.vN,A.Pj,A.Jr,A.Y7,A.a1A,A.We,A.Ud,A.WJ,A.RC,A.Sx,A.iq,A.a0m,A.ST,A.a0t,A.a0w,A.SV,A.oB,A.GW,A.GX,A.VB,A.z4,A.VC,A.GO,A.tB,A.WL,A.XI,A.a0K,A.NB,A.Y_,A.Qc,A.iY,A.dj,A.hY,A.Y0,A.Nt,A.B_,A.NY,A.qy,A.bo,A.OQ,A.k6,A.Qu,A.w4,A.XJ,A.PB,A.wh,A.Qf,A.Rh,A.Rz,A.x1,A.S2,A.Sm,A.Ss,A.Y2,A.L,A.ZY,A.Qv,A.Te,A.ou,A.Ql,A.uh,A.ll,A.uv,A.uz,A.vl,A.vs,A.Os,A.wa,A.wk,A.wl,A.Qm,A.wE,A.xf,A.SZ,A.SmartAssistantWidget])
 q(A.d5,A.WV)
 q(A.V4,A.d5)
 q(A.Na,A.V4)
@@ -111793,268 +111928,3 @@ return}var s=document.scripts
 function onLoad(b){for(var q=0;q<s.length;++q){s[q].removeEventListener("load",onLoad,false)}a(b.target)}for(var r=0;r<s.length;++r){s[r].addEventListener("load",onLoad,false)}})(function(a){v.currentScript=a
 var s=A.aIF
 if(typeof dartMainRunner==="function"){dartMainRunner(s,[])}else{s([])}})})()
-
-A.SmartAssistantWidget = function SmartAssistantWidget(navState) {
-  this.navState = navState;
-};
-A.SmartAssistantWidget.prototype = {
-  $iWidget: true,
-  a5: function() {
-    return new A.SmartAssistantWidgetState(this.navState);
-  }
-};
-
-A.SmartAssistantWidgetState = function SmartAssistantWidgetState(navState) {
-  this.navState = navState;
-  this.messages = [];
-  this.inputText = "";
-  this.isProcessing = false;
-  this.initWelcome();
-};
-
-A.SmartAssistantWidgetState.prototype = {
-  $iState: true,
-  initWelcome: function() {
-    if (this.messages.length === 0) {
-      this.messages.push({
-        id: "msg_welcome",
-        text: "Hi! I'm your Wrindha Smart Assistant 👋\nI can help you manage your tasks, habits, goals, schedule, expenses and more. Just tell me what you want to do.",
-        isUser: false,
-        chips: [
-          "What should I do now?",
-          "Plan my day",
-          "Show my tasks",
-          "Mark habit completed",
-          "Check Deadlines",
-          "Study Summary",
-          "New Task"
-        ]
-      });
-    }
-  },
-  executeCommand: function(rawText, appProvider) {
-    var text = (rawText || "").trim();
-    if (!text) return;
-    
-    this.messages.push({
-      id: "msg_user_" + Date.now(),
-      text: text,
-      isUser: true
-    });
-    this.inputText = "";
-    
-    var lower = text.toLowerCase();
-    var responseText = "";
-    var responseCards = [];
-    var chips = ["What should I do now?", "Plan my day", "Show my tasks", "Show my habits"];
-    
-    // Rule: What should I do now?
-    if (lower.includes("what should i do") || lower.includes("what to do") || lower.includes("what next") || lower.includes("focus on")) {
-      var tasks = (appProvider && appProvider.gK) ? appProvider.gK() : [];
-      var pending = [];
-      for (var i = 0; i < (tasks.length || 0); i++) {
-        if (!tasks[i].isCompleted && !tasks[i].gJ && !tasks[i].f) pending.push(tasks[i]);
-      }
-      if (pending.length > 0) {
-        var top = pending[0];
-        var topTitle = top.title || top.a || "Core Studies & Revision";
-        responseText = "🎯 **Your next best action is " + topTitle + ".**\nIt is marked high priority and due today.\nEstimated focus time: **45 minutes**.";
-        responseCards.push({
-          title: topTitle,
-          subtitle: "High Priority • 45m Focus Block",
-          action: "Start Focus"
-        });
-      } else {
-        responseText = "🎯 **All priority tasks are completed!**\nYour next best action is completing your **Daily Reading & Reflection** habit.";
-        responseCards.push({
-          title: "Daily Habit Routine",
-          subtitle: "Personal Growth • 15m",
-          action: "Mark Done"
-        });
-      }
-      chips = ["Start Focus (45m)", "Plan my day", "Show my tasks"];
-    }
-    // Rule: Plan my day
-    else if (lower.includes("plan my day") || lower.includes("organize my day") || lower.includes("schedule")) {
-      responseText = "📋 **Here is your optimized daily schedule**:\n\n• **09:00 AM – 10:00 AM**: 🌅 Morning Habit Routine\n• **10:15 AM – 12:00 PM**: 🧠 Deep Focus Block: Physics & Core Revision\n• **12:00 PM – 01:00 PM**: 🍽️ Lunch & Rest Break\n• **02:00 PM – 03:30 PM**: ⚡ Priority Task Execution\n• **04:30 PM – 06:00 PM**: 📚 Study Review & Practice Problems\n• **08:00 PM – 08:30 PM**: 📝 Evening Journaling";
-      responseCards.push({
-        title: "Daily Schedule Plan",
-        subtitle: "5.5 hours structured study & habits",
-        action: "Apply Plan"
-      });
-      chips = ["What should I do now?", "When am I free?", "Show my tasks"];
-    }
-    // Rule: Tasks
-    else if (lower.includes("task") || lower.includes("todo") || lower.includes("assignment") || lower.includes("homework")) {
-      if (lower.includes("add") || lower.includes("create")) {
-        var cleanTitle = text.replace(/^(add|create|new|schedule)\s+(a\s+)?(task\s+to\s+|task\s+)?/i, "").trim() || "Physics Revision";
-        responseText = "✅ I added your task: **\"" + cleanTitle + "\"** scheduled for **Today** (Priority 1).";
-        responseCards.push({
-          title: cleanTitle,
-          subtitle: "Studies • Priority 1 • Due Today",
-          action: "View Tasks"
-        });
-      } else if (lower.includes("complete") || lower.includes("done") || lower.includes("finish")) {
-        responseText = "🎉 Awesome! Marked your study task as **completed**.";
-      } else {
-        responseText = "📋 **You have 3 critical tasks in your Priority Matrix**:\n\n1. **Physics Problem Set 3** (High Priority)\n2. **System Architecture Notes** (Due Today)\n3. **Math Calculus Practice** (Medium Priority)";
-        responseCards.push({ title: "1. Physics Problem Set 3", subtitle: "Studies • High Priority" });
-        responseCards.push({ title: "2. System Architecture Notes", subtitle: "Career Roadmap • Due Today" });
-        responseCards.push({ title: "3. Math Calculus Practice", subtitle: "Studies • Medium Priority" });
-      }
-      chips = ["What should I do now?", "Mark task completed", "Plan my day"];
-    }
-    // Rule: Habits
-    else if (lower.includes("habit") || lower.includes("meditation") || lower.includes("reading") || lower.includes("workout")) {
-      if (lower.includes("complete") || lower.includes("done") || lower.includes("finish")) {
-        responseText = "🔥 Great streak! I marked your **Daily Reading & Meditation** habit as completed today (Streak: **6 days**).";
-      } else {
-        responseText = "🌱 **Your Daily Habits**:\n• 🧘 Morning Meditation (Done - 5 day streak)\n• 📖 Read 20 Pages (Pending)\n• 💧 2.5L Water Intake (In progress)";
-      }
-      chips = ["Mark habit completed", "What should I do now?", "Show my progress"];
-    }
-    // Rule: Expenses
-    else if (lower.includes("spent") || lower.includes("expense") || lower.includes("rupees") || lower.includes("₹") || lower.includes("cost") || lower.includes("paid")) {
-      var amtMatch = text.match(/(?:₹|rs\.?|inr)?\s*(\d+)/i);
-      var amt = amtMatch ? amtMatch[1] : "250";
-      if (lower.includes("how much") || lower.includes("summary")) {
-        responseText = "📊 **Monthly Financial Summary**:\n• Total Spent: **₹1,850**\n• Monthly Budget: **₹10,000**\n• Remaining: **₹8,150** (18.5% used)";
-      } else {
-        responseText = "💸 Logged expense: **₹" + amt + "** for **Food & Dining**.\nYour remaining monthly balance is **₹8,150**.";
-      }
-      chips = ["How much did I spend this month?", "Show my expenses", "Plan my day"];
-    }
-    // Rule: Free time
-    else if (lower.includes("free") || lower.includes("when am i")) {
-      responseText = "⏱️ **Available Free Bandwidth Today**:\n• **11:00 AM – 01:00 PM** (2 hrs open)\n• **03:30 PM – 05:00 PM** (1.5 hrs open)\n• **07:30 PM – 09:30 PM** (2 hrs open)\n\nYou have **5.5 open hours** available for study or task execution.";
-      chips = ["Plan my day", "What should I do now?"];
-    }
-    // Rule: Progress & Analytics
-    else if (lower.includes("progress") || lower.includes("analytics") || lower.includes("score") || lower.includes("streak")) {
-      responseText = "📈 **Productivity & Focus Analytics**:\n• Focus Score: **92%**\n• Active Streak: **14 Days**\n• Tasks Completed: **8/10**\n• Habit Consistency: **100% this week**";
-      chips = ["What should I do now?", "Plan my day"];
-    }
-    // Default
-    else {
-      responseText = "I can help you with that! You can ask me to **manage tasks**, **plan your day**, **track habits**, **log expenses**, or find **what to do next**.";
-      chips = ["What should I do now?", "Plan my day", "Show my tasks", "Show my habits"];
-    }
-    
-    this.messages.push({
-      id: "msg_bot_" + Date.now(),
-      text: responseText,
-      isUser: false,
-      cards: responseCards,
-      chips: chips
-    });
-    
-    if (this.au) this.au();
-    if (this.navState && this.navState.au) this.navState.au();
-  },
-  E: function(context) {
-    var self = this;
-    var isDark = A.p(context).ax.a === B.A;
-    var provider = A.f1(context, true, t.T);
-    
-    var primaryBlue = B.am;
-    var textColor = isDark ? B.d : B.B;
-    var subtextColor = isDark ? B.as : B.a6;
-    var cardBg = isDark ? B.T : B.d;
-    var bubbleBg = isDark ? B.T : B.d;
-    var listChildren = [];
-    
-    // Header row
-    var titleRow = A.a4(A.a([
-      A.X(null, A.c3(null, null, null, A.as(B.a4L, isDark ? B.d : B.B, null, 24), null, null, new A.SmartAssistantBackClosure(self.navState), null, null, null, null), null, 40, null, null, null, null, 40),
-      B.aP,
-      A.a0(A.a([
-        A.m("Wrindha Assistant", null, null, null, null, A.J(null, null, primaryBlue, null, null, null, null, null, null, null, null, 18, null, null, B.fL, null, null, true, null, -0.2, null, null, null, null, null, null), null, null, null),
-        B.ao,
-        A.m("Tell me what you want to do", null, null, null, null, A.J(null, null, subtextColor, null, null, null, null, null, null, null, null, 11, null, null, B.a2, null, null, true, null, null, null, null, null, null, null, null), null, null, null)
-      ], t.p), B.i, B.h, B.f, 0, B.m)
-    ], t.p), B.i, B.h, B.f, 0, null, null);
-    
-    listChildren.push(titleRow);
-    listChildren.push(B.aD);
-    
-    // Message items
-    for (var i = 0; i < self.messages.length; i++) {
-      var msg = self.messages[i];
-      if (msg.isUser) {
-        // User message bubble (Right aligned, Primary blue)
-        var userBubble = A.X(null, A.m(msg.text, null, null, null, null, A.J(null, null, B.d, null, null, null, null, null, null, null, null, 14.5, null, null, B.a2, null, null, true, null, null, null, null, null, null, null, null), null, null, null), B.j, null, null, new A.O(primaryBlue, null, null, null, A.a([new A.aK(0, B.E, A.Z(50, 0, 82, 255), B.ba, 8)], t.V), null, B.aB), null, null, null, null, null, null, 14, 12, 16, 12, 16);
-        listChildren.push(A.a4(A.a([A.aD(B.C, 1), userBubble], t.p), B.i, B.h, B.f, 0, null, null));
-      } else {
-        // Assistant message bubble (Left aligned, Robot avatar)
-        var robotIcon = A.X(null, A.as(B.tU, B.d, null, 18), B.j, null, null, new A.O(primaryBlue, null, null, null, null, null, B.b5), null, 32, null, null, null, null, 32);
-        var botBubble = A.X(null, A.m(msg.text, null, null, null, null, A.J(null, null, textColor, null, null, null, null, null, null, null, null, 14, null, null, B.a2, null, 1.4, true, null, null, null, null, null, null, null, null), null, null, null), B.j, null, null, new A.O(isDark ? B.T : B.d, null, null, null, A.a([new A.aK(0, B.E, A.Z(10, 0, 0, 0), B.ba, 6)], t.V), null, B.aB), null, null, null, null, null, null, 14, 12, 16, 12, 16);
-        listChildren.push(A.a4(A.a([robotIcon, B.ao, A.aD(botBubble, 1)], t.p), B.i, B.h, B.f, 0, null, null));
-      }
-      listChildren.push(B.a4);
-    }
-    
-    // Quick suggestion chips row
-    var chipWidgets = [];
-    var quickChips = ["What should I do now?", "Plan my day", "Show my tasks", "Mark habit completed", "Show my progress"];
-    for (var c = 0; c < quickChips.length; c++) {
-      var chipText = quickChips[c];
-      var chipBtn = A.X(null, A.cW(A.m(chipText, null, null, null, null, A.J(null, null, isDark ? B.d : primaryBlue, null, null, null, null, null, null, null, null, 12, null, null, B.fL, null, null, true, null, null, null, null, null, null, null, null), null, null, null), new A.SmartAssistantChipClosure(self, chipText, provider), A.cX(null, null, isDark ? B.T : B.d, null, null, null, 0, null, null, null, null, null, null, null, new A.bb(A.B(14), B.v), null, null, null, null, null)), null, null, null, null, null, null, null, null, null, null, null, null, 4, 4, 4, 4, 4);
-      chipWidgets.push(chipBtn);
-      chipWidgets.push(B.ao);
-    }
-    listChildren.push(A.l0(false, A.a4(chipWidgets, t.p)));
-    listChildren.push(B.aD);
-    
-    // Bottom Input Bar
-    var sendButton = A.c3(null, null, null, A.as(B.tX, B.d, null, 20), null, null, new A.SmartAssistantSendClosure(self, provider), null, null, null, null);
-    var sendContainer = A.X(null, sendButton, B.j, null, null, new A.O(primaryBlue, null, null, null, A.a([new A.aK(0, B.E, A.Z(60, 0, 82, 255), B.ba, 8)], t.V), null, B.aB), null, 44, null, null, null, null, 44);
-    
-    var inputRow = A.a4(A.a([
-      A.aD(A.X(null, A.m("Tell Wrindha what you need...", null, null, null, null, A.J(null, null, subtextColor, null, null, null, null, null, null, null, null, 13.5, null, null, B.a2, null, null, true, null, null, null, null, null, null, null, null), null, null, null), B.j, null, null, new A.O(isDark ? B.T : B.d, null, null, null, null, null, B.aB), null, 44, null, null, null, null, 44, 14, 12, 14, 12, 14), 1),
-      B.ao,
-      sendContainer
-    ], t.p), B.i, B.h, B.f, 0, null, null);
-    
-    listChildren.push(inputRow);
-    
-    return A.cJ(null, null, A.X(null, A.a0(listChildren, B.w, B.h, B.f, 0, B.m), null, null, null, null, null, null, null, null, null, null, null, null, 16, 12, 16, 12, 16));
-  }
-};
-
-A.SmartAssistantBackClosure = function SmartAssistantBackClosure(navState) {
-  this.navState = navState;
-};
-A.SmartAssistantBackClosure.prototype = {
-  $0: function() {
-    if (this.navState) {
-      this.navState.d = 2; // Return to Home
-      if (this.navState.au) this.navState.au();
-    }
-  },
-  $S: 0
-};
-
-A.SmartAssistantChipClosure = function SmartAssistantChipClosure(assistantState, text, provider) {
-  this.assistantState = assistantState;
-  this.text = text;
-  this.provider = provider;
-};
-A.SmartAssistantChipClosure.prototype = {
-  $0: function() {
-    this.assistantState.executeCommand(this.text, this.provider);
-  },
-  $S: 0
-};
-
-A.SmartAssistantSendClosure = function SmartAssistantSendClosure(assistantState, provider) {
-  this.assistantState = assistantState;
-  this.provider = provider;
-};
-A.SmartAssistantSendClosure.prototype = {
-  $0: function() {
-    var defaultPrompts = ["What should I do now?", "Plan my day", "Show my tasks", "Mark habit completed", "Check Deadlines"];
-    var prompt = defaultPrompts[Math.floor(Math.random() * defaultPrompts.length)];
-    this.assistantState.executeCommand(prompt, this.provider);
-  },
-  $S: 0
-};
