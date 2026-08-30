@@ -100899,6 +100899,7 @@ A.SmartAssistantSendClosure.prototype = {
 };
 
 
+
 A.SmartAssistantWidget.prototype = {
   E: function(a5) {
     var a = null,
@@ -100914,48 +100915,36 @@ A.SmartAssistantWidget.prototype = {
 
     // 1. App Bar with Back Button
     var backBtn = A.c3(a, a, a, A.as(B.bm, isDark ? B.d : B.B, a, 20), a, a, new A.air(self, a5), a, a, a, a);
-    var appBar = A.da(
+    var appBarTitle = A.m(
+      "Wrindha Assistant",
       a,
       a,
       a,
-      !1,
       a,
-      backBtn,
-      A.m(
-        "Wrindha Assistant",
-        a,
-        a,
-        a,
-        a,
-        A.J(a, a, primaryBlue, a, a, a, a, a, a, a, a, 18, a, a, B.K, a, a, !0, a, -0.2, a, a, a, a, a, a),
-        a,
-        a,
-        a
-      )
+      A.J(a, a, primaryBlue, a, a, a, a, a, a, a, a, 18, a, a, B.K, a, a, !0, a, a, a, a, a, a, a, a),
+      a,
+      a,
+      a
     );
+    var appBar = A.da(a, a, a, !1, a, backBtn, appBarTitle);
 
     var list = [];
     var pList = t.p;
 
     // 2. Timestamp Header: "TODAY 09:41 AM"
     list.push(B.a4);
-    list.push(
-      A.cG(
-        A.m(
-          "TODAY 09:41 AM",
-          a,
-          a,
-          a,
-          a,
-          A.J(a, a, subColor, a, a, a, a, a, a, a, a, 11, a, a, B.fL, a, a, !0, a, 0.5, a, a, a, a, a, a),
-          a,
-          a,
-          a
-        ),
-        a,
-        a
-      )
+    var timestampText = A.m(
+      "TODAY 09:41 AM",
+      a,
+      a,
+      a,
+      a,
+      A.J(a, a, subColor, a, a, a, a, a, a, a, a, 11, a, a, B.fL, a, a, !0, a, a, a, a, a, a, a, a),
+      a,
+      a,
+      a
     );
+    list.push(A.cG(timestampText, a, a));
     list.push(B.aD);
 
     // 3. Assistant Welcome Message
@@ -100980,7 +100969,7 @@ A.SmartAssistantWidget.prototype = {
       a,
       a,
       a,
-      A.J(a, a, textColor, a, a, a, a, a, a, a, a, 14, a, a, B.a2, a, 1.4, !0, a, a, a, a, a, a, a, a),
+      A.J(a, a, textColor, a, a, a, a, a, a, a, a, 14, a, a, B.a2, a, a, !0, a, a, a, a, a, a, a, a),
       a,
       a,
       a
@@ -100991,7 +100980,7 @@ A.SmartAssistantWidget.prototype = {
       B.j,
       a,
       a,
-      new A.O(bubbleBg, a, a, a, a, a, B.aB),
+      new A.O(bubbleBg, a, a, A.B(16), a, a, B.o),
       a,
       a,
       a,
@@ -101035,15 +101024,7 @@ A.SmartAssistantWidget.prototype = {
       B.j,
       a,
       a,
-      new A.O(
-        primaryBlue,
-        a,
-        a,
-        a,
-        A.a([new A.aK(0, B.E, A.Z(50, 0, 82, 255), B.ba, 8)], t.V),
-        a,
-        B.aB
-      ),
+      new A.O(primaryBlue, a, a, A.B(16), a, a, B.o),
       a,
       a,
       a,
@@ -101076,7 +101057,7 @@ A.SmartAssistantWidget.prototype = {
       a,
       a,
       a,
-      A.J(a, a, textColor, a, a, a, a, a, a, a, a, 14, a, a, B.K, a, 1.4, !0, a, a, a, a, a, a, a, a),
+      A.J(a, a, textColor, a, a, a, a, a, a, a, a, 14, a, a, B.K, a, a, !0, a, a, a, a, a, a, a, a),
       a,
       a,
       a
@@ -101114,7 +101095,7 @@ A.SmartAssistantWidget.prototype = {
         B.j,
         a,
         a,
-        new A.O(cardBg, a, a, a, a, a, B.aB),
+        new A.O(cardBg, a, a, A.B(10), a, a, B.o),
         a,
         42,
         a,
@@ -101131,7 +101112,7 @@ A.SmartAssistantWidget.prototype = {
     }
 
     var task1 = makeTaskItem("1. Server Migration", B.tS);
-    var task2 = makeTaskItem("2. Security Vulnerability #442", B.smartAssistantIcon);
+    var task2 = makeTaskItem("2. Security Vulnerability #442", B.tU);
     var task3 = makeTaskItem("3. Quarterly Sync", B.tW);
 
     var cardContent = A.a0(
@@ -101148,7 +101129,7 @@ A.SmartAssistantWidget.prototype = {
       B.j,
       a,
       a,
-      new A.O(bubbleBg, a, a, a, a, a, B.aB),
+      new A.O(bubbleBg, a, a, A.B(16), a, a, B.o),
       a,
       a,
       a,
@@ -101208,15 +101189,7 @@ A.SmartAssistantWidget.prototype = {
         B.j,
         a,
         a,
-        new A.O(
-          cardBg,
-          a,
-          A.bO(isDark ? B.T : A.Z(255, 226, 232, 240), B.p, 1),
-          a,
-          a,
-          a,
-          new A.bb(A.B(18), B.v)
-        ),
+        new A.O(cardBg, a, a, A.B(18), a, a, B.o),
         a,
         34,
         a,
@@ -101258,7 +101231,7 @@ A.SmartAssistantWidget.prototype = {
       B.j,
       a,
       a,
-      new A.O(bubbleBg, a, a, a, a, a, B.aB),
+      new A.O(bubbleBg, a, a, A.B(22), a, a, B.o),
       a,
       44,
       a,
@@ -101280,15 +101253,7 @@ A.SmartAssistantWidget.prototype = {
       B.j,
       a,
       a,
-      new A.O(
-        primaryBlue,
-        a,
-        a,
-        a,
-        A.a([new A.aK(0, B.E, A.Z(60, 0, 82, 255), B.ba, 8)], t.V),
-        a,
-        B.aB
-      ),
+      new A.O(primaryBlue, a, a, A.B(12), a, a, B.o),
       a,
       44,
       a,
