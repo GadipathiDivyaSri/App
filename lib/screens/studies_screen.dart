@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/app_provider.dart';
+import '../widgets/upgrade_pro_modal.dart';
 import '../theme/app_theme.dart';
 
 /// Studies Screen for WrindhaOS
@@ -21,6 +24,7 @@ class _StudiesScreenState extends State<StudiesScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isPremium = Provider.of<AppProvider>(context).user.isPremium;
 
     return Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.background,
@@ -355,6 +359,7 @@ class _StudiesScreenState extends State<StudiesScreen> {
     required String title,
     required String subtitle,
     required bool isDark,
+    bool isLocked = false,
     required VoidCallback onTap,
   }) {
     return GestureDetector(
@@ -417,11 +422,44 @@ class _StudiesScreenState extends State<StudiesScreen> {
                 ],
               ),
             ),
-            Icon(
-              Icons.chevron_right_rounded,
-              color: isDark ? const Color(0xFF4C658A) : const Color(0xFF8D827A),
-              size: 20,
-            ),
+            if (isLocked)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF59E0B).withOpacity(0.18),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: const Color(0xFFF59E0B).withOpacity(0.5),
+                    width: 1,
+                  ),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.lock_rounded,
+                      size: 13,
+                      color: Color(0xFFD97706),
+                    ),
+                    SizedBox(width: 4),
+                    Text(
+                      'PRO',
+                      style: TextStyle(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFFD97706),
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              Icon(
+                Icons.chevron_right_rounded,
+                color: isDark ? const Color(0xFF4C658A) : const Color(0xFF8D827A),
+                size: 20,
+              ),
           ],
         ),
       ),

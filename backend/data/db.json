@@ -34,6 +34,24 @@
       "isIncome": false,
       "paymentMethod": "UPI",
       "date": "2026-08-22T16:44:47.573Z"
+    },
+    {
+      "id": "e_1787491824601",
+      "title": "Food & Drinks",
+      "category": "Food & Drinks",
+      "amount": 10,
+      "isIncome": false,
+      "paymentMethod": "UPI",
+      "date": "2026-08-23T13:30:24.602Z"
+    },
+    {
+      "id": "e_1787492172865",
+      "title": "Food & Drinks",
+      "category": "Food & Drinks",
+      "amount": 10,
+      "isIncome": false,
+      "paymentMethod": "UPI",
+      "date": "2026-08-23T13:36:12.865Z"
     }
   ],
   "goals": {
@@ -48,6 +66,27 @@
     "test@wrindhaos.in": {
       "code": "9658",
       "expiresAt": 1787417330927
+    },
+    "kalyan@wrindha.org": {
+      "code": "503410",
+      "type": "register",
+      "attempts": 0,
+      "expiresAt": 1787496413456,
+      "lastSentAt": 1787496113456,
+      "payload": {
+        "username": "kalyan",
+        "email": "kalyan@wrindha.org",
+        "password": "default_password"
+      }
+    },
+    "reset_kalyan@example.com": {
+      "code": "223185",
+      "type": "password_reset",
+      "userId": "u_1787483727392",
+      "email": "kalyan@example.com",
+      "attempts": 0,
+      "expiresAt": 1787496413477,
+      "lastSentAt": 1787496113477
     }
   }
 }

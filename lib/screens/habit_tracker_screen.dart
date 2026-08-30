@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/app_provider.dart';
+import '../widgets/upgrade_pro_modal.dart';
 import '../theme/app_theme.dart';
 
 /// Habit Tracker Screen for WrindhaOS
@@ -57,7 +60,19 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
         shape: const CircleBorder(),
         elevation: 4,
         child: const Icon(Icons.add, color: Colors.white, size: 28),
-        onPressed: () => _showAddHabitDialog(context),
+        onPressed: () {
+          final provider = Provider.of<AppProvider>(context, listen: false);
+          final isPremium = provider.user.isPremium;
+          if (!isPremium && _habits.length >= 2) {
+            showUpgradeProModal(
+              context,
+              featureTitle: 'Habits',
+              limitExplanation: 'Free plan includes up to 2 active habits. Upgrade to Pro for ₹49/month to track unlimited habits and streaks!',
+            );
+          } else {
+            _showAddHabitDialog(context);
+          }
+        },
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),

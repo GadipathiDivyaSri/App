@@ -41,8 +41,11 @@ class Task {
   final String id;
   String title;
   String category; // 'Career Roadmap', 'Studies', 'Personal Growth'
+  String tag; // 'STUDY', 'EXAM', 'WORK', 'PLANNING', 'PERSONAL'
   String dueDateLabel; // 'Today', 'Tomorrow', 'Completed', etc.
   DateTime dueDate;
+  String dueTime;
+  int priority; // 1 = High / Urgent, 2 = Medium / Schedule, 3 = Low / Delegate
   bool isCompleted;
   DateTime? completedDate;
 
@@ -50,8 +53,11 @@ class Task {
     required this.id,
     required this.title,
     required this.category,
+    this.tag = 'STUDY',
     required this.dueDateLabel,
     required this.dueDate,
+    this.dueTime = '05:00 PM',
+    this.priority = 1,
     this.isCompleted = false,
     this.completedDate,
   });
@@ -60,8 +66,11 @@ class Task {
         'id': id,
         'title': title,
         'category': category,
+        'tag': tag,
         'dueDateLabel': dueDateLabel,
         'dueDate': dueDate.toIso8601String(),
+        'dueTime': dueTime,
+        'priority': priority,
         'isCompleted': isCompleted,
         'completedDate': completedDate?.toIso8601String(),
       };
@@ -70,10 +79,13 @@ class Task {
         id: json['id'] ?? 't_${DateTime.now().millisecondsSinceEpoch}',
         title: json['title'] ?? 'Untitled Task',
         category: json['category'] ?? 'Studies',
+        tag: json['tag'] ?? 'STUDY',
         dueDateLabel: json['dueDateLabel'] ?? 'Today',
         dueDate: json['dueDate'] != null
             ? (DateTime.tryParse(json['dueDate'].toString()) ?? DateTime.now())
             : DateTime.now(),
+        dueTime: json['dueTime'] ?? '05:00 PM',
+        priority: json['priority'] != null ? int.tryParse(json['priority'].toString()) ?? 1 : 1,
         isCompleted: json['isCompleted'] ?? false,
         completedDate: json['completedDate'] != null
             ? DateTime.tryParse(json['completedDate'].toString())
@@ -413,8 +425,11 @@ class CareerRoadmapNode {
 
 class UserProfile {
   String id;
+  String username;
+  String email;
   String name;
   String contact;
+  bool isEmailVerified;
   int focusScore;
   int activeStreak;
   bool isPremium;
@@ -427,8 +442,11 @@ class UserProfile {
 
   UserProfile({
     this.id = 'u_1',
+    this.username = 'alex_j',
+    this.email = '',
     required this.name,
     this.contact = '',
+    this.isEmailVerified = true,
     required this.focusScore,
     required this.activeStreak,
     this.isPremium = false,
@@ -442,8 +460,11 @@ class UserProfile {
 
   Map<String, dynamic> toJson() => {
         'id': id,
+        'username': username,
+        'email': email,
         'name': name,
         'contact': contact,
+        'isEmailVerified': isEmailVerified,
         'focusScore': focusScore,
         'activeStreak': activeStreak,
         'isPremium': isPremium,
@@ -457,8 +478,11 @@ class UserProfile {
 
   factory UserProfile.fromJson(Map<String, dynamic> json) => UserProfile(
         id: json['id'] ?? 'u_1',
+        username: json['username'] ?? (json['name'] ?? 'user').toString().toLowerCase().replaceAll(' ', '_'),
+        email: json['email'] ?? json['contact'] ?? '',
         name: json['name'] ?? 'Alex Johnson',
-        contact: json['contact'] ?? '',
+        contact: json['contact'] ?? json['email'] ?? '',
+        isEmailVerified: json['isEmailVerified'] ?? true,
         focusScore: json['focusScore'] ?? 92,
         activeStreak: json['activeStreak'] ?? 14,
         isPremium: json['isPremium'] ?? false,

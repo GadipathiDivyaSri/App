@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
+import '../widgets/upgrade_pro_modal.dart';
 import '../theme/app_theme.dart';
 import 'personal_growth_screen.dart';
 import 'career_screen.dart';
@@ -114,7 +115,7 @@ class HomeScreen extends StatelessWidget {
                       },
                     ),
 
-                    // 2. Career
+                    // 2. Career (PRO ONLY)
                     _buildModuleCard(
                       context,
                       isDark: isDark,
@@ -123,13 +124,22 @@ class HomeScreen extends StatelessWidget {
                       subtitle: 'Pathways & Goals',
                       lightCardBg: AppTheme.pastelCareer,
                       lightIconContainerColor: AppTheme.pastelCareerIcon,
+                      isLocked: !provider.user.isPremium,
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const CareerScreen(),
-                          ),
-                        );
+                        if (!provider.user.isPremium) {
+                          showUpgradeProModal(
+                            context,
+                            featureTitle: 'Career Roadmap',
+                            limitExplanation: 'Career Roadmap & Goal Trajectory pipelines are exclusive to Pro members. Upgrade for ₹49/month to unlock!',
+                          );
+                        } else {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const CareerScreen(),
+                            ),
+                          );
+                        }
                       },
                     ),
 
@@ -171,7 +181,7 @@ class HomeScreen extends StatelessWidget {
                       },
                     ),
 
-                    // 5. Priority Matrix
+                    // 5. Priority Matrix (PRO ONLY)
                     _buildModuleCard(
                       context,
                       isDark: isDark,
@@ -180,17 +190,26 @@ class HomeScreen extends StatelessWidget {
                       subtitle: 'Priority Matrix',
                       lightCardBg: AppTheme.pastelPriority,
                       lightIconContainerColor: AppTheme.pastelPriorityIcon,
+                      isLocked: !provider.user.isPremium,
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const PriorityMatrixScreen(),
-                          ),
-                        );
+                        if (!provider.user.isPremium) {
+                          showUpgradeProModal(
+                            context,
+                            featureTitle: 'Priority Matrix',
+                            limitExplanation: 'Priority Matrix & Deadline Scheduling are exclusive to Pro members. Upgrade for ₹49/month to unlock!',
+                          );
+                        } else {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const PriorityMatrixScreen(),
+                            ),
+                          );
+                        }
                       },
                     ),
 
-                    // 6. Analytics
+                    // 6. Analytics (PRO ONLY)
                     _buildModuleCard(
                       context,
                       isDark: isDark,
@@ -199,13 +218,22 @@ class HomeScreen extends StatelessWidget {
                       subtitle: 'Track Progress',
                       lightCardBg: AppTheme.pastelAnalytics,
                       lightIconContainerColor: AppTheme.pastelAnalyticsIcon,
+                      isLocked: !provider.user.isPremium,
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const AnalyticsScreen(),
-                          ),
-                        );
+                        if (!provider.user.isPremium) {
+                          showUpgradeProModal(
+                            context,
+                            featureTitle: 'Analytics & Insights',
+                            limitExplanation: 'Advanced Progress Analytics & Focus Heatmaps are exclusive to Pro members. Upgrade for ₹49/month to unlock!',
+                          );
+                        } else {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const AnalyticsScreen(),
+                            ),
+                          );
+                        }
                       },
                     ),
                   ],
@@ -226,6 +254,7 @@ class HomeScreen extends StatelessWidget {
     required String subtitle,
     required Color lightCardBg,
     required Color lightIconContainerColor,
+    bool isLocked = false,
     required VoidCallback onTap,
   }) {
     return GestureDetector(
@@ -257,7 +286,7 @@ class HomeScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Top Row: Squircle Icon & Chevron Arrow
+            // Top Row: Squircle Icon & Lock / Chevron Arrow
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -284,11 +313,44 @@ class HomeScreen extends StatelessWidget {
                     color: isDark ? AppTheme.darkIconGlow : Colors.white,
                   ),
                 ),
-                Icon(
-                  Icons.chevron_right_rounded,
-                  size: 20,
-                  color: isDark ? const Color(0xFF4C658A) : const Color(0x662D2622),
-                ),
+                if (isLocked)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF59E0B).withOpacity(0.18),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: const Color(0xFFF59E0B).withOpacity(0.5),
+                        width: 1,
+                      ),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.lock_rounded,
+                          size: 13,
+                          color: Color(0xFFD97706),
+                        ),
+                        SizedBox(width: 4),
+                        Text(
+                          'PRO',
+                          style: TextStyle(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFFD97706),
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                else
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    size: 20,
+                    color: isDark ? const Color(0xFF4C658A) : const Color(0x662D2622),
+                  ),
               ],
             ),
 

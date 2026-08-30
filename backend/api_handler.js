@@ -192,7 +192,8 @@ function generateUsernameSuggestions(base) {
 // Main API Handler
 async function handleApiRequest(req, res) {
   const parsedUrl = url.parse(req.url, true);
-  const pathname = parsedUrl.pathname;
+  const rawPath = parsedUrl.pathname;
+  const pathname = rawPath.replace(/^\/api\/v1\//, '/api/');
   const method = req.method.toUpperCase();
 
   // Handle CORS Preflight
@@ -207,7 +208,7 @@ async function handleApiRequest(req, res) {
 
   const body = method === 'POST' || method === 'PATCH' || method === 'DELETE' ? await parseBody(req) : {};
 
-  console.log(`[API ${method}] ${pathname}`);
+  console.log(`[API ${method}] ${rawPath} -> ${pathname}`);
 
   // 1. HEALTH CHECK
   if (pathname === '/api/health' && method === 'GET') {
@@ -438,9 +439,10 @@ async function handleApiRequest(req, res) {
     }
     saveDB(db);
 
+    const token = `jwt_session_${user.id}_${Date.now()}`;
     return sendJSON(res, 200, {
       success: true,
-      token: `jwt_token_${user.id}_${Date.now()}`,
+      token: token,
       user: user,
       message: 'Account verified and created successfully!',
     });
@@ -528,6 +530,9 @@ async function handleApiRequest(req, res) {
       title: body.title || 'New Task',
       category: body.category || 'General',
       dueDateLabel: body.dueDateLabel || 'Today',
+      dueDate: body.dueDate || new Date().toISOString(),
+      dueTime: body.dueTime || '05:00 PM',
+      priority: body.priority !== undefined ? Number(body.priority) : 1,
       isCompleted: false,
       priority: body.priority || 1,
       createdAt: new Date().toISOString(),

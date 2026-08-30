@@ -46,7 +46,7 @@ class _PricingScreenState extends State<PricingScreen> {
     final isPremium = user.isPremium;
     final discountPercent = user.activeDiscountPercent;
 
-    const double basePrice = 59.0;
+    const double basePrice = 49.0;
     final double discountAmount = (basePrice * discountPercent) / 100.0;
     final double finalPrice = basePrice - discountAmount;
 

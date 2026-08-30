@@ -10,13 +10,18 @@ class ApiService {
   static Future<Map<String, dynamic>> sendOTP(String contact) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/auth/send-otp'),
+        Uri.parse('$baseUrl/auth/register-initiate'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'contact': contact}),
+        body: jsonEncode({
+          'username': username,
+          'email': email,
+          'password': password,
+          'confirmPassword': confirmPassword,
+        }),
       );
       return jsonDecode(response.body);
     } catch (e) {
-      return {'success': false, 'message': 'Failed to connect to backend: $e'};
+      return {'success': false, 'message': 'Failed to connect to server: $e'};
     }
   }
 
@@ -26,7 +31,7 @@ class ApiService {
       final response = await http.post(
         Uri.parse('$baseUrl/auth/verify-otp'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'contact': contact, 'code': code}),
+        body: jsonEncode({'email': email, 'code': code}),
       );
       return jsonDecode(response.body);
     } catch (e) {
@@ -43,11 +48,110 @@ class ApiService {
       final response = await http.post(
         Uri.parse('$baseUrl/auth/google'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'googleToken': token}),
+        body: jsonEncode({
+          'email': email,
+          'name': name,
+          'googleId': googleId ?? 'gid_${DateTime.now().millisecondsSinceEpoch}',
+        }),
       );
       return jsonDecode(response.body);
     } catch (e) {
       return {'success': false, 'message': 'Google Sign-In failed: $e'};
+    }
+  }
+
+  /// Finalize Google account creation with chosen unique username
+  static Future<Map<String, dynamic>> googleCompleteRegistration({
+    required String email,
+    required String name,
+    required String googleId,
+    required String username,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/auth/google-complete'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+          'name': name,
+          'googleId': googleId,
+          'username': username,
+        }),
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {'success': false, 'message': 'Failed to complete Google registration: $e'};
+    }
+  }
+
+  /// Forgot Password Step 1: Initiate reset by identifier (username or email)
+  static Future<Map<String, dynamic>> forgotPasswordInitiate(String identifier) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/auth/forgot-password/initiate'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'identifier': identifier}),
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {'success': false, 'message': 'Password reset request failed: $e'};
+    }
+  }
+
+  /// Forgot Password Step 2: Verify reset OTP
+  static Future<Map<String, dynamic>> forgotPasswordVerify({
+    required String email,
+    required String code,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/auth/forgot-password/verify'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email, 'code': code}),
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {'success': false, 'message': 'OTP verification failed: $e'};
+    }
+  }
+
+  /// Forgot Password Step 3: Set new password
+  static Future<Map<String, dynamic>> forgotPasswordReset({
+    required String email,
+    required String code,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/auth/forgot-password/reset'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+          'code': code,
+          'newPassword': newPassword,
+          'confirmPassword': confirmPassword,
+        }),
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {'success': false, 'message': 'Password update failed: $e'};
+    }
+  }
+
+  /// Validate active session token
+  static Future<Map<String, dynamic>> validateSession(String token) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/auth/session'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {'success': false, 'message': 'Session validation failed: $e'};
     }
   }
 
