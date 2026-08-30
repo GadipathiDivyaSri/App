@@ -102338,6 +102338,7 @@ q=f?B.bl:B.aR
 p=A.B(14)
 o=f?B.bl:B.aR
 a3=A.bZ(j,B.Z,!1,j,!0,B.z,j,A.c4(),k.x,j,j,j,j,j,2,A.dW(j,new A.bB(4,r,new A.am(q,1,B.p,-1)),j,j,j,j,j,j,!0,new A.bB(4,p,new A.am(o,1,B.p,-1)),j,j,j,j,j,s,!0,j,j,j,j,new A.bB(4,A.B(14),new A.am(e,1.5,B.p,-1)),j,j,j,j,j,j,j,j,a4,"",j,j,j,j,j,j,j,j,j,!0,!0,!1,j,a5,j,j,j,j,j,j,a6,j,j,j,j,j),B.t,!0,j,!0,j,!1,j,B.W,j,j,j,j,j,j,j,j,1,j,j,a3,h,j,j,j,j,j,!1,j,j,!1,j,!0,j,B.F,j,j,j,j,j,j,j,j,j,j,j,j,!0,B.G,j,B.a3,j,j,j,j)
+var a_confirm=A.bZ(j,B.Z,!1,j,!0,B.z,j,A.c4(),k.confirmCtrl||(k.confirmCtrl=new A.c4()),j,j,j,j,j,2,A.dW(j,new A.bB(4,r,new A.am(q,1,B.p,-1)),j,j,j,j,j,j,!0,new A.bB(4,p,new A.am(o,1,B.p,-1)),j,j,j,j,j,s,!0,j,j,j,j,new A.bB(4,A.B(14),new A.am(e,1.5,B.p,-1)),j,j,j,j,j,j,j,j,a4,"",j,j,j,j,j,j,j,j,j,!0,!0,!1,j,a5,j,j,j,j,j,j,a6,j,j,j,j,j),B.t,!0,j,!0,j,!1,j,B.W,j,j,j,j,j,j,j,j,1,j,j,a3,h,j,j,j,j,j,!1,j,j,!1,j,!0,j,B.F,j,j,j,j,j,j,j,j,j,j,j,j,!0,B.G,j,B.a3,j,j,j,j)
 a6=A.J(j,j,A.b1(i),j,j,j,j,j,j,j,j,13.5,j,j,j,j,j,!0,j,j,j,j,j,j,j,j)
 a5=A.as(B.u4,e,j,20)
 a4=f?B.T:B.b3
@@ -102379,7 +102380,7 @@ s=A.b_(A.aJG(e,new A.aDG(k),new A.bb(A.B(5),B.v),s),24,24)
 a4=A.a4(A.a([s,B.ep,A.aD(A.cc(j,A.m("I confirm that I have read and agree to the Terms & Conditions and Privacy Policy.",j,j,j,j,A.J(j,j,f?B.ar:B.a_,j,j,j,j,j,j,j,j,12.5,j,j,j,j,1.45,!0,j,j,j,j,j,j,j,j),j,j,j),B.t,!1,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,new A.aDH(k),j,j,j,j,j,j),1)],n),B.w,B.h,B.f,0,j,j)
 s=A.b_(A.cW(B.a8C,k.gajo(),A.cX(j,j,e,j,j,j,0,j,j,j,j,j,j,j,new A.bb(A.B(16),B.v),j,j,j,j,j)),52,1/0)
 r=A.Da(j,j,j,j,j,j,j,j,j,j,j,j,j,j,new A.bb(A.B(16),B.v),new A.am(A.b1(4291548641),1,B.p,-1),j,j,j,j)
-return A.cJ(c,d,A.l0(!0,A.dA(A.a0(A.a([B.a7U,B.an,b,B.bz,a,B.an,B.a7p,B.ao,a1,B.a1,B.a7email,B.ao,a0,B.a1,B.a7Z,B.ao,a3,B.a1,B.a7g,B.ao,a5,B.aP,a6,B.aP,a4,B.aP,s,B.aP,A.a4(A.a([B.a88,A.cc(j,A.m("Log In",j,j,j,j,A.J(j,j,e,j,j,j,j,j,j,j,j,14,j,j,B.x,j,j,!0,j,j,j,j,j,j,j,j),j,j,j),B.t,!1,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,new A.aDI(a7),j,j,j,j,j,j)],n),B.i,B.b_,B.f,0,j,j),B.aD],n),B.w,B.h,B.f,0,B.m),j,B.t,B.MJ,j,j,B.S),B.aA,!0),j,j)}}
+return A.cJ(c,d,A.l0(!0,A.dA(A.a0(A.a([B.a7U,B.an,b,B.bz,a,B.an,B.a7p,B.ao,a1,B.a1,B.a7email,B.ao,a0,B.a1,B.a7Z,B.ao,a3,B.a1,B.a7confirmpass,B.ao,a_confirm,B.a1,B.a7g,B.ao,a5,B.aP,a6,B.aP,a4,B.aP,s,B.aP,A.a4(A.a([B.a88,A.cc(j,A.m("Log In",j,j,j,j,A.J(j,j,e,j,j,j,j,j,j,j,j,14,j,j,B.x,j,j,!0,j,j,j,j,j,j,j,j),j,j,j),B.t,!1,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,new A.aDI(a7),j,j,j,j,j,j)],n),B.i,B.b_,B.f,0,j,j),B.aD],n),B.w,B.h,B.f,0,B.m),j,B.t,B.MJ,j,j,B.S),B.aA,!0),j,j)}}
 A.aDx.prototype={
 $0(){return this.a.z=!0},
 $S:0}
@@ -110652,6 +110653,7 @@ B.a7m=new A.L("Schedule Event",null,B.dd,null,null,null,null,null,null,null,null
 B.a7n=new A.L("USERNAME OR EMAIL",null,B.aL,null,null,null,null,null,null,null,null)
 B.a7p=new A.L("USERNAME",null,B.aL,null,null,null,null,null,null,null,null)
 B.a7email=new A.L("EMAIL",null,B.aL,null,null,null,null,null,null,null,null)
+B.a7confirmpass=new A.L("CONFIRM PASSWORD",null,B.aL,null,null,null,null,null,null,null,null)
 B.a59=new A.j(!0,B.u,null,null,null,null,11,B.x,null,1.1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
 B.a7q=new A.L("NEW ENTRY",null,B.a59,null,null,null,null,null,null,null,null)
 B.a7t=new A.L("Save Changes",null,B.cy,null,null,null,null,null,null,null,null)
