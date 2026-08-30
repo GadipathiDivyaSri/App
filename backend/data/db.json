@@ -93,6 +93,18 @@
       "transaction_id": "tx_1788072434610",
       "created_at": "2026-08-30T06:47:14.591Z",
       "updated_at": "2026-08-30T06:47:14.610Z"
+    },
+    {
+      "id": "sub_free_u_1001",
+      "user_id": "u_1001",
+      "plan": "free",
+      "status": "active",
+      "started_at": "2026-08-30T06:54:00.705Z",
+      "expires_at": null,
+      "payment_provider": "NONE",
+      "transaction_id": null,
+      "created_at": "2026-08-30T06:54:00.705Z",
+      "updated_at": "2026-08-30T06:54:00.705Z"
     }
   ],
   "tasks": [
@@ -281,6 +293,20 @@
       "discountApplied": 24.5,
       "paymentStatus": "success",
       "createdAt": "2026-08-30T06:51:28.323Z"
+    },
+    {
+      "id": "cu_1788072780900",
+      "userId": "u_1788072780869",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-08-30T06:53:00.900Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-08-30T06:53:00.900Z"
     }
   ],
   "referralCodes": [
@@ -399,6 +425,20 @@
       "pendingUser": {
         "username": "audit_1788072688266",
         "email": "audit_user_1788072688266@wrindhaos.in",
+        "password": "SecurePassword123!"
+      }
+    },
+    "audit_user_1788072780850@wrindhaos.in": {
+      "code": "936911",
+      "type": "register",
+      "attempts": 0,
+      "maxAttempts": 5,
+      "createdAt": 1788072780860,
+      "expiresAt": 1788073380860,
+      "lastSentAt": 1788072780860,
+      "pendingUser": {
+        "username": "audit_1788072780850",
+        "email": "audit_user_1788072780850@wrindhaos.in",
         "password": "SecurePassword123!"
       }
     }

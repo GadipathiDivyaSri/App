@@ -130,6 +130,7 @@ class AppProvider extends ChangeNotifier {
     _habits.add(habit);
     _saveHabits();
     notifyListeners();
+    ApiService.createHabitOnBackend(habit.title, habit.frequency);
   }
 
   void editHabit(String id, String title, String frequency) {
@@ -188,6 +189,7 @@ class AppProvider extends ChangeNotifier {
     _subjects.add(subject);
     _saveSubjects();
     notifyListeners();
+    ApiService.createSubjectOnBackend(subject.name, subject.code);
   }
 
   void editSubject(String id, String name, String code, int colorHex) {
@@ -614,6 +616,22 @@ class AppProvider extends ChangeNotifier {
     _user.activeDiscountPercent = 0;
     _saveSession();
     notifyListeners();
+    await ApiService.upgradeSubscription(provider: 'GOOGLE_PLAY');
+  }
+
+  Future<void> upgradeToPremium({String provider = 'GOOGLE_PLAY'}) async {
+    _user.isPremium = true;
+    _user.subscriptionPlan = 'PRO';
+    _subscription = UserSubscription(
+      id: 'sub_pro_${_user.id}',
+      userId: _user.id,
+      plan: 'pro',
+      status: 'active',
+      startedAt: DateTime.now(),
+    );
+    _saveSession();
+    notifyListeners();
+    await ApiService.upgradeSubscription(provider: provider);
   }
 
   // Initial Data Setup & Persistence
