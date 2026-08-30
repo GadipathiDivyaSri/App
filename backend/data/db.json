@@ -350,20 +350,5 @@
     }
   ],
   "referralTrackings": [],
-  "otpStore": {
-    "divyachowdhary0707@gmail.com": {
-      "code": "248783",
-      "type": "register",
-      "attempts": 0,
-      "maxAttempts": 5,
-      "createdAt": 1788078469592,
-      "expiresAt": 1788079069592,
-      "lastSentAt": 1788078469592,
-      "pendingUser": {
-        "username": "student_9426",
-        "email": "divyachowdhary0707@gmail.com",
-        "passwordHash": "8351696036b099f76da443292c028e8e:767f20cfe11bf764d4cfcfb8ac4433dc2d2ba02ac319cf22c3bdd57a7141ba72a5dcbfd6d656266d866bba16701cff04045f4c44939f3f24b19e3b34593d2120"
-      }
-    }
-  }
+  "otpStore": {}
 }
