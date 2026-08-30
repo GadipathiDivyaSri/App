@@ -350,5 +350,20 @@
     }
   ],
   "referralTrackings": [],
-  "otpStore": {}
+  "otpStore": {
+    "mothukurumadhuri@gmail.com": {
+      "code": "947501",
+      "type": "register",
+      "attempts": 0,
+      "maxAttempts": 5,
+      "createdAt": 1788087352398,
+      "expiresAt": 1788087952398,
+      "lastSentAt": 1788087352398,
+      "pendingUser": {
+        "username": "madhuri_2253",
+        "email": "mothukurumadhuri@gmail.com",
+        "passwordHash": "b3e510db40b4d0c22e27cde7bdf10b9e:de7b6664bd9d7f3258e389185fbceed3c38ee866e51c2e333501d962e8469bd7415d460e17c9811ab82a77def5a0cb1577a93501a31bccfd09533cf6be17ce0d"
+      }
+    }
+  }
 }

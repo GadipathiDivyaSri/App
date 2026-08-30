@@ -301,7 +301,7 @@ function parseBody(req) {
  */
 async function dispatchEmailOtp(email, otpCode, type = 'Verification') {
   const authKey = process.env.MSG91_AUTH_KEY;
-  const templateId = process.env.MSG91_OTP_TEMPLATE_ID || 'default_otp_template';
+  const widgetId = process.env.MSG91_WIDGET_ID || '36687761466f383937303733';
 
   console.log(`[EMAIL OTP DISPATCH] [${type}] Sending 6-digit OTP to: ${email} -> CODE: [${otpCode}]`);
 
@@ -311,24 +311,24 @@ async function dispatchEmailOtp(email, otpCode, type = 'Verification') {
 
   try {
     const payload = JSON.stringify({
-      to: [{ email: email }],
-      from: { email: process.env.MSG91_EMAIL_FROM || 'no-reply@wrindhaos.com', name: 'WrindhaOS' },
-      template_id: templateId,
-      variables: {
-        otp: otpCode,
-        OTP: otpCode,
-        company_name: 'WrindhaOS',
-      },
+      widgetId: widgetId,
+      identifier: email,
+      tokenAuth: authKey,
+      otp: otpCode,
     });
 
     const options = {
       hostname: 'control.msg91.com',
       port: 443,
-      path: `/api/v5/otp?template_id=${encodeURIComponent(templateId)}&mobile=${encodeURIComponent(email)}&authkey=${encodeURIComponent(authKey)}&otp=${encodeURIComponent(otpCode)}`,
+      path: '/api/v5/widget/sendOtp',
       method: 'POST',
       headers: {
         'authkey': authKey,
         'Content-Type': 'application/json',
+        'Origin': 'http://localhost:8080',
+        'Referer': 'http://localhost:8080/',
+        'User-Agent': 'WrindhaOS-Backend/1.0',
+        'Content-Length': Buffer.byteLength(payload),
       },
     };
 
@@ -337,10 +337,12 @@ async function dispatchEmailOtp(email, otpCode, type = 'Verification') {
         let resData = '';
         msgRes.on('data', (chunk) => (resData += chunk));
         msgRes.on('end', () => {
-          resolve({ success: true, mode: 'live', response: resData });
+          console.log(`[MSG91 WIDGET API] Status: ${msgRes.statusCode}, Response: ${resData}`);
+          resolve({ success: true, mode: 'live_widget', response: resData });
         });
       });
       req.on('error', (err) => {
+        console.error('[MSG91 WIDGET API ERROR]:', err.message);
         resolve({ success: true, mode: 'local_fallback', otpCode });
       });
       req.write(payload);
