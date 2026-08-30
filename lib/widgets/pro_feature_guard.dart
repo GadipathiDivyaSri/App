@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../config/subscription_config.dart';
 import '../providers/app_provider.dart';
-import '../screens/pricing_screen.dart';
+import '../screens/pro_plans_screen.dart';
 import 'pro_upgrade_dialog.dart';
 
 /// Route & Widget Level Guard for Pro-Exclusive Features
@@ -141,7 +141,7 @@ class ProFeatureGuard extends StatelessWidget {
                 const SizedBox(height: 14),
 
                 Text(
-                  'Unlock ${feature.displayName}',
+                  feature.unlockTitle,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 20,
@@ -153,11 +153,11 @@ class ProFeatureGuard extends StatelessWidget {
                 const SizedBox(height: 12),
 
                 Text(
-                  '${feature.displayName} is an advanced productivity module available exclusively on WrindhaOS Pro. Upgrade now to unlock unlimited access.',
+                  feature.benefitDescription,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,
-                    height: 1.45,
+                    height: 1.48,
                     color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                   ),
                 ),
@@ -169,7 +169,7 @@ class ProFeatureGuard extends StatelessWidget {
                   child: ElevatedButton(
                     onPressed: () {
                       Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const PricingScreen()),
+                        MaterialPageRoute(builder: (_) => const ProPlansScreen()),
                       );
                     },
                     style: ElevatedButton.styleFrom(

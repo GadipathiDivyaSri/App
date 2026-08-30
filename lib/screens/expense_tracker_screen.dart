@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import '../config/subscription_config.dart';
 import '../providers/app_provider.dart';
 import '../models/models.dart';
 import '../theme/app_theme.dart';
+import '../widgets/pro_feature_guard.dart';
+import '../widgets/pro_upgrade_dialog.dart';
 import '../widgets/premium_lock_banner.dart';
 import '../widgets/upgrade_pro_modal.dart';
 import 'add_expense_screen.dart';
@@ -158,44 +161,42 @@ class _ExpenseTrackerScreenState extends State<ExpenseTrackerScreen> {
       categoryBreakdown[exp.category] = (categoryBreakdown[exp.category] ?? 0.0) + exp.amount;
     }
 
-    return Scaffold(
-      backgroundColor: isDark ? AppTheme.darkBg : AppTheme.background,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: textPrimary),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          'Expense Tracker',
-          style: TextStyle(color: textPrimary, fontWeight: FontWeight.w800),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.add_rounded, color: primaryColor, size: 28),
-            onPressed: () {
-              if (!isPremium) {
-                showUpgradeProModal(
-                  context,
-                  featureTitle: 'Expense Tracker',
-                  limitExplanation: 'Free plan gives you a preview of Expense Tracker. Upgrade to Pro for ₹49/month to add and track your finances!',
-                );
-              } else {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const AddExpenseScreen()),
-                );
-              }
-            },
+    return ProFeatureGuard(
+      feature: AppFeature.expenseTracker,
+      child: Scaffold(
+        backgroundColor: isDark ? AppTheme.darkBg : AppTheme.background,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: textPrimary),
+            onPressed: () => Navigator.pop(context),
           ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
+          title: Text(
+            'Expense Tracker',
+            style: TextStyle(color: textPrimary, fontWeight: FontWeight.w800),
+          ),
+          actions: [
+            IconButton(
+              icon: Icon(Icons.add_rounded, color: primaryColor, size: 28),
+              onPressed: () {
+                if (!isPremium) {
+                  ProUpgradeDialog.showFeatureLockedDialog(context, AppFeature.expenseTracker);
+                } else {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AddExpenseScreen()),
+                  );
+                }
+              },
+            ),
+          ],
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
             // 1. Premium Lock Banner if Free
             if (!isPremium)
               const PremiumLockBanner(
@@ -519,6 +520,7 @@ class _ExpenseTrackerScreenState extends State<ExpenseTrackerScreen> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

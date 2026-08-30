@@ -112,6 +112,68 @@ extension AppFeatureExtension on AppFeature {
     }
   }
 
+  String get unlockTitle {
+    switch (this) {
+      case AppFeature.habits:
+        return 'Unlock Unlimited Habits';
+      case AppFeature.subjects:
+        return 'Unlock Unlimited Subjects';
+      case AppFeature.goals:
+        return 'Unlock Goal Management';
+      case AppFeature.priorityMatrix:
+        return 'Unlock Priority Matrix';
+      case AppFeature.eisenhowerMatrix:
+        return 'Unlock Eisenhower Matrix';
+      case AppFeature.expenseTracker:
+        return 'Unlock Expense Tracker';
+      case AppFeature.notes:
+        return 'Unlock Journal & Notes';
+      case AppFeature.milestones:
+        return 'Unlock Achieved Milestones';
+      case AppFeature.careerRoadmap:
+        return 'Unlock Your Career Roadmap';
+      case AppFeature.focusTimer:
+        return 'Unlock Deep Focus';
+      case AppFeature.analytics:
+        return 'Unlock Analytics & Insights';
+      case AppFeature.todo:
+        return 'Unlock Unlimited To-Do List';
+      case AppFeature.calendar:
+        return 'Unlock Productivity Calendar';
+    }
+  }
+
+  String get benefitDescription {
+    switch (this) {
+      case AppFeature.habits:
+        return "You've reached the Free plan limit of 2 habits. Upgrade to WrindhaOS Pro to create and track unlimited habits.";
+      case AppFeature.subjects:
+        return "You've reached the Free plan limit of 2 subjects. Upgrade to WrindhaOS Pro to manage unlimited subjects and organize your complete learning journey.";
+      case AppFeature.goals:
+        return 'Set ambitious goals, break them down into actionable milestones, and track your achievements with structured hierarchy.';
+      case AppFeature.priorityMatrix:
+        return 'Triage urgent and critical tasks with automated quadrant prioritization.';
+      case AppFeature.eisenhowerMatrix:
+        return 'Organize tasks by urgency and importance to eliminate distractions and execute what matters.';
+      case AppFeature.expenseTracker:
+        return 'Track your spending, manage personal budgets, and stay in control of your financial health.';
+      case AppFeature.notes:
+        return 'Capture daily reflections, ideas, and knowledge entries with formatted productivity notes.';
+      case AppFeature.milestones:
+        return 'Celebrate and review your personal, academic, and career milestones over time.';
+      case AppFeature.careerRoadmap:
+        return 'Map out your professional goals, track career pathways, and visualize skill node milestones.';
+      case AppFeature.focusTimer:
+        return 'Boost your attention span with customizable Pomodoro sessions, stopwatch logs, and focus heatmaps.';
+      case AppFeature.analytics:
+        return 'Understand your productivity, track your progress, and discover patterns that help you improve.';
+      case AppFeature.todo:
+        return 'Capture and organize all your daily action items without any limits.';
+      case AppFeature.calendar:
+        return 'Keep your schedule synchronized and never miss important deadlines.';
+    }
+  }
+
   IconData get icon {
     switch (this) {
       case AppFeature.todo:

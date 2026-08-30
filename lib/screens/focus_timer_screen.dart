@@ -1,5 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../config/subscription_config.dart';
+import '../providers/app_provider.dart';
+import '../widgets/pro_feature_guard.dart';
 import '../theme/app_theme.dart';
 
 class FocusTimerScreen extends StatefulWidget {
@@ -122,15 +126,17 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-          onPressed: () => Navigator.pop(context),
+    return ProFeatureGuard(
+      feature: AppFeature.focusTimer,
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+            onPressed: () => Navigator.pop(context),
+          ),
+          title: const Text('Focus Timer', style: TextStyle(fontWeight: FontWeight.bold)),
+          centerTitle: true,
         ),
-        title: const Text('Focus Timer', style: TextStyle(fontWeight: FontWeight.bold)),
-        centerTitle: true,
-      ),
       body: Column(
         children: [
           const SizedBox(height: 12),
@@ -382,7 +388,8 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
             ),
           ],
         ),
-      ],
-    );
-  }
+      ),
+    ),
+  );
+}
 }

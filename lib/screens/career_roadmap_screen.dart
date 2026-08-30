@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../config/subscription_config.dart';
 import '../models/models.dart';
 import '../providers/app_provider.dart';
+import '../widgets/pro_feature_guard.dart';
+import '../widgets/pro_upgrade_dialog.dart';
 import '../widgets/premium_lock_banner.dart';
 import '../widgets/upgrade_pro_modal.dart';
 import '../theme/app_theme.dart';
@@ -50,17 +53,17 @@ class _CareerRoadmapScreenState extends State<CareerRoadmapScreen> {
     },
     {
       'key': 'EXPERIENCE',
-      'title': 'Experience & Contributions',
-      'icon': Icons.work_outline_rounded,
+      'title': 'Work & Practical Experience',
+      'icon': Icons.business_center_rounded,
       'color': Color(0xFF8B5CF6),
-      'desc': 'Internships, freelance, open source impact',
+      'desc': 'Internships, freelance contracts, and jobs',
     },
     {
-      'key': 'OPPORTUNITY',
-      'title': 'Career Opportunities',
+      'key': 'OPPORTUNITIES',
+      'title': 'Target Opportunities',
       'icon': Icons.rocket_launch_rounded,
       'color': Color(0xFFEC4899),
-      'desc': 'Target roles, companies, and next big steps',
+      'desc': 'Applications, interviews, and offers in flight',
     },
   ];
 
@@ -76,7 +79,9 @@ class _CareerRoadmapScreenState extends State<CareerRoadmapScreen> {
     final allNodes = provider.careerRoadmap;
     final totalCompleted = allNodes.where((n) => n.isCompleted).length;
 
-    return Scaffold(
+    return ProFeatureGuard(
+      feature: AppFeature.careerRoadmap,
+      child: Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.background,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -320,8 +325,9 @@ class _CareerRoadmapScreenState extends State<CareerRoadmapScreen> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   void _showAddNodeDialog(BuildContext context, String secKey, String secTitle) {
     final titleCtrl = TextEditingController();

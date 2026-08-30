@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../config/subscription_config.dart';
+import '../providers/app_provider.dart';
+import '../widgets/pro_feature_guard.dart';
+import '../widgets/pro_upgrade_dialog.dart';
 import '../theme/app_theme.dart';
 import 'calendar_screen.dart';
 
@@ -66,8 +71,10 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Scaffold(
-      backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
+    return ProFeatureGuard(
+      feature: AppFeature.priorityMatrix,
+      child: Scaffold(
+        backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(
@@ -252,8 +259,9 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   List<Map<String, dynamic>> _getSortedTasks(List<Map<String, dynamic>> tasks) {
     final list = List<Map<String, dynamic>>.from(tasks);

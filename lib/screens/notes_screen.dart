@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import '../config/subscription_config.dart';
 import '../models/models.dart';
 import '../providers/app_provider.dart';
+import '../widgets/pro_feature_guard.dart';
+import '../widgets/pro_upgrade_dialog.dart';
 import '../widgets/premium_lock_banner.dart';
 import '../widgets/upgrade_pro_modal.dart';
 import '../theme/app_theme.dart';
@@ -50,7 +53,9 @@ class _NotesScreenState extends State<NotesScreen> {
             return e.title.toLowerCase().contains(q) || e.content.toLowerCase().contains(q);
           }).toList();
 
-    return Scaffold(
+    return ProFeatureGuard(
+      feature: AppFeature.notes,
+      child: Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.background,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -323,8 +328,9 @@ class _NotesScreenState extends State<NotesScreen> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   // --- ENTRY READER MODAL ---
   void _showEntryReader(BuildContext context, JournalEntry entry, bool isPremium) {

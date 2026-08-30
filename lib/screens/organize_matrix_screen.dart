@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../config/subscription_config.dart';
 import '../providers/app_provider.dart';
 import '../models/models.dart';
+import '../widgets/pro_feature_guard.dart';
+import '../widgets/pro_upgrade_dialog.dart';
 import '../widgets/premium_lock_banner.dart';
 import '../widgets/upgrade_pro_modal.dart';
 import '../theme/app_theme.dart';
@@ -34,7 +37,9 @@ class _OrganizeMatrixScreenState extends State<OrganizeMatrixScreen> {
     final q3Tasks = provider.tasks.where((t) => t.priority == 3).toList();
     final q4Tasks = provider.tasks.where((t) => t.priority == 4).toList();
 
-    return Scaffold(
+    return ProFeatureGuard(
+      feature: AppFeature.eisenhowerMatrix,
+      child: Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.background,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -173,8 +178,9 @@ class _OrganizeMatrixScreenState extends State<OrganizeMatrixScreen> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildQuadrantCell(
     BuildContext context, {

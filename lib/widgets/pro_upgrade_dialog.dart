@@ -1,93 +1,120 @@
 import 'package:flutter/material.dart';
 import '../config/subscription_config.dart';
-import '../screens/pricing_screen.dart';
+import '../screens/pro_plans_screen.dart';
 
-/// Reusable Pro Upgrade Dialog for WrindhaOS Free vs Pro limits & locked feature gates.
+/// Reusable WrindhaOS Pro Upgrade Dialog
+/// 
+/// Accepts:
+/// - [featureName] or [feature] (AppFeature enum)
+/// - [title] (e.g. 'Unlock Analytics & Insights')
+/// - [description] (e.g. 'Understand your productivity, track your progress, and discover patterns that help you improve.')
+/// - Optional [icon] (e.g. Icons.insights_rounded)
+/// - Optional [onUpgrade] callback
+/// 
+/// Dynamically updates title, description, and icon depending on the clicked locked feature.
 class ProUpgradeDialog extends StatelessWidget {
+  final String? featureName;
   final String title;
   final String description;
+  final IconData? icon;
   final String primaryButtonText;
   final String secondaryButtonText;
-  final IconData icon;
   final VoidCallback? onUpgrade;
 
   const ProUpgradeDialog({
     super.key,
+    this.featureName,
     required this.title,
     required this.description,
+    this.icon = Icons.workspace_premium_rounded,
     this.primaryButtonText = 'Upgrade to Pro',
     this.secondaryButtonText = 'Maybe Later',
-    this.icon = Icons.workspace_premium_rounded,
     this.onUpgrade,
   });
 
-  /// Displays the dialog modally
+  /// Factory constructor to generate dialog directly from an [AppFeature]
+  factory ProUpgradeDialog.fromFeature({
+    Key? key,
+    required AppFeature feature,
+    VoidCallback? onUpgrade,
+  }) {
+    return ProUpgradeDialog(
+      key: key,
+      featureName: feature.displayName,
+      title: feature.unlockTitle,
+      description: feature.benefitDescription,
+      icon: feature.icon,
+      onUpgrade: onUpgrade,
+    );
+  }
+
+  /// Displays the dialog modally with dynamic parameters
   static Future<void> show(
     BuildContext context, {
+    String? featureName,
     required String title,
     required String description,
+    IconData? icon,
     String primaryButtonText = 'Upgrade to Pro',
     String secondaryButtonText = 'Maybe Later',
-    IconData icon = Icons.workspace_premium_rounded,
     VoidCallback? onUpgrade,
   }) {
     return showDialog(
       context: context,
       barrierDismissible: true,
       builder: (ctx) => ProUpgradeDialog(
+        featureName: featureName,
         title: title,
         description: description,
+        icon: icon ?? Icons.workspace_premium_rounded,
         primaryButtonText: primaryButtonText,
         secondaryButtonText: secondaryButtonText,
-        icon: icon,
         onUpgrade: onUpgrade,
       ),
     );
   }
 
-  /// Specialized dialog for reaching the Free Habit Limit (Max 2 Habits)
-  static Future<void> showHabitLimitDialog(BuildContext context) {
+  /// Displays the dialog modally based on an [AppFeature]
+  static Future<void> showFeatureLockedDialog(
+    BuildContext context,
+    AppFeature feature, {
+    VoidCallback? onUpgrade,
+  }) {
     return show(
       context,
-      title: 'Unlock Unlimited Habits',
-      description:
-          "You've reached the Free plan limit of 2 habits. Upgrade to WrindhaOS Pro to create and track unlimited habits.",
-      icon: Icons.track_changes_rounded,
-    );
-  }
-
-  /// Specialized dialog for reaching the Free Subject Limit (Max 2 Subjects)
-  static Future<void> showSubjectLimitDialog(BuildContext context) {
-    return show(
-      context,
-      title: 'Unlock Unlimited Subjects',
-      description:
-          "You've reached the Free plan limit of 2 subjects. Upgrade to WrindhaOS Pro to manage unlimited subjects and organize your complete learning journey.",
-      icon: Icons.menu_book_rounded,
-    );
-  }
-
-  /// Specialized dialog for locked Pro-only features
-  static Future<void> showFeatureLockedDialog(BuildContext context, AppFeature feature) {
-    return show(
-      context,
-      title: 'Unlock ${feature.displayName}',
-      description:
-          '${feature.displayName} is an advanced feature available exclusively on WrindhaOS Pro. Upgrade now to unlock full access.',
+      featureName: feature.displayName,
+      title: feature.unlockTitle,
+      description: feature.benefitDescription,
       icon: feature.icon,
+      onUpgrade: onUpgrade,
     );
+  }
+
+  /// Specialized shortcut for Free Habit Limit (Max 2 Habits)
+  static Future<void> showHabitLimitDialog(BuildContext context, {VoidCallback? onUpgrade}) {
+    return showFeatureLockedDialog(context, AppFeature.habits, onUpgrade: onUpgrade);
+  }
+
+  /// Specialized shortcut for Free Subject Limit (Max 2 Subjects)
+  static Future<void> showSubjectLimitDialog(BuildContext context, {VoidCallback? onUpgrade}) {
+    return showFeatureLockedDialog(context, AppFeature.subjects, onUpgrade: onUpgrade);
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryColor = const Color(0xFF0D5CE5);
+    final textPrimary = isDark ? Colors.white : const Color(0xFF0F172A);
+    final textSecondary = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+    final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+
+    final displayIcon = icon ?? Icons.workspace_premium_rounded;
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+      backgroundColor: cardBg,
       insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-      elevation: 10,
+      elevation: 12,
       child: Container(
         constraints: const BoxConstraints(maxWidth: 420),
         padding: const EdgeInsets.all(28.0),
@@ -95,17 +122,17 @@ class ProUpgradeDialog extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Premium Icon Badge
+            // Premium Icon Glow Container
             Container(
-              width: 64,
-              height: 64,
+              width: 68,
+              height: 68,
               decoration: BoxDecoration(
                 color: primaryColor.withOpacity(0.12),
                 shape: BoxShape.circle,
               ),
               child: Center(
                 child: Icon(
-                  icon,
+                  displayIcon,
                   size: 34,
                   color: primaryColor,
                 ),
@@ -140,27 +167,27 @@ class ProUpgradeDialog extends StatelessWidget {
             ),
             const SizedBox(height: 14),
 
-            // Title
+            // Dynamic Title
             Text(
               title,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w800,
-                color: isDark ? Colors.white : const Color(0xFF0F172A),
+                color: textPrimary,
                 letterSpacing: -0.3,
               ),
             ),
             const SizedBox(height: 12),
 
-            // Description
+            // Dynamic Benefit Description
             Text(
               description,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
-                height: 1.45,
-                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                height: 1.48,
+                color: textSecondary,
               ),
             ),
             const SizedBox(height: 28),
@@ -176,7 +203,7 @@ class ProUpgradeDialog extends StatelessWidget {
                     onUpgrade!();
                   } else {
                     Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const PricingScreen()),
+                      MaterialPageRoute(builder: (_) => const ProPlansScreen()),
                     );
                   }
                 },
@@ -206,7 +233,7 @@ class ProUpgradeDialog extends StatelessWidget {
               child: TextButton(
                 onPressed: () => Navigator.of(context).pop(),
                 style: TextButton.styleFrom(
-                  foregroundColor: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                  foregroundColor: textSecondary,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
                   ),

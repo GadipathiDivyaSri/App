@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../config/subscription_config.dart';
+import '../providers/app_provider.dart';
+import '../widgets/pro_feature_guard.dart';
+import '../widgets/pro_upgrade_dialog.dart';
 import '../theme/app_theme.dart';
 import 'add_milestone_screen.dart';
 
@@ -16,7 +21,9 @@ class _MilestonesScreenState extends State<MilestonesScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Scaffold(
+    return ProFeatureGuard(
+      feature: AppFeature.milestones,
+      child: Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
       appBar: AppBar(
         leading: IconButton(
@@ -121,8 +128,9 @@ class _MilestonesScreenState extends State<MilestonesScreen> {
           const SizedBox(height: 80),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildMilestoneCard(BuildContext context, Map<String, String> m) {
     final isDark = Theme.of(context).brightness == Brightness.dark;

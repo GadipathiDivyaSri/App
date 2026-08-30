@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../config/subscription_config.dart';
 import '../providers/app_provider.dart';
+import '../widgets/pro_feature_guard.dart';
+import '../widgets/pro_upgrade_dialog.dart';
 import '../widgets/upgrade_pro_modal.dart';
 import '../theme/app_theme.dart';
 import 'short_term_priorities_screen.dart';
@@ -23,7 +26,9 @@ class _GoalPyramidScreenState extends State<GoalPyramidScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final totalGoals = _shortGoals.length + _mediumGoals.length + _longGoals.length;
 
-    return Scaffold(
+    return ProFeatureGuard(
+      feature: AppFeature.goals,
+      child: Scaffold(
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
@@ -228,8 +233,9 @@ class _GoalPyramidScreenState extends State<GoalPyramidScreen> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildGoalSection(
       BuildContext context, String title, List<Map<String, String>> goals, VoidCallback onTap) {
