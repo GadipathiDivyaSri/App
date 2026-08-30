@@ -100700,12 +100700,74 @@ if(!q)n.push(new A.aK(0,B.E,A.Z(8,B.n.m()>>>16&255,B.n.m()>>>8&255,B.n.m()&255),
 s=A.B(12)
 return A.X(r,A.a0(A.a([A.X(r,A.as(c,d,r,24),B.j,r,r,new A.O(b,r,r,s,r,r,B.o),r,r,r,B.t_,r,r,r),B.ao,A.m(e,r,r,r,r,B.a3K,r,r,r)],t.p),B.i,B.b_,B.f,0,B.m),B.j,r,r,new A.O(p,r,r,o,n,r,B.o),r,r,r,B.t0,r,r,120)},
 abC(a,b,c){var s,r,q,p,o=null,n=A.p(a).ax.a===B.A,m=J.d(b.h(0,"isCompleted"),!0),l=n?B.T:B.b3,k=A.B(18),j=n?B.bH:B.d,i=A.B(14)
-i=A.X(o,A.as(t.tk.a(b.h(0,"icon")),B.u,o,22),B.j,o,o,new A.O(j,o,o,i,o,o,B.o),o,44,o,o,o,o,44)
-s=A.m(t.p.a(b.h(0,"name")),o,o,o,o,A.J(o,o,n?B.d:B.B,o,o,o,o,o,o,o,o,15,o,o,B.K,o,o,!0,o,o,o,o,o,o,o,o),o,o,o)
-r=A.a0(A.a([s,B.ao,A.m(t.p.a(b.h(0,"frequency"))+" • "+t.p.a(b.h(0,"time")),o,o,o,o,A.J(o,o,n?B.as:B.a6,o,o,o,o,o,o,o,o,12,o,o,B.a2,o,o,!0,o,o,o,o,o,o,o,o),o,o,o)],t.p),B.w,B.h,B.f,0,B.m)
+i=A.X(o,A.as(t.tk.a(b.h(0,"icon")||B.P0),B.u,o,22),B.j,o,o,new A.O(j,o,o,i,o,o,B.o),o,44,o,o,o,o,44)
+s=A.m(t.p.a(b.h(0,"name")||b.h(0,"title")),o,o,o,o,A.J(o,o,n?B.d:B.B,o,o,o,o,o,o,o,o,15,o,o,B.K,o,o,!0,o,o,o,o,o,o,o,o),o,o,o)
+r=A.a0(A.a([s,B.ao,A.m(t.p.a(b.h(0,"frequency")||"DAILY")+" • "+t.p.a(b.h(0,"time")||"8:00 AM"),o,o,o,o,A.J(o,o,n?B.as:B.a6,o,o,o,o,o,o,o,o,12,o,o,B.a2,o,o,!0,o,o,o,o,o,o,o,o),o,o,o)],t.p),B.w,B.h,B.f,0,B.m)
 q=A.cc(o,A.as(m?B.tU:B.bY,m?B.u:B.a_,o,24),B.t,!1,o,o,o,o,o,o,o,o,o,o,o,o,o,o,new A.awp(this,c,m),o,o,o,o,o,o)
 p=A.aaY(B.N,o,o,new A.awr(n),o,o,new A.aws(this,c,m,b),o,o,o,o,o,o,o,o,o,o,o,o,o)
-return A.X(o,A.a4(A.a([i,B.bx,A.aD(r,1),q,p],t.p),B.i,B.h,B.f,0,o,o),B.j,o,o,new A.O(l,o,o,k,o,o,B.o),o,k,o,B.b9,k,1/0)}
+return A.X(o,A.a4(A.a([i,B.bx,A.aD(r,1),q,p],t.p),B.i,B.h,B.f,0,o,o),B.j,o,o,new A.O(l,o,o,k,o,o,B.o),o,k,o,B.b9,k,1/0)},
+apH(a){
+  var self=this;
+  var title=window.prompt("Enter new habit title (e.g. Morning Meditation, 5km Run, Study Flutter):");
+  if(!title||!title.trim()) return;
+  title=title.trim();
+  var freq=window.prompt("Enter frequency (DAILY, WEEKDAYS, WEEKENDS, CUSTOM):", "DAILY");
+  freq=(freq&&freq.trim())?freq.trim().toUpperCase():"DAILY";
+  var time=window.prompt("Enter reminder time (e.g. 8:00 AM):", "8:00 AM");
+  time=(time&&time.trim())?time.trim():"8:00 AM";
+
+  var newHabit=new A.P();
+  newHabit.p(0,"name",title);
+  newHabit.p(0,"title",title);
+  newHabit.p(0,"frequency",freq);
+  newHabit.p(0,"time",time);
+  newHabit.p(0,"isCompleted",false);
+  newHabit.p(0,"streakDay",0);
+  newHabit.p(0,"icon",B.P0);
+
+  self.K(new A.gW(function(){
+    self.d.push(newHabit);
+  }));
+
+  try{
+    if(typeof fetch!=="undefined"){
+      fetch("/api/habits",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({title:title,frequency:freq,time:time,category:"Personal Growth"})
+      }).then(function(r){return r.json()}).then(function(data){
+        if(data&&data.data&&data.data.id){
+          newHabit.p(0,"id",data.data.id);
+        }
+      }).catch(function(){});
+    }
+  }catch(e){}
+},
+apP(a,b){
+  var self=this;
+  var item=self.d[b];
+  if(!item) return;
+  var oldName=t.p.a(item.h(0,"name")||item.h(0,"title"))||"";
+  var newTitle=window.prompt("Edit habit title:", oldName);
+  if(!newTitle||!newTitle.trim()) return;
+  newTitle=newTitle.trim();
+
+  self.K(new A.gW(function(){
+    item.p(0,"name",newTitle);
+    item.p(0,"title",newTitle);
+  }));
+
+  try{
+    var hid=item.h(0,"id");
+    if(hid&&typeof fetch!=="undefined"){
+      fetch("/api/habits/"+hid,{
+        method:"PUT",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({title:newTitle})
+      }).catch(function(){});
+    }
+  }catch(e){}
+}
 };
 A.awI.prototype={
 $0(){A.ad(this.a,!1).aI(null)
@@ -100777,7 +100839,16 @@ try{
 },
 $S:0}
 A.awo.prototype={
-$0(){B.b.h6(this.a.d,this.b)},
+$0(){
+  var habit=this.a.d[this.b];
+  var hid=habit?habit.h(0,"id"):null;
+  B.b.h6(this.a.d,this.b);
+  try{
+    if(hid&&typeof fetch!=="undefined"){
+      fetch("/api/habits/"+hid,{method:"DELETE"}).catch(function(){});
+    }
+  }catch(e){}
+},
 $S:0}
 A.awr.prototype={
 $1(a){var s=null,r=this.a,q=A.as(r?B.nH:B.eT,B.u,s,18)

@@ -140,20 +140,6 @@
   "referralCodes": [],
   "referralTrackings": [],
   "otpStore": {
-    "audit_user_1788091811007@wrindhaos.in": {
-      "code": "759450",
-      "type": "register",
-      "attempts": 0,
-      "maxAttempts": 5,
-      "createdAt": 1788091811016,
-      "expiresAt": 1788092411016,
-      "lastSentAt": 1788091811016,
-      "pendingUser": {
-        "username": "audit_1788091811007",
-        "email": "audit_user_1788091811007@wrindhaos.in",
-        "passwordHash": "66f0d842c541efaab27c0899cd9f588d:025411331b1a6c09f6dad4755df2392c6299217ecd1e72454b5ac12af971f0962af2620b11b30732980e6e6db548180e96085a6aa57d48027fb41a23294fe448"
-      }
-    },
     "audit_user_1788092140541@wrindhaos.in": {
       "code": "764371",
       "type": "register",
