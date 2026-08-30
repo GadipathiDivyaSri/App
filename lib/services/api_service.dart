@@ -186,15 +186,44 @@ class ApiService {
     }
   }
 
+  static Future<Map<String, dynamic>> createExpense({
+    required String title,
+    required String category,
+    required double amount,
+    bool isIncome = false,
+    String paymentMethod = 'UPI',
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/finance/expense'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'title': title,
+          'category': category,
+          'amount': amount,
+          'isIncome': isIncome,
+          'paymentMethod': paymentMethod,
+        }),
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {'success': false, 'message': 'Expense record failed: $e'};
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // USER ACCOUNT ACTIONS
   // ---------------------------------------------------------------------------
-  static Future<Map<String, dynamic>> deleteAccount(String userId) async {
+  static Future<Map<String, dynamic>> deleteAccount({
+    String? userId,
+    String? contact,
+    String? token,
+  }) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/user/delete-account'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'userId': userId}),
+        body: jsonEncode({'userId': userId ?? 'u_1', 'contact': contact, 'token': token}),
       );
       return jsonDecode(response.body);
     } catch (e) {

@@ -438,8 +438,7 @@ class _StudiesScreenState extends State<StudiesScreen> {
                           ),
                         ),
                         IconButton(
-                          icon: Icon(Icons.more_vert_rounded, size: 18, color: textSecondary),
-                          onSelected: null,
+                          icon: Icon(Icons.delete_outline_rounded, size: 18, color: textSecondary),
                           onPressed: () => provider.deleteStudyItem(item.id),
                         ),
                       ],

@@ -45,6 +45,7 @@ class Msg91Service {
   static Future<Map<String, dynamic>> verifyEmailOtp({
     required String email,
     required String otp,
+    String? reqId,
   }) async {
     final cleanEmail = email.trim().toLowerCase();
     final cleanOtp = otp.trim();

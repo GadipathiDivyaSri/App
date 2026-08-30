@@ -76,7 +76,7 @@ class Task {
       };
 
   factory Task.fromJson(Map<String, dynamic> json) => Task(
-        id: json['id'] ?? 't_${DateTime.now().millisecondsSinceEpoch}',
+        id: json['id'] ?? 't_1',
         title: json['title'] ?? 'Untitled Task',
         category: json['category'] ?? 'Studies',
         tag: json['tag'] ?? 'STUDY',
@@ -101,18 +101,23 @@ class CalendarEvent {
   DateTime endTime;
   String location;
   String type; // 'Focus Session', 'Meeting', 'Task'
+  String category;
   bool isCompleted;
 
   CalendarEvent({
     required this.id,
     required this.title,
-    required this.description,
+    this.description = '',
     required this.startTime,
     required this.endTime,
     this.location = 'Workspace A',
     this.type = 'Focus Session',
+    this.category = 'General',
     this.isCompleted = false,
   });
+
+  DateTime get date => startTime;
+  String get time => '${startTime.hour.toString().padLeft(2, '0')}:${startTime.minute.toString().padLeft(2, '0')}';
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -122,6 +127,7 @@ class CalendarEvent {
         'endTime': endTime.toIso8601String(),
         'location': location,
         'type': type,
+        'category': category,
         'isCompleted': isCompleted,
       };
 
@@ -137,6 +143,7 @@ class CalendarEvent {
             : DateTime.now().add(const Duration(hours: 1)),
         location: json['location'] ?? 'Workspace A',
         type: json['type'] ?? 'Focus Session',
+        category: json['category'] ?? 'General',
         isCompleted: json['isCompleted'] ?? false,
       );
 }
@@ -316,10 +323,15 @@ class StudySubject {
     required this.id,
     required this.name,
     this.code = '',
-    this.colorHex = 0xFF0D5CE5,
+    int? colorHex,
+    int? colorValue,
     this.progress = 0.0,
     List<String>? topics,
-  }) : topics = topics ?? [];
+  })  : colorHex = colorValue ?? colorHex ?? 0xFF0D5CE5,
+        topics = topics ?? [];
+
+  int get colorValue => colorHex;
+  set colorValue(int val) => colorHex = val;
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -374,10 +386,10 @@ class StudyItem {
       };
 
   factory StudyItem.fromJson(Map<String, dynamic> json) => StudyItem(
-        id: json['id'] ?? 'st_${DateTime.now().millisecondsSinceEpoch}',
+        id: json['id'] ?? 'item_${DateTime.now().millisecondsSinceEpoch}',
         subjectId: json['subjectId'] ?? '',
         subjectName: json['subjectName'] ?? '',
-        title: json['title'] ?? 'Study Item',
+        title: json['title'] ?? 'Task',
         type: json['type'] ?? 'TASK',
         dueDate: json['dueDate'] != null
             ? (DateTime.tryParse(json['dueDate'].toString()) ?? DateTime.now())
@@ -391,7 +403,7 @@ class CareerRoadmapNode {
   String section; // 'GOAL', 'SKILLS', 'LEARNING', 'PROJECTS', 'EXPERIENCE', 'OPPORTUNITY'
   String title;
   String description;
-  String status; // 'IN_PROGRESS', 'PLANNED', 'COMPLETED'
+  String status; // 'PLANNED', 'IN_PROGRESS', 'COMPLETED'
   int order;
 
   CareerRoadmapNode({
@@ -401,7 +413,17 @@ class CareerRoadmapNode {
     this.description = '',
     this.status = 'PLANNED',
     this.order = 0,
-  });
+    bool? isCompleted,
+  }) {
+    if (isCompleted != null) {
+      status = isCompleted ? 'COMPLETED' : 'PLANNED';
+    }
+  }
+
+  bool get isCompleted => status == 'COMPLETED';
+  set isCompleted(bool val) {
+    status = val ? 'COMPLETED' : 'PLANNED';
+  }
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -433,6 +455,7 @@ class UserProfile {
   int focusScore;
   int activeStreak;
   bool isPremium;
+  String subscriptionPlan;
   String? token;
   String referralCode;
   String? referredByCode;
@@ -450,6 +473,7 @@ class UserProfile {
     required this.focusScore,
     required this.activeStreak,
     this.isPremium = false,
+    this.subscriptionPlan = 'FREE',
     this.token,
     this.referralCode = 'WRINDHA7K92',
     this.referredByCode,
@@ -468,6 +492,7 @@ class UserProfile {
         'focusScore': focusScore,
         'activeStreak': activeStreak,
         'isPremium': isPremium,
+        'subscriptionPlan': subscriptionPlan,
         'token': token,
         'referralCode': referralCode,
         'referredByCode': referredByCode,
@@ -486,6 +511,7 @@ class UserProfile {
         focusScore: json['focusScore'] ?? 92,
         activeStreak: json['activeStreak'] ?? 14,
         isPremium: json['isPremium'] ?? false,
+        subscriptionPlan: json['subscriptionPlan'] ?? (json['isPremium'] == true ? 'PREMIUM' : 'FREE'),
         token: json['token'],
         referralCode: json['referralCode'] ?? 'WRINDHA7K92',
         referredByCode: json['referredByCode'],

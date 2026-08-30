@@ -185,11 +185,21 @@ class AppProvider extends ChangeNotifier {
   // ---------------------------------------------------------------------------
   List<CareerRoadmapNode> _careerNodes = [];
   List<CareerRoadmapNode> get careerNodes => _careerNodes;
+  List<CareerRoadmapNode> get careerRoadmap => _careerNodes;
 
   void addCareerNode(CareerRoadmapNode node) {
     _careerNodes.add(node);
     _saveCareerNodes();
     notifyListeners();
+  }
+
+  void toggleCareerNode(String id) {
+    final idx = _careerNodes.indexWhere((n) => n.id == id);
+    if (idx != -1) {
+      _careerNodes[idx].isCompleted = !_careerNodes[idx].isCompleted;
+      _saveCareerNodes();
+      notifyListeners();
+    }
   }
 
   void updateCareerNode(CareerRoadmapNode node) {
@@ -315,15 +325,27 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void editCalendarEvent(String id, String title, String category, DateTime date, String time) {
+  void editCalendarEvent(
+    String id,
+    String title,
+    String description,
+    String location,
+    String type, [
+    DateTime? startTime,
+    DateTime? endTime,
+  ]) {
     final index = _calendarEvents.indexWhere((e) => e.id == id);
     if (index != -1) {
+      final existing = _calendarEvents[index];
       _calendarEvents[index] = CalendarEvent(
         id: id,
         title: title,
-        category: category,
-        date: date,
-        time: time,
+        description: description,
+        location: location,
+        type: type,
+        startTime: startTime ?? existing.startTime,
+        endTime: endTime ?? existing.endTime,
+        isCompleted: existing.isCompleted,
       );
       _saveEvents();
       notifyListeners();
