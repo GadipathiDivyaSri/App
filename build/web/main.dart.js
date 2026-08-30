@@ -100701,10 +100701,8 @@ p=A.a4(A.a([r,A.m(p,j,j,j,j,A.J(j,j,h,j,j,j,j,j,j,j,j,11,j,j,B.x,j,j,!0,j,1.1,j,
 r=i?B.ah:B.ec
 n=A.B(20)
 m=i?A.bO(B.ay,B.p,1):j
-l=q.length
-if(l===0)l=B.Jj
-else{if(l>3)l=3
-l=A.a4(A.Pc(l,new A.awL(k),!0,t.l7),B.i,B.iu,B.f,0,j,j)}n=A.X(j,l,B.j,j,j,new A.O(r,j,m,n,j,j,B.o),j,j,j,B.MB,j,j,j)
+l=A.a4(A.Pc(7,new A.awL(k),!0,t.l7),B.i,B.iu,B.f,0,j,j)
+n=A.X(j,l,B.j,j,j,new A.O(r,j,m,n,j,j,B.o),j,j,j,B.MB,j,j,j)
 r=null; m=null
 return A.cJ(f,g,A.dA(A.a0(A.a([p,B.aP,n,B.an,A.m("Active Habits",j,j,j,j,A.J(j,j,i?B.d:B.af,j,j,j,j,j,j,j,j,18,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j),B.aP,A.vP(new A.awN(k),q.length,B.f2,!0),B.dx],o),B.w,B.h,B.f,0,B.m),j,B.t,B.bw,j,j,B.S),j,s)},
 R_(a,b,c,d,e){var s,r=null,q=A.p(a).ax.a===B.A,p=q?B.T:B.d,o=A.B(18),n=A.a([],t.V)
