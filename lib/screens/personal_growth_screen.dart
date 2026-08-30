@@ -129,10 +129,11 @@ class PersonalGrowthScreen extends StatelessWidget {
               isDark: isDark,
               isLocked: !provider.hasAccess(AppFeature.expenseTracker),
               onTap: () {
-                ProFeatureGuard.navigate(
+                Navigator.push(
                   context,
-                  feature: AppFeature.expenseTracker,
-                  builder: () => const ExpenseTrackerScreen(),
+                  MaterialPageRoute(
+                    builder: (_) => const ExpenseTrackerScreen(),
+                  ),
                 );
               },
             ),
@@ -147,10 +148,11 @@ class PersonalGrowthScreen extends StatelessWidget {
               isDark: isDark,
               isLocked: !provider.hasAccess(AppFeature.careerRoadmap),
               onTap: () {
-                ProFeatureGuard.navigate(
+                Navigator.push(
                   context,
-                  feature: AppFeature.careerRoadmap,
-                  builder: () => const CareerRoadmapScreen(),
+                  MaterialPageRoute(
+                    builder: (_) => const CareerRoadmapScreen(),
+                  ),
                 );
               },
             ),
@@ -165,10 +167,11 @@ class PersonalGrowthScreen extends StatelessWidget {
               isDark: isDark,
               isLocked: !provider.hasAccess(AppFeature.eisenhowerMatrix),
               onTap: () {
-                ProFeatureGuard.navigate(
+                Navigator.push(
                   context,
-                  feature: AppFeature.eisenhowerMatrix,
-                  builder: () => const OrganizeMatrixScreen(),
+                  MaterialPageRoute(
+                    builder: (_) => const OrganizeMatrixScreen(),
+                  ),
                 );
               },
             ),
@@ -183,10 +186,11 @@ class PersonalGrowthScreen extends StatelessWidget {
               isDark: isDark,
               isLocked: !provider.hasAccess(AppFeature.notes),
               onTap: () {
-                ProFeatureGuard.navigate(
+                Navigator.push(
                   context,
-                  feature: AppFeature.notes,
-                  builder: () => const NotesScreen(),
+                  MaterialPageRoute(
+                    builder: (_) => const NotesScreen(),
+                  ),
                 );
               },
             ),

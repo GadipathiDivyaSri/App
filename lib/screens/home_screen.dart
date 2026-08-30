@@ -96,10 +96,11 @@ class HomeScreen extends StatelessWidget {
                       lightIconContainerColor: AppTheme.pastelCareerIcon,
                       isLocked: !provider.hasAccess(AppFeature.careerRoadmap),
                       onTap: () {
-                        ProFeatureGuard.navigate(
+                        Navigator.push(
                           context,
-                          feature: AppFeature.careerRoadmap,
-                          builder: () => const CareerScreen(),
+                          MaterialPageRoute(
+                            builder: (_) => const CareerScreen(),
+                          ),
                         );
                       },
                     ),
@@ -153,10 +154,11 @@ class HomeScreen extends StatelessWidget {
                       lightIconContainerColor: AppTheme.pastelPriorityIcon,
                       isLocked: !provider.hasAccess(AppFeature.priorityMatrix),
                       onTap: () {
-                        ProFeatureGuard.navigate(
+                        Navigator.push(
                           context,
-                          feature: AppFeature.priorityMatrix,
-                          builder: () => const PriorityMatrixScreen(),
+                          MaterialPageRoute(
+                            builder: (_) => const PriorityMatrixScreen(),
+                          ),
                         );
                       },
                     ),
@@ -172,10 +174,11 @@ class HomeScreen extends StatelessWidget {
                       lightIconContainerColor: AppTheme.pastelAnalyticsIcon,
                       isLocked: !provider.hasAccess(AppFeature.analytics),
                       onTap: () {
-                        ProFeatureGuard.navigate(
+                        Navigator.push(
                           context,
-                          feature: AppFeature.analytics,
-                          builder: () => const AnalyticsScreen(),
+                          MaterialPageRoute(
+                            builder: (_) => const AnalyticsScreen(),
+                          ),
                         );
                       },
                     ),
