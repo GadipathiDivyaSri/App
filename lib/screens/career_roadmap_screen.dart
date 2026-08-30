@@ -259,7 +259,13 @@ class _CareerRoadmapScreenState extends State<CareerRoadmapScreen> {
                                 child: Row(
                                   children: [
                                     GestureDetector(
-                                      onTap: () => provider.toggleCareerNode(node.id),
+                                      onTap: () {
+                                        if (!isPremium) {
+                                          ProUpgradeDialog.showFeatureLockedDialog(context, AppFeature.careerRoadmap);
+                                        } else {
+                                          provider.toggleCareerNode(node.id);
+                                        }
+                                      },
                                       child: Icon(
                                         node.isCompleted ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
                                         color: node.isCompleted ? const Color(0xFF10B981) : Colors.grey,
@@ -290,7 +296,13 @@ class _CareerRoadmapScreenState extends State<CareerRoadmapScreen> {
                                     ),
                                     IconButton(
                                       icon: Icon(Icons.delete_outline_rounded, size: 18, color: textSecondary),
-                                      onPressed: () => provider.deleteCareerNode(node.id),
+                                      onPressed: () {
+                                        if (!isPremium) {
+                                          ProUpgradeDialog.showFeatureLockedDialog(context, AppFeature.careerRoadmap);
+                                        } else {
+                                          provider.deleteCareerNode(node.id);
+                                        }
+                                      },
                                     ),
                                   ],
                                 ),
