@@ -54,6 +54,23 @@ class HomeScreen extends StatelessWidget {
                       ],
                     ),
                   ),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.04),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: IconButton(
+                      icon: Icon(
+                        isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+                        color: isDark ? const Color(0xFFFBBF24) : AppTheme.textPrimary,
+                        size: 22,
+                      ),
+                      tooltip: isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode',
+                      onPressed: () {
+                        provider.toggleTheme();
+                      },
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 20),

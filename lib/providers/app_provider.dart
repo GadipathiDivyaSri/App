@@ -10,6 +10,41 @@ import '../services/feature_access_service.dart';
 class AppProvider extends ChangeNotifier {
   ThemeMode _themeMode = ThemeMode.light;
   ThemeMode get themeMode => _themeMode;
+  bool get isDarkMode => _themeMode == ThemeMode.dark;
+
+  AppProvider() {
+    loadThemePreference();
+  }
+
+  void toggleTheme() {
+    _themeMode = _themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
+    _saveThemePreference();
+    notifyListeners();
+  }
+
+  void setThemeMode(ThemeMode mode) {
+    _themeMode = mode;
+    _saveThemePreference();
+    notifyListeners();
+  }
+
+  Future<void> _saveThemePreference() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('is_dark_mode', _themeMode == ThemeMode.dark);
+    } catch (_) {}
+  }
+
+  Future<void> loadThemePreference() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final isDark = prefs.getBool('is_dark_mode');
+      if (isDark != null) {
+        _themeMode = isDark ? ThemeMode.dark : ThemeMode.light;
+        notifyListeners();
+      }
+    } catch (_) {}
+  }
 
   bool _isLoggedIn = false;
   bool get isLoggedIn => _isLoggedIn;

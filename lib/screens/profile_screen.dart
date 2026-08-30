@@ -219,7 +219,71 @@ class ProfileScreen extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 20),
+            // Appearance & Theme Section
+            _buildSectionHeader('APPEARANCE & THEME'),
+            Container(
+              margin: const EdgeInsets.only(bottom: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: isDark ? AppTheme.darkCardBg : AppTheme.cardSurface,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(
+                  color: isDark ? AppTheme.darkCardBorder : AppTheme.borderLight,
+                  width: 1,
+                ),
+                boxShadow: isDark ? AppTheme.darkCardShadow : AppTheme.cardShadow,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: isDark ? AppTheme.darkIconBg : AppTheme.personalGrowth,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+                          size: 20,
+                          color: isDark ? AppTheme.darkIconGlow : AppTheme.primaryAccent,
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Dark Mode',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: isDark ? Colors.white : AppTheme.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            isDark ? 'Deep Navy Midnight Theme' : 'Warm Pastel Canvas',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  Switch.adaptive(
+                    value: isDark,
+                    activeColor: AppTheme.primaryAccent,
+                    onChanged: (val) {
+                      provider.toggleTheme();
+                    },
+                  ),
+                ],
+              ),
+            ),
 
             // Account Section
             _buildSectionHeader('ACCOUNT'),
