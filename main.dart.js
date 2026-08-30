@@ -101921,7 +101921,7 @@ o=A.a4(A.a([p,B.bx,A.aD(b.R3(a5,"ACTIVE STREAK",""+q+" Days",o),1)],r),B.i,B.h,B
 q=b.Gk("ACCOUNT")
 p=t._O
 n=b.QT(a5,A.a([new A.jl(B.nD,"About Us",new A.ait(a5),a,a),new A.jl(B.tN,"Terms & Conditions",new A.aix(a5),a,a),new A.jl(B.Ns,"Pricing Plans (₹49/month)",new A.aiy(a5),a,a),new A.jl(B.NX,"Payment History",new A.aiz(a5),a,a),new A.jl(B.tL,"Delete Account",new A.aiA(b,a5,a0),B.bG,B.bG)],p))
-m=b.Gk("PREFERENCES")
+m=b.Gk("APPEARANCE & THEME")
 l=a2?B.T:B.d
 k=A.B(18)
 j=A.a([],t.V)
@@ -101933,10 +101933,12 @@ f=a2?B.bH:B.eb
 e=A.B(12)
 d=i?B.N:B.C
 c=A.B(10)
-d=A.cc(a,A.X(a,A.m("Light",a,a,a,a,A.J(a,a,i?B.d:B.iv,a,a,a,a,a,a,a,a,12,a,a,B.x,a,a,!0,a,a,a,a,a,a,a,a),a,a,a),B.j,a,a,new A.O(d,a,a,c,a,a,B.o),a,a,a,B.mO,a,a,a),B.t,!1,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,new A.aiC(a0),a,a,a,a,a,a)
-i=a2?B.am:B.C
-c=A.B(10)
-return A.cJ(a4,a3,A.dA(A.a0(A.a([s,B.an,o,B.an,q,n,B.aD,b.Gk("SUPPORT & COMMUNITY"),b.QT(a5,A.a([new A.jl(B.NW,"Support & Care",new A.aiE(b,a5),a,a),new A.jl(B.tE,"Referral Page",new A.aiu(a5),a,a)],p)),B.an,A.cG(A.a0(A.a([A.aRx(B.OO,B.a9f,new A.aiv(b,a5)),B.ao,A.aRx(B.Oi,B.a9A,new A.aiw(b,a5,a0))],r),B.i,B.h,B.f,0,B.m),a,a),B.a01],r),B.i,B.h,B.f,0,B.m),a,B.t,B.bw,a,a,B.S),a,a)},
+var lBtn=A.cc(a,A.X(a,A.m("Light",a,a,a,a,A.J(a,a,i?B.d:B.iv,a,a,a,a,a,a,a,a,12,a,a,B.x,a,a,!0,a,a,a,a,a,a,a,a),a,a,a),B.j,a,a,new A.O(d,a,a,c,a,a,B.o),a,a,a,B.mO,a,a,a),B.t,!1,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,new A.aiC(a0),a,a,a,a,a,a)
+var dBtn=A.cc(a,A.X(a,A.m("Dark",a,a,a,a,A.J(a,a,a2?B.d:B.iv,a,a,a,a,a,a,a,a,12,a,a,B.x,a,a,!0,a,a,a,a,a,a,a,a),a,a,a),B.j,a,a,new A.O(a2?B.N:B.C,a,a,c,a,a,B.o),a,a,a,B.mO,a,a,a),B.t,!1,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,new A.aiD(a0),a,a,a,a,a,a)
+var tBtns=A.a4(A.a([lBtn,B.bx,dBtn],r),B.i,B.h,B.f,0,a,a)
+var tRow=A.a4(A.a([A.a4(A.a([g,B.ce,A.m(a2?"Dark Mode":"Light Mode",a,a,a,a,A.J(a,a,a2?B.d:B.B,a,a,a,a,a,a,a,a,14,a,a,B.K,a,a,!0,a,a,a,a,a,a,a,a),a,a,a)],r),B.i,B.h,B.f,0,a,a),B.an,tBtns],r),B.i,B.ap,B.f,0,a,a)
+var themeCard=A.X(a,A.aD(tRow,1),B.j,a,a,new A.O(l,a,a,e,j,a,B.o),a,a,a,B.t1,a,a,a)
+return A.cJ(a4,a3,A.dA(A.a0(A.a([s,B.an,o,B.an,m,themeCard,B.an,q,n,B.aD,b.Gk("SUPPORT & COMMUNITY"),b.QT(a5,A.a([new A.jl(B.NW,"Support & Care",new A.aiE(b,a5),a,a),new A.jl(B.tE,"Referral Page",new A.aiu(a5),a,a)],p)),B.an,A.cG(A.a0(A.a([A.aRx(B.OO,B.a9f,new A.aiv(b,a5)),B.ao,A.aRx(B.Oi,B.a9A,new A.aiw(b,a5,a0))],r),B.i,B.h,B.f,0,B.m),a,a),B.a01],r),B.i,B.h,B.f,0,B.m),a,B.t,B.bw,a,a,B.S),a,a)},
 R3(a,b,c,d){var s=null,r=A.p(a).ax.a===B.A?B.T:B.b3,q=A.B(18)
 return A.X(s,A.a0(A.a([A.m(b,s,s,s,s,A.J(s,s,A.b1(4287931320),s,s,s,s,s,s,s,s,11,s,s,B.x,s,s,!0,s,1.1,s,s,s,s,s,s),s,s,s),B.ao,A.m(c,s,s,s,s,A.J(s,s,d,s,s,s,s,s,s,s,s,24,s,s,B.K,s,s,!0,s,s,s,s,s,s,s,s),s,s,s)],t.p),B.i,B.h,B.f,0,B.m),B.j,s,s,new A.O(r,s,s,q,s,s,B.o),s,s,s,B.t1,s,s,s)},
 Gk(a){var s=null

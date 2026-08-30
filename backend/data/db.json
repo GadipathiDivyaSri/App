@@ -479,21 +479,6 @@
     }
   ],
   "referralTrackings": [],
-  "otpStore": {
-    "audit_user_1788100937533@wrindhaos.in": {
-      "code": "141962",
-      "type": "register",
-      "attempts": 0,
-      "maxAttempts": 5,
-      "createdAt": 1788100937554,
-      "expiresAt": 1788101537554,
-      "lastSentAt": 1788100937554,
-      "pendingUser": {
-        "username": "audit_1788100937533",
-        "email": "audit_user_1788100937533@wrindhaos.in",
-        "passwordHash": "43ce575b5fcc797b38920f9a66e2c8b4:6879eadf87994ca40e21e45e03e10b080b7ca77b3dec3a5af523680623796f6499bff8f2412a19488e1f3486e1701f5199966c8f0cb61f15624b4d0178494b2d"
-      }
-    }
-  },
+  "otpStore": {},
   "habitCompletions": []
 }
