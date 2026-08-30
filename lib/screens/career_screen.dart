@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../providers/app_provider.dart';
 import '../theme/app_theme.dart';
 import 'career_roadmap_screen.dart';
 
@@ -9,35 +7,37 @@ class CareerScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<AppProvider>(context);
-    final careerTasks =
-        provider.tasks.where((t) => t.category == 'Career Roadmap').toList();
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    final primaryColor = isDark ? AppTheme.darkPrimary : AppTheme.lightPrimary;
+    const bgCream = Color(0xFFFFF9F0);
+    const textDark = Color(0xFF2D2622);
+    const textMuted = Color(0xFF8D827A);
+    const primaryCoral = Color(0xFFE87552);
+    const cardPeach = Color(0xFFFFD4C2);
+    const cardNodeBg = Color(0xFFFFF2EC);
 
     return Scaffold(
-      backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
+      backgroundColor: bgCream,
       appBar: AppBar(
+        backgroundColor: bgCream,
+        elevation: 0,
         leading: IconButton(
-          icon: Icon(
+          icon: const Icon(
             Icons.arrow_back_ios_new_rounded,
             size: 20,
-            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+            color: textDark,
           ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(
+        title: const Text(
           'Career Pathways & Goals',
           style: TextStyle(
-            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+            color: textDark,
             fontWeight: FontWeight.w800,
           ),
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'career_screen_fab',
-        backgroundColor: primaryColor,
+        backgroundColor: primaryCoral,
         elevation: 6,
         icon: const Icon(Icons.alt_route_rounded, color: Colors.white),
         label: const Text(
@@ -58,16 +58,13 @@ class CareerScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Top Rank & XP Header Banner (Refer to Image 2)
+            // Top Career Pathways Banner Card
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: isDark ? AppTheme.darkCardBg : AppTheme.pastelCareer,
+                color: cardPeach,
                 borderRadius: BorderRadius.circular(22),
-                border: isDark
-                    ? Border.all(color: AppTheme.darkCardBorder, width: 1)
-                    : null,
               ),
               child: Row(
                 children: [
@@ -75,35 +72,33 @@ class CareerScreen extends StatelessWidget {
                     width: 52,
                     height: 52,
                     decoration: BoxDecoration(
-                      color: isDark
-                          ? AppTheme.darkIconBg
-                          : AppTheme.pastelCareerIcon,
+                      color: primaryCoral,
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    child: Icon(
+                    child: const Icon(
                       Icons.work_outline_rounded,
-                      color: isDark ? AppTheme.darkIconGlow : Colors.white,
+                      color: Colors.white,
                       size: 28,
                     ),
                   ),
                   const SizedBox(width: 16),
-                  Expanded(
+                  const Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           'Career Pathways',
                           style: TextStyle(
-                            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+                            color: textDark,
                             fontSize: 18,
                             fontWeight: FontWeight.w800,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        SizedBox(height: 4),
                         Text(
                           'Pathways & Goals 🎯',
                           style: TextStyle(
-                            color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
+                            color: textMuted,
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
                           ),
@@ -130,10 +125,10 @@ class CareerScreen extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF132F5C) : const Color(0xFFFFECE5),
+                  color: cardNodeBg,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: isDark ? AppTheme.darkIconGlow : AppTheme.lightPrimary,
+                    color: primaryCoral,
                     width: 1.5,
                   ),
                 ),
@@ -141,15 +136,18 @@ class CareerScreen extends StatelessWidget {
                   children: [
                     Container(
                       padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: isDark ? AppTheme.darkIconGlow : AppTheme.lightPrimary,
+                      decoration: const BoxDecoration(
+                        color: primaryCoral,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.hub_rounded,
-                          color: Colors.white, size: 22),
+                      child: const Icon(
+                        Icons.hub_rounded,
+                        color: Colors.white,
+                        size: 22,
+                      ),
                     ),
                     const SizedBox(width: 14),
-                    Expanded(
+                    const Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -158,26 +156,29 @@ class CareerScreen extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w800,
-                              color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+                              color: textDark,
                             ),
                           ),
-                          const SizedBox(height: 2),
+                          SizedBox(height: 2),
                           Text(
                             'Drag, zoom & connect skill nodes live',
                             style: TextStyle(
                               fontSize: 12,
-                              color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
+                              color: textMuted,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    Icon(Icons.arrow_forward_ios_rounded,
-                        size: 16,
-                        color: isDark ? AppTheme.darkIconGlow : AppTheme.lightPrimary),
+                    const Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      size: 16,
+                      color: primaryCoral,
+                    ),
                   ],
                 ),
               ),
+            ),
             const SizedBox(height: 80),
           ],
         ),
