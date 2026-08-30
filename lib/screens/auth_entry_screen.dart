@@ -66,21 +66,41 @@ class _AuthEntryScreenState extends State<AuthEntryScreen> {
               // Logo / Brand Icon
               Center(
                 child: Container(
-                  width: 84,
-                  height: 84,
+                  width: 96,
+                  height: 96,
                   decoration: BoxDecoration(
-                    color: primaryColor.withOpacity(0.12),
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: primaryColor.withOpacity(0.3),
-                      width: 2,
-                    ),
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF0D5CE5).withOpacity(0.35),
+                        blurRadius: 24,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
                   ),
-                  child: Center(
-                    child: Icon(
-                      Icons.auto_awesome_rounded,
-                      size: 42,
-                      color: primaryColor,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(24),
+                    child: Image.asset(
+                      'assets/images/wrindha_logo.png',
+                      width: 96,
+                      height: 96,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF060B1E),
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        child: const Center(
+                          child: Text(
+                            'W',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 44,
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
