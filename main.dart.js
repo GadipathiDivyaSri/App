@@ -100900,6 +100900,7 @@ A.SmartAssistantSendClosure.prototype = {
 
 
 
+
 A.SmartAssistantWidget.prototype = {
   E: function(a5) {
     var a = null,
@@ -100976,7 +100977,7 @@ A.SmartAssistantWidget.prototype = {
     );
     var welcomeBubble = A.X(
       a,
-      welcomeText,
+      A.cG(welcomeText, a, a),
       B.j,
       a,
       a,
@@ -100987,11 +100988,7 @@ A.SmartAssistantWidget.prototype = {
       a,
       a,
       a,
-      14,
-      12,
-      16,
-      12,
-      16
+      a
     );
     list.push(
       A.a4(
@@ -101020,7 +101017,7 @@ A.SmartAssistantWidget.prototype = {
     );
     var userBubble = A.X(
       a,
-      userText,
+      A.cG(userText, a, a),
       B.j,
       a,
       a,
@@ -101031,11 +101028,7 @@ A.SmartAssistantWidget.prototype = {
       a,
       a,
       a,
-      14,
-      12,
-      16,
-      12,
-      16
+      a
     );
     list.push(
       A.a4(
@@ -101064,50 +101057,46 @@ A.SmartAssistantWidget.prototype = {
     );
 
     function makeTaskItem(title, iconObj) {
+      var itemContent = A.a4(
+        A.a(
+          [
+            A.as(iconObj, primaryBlue, a, 18),
+            B.ao,
+            A.m(
+              title,
+              a,
+              a,
+              a,
+              a,
+              A.J(a, a, textColor, a, a, a, a, a, a, a, a, 13.5, a, a, B.fL, a, a, !0, a, a, a, a, a, a, a, a),
+              a,
+              a,
+              a
+            )
+          ],
+          pList
+        ),
+        B.i,
+        B.h,
+        B.f,
+        0,
+        a,
+        a
+      );
       return A.X(
         a,
-        A.a4(
-          A.a(
-            [
-              A.as(iconObj, primaryBlue, a, 18),
-              B.ao,
-              A.m(
-                title,
-                a,
-                a,
-                a,
-                a,
-                A.J(a, a, textColor, a, a, a, a, a, a, a, a, 13.5, a, a, B.fL, a, a, !0, a, a, a, a, a, a, a, a),
-                a,
-                a,
-                a
-              )
-            ],
-            pList
-          ),
-          B.i,
-          B.h,
-          B.f,
-          0,
-          a,
-          a
-        ),
+        A.cG(itemContent, a, a),
         B.j,
         a,
         a,
         new A.O(cardBg, a, a, A.B(10), a, a, B.o),
         a,
-        42,
         a,
         a,
         a,
         a,
-        42,
-        12,
-        8,
-        12,
-        8,
-        12
+        a,
+        a
       );
     }
 
@@ -101125,7 +101114,7 @@ A.SmartAssistantWidget.prototype = {
     );
     var matrixCard = A.X(
       a,
-      cardContent,
+      A.cG(cardContent, a, a),
       B.j,
       a,
       a,
@@ -101136,11 +101125,7 @@ A.SmartAssistantWidget.prototype = {
       a,
       a,
       a,
-      14,
-      14,
-      14,
-      14,
-      14
+      a
     );
 
     var robotAvatar2 = A.X(
@@ -101173,35 +101158,31 @@ A.SmartAssistantWidget.prototype = {
 
     // 6. Suggestion Chips Row: "Check Deadlines", "Study Summary", "New Task"
     function makeChip(label) {
+      var chipTextWidget = A.m(
+        label,
+        a,
+        a,
+        a,
+        a,
+        A.J(a, a, textColor, a, a, a, a, a, a, a, a, 12, a, a, B.fL, a, a, !0, a, a, a, a, a, a, a, a),
+        a,
+        a,
+        a
+      );
       return A.X(
         a,
-        A.m(
-          label,
-          a,
-          a,
-          a,
-          a,
-          A.J(a, a, textColor, a, a, a, a, a, a, a, a, 12, a, a, B.fL, a, a, !0, a, a, a, a, a, a, a, a),
-          a,
-          a,
-          a
-        ),
+        A.cG(chipTextWidget, a, a),
         B.j,
         a,
         a,
         new A.O(cardBg, a, a, A.B(18), a, a, B.o),
         a,
-        34,
         a,
         a,
         a,
         a,
-        34,
-        14,
-        8,
-        14,
-        8,
-        14
+        a,
+        a
       );
     }
 
@@ -101227,29 +101208,24 @@ A.SmartAssistantWidget.prototype = {
     );
     var inputField = A.X(
       a,
-      A.a4(A.a([A.aD(inputPlaceholder, 1), micIcon], pList), B.i, B.h, B.f, 0, a, a),
+      A.cG(A.a4(A.a([A.aD(inputPlaceholder, 1), micIcon], pList), B.i, B.h, B.f, 0, a, a), a, a),
       B.j,
       a,
       a,
       new A.O(bubbleBg, a, a, A.B(22), a, a, B.o),
       a,
-      44,
       a,
       a,
       a,
       a,
-      44,
-      16,
-      10,
-      16,
-      10,
-      16
+      a,
+      a
     );
 
     var sendIcon = A.as(B.tX, B.d, a, 20);
     var sendButton = A.X(
       a,
-      sendIcon,
+      A.cG(sendIcon, a, a),
       B.j,
       a,
       a,
@@ -101268,7 +101244,7 @@ A.SmartAssistantWidget.prototype = {
     list.push(B.aD);
 
     var bodyColumn = A.a0(list, B.w, B.h, B.f, 0, B.m);
-    var body = new A.aw(B.bw, A.X(a, bodyColumn, a, a, a, a, a, a, a, a, a, a, a, 16, 12, 16, 12, 16), a);
+    var body = new A.aw(B.bw, bodyColumn, a);
 
     return A.cJ(appBar, bgColor, body, a, a);
   }
