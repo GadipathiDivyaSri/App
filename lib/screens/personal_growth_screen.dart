@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../config/subscription_config.dart';
 import '../providers/app_provider.dart';
+import '../widgets/pro_feature_guard.dart';
+import '../widgets/pro_upgrade_dialog.dart';
 import '../widgets/upgrade_pro_modal.dart';
 import '../theme/app_theme.dart';
 import 'habit_tracker_screen.dart';
@@ -15,7 +18,7 @@ class PersonalGrowthScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final isPremium = Provider.of<AppProvider>(context).user.isPremium;
+    final provider = Provider.of<AppProvider>(context);
 
     return Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
@@ -40,7 +43,7 @@ class PersonalGrowthScreen extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
         child: Column(
           children: [
-            // Top Pastel / Dark Banner (Refer to Image 2)
+            // Top Banner
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
@@ -99,6 +102,7 @@ class PersonalGrowthScreen extends StatelessWidget {
             const SizedBox(height: 24),
 
             // Navigation List Cards
+            // 1. Habits (Free Plan Allowed up to 2, Pro Unlimited)
             _buildMenuCard(
               context,
               category: 'SELF IMPROVEMENT',
@@ -116,97 +120,74 @@ class PersonalGrowthScreen extends StatelessWidget {
             ),
             const SizedBox(height: 14),
 
+            // 2. Expenses (Pro Only)
             _buildMenuCard(
               context,
               category: 'FINANCIAL HEALTH',
               title: 'Track your Expenses',
               icon: Icons.account_balance_wallet_outlined,
               isDark: isDark,
-              isLocked: !isPremium,
+              isLocked: !provider.hasAccess(AppFeature.expenseTracker),
               onTap: () {
-                if (!isPremium) {
-                  showUpgradeProModal(
-                    context,
-                    featureTitle: 'Expense Tracker',
-                    limitExplanation: 'Personal Finance Tracking & Expense Ledger are exclusive to Pro members. Upgrade for ₹49/month to unlock!',
-                  );
-                } else {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const ExpenseTrackerScreen(),
-                    ),
-                  );
-                }
+                ProFeatureGuard.navigate(
+                  context,
+                  feature: AppFeature.expenseTracker,
+                  builder: () => const ExpenseTrackerScreen(),
+                );
               },
             ),
             const SizedBox(height: 14),
 
+            // 3. Career Roadmap (Pro Only)
             _buildMenuCard(
               context,
               category: 'CAREER ROADMAP',
               title: 'Career Roadmap & Growth',
               icon: Icons.alt_route_rounded,
               isDark: isDark,
+              isLocked: !provider.hasAccess(AppFeature.careerRoadmap),
               onTap: () {
-                Navigator.push(
+                ProFeatureGuard.navigate(
                   context,
-                  MaterialPageRoute(
-                    builder: (_) => const CareerRoadmapScreen(),
-                  ),
+                  feature: AppFeature.careerRoadmap,
+                  builder: () => const CareerRoadmapScreen(),
                 );
               },
             ),
             const SizedBox(height: 14),
 
+            // 4. Organize Matrix (Pro Only)
             _buildMenuCard(
               context,
               category: 'ORGANIZATION',
               title: 'Organize your tasks',
               icon: Icons.format_list_bulleted_rounded,
               isDark: isDark,
-              isLocked: !isPremium,
+              isLocked: !provider.hasAccess(AppFeature.eisenhowerMatrix),
               onTap: () {
-                if (!isPremium) {
-                  showUpgradeProModal(
-                    context,
-                    featureTitle: 'Organize Matrix',
-                    limitExplanation: 'Eisenhower Quadrant Matrix & Task Triage are exclusive to Pro members. Upgrade for ₹49/month to unlock!',
-                  );
-                } else {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const OrganizeMatrixScreen(),
-                    ),
-                  );
-                }
+                ProFeatureGuard.navigate(
+                  context,
+                  feature: AppFeature.eisenhowerMatrix,
+                  builder: () => const OrganizeMatrixScreen(),
+                );
               },
             ),
             const SizedBox(height: 14),
 
+            // 5. Journal & Notes (Pro Only)
             _buildMenuCard(
               context,
               category: 'KNOWLEDGE HUB',
-              title: 'Journal',
+              title: 'Journal & Notes',
               icon: Icons.book_outlined,
               isDark: isDark,
-              isLocked: !isPremium,
+              isLocked: !provider.hasAccess(AppFeature.notes),
               onTap: () {
-                if (!isPremium) {
-                  showUpgradeProModal(
-                    context,
-                    featureTitle: 'Journal & Notes',
-                    limitExplanation: 'Daily Productivity Journal & Reflection Logs are exclusive to Pro members. Upgrade for ₹49/month to unlock!',
-                  );
-                } else {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const NotesScreen(),
-                    ),
-                  );
-                }
+                ProFeatureGuard.navigate(
+                  context,
+                  feature: AppFeature.notes,
+                  builder: () => const NotesScreen(),
+                );
               },
             ),
             const SizedBox(height: 30),

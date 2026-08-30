@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../models/models.dart';
 import '../providers/app_provider.dart';
+import '../widgets/pro_upgrade_dialog.dart';
 import '../widgets/premium_lock_banner.dart';
 import '../widgets/upgrade_pro_modal.dart';
 import '../theme/app_theme.dart';
@@ -207,11 +208,7 @@ class _StudiesScreenState extends State<StudiesScreen> {
                 TextButton.icon(
                   onPressed: () {
                     if (!provider.canAddSubject) {
-                      showUpgradeProModal(
-                        context,
-                        featureTitle: 'Subjects',
-                        limitExplanation: 'Free plan includes up to 2 academic subjects. Upgrade to Pro for ₹49/month to track unlimited subjects & exams!',
-                      );
+                      ProUpgradeDialog.showSubjectLimitDialog(context);
                     } else {
                       _showAddSubjectDialog(context);
                     }
@@ -479,6 +476,11 @@ class _StudiesScreenState extends State<StudiesScreen> {
                 final name = nameCtrl.text.trim();
                 if (name.isNotEmpty) {
                   final provider = Provider.of<AppProvider>(context, listen: false);
+                  if (!provider.canAddSubject) {
+                    Navigator.pop(ctx);
+                    ProUpgradeDialog.showSubjectLimitDialog(context);
+                    return;
+                  }
                   provider.addSubject(
                     StudySubject(
                       id: 'sub_${DateTime.now().millisecondsSinceEpoch}',

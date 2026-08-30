@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../config/subscription_config.dart';
 import '../models/models.dart';
 import '../providers/app_provider.dart';
+import '../widgets/pro_feature_guard.dart';
 import '../widgets/premium_lock_banner.dart';
 import '../theme/app_theme.dart';
 
@@ -63,31 +65,27 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     // Productivity Score = weighted average of task completion (40%), habits (40%), study progress (20%)
     final prodScore = ((taskCompletionRate * 0.4 + habitRate * 0.4 + avgStudyProgress * 0.2) * 100).round();
 
-    return Scaffold(
-      backgroundColor: isDark ? AppTheme.darkBg : AppTheme.background,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: textPrimary),
-          onPressed: () => Navigator.pop(context),
+    return ProFeatureGuard(
+      feature: AppFeature.analytics,
+      child: Scaffold(
+        backgroundColor: isDark ? AppTheme.darkBg : AppTheme.background,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: textPrimary),
+            onPressed: () => Navigator.pop(context),
+          ),
+          title: Text(
+            'Analytics & Insights',
+            style: TextStyle(color: textPrimary, fontWeight: FontWeight.w800),
+          ),
         ),
-        title: Text(
-          'Analytics & Insights',
-          style: TextStyle(color: textPrimary, fontWeight: FontWeight.w800),
-        ),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 1. Premium Lock Banner if Free
-            if (!isPremium)
-              const PremiumLockBanner(
-                featureName: 'Analytics',
-                description: 'You are currently viewing Analytics in preview mode. Upgrade to Pro for ₹49/month to unlock detailed visual charts and historical productivity trends.',
-              ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
 
             // 2. Period Selector [ 10 Days ] [ Week ] [ Month ] [ Year ]
             Container(
@@ -265,8 +263,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildPeriodTab(String key, String label, bool isDark, Color cardBg, Color textSecondary, Color primaryColor) {
     final isSelected = _selectedPeriod == key;

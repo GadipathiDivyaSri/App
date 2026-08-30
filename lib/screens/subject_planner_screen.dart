@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/app_provider.dart';
+import '../widgets/pro_upgrade_dialog.dart';
 import '../widgets/upgrade_pro_modal.dart';
 import '../theme/app_theme.dart';
 import 'add_subject_screen.dart';
@@ -50,13 +50,8 @@ class _SubjectPlannerScreenState extends State<SubjectPlannerScreen> {
         ),
         onPressed: () {
           final provider = Provider.of<AppProvider>(context, listen: false);
-          final isPremium = provider.user.isPremium;
-          if (!isPremium && _subjects.length >= 2) {
-            showUpgradeProModal(
-              context,
-              featureTitle: 'Subjects',
-              limitExplanation: 'Free plan includes up to 2 active subjects. Upgrade to Pro for ₹49/month to create unlimited subjects and curriculum roadmaps!',
-            );
+          if (!provider.canAddSubject) {
+            ProUpgradeDialog.showSubjectLimitDialog(context);
           } else {
             Navigator.push(
               context,

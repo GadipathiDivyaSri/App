@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/app_provider.dart';
+import '../widgets/pro_upgrade_dialog.dart';
 
 class AddSubjectScreen extends StatefulWidget {
   const AddSubjectScreen({super.key});
@@ -70,8 +73,14 @@ class _AddSubjectScreenState extends State<AddSubjectScreen> {
                   ),
                 ),
                 onPressed: () {
-                  if (_nameCtrl.text.trim().isNotEmpty) {
-                    Navigator.pop(context, _nameCtrl.text.trim());
+                  final name = _nameCtrl.text.trim();
+                  if (name.isNotEmpty) {
+                    final provider = Provider.of<AppProvider>(context, listen: false);
+                    if (!provider.canAddSubject) {
+                      ProUpgradeDialog.showSubjectLimitDialog(context);
+                      return;
+                    }
+                    Navigator.pop(context, name);
                   }
                 },
                 child: const Text(

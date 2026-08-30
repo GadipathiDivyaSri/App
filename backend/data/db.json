@@ -86,7 +86,23 @@
     "medium": [],
     "long": []
   },
-  "habits": [],
+  "habits": [
+    {
+      "id": "h_1788068295168",
+      "title": "Drink Water 2L",
+      "frequency": "DAILY"
+    },
+    {
+      "id": "h_1788068295176",
+      "title": "Read 20 pages",
+      "frequency": "DAILY"
+    },
+    {
+      "id": "h_1788068295181",
+      "title": "Meditate 10 mins",
+      "frequency": "DAILY"
+    }
+  ],
   "calendarEvents": [],
   "referrals": [],
   "otpStore": {
@@ -138,6 +154,30 @@
       "transaction_id": null,
       "created_at": "2026-08-30T05:21:43.072Z",
       "updated_at": "2026-08-30T05:21:43.072Z"
+    },
+    {
+      "id": "sub_free_��m�G�",
+      "user_id": "��m�G�",
+      "plan": "free",
+      "status": "active",
+      "started_at": "2026-08-30T05:38:15.133Z",
+      "expires_at": null,
+      "payment_provider": "NONE",
+      "transaction_id": null,
+      "created_at": "2026-08-30T05:38:15.134Z",
+      "updated_at": "2026-08-30T05:38:15.134Z"
+    }
+  ],
+  "subjects": [
+    {
+      "id": "sub_1788068421393",
+      "userId": "u_1",
+      "name": "Mathematics"
+    },
+    {
+      "id": "sub_1788068421404",
+      "userId": "u_1",
+      "name": "Computer Science"
     }
   ]
 }

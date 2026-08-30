@@ -639,6 +639,27 @@ async function handleApiRequest(req, res) {
     });
   }
 
+  // Helper to reliably extract authenticated user ID from Authorization header
+  function getAuthUserId(req) {
+    const authHeader = req.headers['authorization'] || '';
+    if (authHeader.startsWith('Bearer jwt_')) {
+      const raw = authHeader.replace('Bearer jwt_', '');
+      try {
+        const decoded = Buffer.from(raw, 'base64').toString('utf8');
+        if (decoded && decoded.includes(':')) {
+          const parts = decoded.split(':');
+          if (parts[0] && /^u_[a-zA-Z0-9_-]+$/.test(parts[0])) return parts[0];
+        }
+      } catch (_) {}
+      if (raw.includes(':')) {
+        const parts = raw.split(':');
+        if (parts[0]) return parts[0];
+      }
+      return raw || 'u_1';
+    }
+    return 'u_1';
+  }
+
   // Helper to ensure each user has a valid subscription record
   function getUserSubscription(userId) {
     if (!db.subscriptions) db.subscriptions = [];
@@ -664,45 +685,31 @@ async function handleApiRequest(req, res) {
 
   // 2.9 Session Check / Refresh
   if (pathname === '/api/auth/session' && method === 'GET') {
-    const authHeader = req.headers['authorization'] || '';
-    if (authHeader.startsWith('Bearer jwt_')) {
-      try {
-        const tokenPayload = Buffer.from(authHeader.replace('Bearer jwt_', ''), 'base64').toString('utf8');
-        const [userId] = tokenPayload.split(':');
-        const user = db.users.find((u) => u.id === userId);
-        if (user) {
-          const sub = getUserSubscription(user.id);
-          return sendJSON(res, 200, {
-            success: true,
-            user: {
-              id: user.id,
-              username: user.username,
-              name: user.name,
-              email: user.email,
-              focusScore: user.focusScore || 85,
-              activeStreak: user.activeStreak || 1,
-              isPremium: sub.plan === 'pro' && sub.status === 'active',
-              subscriptionPlan: sub.plan.toUpperCase(),
-            },
-            subscription: sub,
-          });
-        }
-      } catch (_) {}
+    const userId = getAuthUserId(req);
+    const user = db.users.find((u) => u.id === userId);
+    if (user) {
+      const sub = getUserSubscription(user.id);
+      return sendJSON(res, 200, {
+        success: true,
+        user: {
+          id: user.id,
+          username: user.username,
+          name: user.name,
+          email: user.email,
+          focusScore: user.focusScore || 85,
+          activeStreak: user.activeStreak || 1,
+          isPremium: sub.plan === 'pro' && sub.status === 'active',
+          subscriptionPlan: sub.plan.toUpperCase(),
+        },
+        subscription: sub,
+      });
     }
     return sendJSON(res, 401, { success: false, message: 'No active session.' });
   }
 
   // 2.10 Subscription Management (Read Only for Client)
   if (pathname === '/api/subscription/me' && method === 'GET') {
-    const authHeader = req.headers['authorization'] || '';
-    let targetUserId = 'u_1'; // default demo user
-    if (authHeader.startsWith('Bearer jwt_')) {
-      try {
-        const tokenPayload = Buffer.from(authHeader.replace('Bearer jwt_', ''), 'base64').toString('utf8');
-        const [userId] = tokenPayload.split(':');
-        if (userId) targetUserId = userId;
-      } catch (_) {}
-    }
+    const targetUserId = getAuthUserId(req);
     const sub = getUserSubscription(targetUserId);
     return sendJSON(res, 200, {
       success: true,
@@ -741,10 +748,47 @@ async function handleApiRequest(req, res) {
     return sendJSON(res, 200, db.habits);
   }
   if (pathname === '/api/habits' && method === 'POST') {
-    const newHabit = { id: 'h_' + Date.now(), ...body };
+    const targetUserId = getAuthUserId(req);
+    const sub = getUserSubscription(targetUserId);
+    const userHabits = (db.habits || []).filter((h) => h.userId === targetUserId || !h.userId);
+    if (sub.plan === 'free' && userHabits.length >= 2) {
+      return sendJSON(res, 403, {
+        success: false,
+        code: 'LIMIT_REACHED',
+        title: 'Unlock Unlimited Habits',
+        message: "You've reached the Free plan limit of 2 habits. Upgrade to WrindhaOS Pro to create and track unlimited habits.",
+        requiresUpgrade: true,
+      });
+    }
+
+    const newHabit = { id: 'h_' + Date.now(), userId: targetUserId, ...body };
     db.habits.push(newHabit);
     saveDB(db);
     return sendJSON(res, 201, newHabit);
+  }
+
+  if (pathname === '/api/subjects' && method === 'GET') {
+    return sendJSON(res, 200, db.subjects || []);
+  }
+  if (pathname === '/api/subjects' && method === 'POST') {
+    const targetUserId = getAuthUserId(req);
+    const sub = getUserSubscription(targetUserId);
+    const userSubjects = (db.subjects || []).filter((s) => s.userId === targetUserId || !s.userId);
+    if (sub.plan === 'free' && userSubjects.length >= 2) {
+      return sendJSON(res, 403, {
+        success: false,
+        code: 'LIMIT_REACHED',
+        title: 'Unlock Unlimited Subjects',
+        message: "You've reached the Free plan limit of 2 subjects. Upgrade to WrindhaOS Pro to manage unlimited subjects and organize your complete learning journey.",
+        requiresUpgrade: true,
+      });
+    }
+
+    const newSubject = { id: 'sub_' + Date.now(), userId: targetUserId, ...body };
+    if (!db.subjects) db.subjects = [];
+    db.subjects.push(newSubject);
+    saveDB(db);
+    return sendJSON(res, 201, newSubject);
   }
 
   if (pathname === '/api/expenses' && method === 'GET') {

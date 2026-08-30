@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/models.dart';
 import '../providers/app_provider.dart';
+import '../widgets/pro_upgrade_dialog.dart';
 import '../widgets/upgrade_pro_modal.dart';
 import '../theme/app_theme.dart';
 
@@ -12,7 +13,6 @@ import '../theme/app_theme.dart';
 /// - Toggle completion & streak updates
 /// - Completion history tracking
 /// - Free Plan Limit (Max 2 habits)
-/// - Zero Rewards Earned UI (completely removed as requested)
 class HabitTrackerScreen extends StatefulWidget {
   const HabitTrackerScreen({super.key});
 
@@ -63,13 +63,8 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
         child: const Icon(Icons.add, color: Colors.white, size: 28),
         onPressed: () {
           final provider = Provider.of<AppProvider>(context, listen: false);
-          final isPremium = provider.user.isPremium;
-          if (!isPremium && provider.habits.length >= 2) {
-            showUpgradeProModal(
-              context,
-              featureTitle: 'Habits',
-              limitExplanation: 'Free plan includes up to 2 active habits. Upgrade to Pro for ₹49/month to track unlimited habits and streaks!',
-            );
+          if (!provider.canAddHabit) {
+            ProUpgradeDialog.showHabitLimitDialog(context);
           } else {
             _showAddHabitDialog(context);
           }
@@ -339,6 +334,11 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                   final text = titleController.text.trim();
                   if (text.isNotEmpty) {
                     final provider = Provider.of<AppProvider>(context, listen: false);
+                    if (!provider.canAddHabit) {
+                      Navigator.pop(ctx);
+                      ProUpgradeDialog.showHabitLimitDialog(context);
+                      return;
+                    }
                     provider.addHabit(
                       Habit(
                         id: 'h_${DateTime.now().millisecondsSinceEpoch}',

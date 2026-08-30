@@ -100880,7 +100880,7 @@ m=A.a([],m)
 if(k)m.push(new A.aK(0,B.E,A.Z(B.e.aG(76.5),e.m()>>>16&255,e.m()>>>8&255,e.m()&255),B.bu,8))
 m=A.X(q,A.as(b,c?B.X:B.d,q,22),B.j,q,q,new A.O(s,q,q,r,m,q,B.o),q,44,q,q,q,q,44)
 k=t.p
-m=A.a4(A.a([m,A.as(B.eh,c?B.hQ:B.JJ,q,20)],k),B.i,B.ap,B.f,0,q,q)
+var isLockedModule=(h==="Career"||h==="Priority"||h==="Analytics")&&(!A.f1(a,!0,t.T).c.f);m=A.a4(A.a([m,isLockedModule?A.m("🔒 PRO",q,q,q,q,A.J(q,q,c?B.as:B.a6,q,q,q,q,q,q,q,q,11,q,q,B.K,q,q,!0,q,q,q,q,q,q,q,q),q,q,q):A.as(B.eh,c?B.hQ:B.JJ,q,20)],k),B.i,B.ap,B.f,0,q,q);if(isLockedModule)f=new A.aiy(a);
 s=A.m(h,q,q,q,q,A.J(q,q,c?B.d:B.B,q,q,q,q,q,q,q,q,16,q,q,B.K,q,1.2,!0,q,q,q,q,q,q,q,q),q,q,q)
 return A.cc(q,A.X(q,A.a0(A.a([m,A.a0(A.a([s,B.aW,A.m(g,1,B.bs,q,q,A.J(q,q,c?B.as:B.a6,q,q,q,q,q,q,q,q,11,q,q,B.a2,q,q,!0,q,q,q,q,q,q,q,q),q,q,q)],k),B.w,B.h,B.f,0,B.m)],k),B.w,B.ap,B.f,0,B.m),B.j,q,q,new A.O(p,q,n,o,l,q,B.o),q,q,q,B.cD,q,q,q),B.t,!1,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,f,q,q,q,q,q,q)}}
 A.abY.prototype={
@@ -100989,7 +100989,7 @@ aha(){var s=this.c
 s.toString
 A.f1(s,!1,t.T).MG("Alex Johnson","alex.google@gmail.com")},
 E(a4){var s,r,q,p,o,n,m,l,k,j,i,h,g,f,e,d,c=this,b=null,a=4287931320,a0=A.p(a4).ax.a===B.A,a1=a0?B.am:B.N,a2=a0?B.aZ:B.aV,a3=A.B(14)
-a3=A.X(b,A.as(B.NL,B.d,b,28),B.j,b,b,new A.O(a1,b,b,a3,b,b,B.o),b,44,b,b,b,b,44)
+a3=A.X(b,A.m("W",b,b,b,b,A.J(b,b,B.d,b,b,b,b,b,b,b,b,24,b,b,B.K,b,b,!0,b,b,b,b,b,b,b,b),b,b,b),B.j,b,b,new A.O(A.b1(4279069688),b,b,a3,b,b,B.o),b,44,b,b,b,b,44)
 s=t.p
 a3=A.a4(A.a([a3,B.bE,A.m("WrindhaOS",b,b,b,b,A.J(b,b,a0?B.d:B.B,b,b,b,b,b,b,b,b,22,b,b,B.K,b,b,!0,b,0.5,b,b,b,b,b,b),b,b,b)],s),B.i,B.h,B.f,0,b,b)
 r=A.m("Welcome Back",b,b,b,b,A.J(b,b,a0?B.d:B.B,b,b,b,b,b,b,b,b,28,b,b,B.K,b,b,!0,b,b,b,b,b,b,b,b),b,b,b)
@@ -101024,7 +101024,7 @@ n=A.b_(A.aJG(a1,new A.ay2(c),new A.bb(A.B(4),B.v),n),20,20)
 m.push(A.a4(A.a([n,B.aq,A.cc(b,A.m("I agree to the Terms & Conditions",b,b,b,b,A.J(b,b,a0?B.a9:B.jm,b,B.l1,b,b,b,b,b,b,12.5,b,b,B.a2,b,b,!0,b,b,b,b,b,b,b,b),b,b,b),B.t,!1,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,new A.ay3(c,a4),b,b,b,b,b,b)],s),B.i,B.b_,B.f,0,b,b))
 n=A.a0(m,B.w,B.h,B.f,0,B.m)
 m=A.J(b,b,A.b1(a),b,b,b,b,b,b,b,b,13.5,b,b,b,b,b,!0,b,b,b,b,b,b,b,b)
-l=A.as(B.tC,a1,b,20)
+l=A.as(B.tF,a1,b,20)
 k=a0?B.T:B.b3
 j=A.B(14)
 i=a0?B.bl:B.aR
@@ -101602,7 +101602,7 @@ $S:635}
 A.rD.prototype={
 a5(){return new A.YR()}}
 A.YR.prototype={
-E(a4){var s,r,q,p,o,n,m,l,k,j,i,h,g,f=this,e=null,d=A.p(a4).ax.a===B.A,c=A.f1(a4,!0,t.T),b=c.c,a=b.f,a0=b.Q,a1=59-59*a0/100,a2=d?B.aZ:B.aV,a3=A.c3(e,e,e,A.as(B.bm,d?B.d:B.B,e,20),e,e,new A.aAO(a4),e,e,e,e)
+E(a4){var s,r,q,p,o,n,m,l,k,j,i,h,g,f=this,e=null,d=A.p(a4).ax.a===B.A,c=A.f1(a4,!0,t.T),b=c.c,a=b.f,a0=b.Q,a1=49-49*a0/100,a2=d?B.aZ:B.aV,a3=A.c3(e,e,e,A.as(B.bm,d?B.d:B.B,e,20),e,e,new A.aAO(a4),e,e,e,e)
 a3=A.da(e,e,e,e,e,a3,A.m("Pricing & Plans",e,e,e,e,A.J(e,e,d?B.d:B.B,e,e,e,e,e,e,e,e,e,e,e,B.K,e,e,!0,e,e,e,e,e,e,e,e),e,e,e))
 s=A.m("Focus on what matters",e,e,e,e,A.J(e,e,d?B.d:B.B,e,e,e,e,e,e,e,e,24,e,e,B.K,e,e,!0,e,e,e,e,e,e,e,e),e,e,e)
 r=A.m("Unlock your cognitive clarity with tailored focus plans.",e,e,e,e,A.J(e,e,d?B.as:B.a6,e,e,e,e,e,e,e,e,13,e,e,e,e,1.4,!0,e,e,e,e,e,e,e,e),B.cI,e,e)
@@ -101626,10 +101626,10 @@ if(!d)l.push(new A.aK(0,B.E,A.Z(20,B.u.m()>>>16&255,B.u.m()>>>8&255,B.u.m()&255)
 j=A.a([A.m("Pro Plan",e,e,e,e,A.J(e,e,d?B.d:B.af,e,e,e,e,e,e,e,e,22,e,e,B.K,e,e,!0,e,e,e,e,e,e,e,e),e,e,e)],m)
 if(a)j.push(A.X(e,B.a7W,B.j,e,e,new A.O(A.Z(38,B.al.m()>>>16&255,B.al.m()>>>8&255,B.al.m()&255),e,e,A.B(10),e,e,B.o),e,e,e,B.dJ,e,e,e))
 j=A.a([A.a4(j,B.i,B.ap,B.f,0,e,e),B.ao],m)
-if(a0>0){i=A.a4(A.a([A.m("\u20b9"+B.e.ag(a1,2),e,e,e,e,B.Fk,e,e,e),B.aq,A.m("\u20b9"+B.l.ag(59,0),e,e,e,e,B.a4F,e,e,e),B.a7R],m),B.eK,B.h,B.f,0,B.O,e)
+if(a0>0){i=A.a4(A.a([A.m("\u20b9"+B.e.ag(a1,2),e,e,e,e,B.Fk,e,e,e),B.aq,A.m("\u20b9"+B.l.ag(49,0),e,e,e,e,B.a4F,e,e,e),B.a7R],m),B.eK,B.h,B.f,0,B.O,e)
 h=A.Z(38,B.al.m()>>>16&255,B.al.m()>>>8&255,B.al.m()&255)
 g=A.B(8)
-B.b.M(j,A.a([i,B.aW,A.X(e,A.m(""+a0+"% Referral Discount Applied (Next cycle)",e,e,e,e,B.a3b,e,e,e),B.j,e,e,new A.O(h,e,e,g,e,e,B.o),e,e,e,B.mR,e,e,e)],m))}else B.b.M(j,A.a([A.wO(e,e,e,B.c1,e,e,!0,e,A.dh(B.Sj,e,e,e,e,e,e,e,e,B.Fk,"\u20b9"+B.l.ag(59,0)),B.G,e,e,B.ac,B.aF)],m))
+B.b.M(j,A.a([i,B.aW,A.X(e,A.m(""+a0+"% Referral Discount Applied (Next cycle)",e,e,e,e,B.a3b,e,e,e),B.j,e,e,new A.O(h,e,e,g,e,e,B.o),e,e,e,B.mR,e,e,e)],m))}else B.b.M(j,A.a([A.wO(e,e,e,B.c1,e,e,!0,e,A.dh(B.Sj,e,e,e,e,e,e,e,e,B.Fk,"\u20b9"+B.l.ag(49,0)),B.G,e,e,B.ac,B.aF)],m))
 j.push(B.kX)
 j.push(f.l_("Everything Unlimited"))
 j.push(f.l_("Infinite Habit Tracking"))
@@ -101657,7 +101657,7 @@ var $async$$0=A.W(function(a,b){if(a===1)return A.S(b,r)
 for(;;)switch(s){case 0:o=q.a
 o.K(new A.aAM(o))
 s=2
-return A.P(q.b.BX("PREMIUM",59),$async$$0)
+return A.P(q.b.BX("PREMIUM",49),$async$$0)
 case 2:o.K(new A.aAN(o))
 if(o.c!=null){o=q.c.Y(t.J).f
 p=q.d
@@ -101920,7 +101920,7 @@ o=a2?B.d:B.B
 o=A.a4(A.a([p,B.bx,A.aD(b.R3(a5,"ACTIVE STREAK",""+q+" Days",o),1)],r),B.i,B.h,B.f,0,a,a)
 q=b.Gk("ACCOUNT")
 p=t._O
-n=b.QT(a5,A.a([new A.jl(B.nD,"About Us",new A.ait(a5),a,a),new A.jl(B.tN,"Terms & Conditions",new A.aix(a5),a,a),new A.jl(B.Ns,"Pricing",new A.aiy(a5),a,a),new A.jl(B.NX,"Payment History",new A.aiz(a5),a,a),new A.jl(B.tL,"Delete Account",new A.aiA(b,a5,a0),B.bG,B.bG)],p))
+n=b.QT(a5,A.a([new A.jl(B.nD,"About Us",new A.ait(a5),a,a),new A.jl(B.tN,"Terms & Conditions",new A.aix(a5),a,a),new A.jl(B.Ns,"Pricing Plans (₹49/month)",new A.aiy(a5),a,a),new A.jl(B.NX,"Payment History",new A.aiz(a5),a,a),new A.jl(B.tL,"Delete Account",new A.aiA(b,a5,a0),B.bG,B.bG)],p))
 m=b.Gk("PREFERENCES")
 l=a2?B.T:B.d
 k=A.B(18)
@@ -102267,7 +102267,7 @@ n=t.J
 if(r.length!==0){q.K(new A.aDx(q))
 n=q.c.Y(n).f
 n.d7(A.jd(p,p,p,B.u,p,B.z,p,A.m("6-digit verification code sent to "+r+o,p,p,p,p,p,p,p,p),p,B.b7,p,p,p,p,p,p,p,p,p,p))}else{n=q.c.Y(n).f
-n.d7(A.jd(p,p,p,B.Vg,p,B.z,p,A.m("Please enter your email address",p,p,p,p,p,p,p,p),p,B.b7,p,p,p,p,p,p,p,p,p,p))}},
+n.d7(A.jd(p,p,p,B.Vg,p,B.z,p,A.m("Please enter your username",p,p,p,p,p,p,p,p),p,B.b7,p,p,p,p,p,p,p,p,p,p))}},
 ny(){var s=0,r=A.V(t.H),q=this,p,o
 var $async$ny=A.W(function(a,b){if(a===1)return A.S(b,r)
 for(;;)switch(s){case 0:o=q.c
@@ -102280,7 +102280,7 @@ q.c.Y(t.J).f.d7(B.a0f)}return A.T(null,r)}})
 return A.U($async$ny,r)},
 ajp(){var s,r,q,p,o,n=this,m=null,l=B.c.aN(n.e.a.a),r=B.c.aN(n.r.a.a),q=B.c.aN(n.x.a.a),p=B.c.aN(n.y.a.a),k=n.c
 if(l.length===0){n.c.Y(t.J).f.d7(B.a0h)
-return}if(r.length===0){k.Y(t.J).f.d7(A.jd(m,m,m,m,m,B.z,m,A.m("Please enter your email address",m,m,m,m,m,m,m,m),m,B.b7,m,m,m,m,m,m,m,m,m,m))
+return}if(r.length===0){k.Y(t.J).f.d7(A.jd(m,m,m,m,m,B.z,m,A.m("Please enter your username",m,m,m,m,m,m,m,m),m,B.b7,m,m,m,m,m,m,m,m,m,m))
 return}if(!n.z){k.Y(t.J).f.d7(A.jd(m,m,m,m,m,B.z,m,A.m("Please tap 'Send OTP' to verify your email",m,m,m,m,m,m,m,m),m,B.b7,m,m,m,m,m,m,m,m,m,m))
 return}if(B.c.aN(n.w.a.a).length===0){k.Y(t.J).f.d7(A.jd(m,m,m,m,m,B.z,m,A.m("Please enter the verification code sent to your email",m,m,m,m,m,m,m,m),m,B.b7,m,m,m,m,m,m,m,m,m,m))
 return}if(q.length<6){n.c.Y(t.J).f.d7(B.a0p)
@@ -110685,7 +110685,7 @@ B.a7X=new A.L("No transactions recorded yet.",null,B.a1N,null,null,null,null,nul
 B.a7Z=new A.L("CREATE PASSWORD",null,B.aL,null,null,null,null,null,null,null,null)
 B.a80=new A.L("Save Transaction",null,B.cy,null,null,null,null,null,null,null,null)
 B.a81=new A.L("4-WEEK STREAK LINE TREND",null,B.aL,null,null,null,null,null,null,null,null)
-B.a82=new A.L("EMAIL ADDRESS",null,B.aL,null,null,null,null,null,null,null,null)
+B.a82=new A.L("USERNAME",null,B.aL,null,null,null,null,null,null,null,null)
 B.a86=new A.L("Log In",null,B.pf,null,null,null,null,null,null,null,null)
 B.a87=new A.L("Save Subject",null,B.cy,null,null,null,null,null,null,null,null)
 B.a88=new A.L("Already have an account? ",null,B.pe,null,null,null,null,null,null,null,null)
