@@ -70,13 +70,38 @@ CREATE TABLE IF NOT EXISTS habits (
     id VARCHAR(64) PRIMARY KEY DEFAULT ('h_' || uuid_generate_v4()),
     user_id VARCHAR(64) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     title VARCHAR(150) NOT NULL,
-    frequency VARCHAR(50) DEFAULT 'DAILY',
-    streak INT DEFAULT 0,
+    category VARCHAR(50) DEFAULT 'General',
+    frequency VARCHAR(50) DEFAULT 'DAILY', -- 'DAILY', 'WEEKDAYS', 'WEEKENDS', 'CUSTOM', 'WEEKLY'
+    selected_days JSONB DEFAULT '[]'::jsonb, -- e.g. [1, 3, 5] for Mon, Wed, Fri
+    start_date DATE DEFAULT CURRENT_DATE,
+    status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'paused', 'archived')),
+    description TEXT,
+    color_hex VARCHAR(20) DEFAULT '0xFF10B981',
+    icon_name VARCHAR(50) DEFAULT 'repeat',
+    current_streak INT DEFAULT 0,
+    longest_streak INT DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_habits_user_id ON habits(user_id);
+CREATE INDEX IF NOT EXISTS idx_habits_status ON habits(status);
+
+-- -----------------------------------------------------------------------------
+-- 4.1 HABIT COMPLETIONS TABLE (Persistent Daily History)
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS habit_completions (
+    id VARCHAR(64) PRIMARY KEY DEFAULT ('hc_' || uuid_generate_v4()),
+    habit_id VARCHAR(64) NOT NULL REFERENCES habits(id) ON DELETE CASCADE,
+    user_id VARCHAR(64) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    completion_date DATE NOT NULL,
+    status VARCHAR(20) DEFAULT 'completed' CHECK (status IN ('completed', 'skipped')),
+    completed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_habit_user_date UNIQUE (habit_id, user_id, completion_date)
+);
+
+CREATE INDEX IF NOT EXISTS idx_habit_completions_user_date ON habit_completions(user_id, completion_date);
+CREATE INDEX IF NOT EXISTS idx_habit_completions_habit_id ON habit_completions(habit_id);
 
 -- -----------------------------------------------------------------------------
 -- 5. SUBJECTS TABLE (Free Limit: Max 2 Active)
@@ -203,6 +228,7 @@ ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE subscriptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE habits ENABLE ROW LEVEL SECURITY;
+ALTER TABLE habit_completions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE subjects ENABLE ROW LEVEL SECURITY;
 ALTER TABLE expenses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE journal_entries ENABLE ROW LEVEL SECURITY;
@@ -212,6 +238,7 @@ ALTER TABLE career_nodes ENABLE ROW LEVEL SECURITY;
 -- User Row Access Policies
 CREATE POLICY user_isolation_policy ON tasks FOR ALL USING (user_id = auth.uid()::text);
 CREATE POLICY habit_isolation_policy ON habits FOR ALL USING (user_id = auth.uid()::text);
+CREATE POLICY habit_completion_isolation_policy ON habit_completions FOR ALL USING (user_id = auth.uid()::text);
 CREATE POLICY subject_isolation_policy ON subjects FOR ALL USING (user_id = auth.uid()::text);
 CREATE POLICY expense_isolation_policy ON expenses FOR ALL USING (user_id = auth.uid()::text);
 CREATE POLICY journal_isolation_policy ON journal_entries FOR ALL USING (user_id = auth.uid()::text);

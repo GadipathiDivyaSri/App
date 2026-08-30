@@ -1,201 +1,286 @@
 {
   "users": [
     {
-      "id": "u_1787751044017",
-      "username": "student_pro2026",
-      "email": "student@wrindhaos.in",
-      "name": "student_pro2026",
-      "password": "password123",
-      "contact": "student@wrindhaos.in",
-      "isEmailVerified": true,
-      "focusScore": 0,
-      "activeStreak": 0,
-      "isPremium": false,
-      "referralCode": "WRINDHA8439",
-      "createdAt": "2026-08-26T13:30:44.018Z"
-    },
-    {
-      "id": "u_1001",
-      "username": "kalyan",
-      "email": "kalyan@wrindhaos.in",
-      "name": "Kalyan",
-      "password": "password123",
-      "isEmailVerified": true,
-      "focusScore": 92,
-      "activeStreak": 15,
-      "isPremium": false,
-      "referralCode": "WRINDHA2026",
-      "createdAt": "2026-08-30T04:43:31.773Z"
-    },
-    {
-      "id": "u_1788065094520",
-      "username": "growth_user",
-      "name": "Growth_user",
-      "email": "test_1788065094488@wrindhaos.in",
-      "password": "brandNewPassword999",
-      "isEmailVerified": true,
-      "focusScore": 85,
-      "activeStreak": 1,
-      "isPremium": false,
-      "referralCode": "WOS6565",
-      "createdAt": "2026-08-30T04:44:54.520Z",
-      "onboardingCompleted": false
-    },
-    {
-      "id": "u_1788072434591",
-      "username": "audit_user_1788072434578",
-      "name": "Audit User",
-      "email": "audit_user_1788072434578@wrindhaos.in",
-      "googleId": "g_123456789",
+      "id": "u_1788093195564",
+      "username": "habit_user_a_1788093195357",
+      "name": "User A",
+      "email": "habit_user_a_1788093195357@wrindhaos.in",
+      "googleId": "g_a_1788093195357",
       "photoUrl": null,
       "isEmailVerified": true,
       "focusScore": 85,
       "activeStreak": 1,
       "isPremium": true,
-      "referralCode": "WOS5532",
-      "createdAt": "2026-08-30T06:47:14.591Z",
-      "updatedAt": "2026-08-30T06:47:14.591Z"
+      "referralCode": "WOS1127",
+      "createdAt": "2026-08-30T12:33:15.565Z",
+      "updatedAt": "2026-08-30T12:33:15.566Z"
+    },
+    {
+      "id": "u_1788093195595",
+      "username": "habit_user_b_1788093195357",
+      "name": "User B",
+      "email": "habit_user_b_1788093195357@wrindhaos.in",
+      "googleId": "g_b_1788093195594",
+      "photoUrl": null,
+      "isEmailVerified": true,
+      "focusScore": 85,
+      "activeStreak": 1,
+      "isPremium": false,
+      "referralCode": "WOS2221",
+      "createdAt": "2026-08-30T12:33:15.596Z",
+      "updatedAt": "2026-08-30T12:33:15.596Z"
+    },
+    {
+      "id": "u_1788093267848",
+      "username": "mwf_test",
+      "name": "MWF Tester",
+      "email": "mwf_test@wrindhaos.in",
+      "googleId": "g_1788093267849",
+      "photoUrl": null,
+      "isEmailVerified": true,
+      "focusScore": 85,
+      "activeStreak": 1,
+      "isPremium": false,
+      "referralCode": "WOS1560",
+      "createdAt": "2026-08-30T12:34:27.849Z",
+      "updatedAt": "2026-08-30T12:34:27.849Z"
+    },
+    {
+      "id": "u_1788093302888",
+      "username": "debug_insight",
+      "name": "Insight Tester",
+      "email": "debug_insight@wrindhaos.in",
+      "googleId": "g_1788093302888",
+      "photoUrl": null,
+      "isEmailVerified": true,
+      "focusScore": 85,
+      "activeStreak": 1,
+      "isPremium": false,
+      "referralCode": "WOS1344",
+      "createdAt": "2026-08-30T12:35:02.888Z",
+      "updatedAt": "2026-08-30T12:35:02.888Z"
+    },
+    {
+      "id": "u_1788093367629",
+      "username": "debug_ins2",
+      "name": "Insight Tester 2",
+      "email": "debug_ins2@wrindhaos.in",
+      "googleId": "g_1788093367629",
+      "photoUrl": null,
+      "isEmailVerified": true,
+      "focusScore": 85,
+      "activeStreak": 1,
+      "isPremium": false,
+      "referralCode": "WOS3294",
+      "createdAt": "2026-08-30T12:36:07.629Z",
+      "updatedAt": "2026-08-30T12:36:07.630Z"
     }
   ],
   "subscriptions": [
     {
-      "id": "sub_free_u_1",
-      "user_id": "u_1",
-      "plan": "free",
-      "status": "active",
-      "started_at": "2026-08-30T05:21:43.064Z",
-      "expires_at": null,
-      "payment_provider": "NONE",
-      "transaction_id": null,
-      "created_at": "2026-08-30T05:21:43.072Z",
-      "updated_at": "2026-08-30T05:21:43.072Z"
-    },
-    {
-      "id": "sub_free_��m�G�",
-      "user_id": "��m�G�",
-      "plan": "free",
-      "status": "active",
-      "started_at": "2026-08-30T05:38:15.133Z",
-      "expires_at": null,
-      "payment_provider": "NONE",
-      "transaction_id": null,
-      "created_at": "2026-08-30T05:38:15.134Z",
-      "updated_at": "2026-08-30T05:38:15.134Z"
-    },
-    {
-      "id": "sub_free_u_1788072434591",
-      "user_id": "u_1788072434591",
+      "id": "sub_free_u_1788093195564",
+      "user_id": "u_1788093195564",
       "plan": "pro",
       "status": "active",
-      "started_at": "2026-08-30T06:47:14.610Z",
+      "started_at": "2026-08-30T12:33:15.632Z",
       "expires_at": null,
-      "payment_provider": "PLAY_STORE",
-      "transaction_id": "tx_1788072434610",
-      "created_at": "2026-08-30T06:47:14.591Z",
-      "updated_at": "2026-08-30T06:47:14.610Z"
+      "payment_provider": "GOOGLE_PLAY",
+      "transaction_id": "tx_1788093195632",
+      "created_at": "2026-08-30T12:33:15.567Z",
+      "updated_at": "2026-08-30T12:33:15.632Z"
     },
     {
-      "id": "sub_free_u_1001",
-      "user_id": "u_1001",
+      "id": "sub_free_u_1788093195595",
+      "user_id": "u_1788093195595",
       "plan": "free",
       "status": "active",
-      "started_at": "2026-08-30T06:54:00.705Z",
+      "started_at": "2026-08-30T12:33:15.596Z",
       "expires_at": null,
       "payment_provider": "NONE",
       "transaction_id": null,
-      "created_at": "2026-08-30T06:54:00.705Z",
-      "updated_at": "2026-08-30T06:54:00.705Z"
-    }
-  ],
-  "tasks": [
+      "created_at": "2026-08-30T12:33:15.596Z",
+      "updated_at": "2026-08-30T12:33:15.596Z"
+    },
     {
-      "id": "t_1787417043560",
-      "title": "Test Math Revision",
-      "category": "Studies",
-      "dueDateLabel": "Today",
-      "isCompleted": false,
-      "createdAt": "2026-08-22T16:44:03.560Z"
+      "id": "sub_free_u_1788093267848",
+      "user_id": "u_1788093267848",
+      "plan": "free",
+      "status": "active",
+      "started_at": "2026-08-30T12:34:27.849Z",
+      "expires_at": null,
+      "payment_provider": "NONE",
+      "transaction_id": null,
+      "created_at": "2026-08-30T12:34:27.849Z",
+      "updated_at": "2026-08-30T12:34:27.849Z"
+    },
+    {
+      "id": "sub_free_u_1788093302888",
+      "user_id": "u_1788093302888",
+      "plan": "free",
+      "status": "active",
+      "started_at": "2026-08-30T12:35:02.888Z",
+      "expires_at": null,
+      "payment_provider": "NONE",
+      "transaction_id": null,
+      "created_at": "2026-08-30T12:35:02.888Z",
+      "updated_at": "2026-08-30T12:35:02.888Z"
+    },
+    {
+      "id": "sub_free_u_1788093367629",
+      "user_id": "u_1788093367629",
+      "plan": "free",
+      "status": "active",
+      "started_at": "2026-08-30T12:36:07.630Z",
+      "expires_at": null,
+      "payment_provider": "NONE",
+      "transaction_id": null,
+      "created_at": "2026-08-30T12:36:07.630Z",
+      "updated_at": "2026-08-30T12:36:07.630Z"
     }
   ],
+  "tasks": [],
   "calendarEvents": [],
   "habits": [
     {
-      "id": "h_1788068295168",
-      "title": "Drink Water 2L",
-      "frequency": "DAILY"
+      "id": "h_1788093195605",
+      "userId": "u_1788093195564",
+      "title": "Morning Run",
+      "category": "General",
+      "frequency": "DAILY",
+      "selectedDays": [],
+      "startDate": "2026-08-30",
+      "status": "active",
+      "description": "",
+      "colorHex": "0xFF10B981",
+      "iconName": "repeat",
+      "currentStreak": 0,
+      "longestStreak": 0,
+      "createdAt": "2026-08-30T12:33:15.605Z",
+      "updatedAt": "2026-08-30T12:33:15.605Z"
     },
     {
-      "id": "h_1788068295176",
-      "title": "Read 20 pages",
-      "frequency": "DAILY"
+      "id": "h_1788093195611",
+      "userId": "u_1788093195564",
+      "title": "Gym Workout",
+      "category": "General",
+      "frequency": "CUSTOM",
+      "selectedDays": [
+        1,
+        3,
+        5
+      ],
+      "startDate": "2026-08-30",
+      "status": "active",
+      "description": "",
+      "colorHex": "0xFF10B981",
+      "iconName": "repeat",
+      "currentStreak": 0,
+      "longestStreak": 0,
+      "createdAt": "2026-08-30T12:33:15.611Z",
+      "updatedAt": "2026-08-30T12:33:15.611Z"
     },
     {
-      "id": "h_1788068295181",
-      "title": "Meditate 10 mins",
-      "frequency": "DAILY"
+      "id": "h_1788093195636",
+      "userId": "u_1788093195564",
+      "title": "Evening Reading",
+      "category": "General",
+      "frequency": "DAILY",
+      "selectedDays": [],
+      "startDate": "2026-08-30",
+      "status": "active",
+      "description": "",
+      "colorHex": "0xFF10B981",
+      "iconName": "repeat",
+      "currentStreak": 0,
+      "longestStreak": 0,
+      "createdAt": "2026-08-30T12:33:15.636Z",
+      "updatedAt": "2026-08-30T12:33:15.636Z"
+    },
+    {
+      "id": "h_1788093195641",
+      "userId": "u_1788093195564",
+      "title": "Water Plants",
+      "category": "General",
+      "frequency": "CUSTOM_INTERVAL",
+      "selectedDays": [],
+      "startDate": "2026-08-01",
+      "status": "active",
+      "description": "",
+      "colorHex": "0xFF10B981",
+      "iconName": "repeat",
+      "currentStreak": 0,
+      "longestStreak": 0,
+      "createdAt": "2026-08-30T12:33:15.641Z",
+      "updatedAt": "2026-08-30T12:33:15.641Z"
+    },
+    {
+      "id": "h_1788093267868",
+      "userId": "u_1788093267848",
+      "title": "Gym",
+      "category": "General",
+      "frequency": "CUSTOM",
+      "selectedDays": [
+        1,
+        3,
+        5
+      ],
+      "startDate": "2026-08-30",
+      "status": "active",
+      "description": "",
+      "colorHex": "0xFF10B981",
+      "iconName": "repeat",
+      "currentStreak": 0,
+      "longestStreak": 0,
+      "createdAt": "2026-08-30T12:34:27.868Z",
+      "updatedAt": "2026-08-30T12:34:27.868Z"
+    },
+    {
+      "id": "h_1788093302895",
+      "userId": "u_1788093302888",
+      "title": "Gym",
+      "category": "General",
+      "frequency": "DAILY",
+      "selectedDays": [],
+      "intervalDays": 1,
+      "startDate": "2026-08-30",
+      "status": "active",
+      "description": "",
+      "colorHex": "0xFF10B981",
+      "iconName": "repeat",
+      "isDeleted": false,
+      "deletedAt": null,
+      "currentStreak": 0,
+      "longestStreak": 0,
+      "createdAt": "2026-08-30T12:35:02.895Z",
+      "updatedAt": "2026-08-30T12:35:02.902Z"
+    },
+    {
+      "id": "h_1788093367644",
+      "userId": "u_1788093367629",
+      "title": "Gym",
+      "category": "General",
+      "frequency": "DAILY",
+      "selectedDays": [],
+      "intervalDays": 1,
+      "startDate": "2026-08-30",
+      "status": "active",
+      "description": "",
+      "colorHex": "0xFF10B981",
+      "iconName": "repeat",
+      "isDeleted": false,
+      "deletedAt": null,
+      "currentStreak": 0,
+      "longestStreak": 0,
+      "createdAt": "2026-08-30T12:36:07.644Z",
+      "updatedAt": "2026-08-30T12:36:07.656Z"
     }
   ],
-  "subjects": [
-    {
-      "id": "sub_1788068421393",
-      "userId": "u_1",
-      "name": "Mathematics"
-    },
-    {
-      "id": "sub_1788068421404",
-      "userId": "u_1",
-      "name": "Computer Science"
-    },
-    {
-      "id": "sub_1788072434602",
-      "userId": "u_1788072434591",
-      "name": "Subject 1",
-      "code": "",
-      "instructor": "",
-      "createdAt": "2026-08-30T06:47:14.602Z"
-    },
-    {
-      "id": "sub_1788072434604",
-      "userId": "u_1788072434591",
-      "name": "Subject 2",
-      "code": "",
-      "instructor": "",
-      "createdAt": "2026-08-30T06:47:14.604Z"
-    }
-  ],
+  "subjects": [],
   "studyItems": [],
   "timetable": [],
   "careerNodes": [],
   "goals": [],
-  "expenses": [
-    {
-      "id": "e_1787417087573",
-      "title": "Stationery & Notebooks",
-      "category": "Others",
-      "amount": 150,
-      "isIncome": false,
-      "paymentMethod": "UPI",
-      "date": "2026-08-22T16:44:47.573Z"
-    },
-    {
-      "id": "e_1787491824601",
-      "title": "Food & Drinks",
-      "category": "Food & Drinks",
-      "amount": 10,
-      "isIncome": false,
-      "paymentMethod": "UPI",
-      "date": "2026-08-23T13:30:24.602Z"
-    },
-    {
-      "id": "e_1787492172865",
-      "title": "Food & Drinks",
-      "category": "Food & Drinks",
-      "amount": 10,
-      "isIncome": false,
-      "paymentMethod": "UPI",
-      "date": "2026-08-23T13:36:12.865Z"
-    }
-  ],
+  "expenses": [],
   "journalEntries": [],
   "milestones": [],
   "notifications": [],
@@ -216,7 +301,7 @@
       "active": true,
       "campaignSource": "LAUNCH2026",
       "creator": "WrindhaOS Team",
-      "createdAt": "2026-08-30T06:45:50.714Z"
+      "createdAt": "2026-08-30T11:30:29.593Z"
     },
     {
       "id": "c_pro1monthfree",
@@ -234,121 +319,167 @@
       "active": true,
       "campaignSource": "INFLUENCER_CAMPAIGN",
       "creator": "Growth Team",
-      "createdAt": "2026-08-30T06:45:50.715Z"
+      "createdAt": "2026-08-30T11:30:29.611Z"
     }
   ],
   "couponUsages": [
     {
-      "id": "cu_1788072376691",
-      "userId": "u_1788072376658",
+      "id": "cu_1788089473019",
+      "userId": "u_1788089472997",
       "couponId": "c_welcome50",
       "code": "WELCOME50",
-      "date": "2026-08-30T06:46:16.692Z",
+      "date": "2026-08-30T11:31:13.019Z",
       "validationStatus": "applied",
       "purchaseStatus": "completed",
       "productPurchased": "pro_monthly",
       "purchaseAmount": 24.5,
       "discountApplied": 24.5,
       "paymentStatus": "success",
-      "createdAt": "2026-08-30T06:46:16.692Z"
+      "createdAt": "2026-08-30T11:31:13.019Z"
     },
     {
-      "id": "cu_1788072434617",
-      "userId": "u_1788072434591",
+      "id": "cu_1788089983321",
+      "userId": "u_1788089983294",
       "couponId": "c_welcome50",
       "code": "WELCOME50",
-      "date": "2026-08-30T06:47:14.617Z",
+      "date": "2026-08-30T11:39:43.321Z",
       "validationStatus": "applied",
       "purchaseStatus": "completed",
       "productPurchased": "pro_monthly",
       "purchaseAmount": 24.5,
       "discountApplied": 24.5,
       "paymentStatus": "success",
-      "createdAt": "2026-08-30T06:47:14.617Z"
+      "createdAt": "2026-08-30T11:39:43.321Z"
     },
     {
-      "id": "cu_1788072462155",
-      "userId": "u_1788072462125",
+      "id": "cu_1788091079543",
+      "userId": "u_1788091079517",
       "couponId": "c_welcome50",
       "code": "WELCOME50",
-      "date": "2026-08-30T06:47:42.155Z",
+      "date": "2026-08-30T11:57:59.543Z",
       "validationStatus": "applied",
       "purchaseStatus": "completed",
       "productPurchased": "pro_monthly",
       "purchaseAmount": 24.5,
       "discountApplied": 24.5,
       "paymentStatus": "success",
-      "createdAt": "2026-08-30T06:47:42.155Z"
+      "createdAt": "2026-08-30T11:57:59.543Z"
     },
     {
-      "id": "cu_1788072688323",
-      "userId": "u_1788072688301",
+      "id": "cu_1788091479945",
+      "userId": "u_1788091479905",
       "couponId": "c_welcome50",
       "code": "WELCOME50",
-      "date": "2026-08-30T06:51:28.323Z",
+      "date": "2026-08-30T12:04:39.945Z",
       "validationStatus": "applied",
       "purchaseStatus": "completed",
       "productPurchased": "pro_monthly",
       "purchaseAmount": 24.5,
       "discountApplied": 24.5,
       "paymentStatus": "success",
-      "createdAt": "2026-08-30T06:51:28.323Z"
+      "createdAt": "2026-08-30T12:04:39.945Z"
     },
     {
-      "id": "cu_1788072780900",
-      "userId": "u_1788072780869",
+      "id": "cu_1788091812631",
+      "userId": "u_1788091812605",
       "couponId": "c_welcome50",
       "code": "WELCOME50",
-      "date": "2026-08-30T06:53:00.900Z",
+      "date": "2026-08-30T12:10:12.631Z",
       "validationStatus": "applied",
       "purchaseStatus": "completed",
       "productPurchased": "pro_monthly",
       "purchaseAmount": 24.5,
       "discountApplied": 24.5,
       "paymentStatus": "success",
-      "createdAt": "2026-08-30T06:53:00.900Z"
+      "createdAt": "2026-08-30T12:10:12.631Z"
     },
     {
-      "id": "cu_1788074748979",
-      "userId": "u_1788074748941",
+      "id": "cu_1788092143397",
+      "userId": "u_1788092143354",
       "couponId": "c_welcome50",
       "code": "WELCOME50",
-      "date": "2026-08-30T07:25:48.979Z",
+      "date": "2026-08-30T12:15:43.397Z",
       "validationStatus": "applied",
       "purchaseStatus": "completed",
       "productPurchased": "pro_monthly",
       "purchaseAmount": 24.5,
       "discountApplied": 24.5,
       "paymentStatus": "success",
-      "createdAt": "2026-08-30T07:25:48.979Z"
+      "createdAt": "2026-08-30T12:15:43.397Z"
+    },
+    {
+      "id": "cu_1788096678656",
+      "userId": "u_1788096678631",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-08-30T13:31:18.656Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-08-30T13:31:18.656Z"
     }
   ],
   "referralCodes": [
     {
-      "id": "ref_u_1001",
-      "userId": "u_1001",
-      "referralCode": "WRINDHA2026",
+      "id": "ref_u_1788093195564",
+      "userId": "u_1788093195564",
+      "referralCode": "WOS1127",
       "status": "active",
       "totalCount": 0,
-      "createdAt": "2026-08-30T06:45:50.715Z"
+      "createdAt": "2026-08-30T12:33:15.574Z"
     },
     {
-      "id": "ref_u_1788072376658",
-      "userId": "u_1788072376658",
-      "referralCode": "WOS3777",
+      "id": "ref_u_1788093195595",
+      "userId": "u_1788093195595",
+      "referralCode": "WOS2221",
       "status": "active",
       "totalCount": 0,
-      "createdAt": "2026-08-30T06:46:16.659Z"
+      "createdAt": "2026-08-30T12:33:15.597Z"
     },
     {
-      "id": "ref_u_1788072434591",
-      "userId": "u_1788072434591",
-      "referralCode": "WOS5532",
+      "id": "ref_u_1788093267848",
+      "userId": "u_1788093267848",
+      "referralCode": "WOS1560",
       "status": "active",
       "totalCount": 0,
-      "createdAt": "2026-08-30T06:47:14.593Z"
+      "createdAt": "2026-08-30T12:34:27.854Z"
+    },
+    {
+      "id": "ref_u_1788093302888",
+      "userId": "u_1788093302888",
+      "referralCode": "WOS1344",
+      "status": "active",
+      "totalCount": 0,
+      "createdAt": "2026-08-30T12:35:02.889Z"
+    },
+    {
+      "id": "ref_u_1788093367629",
+      "userId": "u_1788093367629",
+      "referralCode": "WOS3294",
+      "status": "active",
+      "totalCount": 0,
+      "createdAt": "2026-08-30T12:36:07.632Z"
     }
   ],
   "referralTrackings": [],
-  "otpStore": {}
+  "otpStore": {
+    "audit_user_1788096677217@wrindhaos.in": {
+      "code": "734946",
+      "type": "register",
+      "attempts": 0,
+      "maxAttempts": 5,
+      "createdAt": 1788096677230,
+      "expiresAt": 1788097277230,
+      "lastSentAt": 1788096677230,
+      "pendingUser": {
+        "username": "audit_1788096677217",
+        "email": "audit_user_1788096677217@wrindhaos.in",
+        "passwordHash": "17e6ae2485fd9feb1e74e5e5fd545ff7:50dae48a10e8f162879fbb00e2af3dd5c702d8c695d0fa10403e5fa7519f9b715fb30accd2ce2af688b6639c7b4272c2d2ecfe230a276f6d44217756206ae074"
+      }
+    }
+  },
+  "habitCompletions": []
 }

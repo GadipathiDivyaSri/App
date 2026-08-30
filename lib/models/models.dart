@@ -1,39 +1,144 @@
 class Habit {
   final String id;
   String title;
-  String frequency;
+  String category;
+  String frequency; // 'DAILY', 'WEEKDAYS', 'WEEKENDS', 'CUSTOM', 'WEEKLY'
+  List<int> selectedDays; // 1 = Mon, 2 = Tue, ..., 7 = Sun
+  String startDate; // 'yyyy-MM-dd'
+  String status; // 'active', 'paused', 'archived'
+  String description;
+  int colorHex;
+  String iconName;
   bool isCompleted;
   int streakDay;
+  int longestStreak;
+  int totalCompletions;
   List<String> completionHistory; // List of 'yyyy-MM-dd' dates
 
   Habit({
     required this.id,
     required this.title,
+    this.category = 'General',
     this.frequency = 'DAILY',
+    List<int>? selectedDays,
+    String? startDate,
+    this.status = 'active',
+    this.description = '',
+    this.colorHex = 0xFF10B981,
+    this.iconName = 'repeat',
     this.isCompleted = false,
     this.streakDay = 0,
+    this.longestStreak = 0,
+    this.totalCompletions = 0,
     List<String>? completionHistory,
-  }) : completionHistory = completionHistory ?? [];
+  })  : selectedDays = selectedDays ?? [],
+        startDate = startDate ?? DateTime.now().toIso8601String().split('T')[0],
+        completionHistory = completionHistory ?? [];
+
+  bool isScheduledForDate(DateTime date) {
+    if (status == 'archived' || status == 'paused') return false;
+    final dateStr = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+    if (dateStr.compareTo(startDate) < 0) return false;
+
+    final weekday = date.weekday; // 1 = Mon, 7 = Sun
+    final freq = frequency.toUpperCase();
+    if (freq == 'DAILY') return true;
+    if (freq == 'WEEKDAYS') return weekday >= 1 && weekday <= 5;
+    if (freq == 'WEEKENDS') return weekday == 6 || weekday == 7;
+    if (freq == 'CUSTOM') return selectedDays.contains(weekday);
+    if (freq == 'WEEKLY') return weekday == 1;
+    return true;
+  }
+
+  bool isCompletedOnDate(String dateStr) {
+    return completionHistory.contains(dateStr);
+  }
 
   Map<String, dynamic> toJson() => {
         'id': id,
         'title': title,
+        'category': category,
         'frequency': frequency,
+        'selectedDays': selectedDays,
+        'startDate': startDate,
+        'status': status,
+        'description': description,
+        'colorHex': colorHex,
+        'iconName': iconName,
         'isCompleted': isCompleted,
         'streakDay': streakDay,
+        'longestStreak': longestStreak,
+        'totalCompletions': totalCompletions,
         'completionHistory': completionHistory,
       };
 
-  factory Habit.fromJson(Map<String, dynamic> json) => Habit(
-        id: json['id'] ?? 'h_1',
-        title: json['title'] ?? '',
-        frequency: json['frequency'] ?? 'DAILY',
-        isCompleted: json['isCompleted'] ?? false,
-        streakDay: json['streakDay'] ?? 0,
-        completionHistory: (json['completionHistory'] as List<dynamic>?)
-                ?.map((e) => e.toString())
-                .toList() ??
-            [],
+  factory Habit.fromJson(Map<String, dynamic> json) {
+    final history = (json['completionHistory'] as List<dynamic>?)
+            ?.map((e) => e.toString())
+            .toList() ??
+        [];
+    final days = (json['selectedDays'] as List<dynamic>?)
+            ?.map((e) => int.tryParse(e.toString()) ?? 1)
+            .toList() ??
+        [];
+
+    return Habit(
+      id: json['id'] ?? 'h_1',
+      title: json['title'] ?? '',
+      category: json['category'] ?? 'General',
+      frequency: json['frequency'] ?? 'DAILY',
+      selectedDays: days,
+      startDate: json['startDate'] ?? json['start_date'],
+      status: json['status'] ?? 'active',
+      description: json['description'] ?? '',
+      colorHex: json['colorHex'] != null
+          ? (int.tryParse(json['colorHex'].toString()) ?? 0xFF10B981)
+          : (json['color_hex'] != null ? (int.tryParse(json['color_hex'].toString()) ?? 0xFF10B981) : 0xFF10B981),
+      iconName: json['iconName'] ?? json['icon_name'] ?? 'repeat',
+      isCompleted: json['isCompleted'] ?? false,
+      streakDay: json['currentStreak'] ?? json['streakDay'] ?? json['streak'] ?? 0,
+      longestStreak: json['longestStreak'] ?? 0,
+      totalCompletions: json['totalCompletions'] ?? history.length,
+      completionHistory: history,
+    );
+  }
+}
+
+class HabitCompletion {
+  final String id;
+  final String habitId;
+  final String userId;
+  final String completionDate; // 'yyyy-MM-dd'
+  final String status;
+  final DateTime completedAt;
+
+  HabitCompletion({
+    required this.id,
+    required this.habitId,
+    required this.userId,
+    required this.completionDate,
+    this.status = 'completed',
+    required this.completedAt,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'habitId': habitId,
+        'userId': userId,
+        'completionDate': completionDate,
+        'status': status,
+        'completedAt': completedAt.toIso8601String(),
+      };
+
+  factory HabitCompletion.fromJson(Map<String, dynamic> json) => HabitCompletion(
+        id: json['id'] ?? 'hc_1',
+        habitId: json['habitId'] ?? json['habit_id'] ?? '',
+        userId: json['userId'] ?? json['user_id'] ?? '',
+        completionDate: json['completionDate'] ?? json['completion_date'] ?? '',
+        status: json['status'] ?? 'completed',
+        completedAt: json['completedAt'] != null
+            ? (DateTime.tryParse(json['completedAt'].toString()) ?? DateTime.now())
+            : DateTime.now(),
       );
 }
 
