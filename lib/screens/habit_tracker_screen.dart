@@ -103,59 +103,101 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
             _buildDateNavigator(context, isDark, provider),
             const SizedBox(height: 16),
 
-            // 2. Progress & Metrics Summary Card
+            // 2. High-Impact Impressive Streaks Hero & Metrics Card
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(22),
               decoration: BoxDecoration(
-                color: isDark ? AppTheme.darkCardBg : AppTheme.personalGrowth,
-                borderRadius: BorderRadius.circular(22),
-                border: isDark ? Border.all(color: AppTheme.darkCardBorder, width: 1) : null,
+                gradient: LinearGradient(
+                  colors: isDark
+                      ? [const Color(0xFF2E1906), const Color(0xFF1E1408), const Color(0xFF15100B)]
+                      : [const Color(0xFFFFF7ED), const Color(0xFFFEF3C7), const Color(0xFFFFFBEB)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: isDark ? const Color(0xFF78350F) : const Color(0xFFFDE68A),
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFF59E0B).withOpacity(isDark ? 0.15 : 0.1),
+                    blurRadius: 16,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Streak Tier Badge & Flame Header
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      Row(
                         children: [
-                          Text(
-                            isViewingToday
-                                ? "Today's Habit Progress"
-                                : "Progress for ${_formatDisplayDate(selectedDate)}",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w800,
-                              color: textPrimary,
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFFF59E0B), Color(0xFFEF4444)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(14),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFFEF4444).withOpacity(0.4),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 3),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.local_fire_department_rounded,
+                              color: Colors.white,
+                              size: 24,
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            scheduledHabits.isEmpty
-                                ? 'No habits scheduled for this day'
-                                : '$completedCount of ${scheduledHabits.length} completed',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: textSecondary,
-                              fontWeight: FontWeight.w500,
-                            ),
+                          const SizedBox(width: 12),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '$totalStreaks Active Streak${totalStreaks == 1 ? '' : 's'}',
+                                style: TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w900,
+                                  color: isDark ? const Color(0xFFFDE68A) : const Color(0xFF92400E),
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                _getStreakLevelTitle(bestStreak),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: isDark ? const Color(0xFFFBBF24) : const Color(0xFFB45309),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
-                          color: primaryColor.withOpacity(0.15),
+                          color: const Color(0xFFF59E0B).withOpacity(0.2),
                           borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFFF59E0B).withOpacity(0.4)),
                         ),
                         child: Text(
-                          '${(progress * 100).round()}%',
-                          style: TextStyle(
-                            fontSize: 14,
+                          '${(progress * 100).round()}% Today',
+                          style: const TextStyle(
+                            fontSize: 13,
                             fontWeight: FontWeight.w800,
-                            color: primaryColor,
+                            color: Color(0xFFF59E0B),
                           ),
                         ),
                       ),
@@ -168,37 +210,41 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                       value: progress,
                       minHeight: 8,
                       backgroundColor: isDark ? Colors.white10 : Colors.black12,
-                      valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
+                      valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFF59E0B)),
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  // Streaks & Stats Row
+                  const SizedBox(height: 18),
+                  // Impressive 4-Stat Grid
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _buildMiniStat(
+                      _buildImpressiveStat(
                         icon: Icons.local_fire_department_rounded,
-                        iconColor: const Color(0xFFF59E0B),
-                        label: 'Active Streaks',
+                        iconColor: const Color(0xFFEF4444),
+                        label: 'Active Flame',
                         value: '$totalStreaks 🔥',
-                        textPrimary: textPrimary,
-                        textSecondary: textSecondary,
+                        isDark: isDark,
                       ),
-                      _buildMiniStat(
+                      _buildImpressiveStat(
                         icon: Icons.emoji_events_rounded,
-                        iconColor: const Color(0xFF3B82F6),
-                        label: 'Best Streak',
+                        iconColor: const Color(0xFFF59E0B),
+                        label: 'Best Record',
                         value: '$bestStreak Days',
-                        textPrimary: textPrimary,
-                        textSecondary: textSecondary,
+                        isDark: isDark,
                       ),
-                      _buildMiniStat(
-                        icon: Icons.repeat_rounded,
+                      _buildImpressiveStat(
+                        icon: Icons.check_circle_rounded,
                         iconColor: const Color(0xFF10B981),
+                        label: 'Completed',
+                        value: '$completedCount / ${scheduledHabits.length}',
+                        isDark: isDark,
+                      ),
+                      _buildImpressiveStat(
+                        icon: Icons.repeat_rounded,
+                        iconColor: const Color(0xFF3B82F6),
                         label: 'Total Habits',
                         value: '${habits.length}',
-                        textPrimary: textPrimary,
-                        textSecondary: textSecondary,
+                        isDark: isDark,
                       ),
                     ],
                   ),
@@ -524,6 +570,53 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
               ),
             );
           }),
+        ),
+      ],
+    );
+  }
+
+  String _getStreakLevelTitle(int bestStreak) {
+    if (bestStreak >= 30) return '🌟 Supernova Master (30+ Days)';
+    if (bestStreak >= 21) return '💎 Habit Solidified (21 Days)';
+    if (bestStreak >= 14) return '⚡ Momentum Dynamo (2 Weeks)';
+    if (bestStreak >= 7) return '🔥 Flame Ignition (7 Days)';
+    if (bestStreak >= 3) return '✨ Rising Spark (3 Days)';
+    if (bestStreak > 0) return '🌱 Momentum Initiated';
+    return '🚀 Ready to Ignite Daily Habit';
+  }
+
+  Widget _buildImpressiveStat({
+    required IconData icon,
+    required Color iconColor,
+    required String label,
+    required String value,
+    required bool isDark,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, size: 15, color: iconColor),
+            const SizedBox(width: 4),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w900,
+                color: isDark ? Colors.white : const Color(0xFF1E293B),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+          ),
         ),
       ],
     );

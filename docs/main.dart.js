@@ -100216,11 +100216,7 @@ n=A.X(k,B.P0,B.j,k,k,new A.O(g?B.X:B.N,k,k,k,k,k,B.b5),k,k,k,B.t_,k,k,k)
 l=A.m("Interactive Node Map",k,k,k,k,A.J(k,k,g?B.d:B.B,k,k,k,k,k,k,k,k,15,k,k,B.K,k,k,!0,k,k,k,k,k,k,k,k),k,k,k)
 l=A.aD(A.a0(A.a([l,B.ce,A.m("Drag, zoom & connect skill nodes live",k,k,k,k,A.J(k,k,g?B.as:B.a6,k,k,k,k,k,k,k,k,12,k,k,k,k,k,!0,k,k,k,k,k,k,k,k),k,k,k)],m),B.w,B.h,B.f,0,B.m),1)
 r=A.cc(k,A.X(k,A.a4(A.a([n,B.bx,l,A.as(B.NI,g?B.X:B.N,k,16)],m),B.i,B.h,B.f,0,k,k),B.j,k,k,new A.O(r,k,o,p,k,k,B.o),k,k,k,B.d2,k,k,1/0),B.t,!1,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,new A.a5G(a),k,k,k,k,k,k)
-r=A.a([q,B.aD,r,B.an,A.a4(A.a([A.m("Milestone Pathways",k,k,k,k,A.J(k,k,g?B.d:B.B,k,k,k,k,k,k,k,k,18,k,k,B.K,k,k,!0,k,k,k,k,k,k,k,k),k,k,k),A.m(""+h.length+" Active",k,k,k,k,A.J(k,k,f,k,k,k,k,k,k,k,k,12,k,k,B.b4,k,k,!0,k,k,k,k,k,k,k,k),k,k,k)],m),B.i,B.ap,B.f,0,k,k),B.aP],m)
-q=h.length
-if(q===0)B.b.M(r,A.a([this.Gh(B.O3,g,0.6,"Pathways & Goal Goals","Make-up graduate"),B.a4,this.Gh(B.u2,g,0.4,"Draft your goals","Complete intention"),B.a4,this.Gh(B.NZ,g,0.25,"Contribution","Develop commissions")],m))
-else r.push(A.vP(new A.a5H(h,g),q,B.f2,!0))
-r.push(B.dx)
+r=A.a([q,B.aD,r,B.dx],m)
 return A.cJ(i,j,A.dA(A.a0(r,B.w,B.h,B.f,0,B.m),k,B.t,B.F,k,k,B.S),k,s)},
 Gh(a,b,c,d,e){var s,r,q,p=null,o=B.e.ea(c*100),n=b?B.ah:B.d,m=A.B(18),l=b?A.bO(B.ay,B.p,1):p,k=b?A.fY():A.a([new A.aK(0,B.E,A.Z(5,B.n.m()>>>16&255,B.n.m()>>>8&255,B.n.m()&255),B.bu,8)],t.V),j=b?B.bh:B.d0,i=A.B(14)
 j=A.X(p,A.as(a,b?B.X:B.N,p,22),B.j,p,p,new A.O(j,p,p,i,p,p,B.o),p,44,p,p,p,p,44)
@@ -100699,7 +100695,7 @@ s=i?B.am:B.N
 s=A.jE(s,B.ei,4,"habit_fab",new A.awJ(k,a),B.di)
 r=A.m("Current Streaks",j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,18,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j)
 q=k.d
-p=q.length===0?"0 DAY STREAK":""+new A.aB(q,new A.awK(),A.a1(q).i("aB<1>")).gG(0)+" ACTIVE"
+p=q.length===0?"🔥 0 STREAKS (IGNITE TODAY)":"🔥 "+new A.aB(q,new A.awK(),A.a1(q).i("aB<1>")).gG(0)+" ACTIVE FLAMES"
 o=t.p
 p=A.a4(A.a([r,A.m(p,j,j,j,j,A.J(j,j,h,j,j,j,j,j,j,j,j,11,j,j,B.x,j,j,!0,j,1.1,j,j,j,j,j,j),j,j,j)],o),B.i,B.ap,B.f,0,j,j)
 r=i?B.ah:B.ec
@@ -100709,10 +100705,8 @@ l=q.length
 if(l===0)l=B.Jj
 else{if(l>3)l=3
 l=A.a4(A.Pc(l,new A.awL(k),!0,t.l7),B.i,B.iu,B.f,0,j,j)}n=A.X(j,l,B.j,j,j,new A.O(r,j,m,n,j,j,B.o),j,j,j,B.MB,j,j,j)
-r=A.m("Rewards earned",j,j,j,j,A.J(j,j,i?B.d:B.af,j,j,j,j,j,j,j,j,18,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j)
-if(!new A.aB(q,new A.awM(),A.a1(q).i("aB<1>")).gaf(0).B()){m=i?B.T:B.d
-m=A.X(j,B.Jk,B.j,j,j,new A.O(m,j,j,A.B(18),j,j,B.o),j,j,j,B.F,j,j,1/0)}else m=A.b_(A.j0(A.a([k.R_(a,B.rc,B.u3,B.r7,"EARLY BIRD"),B.bx,k.R_(a,B.Kk,B.tP,B.bG,"ON FIRE")],o),j,j,B.ak,!1),110,j)
-return A.cJ(f,g,A.dA(A.a0(A.a([p,B.aP,n,B.an,r,B.aP,m,B.an,A.m("Active Habits",j,j,j,j,A.J(j,j,i?B.d:B.af,j,j,j,j,j,j,j,j,18,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j),B.aP,A.vP(new A.awN(k),q.length,B.f2,!0),B.dx],o),B.w,B.h,B.f,0,B.m),j,B.t,B.bw,j,j,B.S),j,s)},
+r=null; m=null
+return A.cJ(f,g,A.dA(A.a0(A.a([p,B.aP,n,B.an,A.m("Active Habits",j,j,j,j,A.J(j,j,i?B.d:B.af,j,j,j,j,j,j,j,j,18,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j),B.aP,A.vP(new A.awN(k),q.length,B.f2,!0),B.dx],o),B.w,B.h,B.f,0,B.m),j,B.t,B.bw,j,j,B.S),j,s)},
 R_(a,b,c,d,e){var s,r=null,q=A.p(a).ax.a===B.A,p=q?B.T:B.d,o=A.B(18),n=A.a([],t.V)
 if(!q)n.push(new A.aK(0,B.E,A.Z(8,B.n.m()>>>16&255,B.n.m()>>>8&255,B.n.m()&255),B.ba,10))
 s=A.B(12)
