@@ -100689,86 +100689,43 @@ $S:0}
 A.qD.prototype={
 a5(){return new A.WF(A.a([],t.H7))}}
 A.WF.prototype={
-E(a){var s,q,k=this,j=null,i=A.p(a).ax.a===B.A,g=i?B.aZ:B.aV,f=A.c3(j,j,j,A.as(B.bm,i?B.d:B.B,j,20),j,j,new A.awI(a),j,j,j,j)
+E(a){var s,r,q,p,o,n,m,l,k=this,j=null,i=A.p(a).ax.a===B.A,h=i?B.am:B.c7,g=i?B.aZ:B.aV,f=A.c3(j,j,j,A.as(B.bm,i?B.d:B.B,j,20),j,j,new A.awI(a),j,j,j,j)
 f=A.da(j,j,j,j,j,f,A.m("Habit Tracker",j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,j,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j))
 s=i?B.am:B.N
 s=A.jE(s,B.ei,4,"habit_fab",new A.awJ(k,a),B.di)
+r=A.m("🔥 7-DAY STREAK ACTIVITY CHART",j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,18,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j)
 q=k.d
-return A.cJ(f,g,A.dA(A.a0(A.a([A.m("Active Habits",j,j,j,j,A.J(j,j,i?B.d:B.af,j,j,j,j,j,j,j,j,18,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j),B.aP,A.vP(new A.awN(k),q.length,B.f2,!0),B.dx],t.p),B.w,B.h,B.f,0,B.m),j,B.t,B.bw,j,j,B.S),j,s)},
+p=q.length===0?"🔥 0 STREAKS (IGNITE TODAY)":"🔥 "+new A.aB(q,new A.awK(),A.a1(q).i("aB<1>")).gG(0)+" ACTIVE FLAMES"
+o=t.p
+p=A.a4(A.a([r,A.m(p,j,j,j,j,A.J(j,j,h,j,j,j,j,j,j,j,j,11,j,j,B.x,j,j,!0,j,1.1,j,j,j,j,j,j),j,j,j)],o),B.i,B.ap,B.f,0,j,j)
+r=i?B.ah:B.ec
+n=A.B(20)
+m=i?A.bO(B.ay,B.p,1):j
+l=A.a4(A.Pc(7,new A.awL(k),!0,t.l7),B.i,B.iu,B.f,0,j,j)
+n=A.X(j,l,B.j,j,j,new A.O(r,j,m,n,j,j,B.o),j,j,j,B.MB,j,j,j)
+r=null; m=null
+return A.cJ(f,g,A.dA(A.a0(A.a([p,B.aP,n,B.an,A.m("Active Habits",j,j,j,j,A.J(j,j,i?B.d:B.af,j,j,j,j,j,j,j,j,18,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j),B.aP,A.vP(new A.awN(k),q.length,B.f2,!0),B.dx],o),B.w,B.h,B.f,0,B.m),j,B.t,B.bw,j,j,B.S),j,s)},
 R_(a,b,c,d,e){var s,r=null,q=A.p(a).ax.a===B.A,p=q?B.T:B.d,o=A.B(18),n=A.a([],t.V)
 if(!q)n.push(new A.aK(0,B.E,A.Z(8,B.n.m()>>>16&255,B.n.m()>>>8&255,B.n.m()&255),B.ba,10))
 s=A.B(12)
 return A.X(r,A.a0(A.a([A.X(r,A.as(c,d,r,24),B.j,r,r,new A.O(b,r,r,s,r,r,B.o),r,r,r,B.t_,r,r,r),B.ao,A.m(e,r,r,r,r,B.a3K,r,r,r)],t.p),B.i,B.b_,B.f,0,B.m),B.j,r,r,new A.O(p,r,r,o,n,r,B.o),r,r,r,B.t0,r,r,120)},
 abC(a,b,c){var s,r,q,p,o=null,n=A.p(a).ax.a===B.A,m=J.d(b.h(0,"isCompleted"),!0),l=n?B.T:B.b3,k=A.B(18),j=n?B.bH:B.d,i=A.B(14)
-i=A.X(o,A.as(t.tk.a(b.h(0,"icon")||B.P0),B.u,o,22),B.j,o,o,new A.O(j,o,o,i,o,o,B.o),o,44,o,o,o,o,44)
-s=A.m(t.p.a(b.h(0,"name")||b.h(0,"title")),o,o,o,o,A.J(o,o,n?B.d:B.B,o,o,o,o,o,o,o,o,15,o,o,B.K,o,o,!0,o,o,o,o,o,o,o,o),o,o,o)
-r=A.a0(A.a([s,B.ao,A.m(t.p.a(b.h(0,"frequency")||"DAILY")+" • "+t.p.a(b.h(0,"time")||"8:00 AM"),o,o,o,o,A.J(o,o,n?B.as:B.a6,o,o,o,o,o,o,o,o,12,o,o,B.a2,o,o,!0,o,o,o,o,o,o,o,o),o,o,o)],t.p),B.w,B.h,B.f,0,B.m)
-q=A.cc(o,A.as(m?B.tU:B.bY,m?B.u:B.a_,o,24),B.t,!1,o,o,o,o,o,o,o,o,o,o,o,o,o,o,new A.awp(this,c,m),o,o,o,o,o,o)
-p=A.aaY(B.N,o,o,new A.awr(n),o,o,new A.aws(this,c,m,b),o,o,o,o,o,o,o,o,o,o,o,o,o)
-return A.X(o,A.a4(A.a([i,B.bx,A.aD(r,1),q,p],t.p),B.i,B.h,B.f,0,o,o),B.j,o,o,new A.O(l,o,o,k,o,o,B.o),o,k,o,B.b9,k,1/0)},
-apH(a){
-  var self=this;
-  var title=window.prompt("Enter new habit title (e.g. Morning Meditation, 5km Run, Study Flutter):");
-  if(!title||!title.trim()) return;
-  title=title.trim();
-  var freq=window.prompt("Enter frequency (DAILY, WEEKDAYS, WEEKENDS, CUSTOM):", "DAILY");
-  freq=(freq&&freq.trim())?freq.trim().toUpperCase():"DAILY";
-  var time=window.prompt("Enter reminder time (e.g. 8:00 AM):", "8:00 AM");
-  time=(time&&time.trim())?time.trim():"8:00 AM";
-
-  var newHabit=new A.P();
-  newHabit.p(0,"name",title);
-  newHabit.p(0,"title",title);
-  newHabit.p(0,"frequency",freq);
-  newHabit.p(0,"time",time);
-  newHabit.p(0,"isCompleted",false);
-  newHabit.p(0,"streakDay",0);
-  newHabit.p(0,"icon",B.P0);
-
-  self.K(new A.gW(function(){
-    self.d.push(newHabit);
-  }));
-
-  try{
-    if(typeof fetch!=="undefined"){
-      fetch("/api/habits",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({title:title,frequency:freq,time:time,category:"Personal Growth"})
-      }).then(function(r){return r.json()}).then(function(data){
-        if(data&&data.data&&data.data.id){
-          newHabit.p(0,"id",data.data.id);
-        }
-      }).catch(function(){});
-    }
-  }catch(e){}
-},
-apP(a,b){
-  var self=this;
-  var item=self.d[b];
-  if(!item) return;
-  var oldName=t.p.a(item.h(0,"name")||item.h(0,"title"))||"";
-  var newTitle=window.prompt("Edit habit title:", oldName);
-  if(!newTitle||!newTitle.trim()) return;
-  newTitle=newTitle.trim();
-
-  self.K(new A.gW(function(){
-    item.p(0,"name",newTitle);
-    item.p(0,"title",newTitle);
-  }));
-
-  try{
-    var hid=item.h(0,"id");
-    if(hid&&typeof fetch!=="undefined"){
-      fetch("/api/habits/"+hid,{
-        method:"PUT",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({title:newTitle})
-      }).catch(function(){});
-    }
-  }catch(e){}
-}
-};
+i=A.X(o,A.as(t.tk.a(b.h(0,"icon")),B.u,o,22),B.j,o,o,new A.O(j,o,o,i,o,o,B.o),o,44,o,o,o,o,44)
+j=A.b3(b.h(0,"title"))
+s=m?B.dW:o
+r=t.p
+s=A.aD(A.a0(A.a([A.m(j,o,o,o,o,A.J(o,o,n?B.d:B.af,o,s,o,o,o,o,o,o,15,o,o,B.x,o,o,!0,o,o,o,o,o,o,o,o),o,o,o),B.aW,A.m(A.b3(b.h(0,"frequency")),o,o,o,o,B.a4I,o,o,o)],r),B.w,B.h,B.f,0,B.m),1)
+j=m?B.u:B.C
+q=A.bO(B.u,B.p,2)
+p=m?B.u9:o
+return A.X(o,A.a4(A.a([i,B.bx,s,A.cc(o,A.X(o,p,B.j,o,o,new A.O(j,o,q,o,o,o,B.b5),o,28,o,o,o,o,28),B.t,!1,o,o,o,o,o,o,o,o,o,o,o,o,o,o,o,o,new A.awq(this,c,m),o,o,o,o,o,o),A.o6(B.k5,new A.awr(m),new A.aws(this,c,m,a),B.c9,o,t.N)],r),B.i,B.h,B.f,0,o,o),B.j,o,o,new A.O(l,o,o,k,o,o,B.o),o,o,B.eO,B.fA,o,o,o)},
+apP(a,b){var s=null,r={},q=A.b3(this.d[b].h(0,"title")),p=$.a9()
+r.a=B.lb
+A.hQ(s,s,!0,s,new A.awH(r,this,new A.bI(new A.bN(q,B.b1,B.ax),p),a,b),a,s,!0,t.z)},
+apH(a){var s={},r=$.a9()
+s.a=B.lb
+s.b="Daily"
+A.iG(null,new A.awA(s,this,new A.bI(B.aE,r),a),a,!0,B.cv,t.z)}}
 A.awI.prototype={
 $0(){A.ad(this.a,!1).aI(null)
 return null},
@@ -100780,13 +100737,13 @@ A.awK.prototype={
 $1(a){return J.d(a.h(0,"isCompleted"),!0)},
 $S:54}
 A.awL.prototype={
-$1(a){var s,r,q,p=null,days=["Sat","Sun","Mon","Tue","Wed","Thu","Fri"],dayNum=a+1,dayOfWeek=days[a%7]
-var o=this.a.d,h=(o&&o.length>0)?o[0]:null,isDone=h?J.d(h.h(0,"isCompleted"),!0):!1
-var statusIcon=A.m(isDone?"✓":"·",p,p,p,p,A.J(p,p,isDone?B.u:B.dk,p,p,p,p,p,p,p,p,12,p,p,B.x,p,p,!0,p,p,p,p,p,p,p,p),p,p,p)
-var dateCircle=A.X(p,A.m(""+dayNum,p,p,p,p,A.J(p,p,isDone?B.d:B.B,p,p,p,p,p,p,p,p,13,p,p,B.K,p,p,!0,p,p,p,p,p,p,p,p),p,p,p),B.j,p,p,new A.O(isDone?B.u:(dayNum===30?B.am:B.d),p,A.bO(isDone?B.u:(dayNum===30?B.am:B.dk),B.p,1.5),A.B(14),p,p,B.o),p,36,p,p,p,p,36)
-var lblWidget=A.m(dayOfWeek,p,p,p,p,A.J(p,p,dayNum===30?B.am:B.af,p,p,p,p,p,p,p,p,10,p,p,B.x,p,p,!0,p,p,p,p,p,p,p,p),p,p,p)
-return A.X(p,A.a0(A.a([statusIcon,B.ao,dateCircle,B.ao,lblWidget],t.p),B.w,B.h,B.av,0,B.m),B.j,p,p,p,p,46,p,p,p,p,88)
-},
+$1(a){var s,r,q,p=null,days=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],o=this.a.d,h=(o&&o.length>0)?o[a%o.length]:null,n=h?J.d(h.h(0,"isCompleted"),!0):!1,dayLabel=days[a%7]
+var pctText=n?"100%":(h?"0%":"-")
+var pctLabel=A.m(pctText,p,p,p,p,A.J(p,p,n?B.u:B.dk,p,p,p,p,p,p,p,p,10,p,p,B.x,p,p,!0,p,p,p,p,p,p,p,p),p,p,p)
+var barH=n?38:(h?14:8)
+var barWidget=A.X(p,p,B.j,p,p,new A.O(n?B.u:B.dk,p,p,A.B(6),p,p,B.o),p,14,p,p,p,p,barH)
+var lblWidget=A.m(dayLabel,p,p,p,p,A.J(p,p,B.af,p,p,p,p,p,p,p,p,11,p,p,B.x,p,p,!0,p,p,p,p,p,p,p,p),p,p,p)
+return A.a0(A.a([pctLabel,B.ao,barWidget,B.ao,lblWidget],t.p),B.w,B.h,B.av,0,B.m)},
 $S:616}
 A.awM.prototype={
 $1(a){return J.d(a.h(0,"isCompleted"),!0)},
@@ -100801,19 +100758,10 @@ s.K(new A.awp(s,this.b,this.c))},
 $S:0}
 A.awp.prototype={
 $0(){var s="streakDay",r=this.a.d,q=this.b,p=!this.c
-var habit=r[q]
-habit.p(0,"isCompleted",p)
-var cur=A.fV(habit.h(0,s))
-var val=cur==null?0:cur
-if(p){habit.p(0,s,val+1)}else{habit.p(0,s,val>0?val-1:0)}
-try{
-  var hid=habit.h(0,"id")
-  if(hid&&typeof fetch!=="undefined"){
-    var today=new Date().toISOString().split("T")[0]
-    fetch("/api/habits/"+hid+"/toggle",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({date:today,isCompleted:p})}).catch(function(){})
-  }
-}catch(e){}
-},
+r[q].p(0,"isCompleted",p)
+if(p){r=r[q]
+q=A.fV(r.h(0,s))
+r.p(0,s,(q==null?0:q)+1)}},
 $S:0}
 A.aws.prototype={
 $1(a){var s,r=this
@@ -100823,32 +100771,10 @@ else if(a==="delete"){s=r.a
 s.K(new A.awo(s,r.b))}},
 $S:21}
 A.awn.prototype={
-$0(){var s="streakDay",r=this.a.d,q=this.b,p=!this.c
-var habit=r[q]
-habit.p(0,"isCompleted",p)
-var cur=A.fV(habit.h(0,s))
-var val=cur==null?0:cur
-if(p){habit.p(0,s,val+1)}else{habit.p(0,s,val>0?val-1:0)}
-try{
-  var hid=habit.h(0,"id")
-  if(hid&&typeof fetch!=="undefined"){
-    var today=new Date().toISOString().split("T")[0]
-    fetch("/api/habits/"+hid+"/toggle",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({date:today,isCompleted:p})}).catch(function(){})
-  }
-}catch(e){}
-},
+$0(){this.a.d[this.b].p(0,"isCompleted",!this.c)},
 $S:0}
 A.awo.prototype={
-$0(){
-  var habit=this.a.d[this.b];
-  var hid=habit?habit.h(0,"id"):null;
-  B.b.h6(this.a.d,this.b);
-  try{
-    if(hid&&typeof fetch!=="undefined"){
-      fetch("/api/habits/"+hid,{method:"DELETE"}).catch(function(){});
-    }
-  }catch(e){}
-},
+$0(){B.b.h6(this.a.d,this.b)},
 $S:0}
 A.awr.prototype={
 $1(a){var s=null,r=this.a,q=A.as(r?B.nH:B.eT,B.u,s,18)
