@@ -350,20 +350,5 @@
     }
   ],
   "referralTrackings": [],
-  "otpStore": {
-    "audit_user_1788074748863@wrindhaos.in": {
-      "code": "515536",
-      "type": "register",
-      "attempts": 0,
-      "maxAttempts": 5,
-      "createdAt": 1788074748893,
-      "expiresAt": 1788075348893,
-      "lastSentAt": 1788074748893,
-      "pendingUser": {
-        "username": "audit_1788074748864",
-        "email": "audit_user_1788074748863@wrindhaos.in",
-        "passwordHash": "8e6a53b80c9971dc35d8e6d7ee4ec4ae:7344ac53a1eb11ddbccc359a877ae3f989f254b2c4219cf4935fb5abc8ffe7390c3fa4a97263d90977a4881e030fe04cd211c6459f3cd46526cd00221a652680"
-      }
-    }
-  }
+  "otpStore": {}
 }
