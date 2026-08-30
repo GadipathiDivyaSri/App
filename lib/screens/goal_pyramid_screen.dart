@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/app_provider.dart';
+import '../widgets/upgrade_pro_modal.dart';
 import '../theme/app_theme.dart';
 import 'short_term_priorities_screen.dart';
 import 'career_roadmap_screen.dart';
@@ -18,6 +21,7 @@ class _GoalPyramidScreenState extends State<GoalPyramidScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final totalGoals = _shortGoals.length + _mediumGoals.length + _longGoals.length;
 
     return Scaffold(
       appBar: AppBar(
@@ -32,7 +36,17 @@ class _GoalPyramidScreenState extends State<GoalPyramidScreen> {
         elevation: 4,
         child: const Icon(Icons.add, color: Colors.white, size: 28),
         onPressed: () {
-          _showAddGoalDialog(context);
+          final provider = Provider.of<AppProvider>(context, listen: false);
+          final isPremium = provider.user.isPremium;
+          if (!isPremium && totalGoals >= 2) {
+            showUpgradeProModal(
+              context,
+              featureTitle: 'Goals Hierarchy',
+              limitExplanation: 'Free plan includes up to 2 active goals. Upgrade to Pro for ₹49/month to track unlimited OKRs and goal pyramid milestones!',
+            );
+          } else {
+            _showAddGoalDialog(context);
+          }
         },
       ),
       body: SingleChildScrollView(

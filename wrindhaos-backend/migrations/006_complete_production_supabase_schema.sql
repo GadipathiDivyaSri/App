@@ -1,6 +1,7 @@
-export const SUPABASE_SQL_SCHEMA = `-- =============================================================================
+-- =============================================================================
 -- WRINDHAOS COMPLETE UPDATED SUPABASE PRODUCTION DATABASE SCHEMA
 -- Version: 2.2.0 (Enhanced with Security, Performance, and Audit Features)
+-- Migration: 006_complete_production_supabase_schema.sql
 -- =============================================================================
 
 -- Enable required PostgreSQL extensions
@@ -362,7 +363,7 @@ CREATE INDEX IF NOT EXISTS idx_admin_audit_target ON public.admin_audit_logs(tar
 -- User Moderation & Suspension
 CREATE TABLE IF NOT EXISTS public.user_moderation (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id NOT NULL REFERENCES public.user_profiles(user_id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES public.user_profiles(user_id) ON DELETE CASCADE,
     is_banned BOOLEAN NOT NULL DEFAULT TRUE,
     ban_type VARCHAR(50) DEFAULT 'PERMANENT' CHECK (ban_type IN ('TEMPORARY', 'PERMANENT', 'WARNING_STRIKE')),
     ban_reason TEXT NOT NULL,
@@ -872,4 +873,3 @@ ON CONFLICT (key) DO NOTHING;
 -- =============================================================================
 -- END OF SCHEMA
 -- =============================================================================
-`;

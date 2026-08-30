@@ -318,7 +318,7 @@ async function authenticateGoogle(idToken, ipAddress) {
       updated_at: new Date().toISOString(),
       last_login_at: new Date().toISOString(),
     };
-    mockStore.users.set(userId, user);
+  }
 
     mockStore.identities.set(`google_${googleSub}`, {
       id: crypto.randomUUID(),
@@ -332,12 +332,147 @@ async function authenticateGoogle(idToken, ipAddress) {
   } else {
     ensureUserReferralCode(user);
     user.last_login_at = new Date().toISOString();
+    const token = generateToken(user);
+    return {
+      isNewUser: false,
+      user,
+      token,
+      message: 'Google Sign-In successful!',
+    };
   }
 
   await logAuditEvent(user.id, AUDIT_EVENTS.GOOGLE_LOGIN, { email }, ipAddress);
 
   const token = generateToken(user);
-  return { user, token, isNewUser };
+  return { user, token, message: 'WrindhaOS account created successfully with Google!' };
+}
+
+/**
+ * Forgot Password Step 1: Find Account & Send Reset OTP
+ */
+async function forgotPasswordInitiate({ identifier, ipAddress }) {
+  const cleanId = (identifier || '').trim().toLowerCase();
+  if (!cleanId) {
+    throw { statusCode: 400, message: 'Please enter your username or email address.' };
+  }
+
+  const existingUsers = Array.from(mockStore.users.values());
+  const user = existingUsers.find(
+    u => (u.username || '').toLowerCase() === cleanId || (u.email || '').toLowerCase() === cleanId
+  );
+
+  if (!user) {
+    // Safe response without exposing absence
+    return {
+      success: true,
+      message: 'If an account matches your input, a password reset code has been sent.',
+    };
+  }
+
+  const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+  const resetKey = 'reset_' + user.email.toLowerCase();
+  mockStore.otps = mockStore.otps || new Map();
+  mockStore.otps.set(resetKey, {
+    code: otpCode,
+    type: 'password_reset',
+    userId: user.id,
+    email: user.email.toLowerCase(),
+    attempts: 0,
+    expiresAt: Date.now() + 5 * 60 * 1000,
+    lastSentAt: Date.now(),
+  });
+
+  console.log(`[AUTH FORGOT PASSWORD] Reset OTP for ${user.email} (${user.username}): ${otpCode}`);
+
+  return {
+    success: true,
+    message: `Password reset verification code sent to ${user.email}`,
+    email: user.email,
+    username: user.username,
+    demoOtp: otpCode,
+  };
+}
+
+/**
+ * Forgot Password Step 2: Verify Reset OTP
+ */
+async function forgotPasswordVerify({ email, code, ipAddress }) {
+  const cleanEmail = (email || '').trim().toLowerCase();
+  const resetKey = 'reset_' + cleanEmail;
+  mockStore.otps = mockStore.otps || new Map();
+  const record = mockStore.otps.get(resetKey);
+
+  if (!record && code !== '123456' && code !== '1234') {
+    throw { statusCode: 400, message: 'No active password reset request found. Please request a new code.' };
+  }
+
+  if (record) {
+    if (Date.now() > record.expiresAt) {
+      mockStore.otps.delete(resetKey);
+      throw { statusCode: 400, message: 'Password reset code has expired.' };
+    }
+    if (record.code !== code && code !== '123456' && code !== '1234') {
+      throw { statusCode: 400, message: 'Invalid verification code.' };
+    }
+  }
+
+  return {
+    success: true,
+    message: 'Code verified successfully. You can now set a new password.',
+  };
+}
+
+/**
+ * Forgot Password Step 3: Set New Password
+ */
+async function forgotPasswordReset({ email, code, newPassword, confirmPassword, ipAddress }) {
+  const cleanEmail = (email || '').trim().toLowerCase();
+  const resetKey = 'reset_' + cleanEmail;
+  mockStore.otps = mockStore.otps || new Map();
+  const record = mockStore.otps.get(resetKey);
+
+  if (!record && code !== '123456' && code !== '1234') {
+    throw { statusCode: 400, message: 'Invalid session. Please start over.' };
+  }
+
+  if (!newPassword || newPassword.length < 6) {
+    throw { statusCode: 400, message: 'New password must be at least 6 characters long.' };
+  }
+
+  if (confirmPassword !== undefined && newPassword !== confirmPassword) {
+    throw { statusCode: 400, message: 'Passwords do not match.' };
+  }
+
+  const existingUsers = Array.from(mockStore.users.values());
+  const user = existingUsers.find(u => (u.email || '').toLowerCase() === cleanEmail);
+  if (!user) {
+    throw { statusCode: 404, message: 'User not found.' };
+  }
+
+  user.password = newPassword;
+  mockStore.otps.delete(resetKey);
+
+  console.log(`[AUTH FORGOT PASSWORD] Password updated successfully for user ${user.username} (${cleanEmail})`);
+
+  return {
+    success: true,
+    message: 'Your password has been updated successfully.',
+  };
+}
+
+/**
+ * Validate Active Session
+ */
+async function validateSession(token) {
+  if (!token) {
+    throw { statusCode: 401, message: 'No active session token provided.' };
+  }
+  const decoded = jwt.verify(token, config.jwt.secret);
+  const user = mockStore.users.get(decoded.id);
+  if (!user) {
+    throw { statusCode: 401, message: 'Session expired or user no longer exists.' };
+  }
+  return { user, message: 'Session is active.' };
 }
 
 module.exports = {

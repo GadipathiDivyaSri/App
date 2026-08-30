@@ -105,6 +105,123 @@ class ProfileScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
+            // Subscription Plan Card (PRO / FREE)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: user.isPremium
+                    ? const LinearGradient(
+                        colors: [Color(0xFF065F46), Color(0xFF10B981)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      )
+                    : LinearGradient(
+                        colors: isDark
+                            ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
+                            : [const Color(0xFF0D5CE5), const Color(0xFF2563EB)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: (user.isPremium ? const Color(0xFF10B981) : const Color(0xFF0D5CE5)).withOpacity(0.25),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            user.isPremium ? Icons.verified_rounded : Icons.stars_rounded,
+                            color: Colors.white,
+                            size: 22,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            user.isPremium ? 'PRO ACTIVE' : 'FREE PLAN',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 1.1,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          user.isPremium ? 'Active' : '₹49/month',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    user.isPremium
+                        ? 'You have unrestricted access to all WrindhaOS features!'
+                        : 'Unlock Unlimited Habits, Career Roadmap, Priority Matrix & Ad-Free Mode.',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      height: 1.35,
+                    ),
+                  ),
+                  if (!user.isPremium) ...[
+                    const SizedBox(height: 14),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 44,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: const Color(0xFF0D5CE5),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 0,
+                        ),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const PricingScreen(),
+                            ),
+                          );
+                        },
+                        child: const Text(
+                          'Upgrade to Pro for ₹49',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+
             // Account Section
             _buildSectionHeader('ACCOUNT'),
             _buildMenuCard(
@@ -134,7 +251,7 @@ class ProfileScreen extends StatelessWidget {
                     }),
                 _MenuItemData(
                     icon: Icons.card_membership_outlined,
-                    title: 'Pricing',
+                    title: 'Pricing Plans (₹49/month)',
                     onTap: () {
                       Navigator.push(
                         context,

@@ -160,7 +160,7 @@ export const INITIAL_PLANS: SubscriptionPlan[] = [
     currency: 'INR',
     billing_period: 'monthly',
     is_active: true,
-    trial_duration_days: 7, // Configurable trial duration
+    trial_duration_days: null, // No free trial
     features: WRINDHA_DEFAULT_FEATURES,
     limits: {
       study_roadmaps: 'unlimited',

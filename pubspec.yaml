@@ -62,7 +62,8 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
-  # An image asset can refer to one or more resolution-specific "variants", see
+  assets:
+    - assets/images/
   # https://flutter.dev/to/resolution-aware-images
 
   # For details regarding adding assets from package dependencies, see
