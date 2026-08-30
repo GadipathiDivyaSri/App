@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 import '../providers/app_provider.dart';
 import '../models/models.dart';
 import '../theme/app_theme.dart';
+import '../widgets/premium_lock_banner.dart';
+import '../widgets/upgrade_pro_modal.dart';
 import 'add_expense_screen.dart';
 
 /// Expense Tracker Screen for WrindhaOS
@@ -16,11 +18,14 @@ import 'add_expense_screen.dart';
 class ExpenseTrackerScreen extends StatefulWidget {
   const ExpenseTrackerScreen({super.key});
 
-  void _showEditBudgetDialog(BuildContext context, AppProvider provider) {
-    final controller = TextEditingController(
-      text: provider.monthlyBudget.toStringAsFixed(0),
-    );
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+  @override
+  State<ExpenseTrackerScreen> createState() => _ExpenseTrackerScreenState();
+}
+
+class _ExpenseTrackerScreenState extends State<ExpenseTrackerScreen> {
+  // 'WEEK' or 'MONTH'
+  String _selectedView = 'MONTH';
+  DateTime _currentPeriodDate = DateTime.now();
 
   void _goToPreviousPeriod() {
     setState(() {
@@ -32,133 +37,103 @@ class ExpenseTrackerScreen extends StatefulWidget {
     });
   }
 
-  void _showEditExpenseDialog(BuildContext context, AppProvider provider, ExpenseTransaction expense) {
-    final titleCtrl = TextEditingController(text: expense.title);
-    final amountCtrl = TextEditingController(text: expense.amount.toStringAsFixed(2));
-    String category = expense.category;
-    bool isIncome = expense.isIncome;
+  void _goToNextPeriod() {
+    setState(() {
+      if (_selectedView == 'MONTH') {
+        _currentPeriodDate = DateTime(_currentPeriodDate.year, _currentPeriodDate.month + 1, 1);
+      } else {
+        _currentPeriodDate = _currentPeriodDate.add(const Duration(days: 7));
+      }
+    });
+  }
 
-    showModalBottomSheet(
+  void _resetToCurrent() {
+    setState(() {
+      _currentPeriodDate = DateTime.now();
+    });
+  }
+
+  String _getPeriodLabel() {
+    if (_selectedView == 'MONTH') {
+      return DateFormat('MMMM yyyy').format(_currentPeriodDate);
+    } else {
+      final startOfWeek = _currentPeriodDate.subtract(Duration(days: _currentPeriodDate.weekday - 1));
+      final endOfWeek = startOfWeek.add(const Duration(days: 6));
+      return '${DateFormat('MMM d').format(startOfWeek)} – ${DateFormat('MMM d').format(endOfWeek)}';
+    }
+  }
+
+  List<ExpenseTransaction> _filterExpensesForPeriod(List<ExpenseTransaction> all) {
+    if (_selectedView == 'MONTH') {
+      return all.where((e) {
+        return e.date.year == _currentPeriodDate.year && e.date.month == _currentPeriodDate.month;
+      }).toList();
+    } else {
+      final startOfWeek = DateTime(
+        _currentPeriodDate.year,
+        _currentPeriodDate.month,
+        _currentPeriodDate.day - (_currentPeriodDate.weekday - 1),
+      );
+      final endOfWeek = startOfWeek.add(const Duration(days: 7));
+      return all.where((e) {
+        return !e.date.isBefore(startOfWeek) && e.date.isBefore(endOfWeek);
+      }).toList();
+    }
+  }
+
+  void _showEditBudgetDialog(BuildContext context, AppProvider provider) {
+    final controller = TextEditingController(
+      text: provider.monthlyBudget.toStringAsFixed(0),
+    );
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showDialog(
       context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
       builder: (ctx) {
-        return StatefulBuilder(
-          builder: (ctx, setModalState) {
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
-                top: 24,
-                left: 20,
-                right: 20,
+        return AlertDialog(
+          backgroundColor: isDark ? AppTheme.darkCardBg : AppTheme.cardSurface,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Text(
+            'Edit Monthly Budget',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : AppTheme.textPrimary,
+            ),
+          ),
+          content: TextField(
+            controller: controller,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: const InputDecoration(
+              labelText: 'Monthly Budget Amount (₹)',
+              border: OutlineInputBorder(),
+              prefixText: '₹ ',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text('Cancel', style: TextStyle(color: isDark ? Colors.white60 : AppTheme.textSecondary)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isDark ? AppTheme.darkPrimary : AppTheme.primaryAccent,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Edit Transaction',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent),
-                        onPressed: () {
-                          provider.deleteExpense(expense.id);
-                          Navigator.pop(ctx);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Expense deleted and balance updated.')),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: titleCtrl,
-                    decoration: const InputDecoration(
-                      labelText: 'Title / Description',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: amountCtrl,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    decoration: const InputDecoration(
-                      labelText: 'Amount (₹)',
-                      prefixText: '₹ ',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<String>(
-                    value: ['Food & Drinks', 'Shopping', 'Transport', 'Education', 'Entertainment', 'Income', 'General'].contains(category)
-                        ? category
-                        : 'General',
-                    decoration: const InputDecoration(
-                      labelText: 'Category',
-                      border: OutlineInputBorder(),
-                    ),
-                    items: const [
-                      DropdownMenuItem(value: 'Food & Drinks', child: Text('Food & Drinks')),
-                      DropdownMenuItem(value: 'Shopping', child: Text('Shopping')),
-                      DropdownMenuItem(value: 'Transport', child: Text('Transport')),
-                      DropdownMenuItem(value: 'Education', child: Text('Education')),
-                      DropdownMenuItem(value: 'Entertainment', child: Text('Entertainment')),
-                      DropdownMenuItem(value: 'Income', child: Text('Income')),
-                      DropdownMenuItem(value: 'General', child: Text('General')),
-                    ],
-                    onChanged: (val) {
-                      if (val != null) {
-                        setModalState(() {
-                          category = val;
-                          isIncome = val == 'Income';
-                        });
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0D5CE5),
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                      ),
-                      onPressed: () {
-                        final parsed = double.tryParse(amountCtrl.text.trim());
-                        if (parsed == null || parsed <= 0) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Please enter a valid amount greater than 0.')),
-                          );
-                          return;
-                        }
-                        provider.editExpense(
-                          expense.id,
-                          titleCtrl.text.trim(),
-                          category,
-                          parsed,
-                          isIncome: isIncome,
-                          paymentMethod: expense.paymentMethod,
-                        );
-                        Navigator.pop(ctx);
-                      },
-                      child: const Text('Save Changes', style: TextStyle(fontWeight: FontWeight.bold)),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
+              onPressed: () {
+                final newAmount = double.tryParse(controller.text.trim());
+                if (newAmount != null && newAmount > 0) {
+                  provider.editMonthlyBudget(newAmount);
+                  Navigator.pop(ctx);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Please enter a valid positive budget amount.')),
+                  );
+                }
+              },
+              child: const Text('Save'),
+            ),
+          ],
         );
       },
     );
@@ -178,7 +153,6 @@ class ExpenseTrackerScreen extends StatefulWidget {
     final totalSpent = filteredExpenses.where((e) => !e.isIncome).fold(0.0, (sum, e) => sum + e.amount);
     final totalIncome = filteredExpenses.where((e) => e.isIncome).fold(0.0, (sum, e) => sum + e.amount);
 
-    // Group expenses by category
     final Map<String, double> categoryBreakdown = {};
     for (var exp in filteredExpenses.where((e) => !e.isIncome)) {
       categoryBreakdown[exp.category] = (categoryBreakdown[exp.category] ?? 0.0) + exp.amount;
@@ -215,29 +189,84 @@ class ExpenseTrackerScreen extends StatefulWidget {
               }
             },
           ),
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'expense_fab',
-        backgroundColor: isDark ? AppTheme.darkPrimary : AppTheme.primaryAccent,
-        shape: const CircleBorder(),
-        elevation: 4,
-        child: const Icon(Icons.add, color: Colors.white, size: 28),
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => const AddExpenseScreen(),
-            ),
-          );
-        },
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Available Balance & Monthly Budget Card
+            // 1. Premium Lock Banner if Free
+            if (!isPremium)
+              const PremiumLockBanner(
+                featureName: 'Expense Tracker',
+                description: 'You are currently viewing Expense Tracker in preview mode. Upgrade to Pro for ₹49/month to manage real-time expense budgets and financial records.',
+              ),
+
+            // 2. View Mode Selector [ Week ] [ Month ]
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF242321) : const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: isDark ? AppTheme.darkCardBorder : AppTheme.borderLight),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => setState(() => _selectedView = 'WEEK'),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        decoration: BoxDecoration(
+                          color: _selectedView == 'WEEK' ? cardBg : Colors.transparent,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: _selectedView == 'WEEK'
+                              ? [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 6, offset: const Offset(0, 2))]
+                              : null,
+                        ),
+                        child: Text(
+                          'Week',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: _selectedView == 'WEEK' ? FontWeight.w800 : FontWeight.w600,
+                            color: _selectedView == 'WEEK' ? primaryColor : textSecondary,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => setState(() => _selectedView = 'MONTH'),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        decoration: BoxDecoration(
+                          color: _selectedView == 'MONTH' ? cardBg : Colors.transparent,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: _selectedView == 'MONTH'
+                              ? [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 6, offset: const Offset(0, 2))]
+                              : null,
+                        ),
+                        child: Text(
+                          'Month',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: _selectedView == 'MONTH' ? FontWeight.w800 : FontWeight.w600,
+                            color: _selectedView == 'MONTH' ? primaryColor : textSecondary,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // 3. Period Navigation < Previous  Current  Next >
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
@@ -295,7 +324,6 @@ class ExpenseTrackerScreen extends StatefulWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
                         'AVAILABLE BALANCE',
