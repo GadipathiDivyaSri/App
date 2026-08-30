@@ -421,13 +421,6 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void upgradeToPremium() {
-    _user.isPremium = true;
-    _user.subscriptionPlan = 'PREMIUM';
-    _saveSession();
-    notifyListeners();
-  }
-
   void editCalendarEvent(
     String id,
     String title,

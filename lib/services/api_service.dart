@@ -46,7 +46,29 @@ class ApiService {
     }
   }
 
+  static Future<Map<String, dynamic>> checkUsername(String username) async {
+    try {
+      final clean = username.trim().toLowerCase();
+      if (clean.length < 3) {
+        return {'available': false, 'message': 'Username must be at least 3 characters long.'};
+      }
+      if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(clean)) {
+        return {'available': false, 'message': 'Only letters, numbers, and underscores are allowed.'};
+      }
+      final response = await http.get(
+        Uri.parse('$baseUrl/auth/check-username?username=${Uri.encodeComponent(clean)}'),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return {'available': true};
+    } catch (e) {
+      return {'available': true};
+    }
+  }
+
   static Future<Map<String, dynamic>> registerVerify({
+    String? username,
     required String email,
     required String otp,
     String? referralCode,
@@ -56,6 +78,7 @@ class ApiService {
         Uri.parse('$baseUrl/auth/register-verify'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
+          if (username != null) 'username': username.trim().toLowerCase(),
           'email': email.trim().toLowerCase(),
           'otp': otp.trim(),
           if (referralCode != null) 'referralCode': referralCode.trim(),
@@ -68,6 +91,74 @@ class ApiService {
       return data;
     } catch (e) {
       return {'success': false, 'message': 'Verification failed: $e'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> resendRegistrationOtp(String email) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/auth/resend-otp'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email.trim().toLowerCase(), 'type': 'register'}),
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {'success': false, 'message': 'Failed to resend code: $e'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> forgotPasswordInitiate(String email) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/auth/forgot-password/initiate'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email.trim().toLowerCase()}),
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {'success': false, 'message': 'Failed to send OTP: $e'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> forgotPasswordVerifyOtp({
+    required String email,
+    required String otp,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/auth/forgot-password/verify-otp'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email.trim().toLowerCase(),
+          'otp': otp.trim(),
+        }),
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {'success': false, 'message': 'Verification failed: $e'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> forgotPasswordReset({
+    required String email,
+    required String resetToken,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/auth/forgot-password/reset'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email.trim().toLowerCase(),
+          'resetToken': resetToken,
+          'newPassword': newPassword,
+          'confirmPassword': confirmPassword,
+        }),
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {'success': false, 'message': 'Failed to reset password: $e'};
     }
   }
 
@@ -131,10 +222,17 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> deleteAccount() async {
+  static Future<Map<String, dynamic>> deleteAccount({
+    String? userId,
+    String? contact,
+    String? token,
+  }) async {
     try {
       final headers = await _getHeaders();
-      final response = await http.delete(Uri.parse('$baseUrl/users/me'), headers: headers);
+      final response = await http.delete(
+        Uri.parse('$baseUrl/users/me'),
+        headers: headers,
+      );
       final data = jsonDecode(response.body);
       if (data['success'] == true) {
         await clearSession();
@@ -142,6 +240,32 @@ class ApiService {
       return data;
     } catch (e) {
       return {'success': false, 'message': 'Account deletion failed: $e'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> createExpense({
+    required String title,
+    required String category,
+    required double amount,
+    bool isIncome = false,
+    String paymentMethod = 'UPI',
+  }) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.post(
+        Uri.parse('$baseUrl/expenses'),
+        headers: headers,
+        body: jsonEncode({
+          'title': title,
+          'category': category,
+          'amount': amount,
+          'isIncome': isIncome,
+          'paymentMethod': paymentMethod,
+        }),
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {'success': false, 'message': 'Expense record failed: $e'};
     }
   }
 
@@ -159,6 +283,22 @@ class ApiService {
   static Future<String?> getSessionToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_tokenKey);
+  }
+
+  static Future<Map<String, dynamic>?> getSessionUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    final str = prefs.getString(_userKey);
+    if (str == null) return null;
+    try {
+      return jsonDecode(str);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static Future<bool> hasActiveSession() async {
+    final token = await getSessionToken();
+    return token != null && token.isNotEmpty;
   }
 
   static Future<void> clearSession() async {
