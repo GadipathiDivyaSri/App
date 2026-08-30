@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
+import '../models/models.dart';
 import '../providers/app_provider.dart';
+import '../widgets/premium_lock_banner.dart';
 import '../widgets/upgrade_pro_modal.dart';
 import '../theme/app_theme.dart';
 
@@ -21,10 +24,119 @@ class StudiesScreen extends StatefulWidget {
 class _StudiesScreenState extends State<StudiesScreen> {
   String _selectedFilter = 'ALL'; // 'ALL', 'ASSIGNMENT', 'EXAM', 'TASK'
 
+  Color _getTypeColor(String type) {
+    switch (type.toUpperCase()) {
+      case 'EXAM':
+        return Colors.redAccent;
+      case 'ASSIGNMENT':
+        return const Color(0xFF3B82F6);
+      case 'TASK':
+      default:
+        return const Color(0xFF10B981);
+    }
+  }
+
+  Widget _buildOverviewMetricCard(
+    String title,
+    String count,
+    Color color,
+    IconData icon,
+    bool isDark,
+    Color cardBg,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: isDark ? AppTheme.darkCardBorder : AppTheme.borderLight),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, size: 16, color: color),
+              ),
+              Text(
+                count,
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
+                  color: isDark ? Colors.white : AppTheme.textPrimary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterChip(String key, String label, bool isSelected, Color primaryColor) {
+    return GestureDetector(
+      onTap: () => setState(() => _selectedFilter = key),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? primaryColor : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? primaryColor : Colors.grey.withOpacity(0.3),
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+            color: isSelected ? Colors.white : Colors.grey,
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final isPremium = Provider.of<AppProvider>(context).user.isPremium;
+    final provider = Provider.of<AppProvider>(context);
+    final isPremium = provider.user.isPremium;
+    final textPrimary = isDark ? AppTheme.darkTextPrimary : AppTheme.textPrimary;
+    final textSecondary = isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary;
+    final cardBg = isDark ? AppTheme.darkCardBg : AppTheme.cardSurface;
+    final primaryColor = isDark ? AppTheme.darkPrimary : AppTheme.primaryAccent;
+
+    final subjects = provider.subjects;
+    final allStudyItems = provider.studyItems;
+
+    final completedCount = allStudyItems.where((i) => i.isCompleted).length;
+    final pendingCount = allStudyItems.where((i) => !i.isCompleted).length;
+    final now = DateTime.now();
+    final needsAttentionCount = allStudyItems
+        .where((i) => !i.isCompleted && (i.dueDate.isBefore(now) || i.dueDate.difference(now).inDays <= 2))
+        .length;
+
+    final filteredItems = allStudyItems.where((item) {
+      if (_selectedFilter == 'ALL') return true;
+      return item.type.toUpperCase() == _selectedFilter;
+    }).toList();
 
     return Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.background,
@@ -45,7 +157,7 @@ class _StudiesScreenState extends State<StudiesScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. Top Academic Overview Grid (Completed, Pending, Needs Attention)
+            // 1. Top Academic Overview Grid
             Row(
               children: [
                 Expanded(
@@ -84,7 +196,7 @@ class _StudiesScreenState extends State<StudiesScreen> {
             ),
             const SizedBox(height: 24),
 
-            // 2. Subjects Section (Limit 2 for Free users)
+            // 2. Subjects Section
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -98,7 +210,7 @@ class _StudiesScreenState extends State<StudiesScreen> {
                       showUpgradeProModal(
                         context,
                         featureTitle: 'Subjects',
-                        limitExplanation: 'Free plan allows up to 2 subjects. Upgrade to Pro for ₹49/month to manage unlimited subjects and syllabi!',
+                        limitExplanation: 'Free plan includes up to 2 academic subjects. Upgrade to Pro for ₹49/month to track unlimited subjects & exams!',
                       );
                     } else {
                       _showAddSubjectDialog(context);
@@ -106,10 +218,11 @@ class _StudiesScreenState extends State<StudiesScreen> {
                   },
                   icon: Icon(!provider.canAddSubject ? Icons.lock_rounded : Icons.add_rounded, size: 18),
                   label: Text(!provider.canAddSubject ? 'Add (Pro)' : 'Add Subject', style: const TextStyle(fontWeight: FontWeight.w700)),
+                  style: TextButton.styleFrom(foregroundColor: primaryColor),
                 ),
               ],
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
 
             if (subjects.isEmpty)
               Container(
@@ -117,7 +230,7 @@ class _StudiesScreenState extends State<StudiesScreen> {
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: cardBg,
-                  borderRadius: BorderRadius.circular(18),
+                  borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: isDark ? AppTheme.darkCardBorder : AppTheme.borderLight),
                 ),
                 child: Center(
@@ -139,42 +252,36 @@ class _StudiesScreenState extends State<StudiesScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Container(
-                              width: 12,
-                              height: 12,
-                              decoration: BoxDecoration(color: Color(sub.colorHex), shape: BoxShape.circle),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                sub.name,
-                                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: textPrimary),
-                              ),
-                            ),
-                            if (sub.code.isNotEmpty)
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: Color(sub.colorHex).withOpacity(0.15),
-                                  borderRadius: BorderRadius.circular(6),
+                            Row(
+                              children: [
+                                Container(
+                                  width: 12,
+                                  height: 12,
+                                  decoration: BoxDecoration(
+                                    color: Color(sub.colorValue),
+                                    shape: BoxShape.circle,
+                                  ),
                                 ),
-                                child: Text(
-                                  sub.code,
-                                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(sub.colorHex)),
+                                const SizedBox(width: 10),
+                                Text(
+                                  sub.name,
+                                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: textPrimary),
                                 ),
-                              ),
+                              ],
+                            ),
                             PopupMenuButton<String>(
                               icon: Icon(Icons.more_vert_rounded, size: 18, color: textSecondary),
-                              onSelected: (act) {
-                                if (act == 'delete') {
+                              onSelected: (val) {
+                                if (val == 'delete') {
                                   provider.deleteSubject(sub.id);
                                 }
                               },
                               itemBuilder: (ctx) => [
                                 const PopupMenuItem(
                                   value: 'delete',
-                                  child: Row(children: [Icon(Icons.delete_outline, size: 16, color: Colors.redAccent), SizedBox(width: 6), Text('Delete')]),
+                                  child: Row(children: [Icon(Icons.delete_outline, color: Colors.redAccent, size: 16), SizedBox(width: 8), Text('Delete')]),
                                 ),
                               ],
                             ),
@@ -185,7 +292,7 @@ class _StudiesScreenState extends State<StudiesScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text('Progress', style: TextStyle(fontSize: 12, color: textSecondary, fontWeight: FontWeight.w500)),
-                            Text('${(sub.progress * 100).round()}%', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(sub.colorHex))),
+                            Text('${(sub.progress * 100).round()}%', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: textPrimary)),
                           ],
                         ),
                         const SizedBox(height: 6),
@@ -195,7 +302,7 @@ class _StudiesScreenState extends State<StudiesScreen> {
                             value: sub.progress,
                             minHeight: 6,
                             backgroundColor: isDark ? Colors.white10 : Colors.black12,
-                            valueColor: AlwaysStoppedAnimation<Color>(Color(sub.colorHex)),
+                            valueColor: AlwaysStoppedAnimation<Color>(Color(sub.colorValue)),
                           ),
                         ),
                       ],
@@ -203,15 +310,14 @@ class _StudiesScreenState extends State<StudiesScreen> {
                   );
                 }).toList(),
               ),
-
             const SizedBox(height: 24),
 
-            // 3. Study Items / Assignments / Exams Section
+            // 3. Study Items Header & Filter Chips
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Academic Work',
+                  'Assignments & Exams',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: textPrimary),
                 ),
                 IconButton(
@@ -219,7 +325,7 @@ class _StudiesScreenState extends State<StudiesScreen> {
                   onPressed: () {
                     if (subjects.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Please add at least one subject first.')),
+                        const SnackBar(content: Text('Please add a subject first before adding assignments/exams.')),
                       );
                     } else {
                       _showAddStudyItemDialog(context, subjects);
@@ -228,7 +334,7 @@ class _StudiesScreenState extends State<StudiesScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
 
             // Filter Chips
             SingleChildScrollView(
@@ -236,21 +342,25 @@ class _StudiesScreenState extends State<StudiesScreen> {
               child: Row(
                 children: [
                   _buildFilterChip('ALL', 'All Items', _selectedFilter == 'ALL', primaryColor),
+                  const SizedBox(width: 8),
                   _buildFilterChip('ASSIGNMENT', 'Assignments', _selectedFilter == 'ASSIGNMENT', primaryColor),
+                  const SizedBox(width: 8),
                   _buildFilterChip('EXAM', 'Exams & Tests', _selectedFilter == 'EXAM', primaryColor),
+                  const SizedBox(width: 8),
                   _buildFilterChip('TASK', 'Study Tasks', _selectedFilter == 'TASK', primaryColor),
                 ],
               ),
             ),
             const SizedBox(height: 14),
 
+            // 4. Study Items List
             if (filteredItems.isEmpty)
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: cardBg,
-                  borderRadius: BorderRadius.circular(18),
+                  borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: isDark ? AppTheme.darkCardBorder : AppTheme.borderLight),
                 ),
                 child: Center(
@@ -265,14 +375,14 @@ class _StudiesScreenState extends State<StudiesScreen> {
 
                   return Container(
                     margin: const EdgeInsets.only(bottom: 10),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                     decoration: BoxDecoration(
                       color: cardBg,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: item.isCompleted
-                            ? const Color(0xFF10B981).withOpacity(0.4)
-                            : (isOverdue ? Colors.redAccent.withOpacity(0.4) : (isDark ? AppTheme.darkCardBorder : AppTheme.borderLight)),
+                        color: isOverdue
+                            ? Colors.redAccent.withOpacity(0.5)
+                            : (isDark ? AppTheme.darkCardBorder : AppTheme.borderLight),
                       ),
                     ),
                     child: Row(
@@ -285,7 +395,7 @@ class _StudiesScreenState extends State<StudiesScreen> {
                             size: 22,
                           ),
                         ),
-                        const SizedBox(width: 14),
+                        const SizedBox(width: 12),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -295,8 +405,8 @@ class _StudiesScreenState extends State<StudiesScreen> {
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w700,
-                                  color: textPrimary,
                                   decoration: item.isCompleted ? TextDecoration.lineThrough : null,
+                                  color: textPrimary,
                                 ),
                               ),
                               const SizedBox(height: 4),
@@ -306,7 +416,7 @@ class _StudiesScreenState extends State<StudiesScreen> {
                                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                     decoration: BoxDecoration(
                                       color: _getTypeColor(item.type).withOpacity(0.15),
-                                      borderRadius: BorderRadius.circular(4),
+                                      borderRadius: BorderRadius.circular(6),
                                     ),
                                     child: Text(
                                       item.type,
@@ -317,9 +427,9 @@ class _StudiesScreenState extends State<StudiesScreen> {
                                   Text(
                                     '${item.subjectName} • Due ${DateFormat('MMM d').format(item.dueDate)}',
                                     style: TextStyle(
-                                      fontSize: 11.5,
+                                      fontSize: 11,
                                       color: isOverdue ? Colors.redAccent : (isDueSoon ? const Color(0xFFF59E0B) : textSecondary),
-                                      fontWeight: isDueSoon || isOverdue ? FontWeight.w700 : FontWeight.w500,
+                                      fontWeight: isOverdue ? FontWeight.bold : FontWeight.normal,
                                     ),
                                   ),
                                 ],
@@ -327,19 +437,10 @@ class _StudiesScreenState extends State<StudiesScreen> {
                             ],
                           ),
                         ),
-                        PopupMenuButton<String>(
+                        IconButton(
                           icon: Icon(Icons.more_vert_rounded, size: 18, color: textSecondary),
-                          onSelected: (act) {
-                            if (act == 'delete') {
-                              provider.deleteStudyItem(item.id);
-                            }
-                          },
-                          itemBuilder: (ctx) => [
-                            const PopupMenuItem(
-                              value: 'delete',
-                              child: Row(children: [Icon(Icons.delete_outline, size: 16, color: Colors.redAccent), SizedBox(width: 6), Text('Delete')]),
-                            ),
-                          ],
+                          onSelected: null,
+                          onPressed: () => provider.deleteStudyItem(item.id),
                         ),
                       ],
                     ),
@@ -353,113 +454,116 @@ class _StudiesScreenState extends State<StudiesScreen> {
     );
   }
 
-  Widget _buildStudyCard(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required bool isDark,
-    bool isLocked = false,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
-        decoration: BoxDecoration(
-          color: isDark ? AppTheme.darkCardBg : Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: isDark
-              ? Border.all(color: AppTheme.darkCardBorder, width: 1)
-              : null,
-          boxShadow: [
-            if (!isDark)
-              BoxShadow(
-                color: Colors.black.withOpacity(0.02),
-                blurRadius: 8,
-                offset: const Offset(0, 3),
+  void _showAddSubjectDialog(BuildContext context) {
+    final nameCtrl = TextEditingController();
+    int colorValue = const Color(0xFF0D5CE5).value;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDlgState) => AlertDialog(
+          title: const Text('Add Academic Subject', style: TextStyle(fontWeight: FontWeight.w800)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameCtrl,
+                autofocus: true,
+                decoration: const InputDecoration(labelText: 'Subject Name (e.g. Mathematics, AI)', border: OutlineInputBorder()),
               ),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            ElevatedButton(
+              onPressed: () {
+                final name = nameCtrl.text.trim();
+                if (name.isNotEmpty) {
+                  final provider = Provider.of<AppProvider>(context, listen: false);
+                  provider.addSubject(
+                    StudySubject(
+                      id: 'sub_${DateTime.now().millisecondsSinceEpoch}',
+                      name: name,
+                      colorValue: colorValue,
+                    ),
+                  );
+                  Navigator.pop(ctx);
+                }
+              },
+              child: const Text('Add Subject'),
+            ),
           ],
         ),
-        child: Row(
-          children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(14),
-                color: isDark
-                    ? AppTheme.darkIconBg
-                    : AppTheme.pastelStudies,
+      ),
+    );
+  }
+
+  void _showAddStudyItemDialog(BuildContext context, List<StudySubject> subjects) {
+    final titleCtrl = TextEditingController();
+    String type = 'ASSIGNMENT';
+    String selectedSubId = subjects.first.id;
+    DateTime dueDate = DateTime.now().add(const Duration(days: 3));
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDlgState) => AlertDialog(
+          title: const Text('Add Study Item', style: TextStyle(fontWeight: FontWeight.w800)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: titleCtrl,
+                autofocus: true,
+                decoration: const InputDecoration(labelText: 'Title / Description', border: OutlineInputBorder()),
               ),
-              child: Icon(
-                icon,
-                color: isDark ? AppTheme.darkIconGlow : AppTheme.pastelStudiesIcon,
-                size: 24,
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                value: selectedSubId,
+                decoration: const InputDecoration(labelText: 'Subject', border: OutlineInputBorder()),
+                items: subjects.map((s) => DropdownMenuItem(value: s.id, child: Text(s.name))).toList(),
+                onChanged: (val) {
+                  if (val != null) setDlgState(() => selectedSubId = val);
+                },
               ),
-            ),
-            const SizedBox(width: 18),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: isDark ? Colors.white : AppTheme.lightTextPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
-                    ),
-                  ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                value: type,
+                decoration: const InputDecoration(labelText: 'Type', border: OutlineInputBorder()),
+                items: const [
+                  DropdownMenuItem(value: 'ASSIGNMENT', child: Text('Assignment / Project')),
+                  DropdownMenuItem(value: 'EXAM', child: Text('Exam / Quiz / Test')),
+                  DropdownMenuItem(value: 'TASK', child: Text('Study Task / Revision')),
                 ],
+                onChanged: (val) {
+                  if (val != null) setDlgState(() => type = val);
+                },
               ),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            ElevatedButton(
+              onPressed: () {
+                final title = titleCtrl.text.trim();
+                if (title.isNotEmpty) {
+                  final provider = Provider.of<AppProvider>(context, listen: false);
+                  final chosenSub = subjects.firstWhere((s) => s.id == selectedSubId);
+                  provider.addStudyItem(
+                    StudyItem(
+                      id: 'item_${DateTime.now().millisecondsSinceEpoch}',
+                      subjectId: chosenSub.id,
+                      subjectName: chosenSub.name,
+                      title: title,
+                      type: type,
+                      dueDate: dueDate,
+                    ),
+                  );
+                  Navigator.pop(ctx);
+                }
+              },
+              child: const Text('Add Item'),
             ),
-            if (isLocked)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF59E0B).withOpacity(0.18),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: const Color(0xFFF59E0B).withOpacity(0.5),
-                    width: 1,
-                  ),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.lock_rounded,
-                      size: 13,
-                      color: Color(0xFFD97706),
-                    ),
-                    SizedBox(width: 4),
-                    Text(
-                      'PRO',
-                      style: TextStyle(
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.w900,
-                        color: Color(0xFFD97706),
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ],
-                ),
-              )
-            else
-              Icon(
-                Icons.chevron_right_rounded,
-                color: isDark ? const Color(0xFF4C658A) : const Color(0xFF8D827A),
-                size: 20,
-              ),
           ],
         ),
       ),

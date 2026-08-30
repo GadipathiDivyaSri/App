@@ -276,11 +276,11 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void login(String name, String contact, {String? id, String? token, String? refCode}) {
+  void login(String name, String contact, {String? id, String? token, String? refCode, String? username, String? email}) {
     _isLoggedIn = true;
     _user = UserProfile(
       id: id ?? 'u_1',
-      username: username ?? name.toLowerCase().replaceAll(' ', '_'),
+      username: username ?? (name.isNotEmpty ? name.toLowerCase().replaceAll(' ', '_') : (contact.contains('@') ? contact.split('@')[0] : 'user')),
       email: email ?? contact,
       name: name.isNotEmpty ? name : 'Student User',
       contact: contact,
@@ -295,7 +295,39 @@ class AppProvider extends ChangeNotifier {
       applyReferralCode(refCode.trim());
     }
     _saveSession();
+    _loadUserIsolatedData();
     notifyListeners();
+  }
+
+  void loginWithUser(UserProfile user, [String? token]) {
+    _isLoggedIn = true;
+    _user = user;
+    if (token != null) _user.token = token;
+    _saveSession();
+    _loadUserIsolatedData();
+    notifyListeners();
+  }
+
+  void upgradeToPremium() {
+    _user.isPremium = true;
+    _user.subscriptionPlan = 'PREMIUM';
+    _saveSession();
+    notifyListeners();
+  }
+
+  void editCalendarEvent(String id, String title, String category, DateTime date, String time) {
+    final index = _calendarEvents.indexWhere((e) => e.id == id);
+    if (index != -1) {
+      _calendarEvents[index] = CalendarEvent(
+        id: id,
+        title: title,
+        category: category,
+        date: date,
+        time: time,
+      );
+      _saveEvents();
+      notifyListeners();
+    }
   }
 
   void signup(String name, String contact, {String? id, String? token, String? refCode, String? username, String? email}) {

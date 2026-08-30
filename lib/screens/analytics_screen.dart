@@ -388,10 +388,42 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       ),
     );
   }
+
+  Widget _buildProgressRow(
+    String title,
+    double value,
+    Color color,
+    Color textPrimary,
+    Color textSecondary,
+    bool isDark,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(title, style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: textPrimary)),
+            Text('${(value * 100).round()}%', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800, color: color)),
+          ],
+        ),
+        const SizedBox(height: 6),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(
+            value: value.clamp(0.0, 1.0),
+            minHeight: 6,
+            backgroundColor: isDark ? Colors.white10 : Colors.black12,
+            valueColor: AlwaysStoppedAnimation<Color>(color),
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 // =============================================================================
-// CUSTOM PAINTERS FOR CHARTS
+// LEGEND ITEM
 // =============================================================================
 
 class _LegendItem extends StatelessWidget {
@@ -402,26 +434,21 @@ class _LegendItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textSecondary = isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary;
+
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(label, style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: textPrimary)),
-            Text('${(value * 100).round()}%', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800, color: color)),
-          ],
+        Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
-        const SizedBox(height: 6),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(4),
-          child: LinearProgressIndicator(
-            value: value,
-            minHeight: 6,
-            backgroundColor: isDark ? Colors.white10 : Colors.black12,
-            valueColor: AlwaysStoppedAnimation<Color>(color),
-          ),
-        ),
+        const SizedBox(width: 4),
+        Text(label, style: TextStyle(fontSize: 11, color: textSecondary)),
       ],
     );
   }
 }
+

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../models/models.dart';
 import '../providers/app_provider.dart';
 import '../widgets/upgrade_pro_modal.dart';
 import '../theme/app_theme.dart';
@@ -63,7 +64,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
         onPressed: () {
           final provider = Provider.of<AppProvider>(context, listen: false);
           final isPremium = provider.user.isPremium;
-          if (!isPremium && _habits.length >= 2) {
+          if (!isPremium && provider.habits.length >= 2) {
             showUpgradeProModal(
               context,
               featureTitle: 'Habits',

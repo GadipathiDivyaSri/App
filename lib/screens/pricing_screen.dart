@@ -46,6 +46,11 @@ class _PricingScreenState extends State<PricingScreen> {
     final isPremium = user.isPremium;
     final discountPercent = user.activeDiscountPercent;
 
+    final textPrimary = isDark ? AppTheme.darkTextPrimary : AppTheme.textPrimary;
+    final textSecondary = isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary;
+    final cardBg = isDark ? AppTheme.darkCardBg : AppTheme.cardSurface;
+    final primaryColor = isDark ? AppTheme.darkPrimary : AppTheme.primaryAccent;
+
     const double basePrice = 49.0;
     final double discountAmount = (basePrice * discountPercent) / 100.0;
     final double finalPrice = basePrice - discountAmount;
