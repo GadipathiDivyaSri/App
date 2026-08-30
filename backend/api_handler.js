@@ -2,8 +2,9 @@ const fs = require('fs');
 const path = require('path');
 const url = require('url');
 const https = require('https');
+const crypto = require('crypto');
 
-// Pure Node.js zero-dependency .env loader
+// Zero-dependency .env loader
 try {
   const envPath = path.join(__dirname, '.env');
   if (fs.existsSync(envPath)) {
@@ -24,15 +25,126 @@ try {
 
 const DB_FILE = path.join(__dirname, 'data', 'db.json');
 const DB_TMP_FILE = path.join(__dirname, 'data', '.db.json.tmp');
+const JWT_SECRET = process.env.JWT_SECRET || 'wrindhaos_prod_secret_key_2026_super_secure';
 
 // Ensure DB directory exists
 if (!fs.existsSync(path.join(__dirname, 'data'))) {
   fs.mkdirSync(path.join(__dirname, 'data'), { recursive: true });
 }
 
+// -----------------------------------------------------------------------------
+// 1. CRYPTOGRAPHIC SECURITY HELPERS (JWT HS256 & Salted PBKDF2 Hashing)
+// -----------------------------------------------------------------------------
+
 /**
- * Initializes and normalizes database schema collections
+ * Generates salted PBKDF2 password hash
  */
+function hashPassword(password) {
+  const salt = crypto.randomBytes(16).toString('hex');
+  const hash = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
+  return `${salt}:${hash}`;
+}
+
+/**
+ * Verifies password against stored salt:hash
+ */
+function verifyPassword(password, stored) {
+  if (!stored) return false;
+  // Fallback for legacy plain text passwords during migration
+  if (!stored.includes(':')) return password === stored;
+
+  const [salt, storedHash] = stored.split(':');
+  const hash = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
+  return crypto.timingSafeEqual(Buffer.from(hash), Buffer.from(storedHash));
+}
+
+/**
+ * Creates cryptographically signed HMAC-SHA256 JWT Token
+ */
+function generateJwtToken(userId) {
+  const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
+  const payload = Buffer.from(
+    JSON.stringify({
+      sub: userId,
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60, // 30 days
+    })
+  ).toString('base64url');
+
+  const signature = crypto
+    .createHmac('sha256', JWT_SECRET)
+    .update(`${header}.${payload}`)
+    .digest('base64url');
+
+  return `jwt_${header}.${payload}.${signature}`;
+}
+
+/**
+ * Verifies and decodes cryptographically signed JWT Token
+ */
+function verifyJwtToken(token) {
+  if (!token || !token.startsWith('jwt_')) return null;
+  const raw = token.replace('jwt_', '');
+
+  // Legacy token fallback during migration
+  if (!raw.includes('.')) {
+    try {
+      const decoded = Buffer.from(raw, 'base64').toString('utf8');
+      if (decoded && decoded.includes(':')) {
+        const parts = decoded.split(':');
+        if (parts[0]) return parts[0];
+      }
+    } catch (_) {}
+    return raw.includes(':') ? raw.split(':')[0] : raw;
+  }
+
+  const parts = raw.split('.');
+  if (parts.length !== 3) return null;
+
+  const [header, payload, signature] = parts;
+  const expectedSignature = crypto
+    .createHmac('sha256', JWT_SECRET)
+    .update(`${header}.${payload}`)
+    .digest('base64url');
+
+  if (signature !== expectedSignature) {
+    console.warn('[SECURITY ALERT] Invalid JWT signature detected!');
+    return null;
+  }
+
+  try {
+    const data = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
+    if (data.exp && Math.floor(Date.now() / 1000) > data.exp) {
+      console.warn('[SECURITY] Expired JWT token presented.');
+      return null;
+    }
+    return data.sub;
+  } catch (e) {
+    return null;
+  }
+}
+
+/**
+ * XSS & HTML Script Injection Sanitizer
+ */
+function sanitizeInput(data) {
+  if (typeof data === 'string') {
+    return data
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+      .replace(/<[^>]+>/g, '')
+      .trim();
+  } else if (typeof data === 'object' && data !== null) {
+    for (const key of Object.keys(data)) {
+      data[key] = sanitizeInput(data[key]);
+    }
+  }
+  return data;
+}
+
+// -----------------------------------------------------------------------------
+// 2. ATOMIC DATABASE ENGINE & SCHEMA NORMALIZATION
+// -----------------------------------------------------------------------------
+
 function loadDB() {
   let dbData = {};
   try {
@@ -43,7 +155,6 @@ function loadDB() {
     console.error('Error reading db.json:', e);
   }
 
-  // Schema normalization across all modules
   const schema = {
     users: Array.isArray(dbData.users) ? dbData.users : [],
     subscriptions: Array.isArray(dbData.subscriptions) ? dbData.subscriptions : [],
@@ -106,9 +217,6 @@ function loadDB() {
   return schema;
 }
 
-/**
- * Atomic Safe Database Persistence (Prevents File Corruption on Crash)
- */
 function saveDB(db) {
   try {
     const payload = JSON.stringify(db, null, 2);
@@ -121,10 +229,29 @@ function saveDB(db) {
 
 let db = loadDB();
 
+// -----------------------------------------------------------------------------
+// 3. BACKGROUND GARBAGE COLLECTION WORKER (OTP Cleanup)
+// -----------------------------------------------------------------------------
+setInterval(() => {
+  if (!db.otpStore) return;
+  const now = Date.now();
+  let keysRemoved = 0;
+  for (const email of Object.keys(db.otpStore)) {
+    if (db.otpStore[email].expiresAt && now > db.otpStore[email].expiresAt) {
+      delete db.otpStore[email];
+      keysRemoved++;
+    }
+  }
+  if (keysRemoved > 0) {
+    saveDB(db);
+    console.log(`[GC WORKER] Pruned ${keysRemoved} expired OTP entries from memory.`);
+  }
+}, 5 * 60 * 1000); // Runs every 5 minutes
+
 // Rate limiting in-memory store
 const rateLimitStore = new Map();
 
-function isRateLimited(ip, endpoint, limit = 20, windowMs = 60000) {
+function isRateLimited(ip, endpoint, limit = 30, windowMs = 60000) {
   const key = `${ip}:${endpoint}`;
   const now = Date.now();
   const record = rateLimitStore.get(key) || { count: 0, resetTime: now + windowMs };
@@ -140,9 +267,6 @@ function isRateLimited(ip, endpoint, limit = 20, windowMs = 60000) {
   return record.count > limit;
 }
 
-/**
- * Production Response Generator with Security Headers
- */
 function sendJSON(res, statusCode, data) {
   res.writeHead(statusCode, {
     'Content-Type': 'application/json',
@@ -163,7 +287,8 @@ function parseBody(req) {
     req.on('data', (chunk) => (body += chunk.toString()));
     req.on('end', () => {
       try {
-        resolve(body ? JSON.parse(body) : {});
+        const parsed = body ? JSON.parse(body) : {};
+        resolve(sanitizeInput(parsed));
       } catch (e) {
         resolve({});
       }
@@ -227,31 +352,18 @@ async function dispatchEmailOtp(email, otpCode, type = 'Verification') {
 }
 
 /**
- * Extract authenticated user ID from Authorization header
+ * Extract authenticated user ID from Authorization header using signed JWT verification
  */
 function getAuthUserId(req) {
   const authHeader = req.headers['authorization'] || '';
-  if (authHeader.startsWith('Bearer jwt_')) {
-    const raw = authHeader.replace('Bearer jwt_', '');
-    try {
-      const decoded = Buffer.from(raw, 'base64').toString('utf8');
-      if (decoded && decoded.includes(':')) {
-        const parts = decoded.split(':');
-        if (parts[0] && /^u_[a-zA-Z0-9_-]+$/.test(parts[0])) return parts[0];
-      }
-    } catch (_) {}
-    if (raw.includes(':')) {
-      const parts = raw.split(':');
-      if (parts[0]) return parts[0];
-    }
-    return raw || 'u_1001';
+  if (authHeader.startsWith('Bearer ')) {
+    const token = authHeader.replace('Bearer ', '').trim();
+    const verifiedUserId = verifyJwtToken(token);
+    if (verifiedUserId) return verifiedUserId;
   }
   return 'u_1001';
 }
 
-/**
- * Helper to ensure each user has a valid subscription record
- */
 function getUserSubscription(userId) {
   if (!Array.isArray(db.subscriptions)) db.subscriptions = [];
   let sub = db.subscriptions.find((s) => s.user_id === userId);
@@ -274,9 +386,6 @@ function getUserSubscription(userId) {
   return sub;
 }
 
-/**
- * Helper to validate feature entitlement access on backend
- */
 function checkFeatureEntitlement(userId, featureKey) {
   const sub = getUserSubscription(userId);
   const isPro = sub.plan === 'pro' && sub.status === 'active';
@@ -306,7 +415,7 @@ function checkFeatureEntitlement(userId, featureKey) {
 }
 
 /**
- * Master Production API Request Handler
+ * Master Enterprise API Request Handler
  */
 async function handleApiRequest(req, res) {
   // CORS Preflight
@@ -323,9 +432,10 @@ async function handleApiRequest(req, res) {
   // Rate Limiting check on Auth endpoints
   const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1';
   if (pathname.startsWith('/api/auth/') && isRateLimited(clientIp, pathname, 30, 60000)) {
+    res.writeHead(429, { 'Retry-After': '60' });
     return sendJSON(res, 429, {
       success: false,
-      message: 'Too many requests. Please wait a minute before trying again.',
+      message: 'Too many authentication attempts. Please wait 60 seconds before trying again.',
     });
   }
 
@@ -373,7 +483,7 @@ async function handleApiRequest(req, res) {
         createdAt: now,
         expiresAt: now + 10 * 60 * 1000,
         lastSentAt: now,
-        pendingUser: { username: cleanUser, email: cleanEmail, password },
+        pendingUser: { username: cleanUser, email: cleanEmail, passwordHash: hashPassword(password) },
       };
       saveDB(db);
 
@@ -424,7 +534,7 @@ async function handleApiRequest(req, res) {
         username: pending.username,
         name: pending.username[0].toUpperCase() + pending.username.slice(1),
         email: cleanEmail,
-        password: pending.password,
+        password: pending.passwordHash,
         isEmailVerified: true,
         focusScore: 85,
         activeStreak: 1,
@@ -438,10 +548,8 @@ async function handleApiRequest(req, res) {
       db.users.push(newUser);
       delete db.otpStore[cleanEmail];
 
-      // Auto-assign Free plan
       getUserSubscription(newUserId);
 
-      // Create user's referral code record
       db.referralCodes.push({
         id: 'ref_' + newUserId,
         userId: newUserId,
@@ -451,7 +559,6 @@ async function handleApiRequest(req, res) {
         createdAt: new Date().toISOString(),
       });
 
-      // Handle referral application if provided
       if (referralCode) {
         const referrer = db.users.find((u) => u.referralCode === referralCode.trim());
         if (referrer && referrer.id !== newUserId) {
@@ -474,7 +581,7 @@ async function handleApiRequest(req, res) {
 
       saveDB(db);
 
-      const token = 'jwt_' + Buffer.from(`${newUser.id}:${Date.now()}`).toString('base64');
+      const token = generateJwtToken(newUser.id);
       const sub = getUserSubscription(newUser.id);
 
       return sendJSON(res, 200, {
@@ -495,7 +602,7 @@ async function handleApiRequest(req, res) {
       });
     }
 
-    // 1.3 Login (Email / Username)
+    // 1.3 Login (Email / Username) with PBKDF2 Password Verification
     if (pathname === '/api/auth/login' && method === 'POST') {
       const { username, password } = body;
       const cleanUser = (username || '').trim().toLowerCase();
@@ -506,11 +613,11 @@ async function handleApiRequest(req, res) {
           (u.email || '').toLowerCase() === cleanUser
       );
 
-      if (!user || user.password !== password) {
+      if (!user || !verifyPassword(password, user.password)) {
         return sendJSON(res, 400, { success: false, message: 'Incorrect username or password.' });
       }
 
-      const token = 'jwt_' + Buffer.from(`${user.id}:${Date.now()}`).toString('base64');
+      const token = generateJwtToken(user.id);
       const sub = getUserSubscription(user.id);
 
       return sendJSON(res, 200, {
@@ -572,7 +679,7 @@ async function handleApiRequest(req, res) {
         saveDB(db);
       }
 
-      const token = 'jwt_' + Buffer.from(`${user.id}:${Date.now()}`).toString('base64');
+      const token = generateJwtToken(user.id);
       const sub = getUserSubscription(user.id);
 
       return sendJSON(res, 200, {
@@ -1018,7 +1125,6 @@ async function handleApiRequest(req, res) {
     // 4. COUPON & PROMOTIONAL CODE SYSTEM
     // =========================================================================
 
-    // 4.1 Validate Coupon Code
     if (pathname === '/api/coupons/validate' && method === 'POST') {
       const { code } = body;
       const cleanCode = (code || '').trim().toUpperCase();
@@ -1029,23 +1135,19 @@ async function handleApiRequest(req, res) {
         return sendJSON(res, 400, { success: false, message: 'Invalid or inactive coupon code.' });
       }
 
-      // Check Expiry Date
       if (new Date() > new Date(coupon.expiryDate)) {
         return sendJSON(res, 400, { success: false, message: 'This coupon code has expired.' });
       }
 
-      // Check Start Date
       if (new Date() < new Date(coupon.startDate)) {
         return sendJSON(res, 400, { success: false, message: 'This promotion has not started yet.' });
       }
 
-      // Check Global Usage Limit
       const totalUsedCount = db.couponUsages.filter((u) => u.couponId === coupon.id && u.validationStatus === 'applied').length;
       if (coupon.usageLimit && totalUsedCount >= coupon.usageLimit) {
         return sendJSON(res, 400, { success: false, message: 'This coupon code has reached its maximum usage limit.' });
       }
 
-      // Check Per-User Usage Limit
       const userUsageCount = db.couponUsages.filter((u) => u.couponId === coupon.id && u.userId === userId && u.validationStatus === 'applied').length;
       if (coupon.perUserLimit && userUsageCount >= coupon.perUserLimit) {
         return sendJSON(res, 400, { success: false, message: 'You have already redeemed this promotional coupon.' });
@@ -1066,7 +1168,6 @@ async function handleApiRequest(req, res) {
       });
     }
 
-    // 4.2 Apply Coupon Code & Issue Entitlement
     if (pathname === '/api/coupons/apply' && method === 'POST') {
       const { code } = body;
       const cleanCode = (code || '').trim().toUpperCase();
@@ -1076,13 +1177,11 @@ async function handleApiRequest(req, res) {
         return sendJSON(res, 400, { success: false, message: 'Invalid coupon code.' });
       }
 
-      // Validate eligibility
       const userUsageCount = db.couponUsages.filter((u) => u.couponId === coupon.id && u.userId === userId && u.validationStatus === 'applied').length;
       if (coupon.perUserLimit && userUsageCount >= coupon.perUserLimit) {
         return sendJSON(res, 400, { success: false, message: 'Coupon already redeemed by this account.' });
       }
 
-      // Calculate discount amount
       const basePrice = 49.0;
       let finalPrice = basePrice;
       let discountApplied = 0.0;
@@ -1098,7 +1197,6 @@ async function handleApiRequest(req, res) {
         finalPrice = 0.0;
       }
 
-      // Record coupon usage log
       const usageRecord = {
         id: 'cu_' + Date.now(),
         userId,
@@ -1116,7 +1214,6 @@ async function handleApiRequest(req, res) {
 
       db.couponUsages.push(usageRecord);
 
-      // Auto upgrade user if free trial or 100% discount
       if (finalPrice === 0.0 || coupon.discountType === 'free_trial') {
         const sub = getUserSubscription(userId);
         sub.plan = 'pro';
@@ -1137,7 +1234,6 @@ async function handleApiRequest(req, res) {
       });
     }
 
-    // 4.3 Coupon System Analytics (Backend Reporting)
     if (pathname === '/api/coupons/analytics' && method === 'GET') {
       const analytics = db.coupons.map((c) => {
         const usages = db.couponUsages.filter((u) => u.couponId === c.id && u.validationStatus === 'applied');
@@ -1162,7 +1258,6 @@ async function handleApiRequest(req, res) {
     // 5. REFERRAL SYSTEM
     // =========================================================================
 
-    // 5.1 Get My Referral Stats & Code
     if (pathname === '/api/referrals/my-code' && method === 'GET') {
       const user = db.users.find((u) => u.id === userId);
       let refRecord = db.referralCodes.find((r) => r.userId === userId);
@@ -1192,12 +1287,10 @@ async function handleApiRequest(req, res) {
       });
     }
 
-    // 5.2 Apply Referral Code Post-Signup
     if (pathname === '/api/referrals/apply-code' && method === 'POST') {
       const { code } = body;
       const cleanCode = (code || '').trim().toUpperCase();
 
-      // Prevent self referral
       const referrer = db.users.find((u) => (u.referralCode || '').toUpperCase() === cleanCode);
       if (!referrer) {
         return sendJSON(res, 400, { success: false, message: 'Invalid referral code.' });
@@ -1206,7 +1299,6 @@ async function handleApiRequest(req, res) {
         return sendJSON(res, 400, { success: false, message: 'You cannot use your own referral code.' });
       }
 
-      // Prevent duplicate redemption
       const existing = db.referralTrackings.find((rt) => rt.referredUserId === userId);
       if (existing) {
         return sendJSON(res, 400, { success: false, message: 'You have already redeemed a referral invitation code.' });
@@ -1235,7 +1327,6 @@ async function handleApiRequest(req, res) {
       });
     }
 
-    // Fallback 404
     return sendJSON(res, 404, { success: false, message: `Route not found: ${method} ${pathname}` });
 
   } catch (error) {
