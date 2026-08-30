@@ -23,6 +23,7 @@ try {
 } catch (e) {}
 
 const DB_FILE = path.join(__dirname, 'data', 'db.json');
+const DB_TMP_FILE = path.join(__dirname, 'data', '.db.json.tmp');
 
 // Ensure DB directory exists
 if (!fs.existsSync(path.join(__dirname, 'data'))) {
@@ -105,22 +106,53 @@ function loadDB() {
   return schema;
 }
 
+/**
+ * Atomic Safe Database Persistence (Prevents File Corruption on Crash)
+ */
 function saveDB(db) {
   try {
-    fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));
+    const payload = JSON.stringify(db, null, 2);
+    fs.writeFileSync(DB_TMP_FILE, payload, 'utf8');
+    fs.renameSync(DB_TMP_FILE, DB_FILE);
   } catch (e) {
-    console.error('Error saving db.json:', e);
+    console.error('Error in atomic saveDB:', e);
   }
 }
 
 let db = loadDB();
 
+// Rate limiting in-memory store
+const rateLimitStore = new Map();
+
+function isRateLimited(ip, endpoint, limit = 20, windowMs = 60000) {
+  const key = `${ip}:${endpoint}`;
+  const now = Date.now();
+  const record = rateLimitStore.get(key) || { count: 0, resetTime: now + windowMs };
+
+  if (now > record.resetTime) {
+    record.count = 1;
+    record.resetTime = now + windowMs;
+  } else {
+    record.count += 1;
+  }
+
+  rateLimitStore.set(key, record);
+  return record.count > limit;
+}
+
+/**
+ * Production Response Generator with Security Headers
+ */
 function sendJSON(res, statusCode, data) {
   res.writeHead(statusCode, {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+    'X-XSS-Protection': '1; mode=block',
+    'Referrer-Policy': 'strict-origin-when-cross-origin',
   });
   res.end(JSON.stringify(data));
 }
@@ -274,7 +306,7 @@ function checkFeatureEntitlement(userId, featureKey) {
 }
 
 /**
- * Master API Request Handler
+ * Master Production API Request Handler
  */
 async function handleApiRequest(req, res) {
   // CORS Preflight
@@ -287,6 +319,15 @@ async function handleApiRequest(req, res) {
   const method = req.method.toUpperCase();
   const body = await parseBody(req);
   const userId = getAuthUserId(req);
+
+  // Rate Limiting check on Auth endpoints
+  const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1';
+  if (pathname.startsWith('/api/auth/') && isRateLimited(clientIp, pathname, 30, 60000)) {
+    return sendJSON(res, 429, {
+      success: false,
+      message: 'Too many requests. Please wait a minute before trying again.',
+    });
+  }
 
   try {
     // =========================================================================
@@ -1199,7 +1240,11 @@ async function handleApiRequest(req, res) {
 
   } catch (error) {
     console.error(`API Error handling ${method} ${pathname}:`, error);
-    return sendJSON(res, 500, { success: false, message: 'Internal server error.', details: error.message });
+    return sendJSON(res, 500, {
+      success: false,
+      message: 'Internal server error.',
+      ...(process.env.NODE_ENV !== 'production' ? { details: error.message } : {}),
+    });
   }
 }
 
