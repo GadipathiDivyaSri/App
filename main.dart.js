@@ -100693,7 +100693,7 @@ E(a){var s,r,q,p,o,n,m,l,k=this,j=null,i=A.p(a).ax.a===B.A,h=i?B.am:B.c7,g=i?B.a
 f=A.da(j,j,j,j,j,f,A.m("Habit Tracker",j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,j,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j))
 s=i?B.am:B.N
 s=A.jE(s,B.ei,4,"habit_fab",new A.awJ(k,a),B.di)
-r=A.m("🔥 7-DAY STREAK ACTIVITY CHART",j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,18,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j)
+r=A.m("📅 MONTHLY HABIT CALENDAR (AUGUST 2026)",j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,18,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j)
 q=k.d
 p=q.length===0?"🔥 0 STREAKS (IGNITE TODAY)":"🔥 "+new A.aB(q,new A.awK(),A.a1(q).i("aB<1>")).gG(0)+" ACTIVE FLAMES"
 o=t.p
@@ -100701,7 +100701,8 @@ p=A.a4(A.a([r,A.m(p,j,j,j,j,A.J(j,j,h,j,j,j,j,j,j,j,j,11,j,j,B.x,j,j,!0,j,1.1,j,
 r=i?B.ah:B.ec
 n=A.B(20)
 m=i?A.bO(B.ay,B.p,1):j
-l=A.a4(A.Pc(7,new A.awL(k),!0,t.l7),B.i,B.iu,B.f,0,j,j)
+l=A.j0(A.a4(A.Pc(31,new A.awL(k),!0,t.l7),B.i,B.ap,B.f,0,j,j),j,j,B.ak,!1)
+
 n=A.X(j,l,B.j,j,j,new A.O(r,j,m,n,j,j,B.o),j,j,j,B.MB,j,j,j)
 return A.cJ(f,g,A.dA(A.a0(A.a([p,B.aP,n,B.an,A.m("Active Habits",j,j,j,j,A.J(j,j,i?B.d:B.af,j,j,j,j,j,j,j,j,18,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j),B.aP,A.vP(new A.awN(k),q.length,B.f2,!0),B.dx],o),B.w,B.h,B.f,0,B.m),j,B.t,B.bw,j,j,B.S),j,s)},
 R_(a,b,c,d,e){var s,r=null,q=A.p(a).ax.a===B.A,p=q?B.T:B.d,o=A.B(18),n=A.a([],t.V)
@@ -100736,13 +100737,13 @@ A.awK.prototype={
 $1(a){return J.d(a.h(0,"isCompleted"),!0)},
 $S:54}
 A.awL.prototype={
-$1(a){var s,r,q,p=null,days=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],o=this.a.d,h=(o&&o.length>0)?o[a%o.length]:null,n=h?J.d(h.h(0,"isCompleted"),!0):!1,dayLabel=days[a%7]
-var pctText=n?"100%":(h?"0%":"-")
-var pctLabel=A.m(pctText,p,p,p,p,A.J(p,p,n?B.u:B.dk,p,p,p,p,p,p,p,p,10,p,p,B.x,p,p,!0,p,p,p,p,p,p,p,p),p,p,p)
-var barH=n?38:(h?14:8)
-var barWidget=A.X(p,p,B.j,p,p,new A.O(n?B.u:B.dk,p,p,A.B(6),p,p,B.o),p,14,p,p,p,p,barH)
-var lblWidget=A.m(dayLabel,p,p,p,p,A.J(p,p,B.af,p,p,p,p,p,p,p,p,11,p,p,B.x,p,p,!0,p,p,p,p,p,p,p,p),p,p,p)
-return A.a0(A.a([pctLabel,B.ao,barWidget,B.ao,lblWidget],t.p),B.w,B.h,B.av,0,B.m)},
+$1(a){var s,r,q,p=null,days=["Sat","Sun","Mon","Tue","Wed","Thu","Fri"],dayNum=a+1,dayOfWeek=days[a%7]
+var o=this.a.d,h=(o&&o.length>0)?o[0]:null,isDone=h?J.d(h.h(0,"isCompleted"),!0):!1
+var statusIcon=A.m(isDone?"✓":"·",p,p,p,p,A.J(p,p,isDone?B.u:B.dk,p,p,p,p,p,p,p,p,12,p,p,B.x,p,p,!0,p,p,p,p,p,p,p,p),p,p,p)
+var dateCircle=A.X(p,A.m(""+dayNum,p,p,p,p,A.J(p,p,isDone?B.d:B.B,p,p,p,p,p,p,p,p,13,p,p,B.K,p,p,!0,p,p,p,p,p,p,p,p),p,p,p),B.j,p,p,new A.O(isDone?B.u:(dayNum===30?B.am:B.d),p,A.bO(isDone?B.u:(dayNum===30?B.am:B.dk),B.p,1.5),A.B(14),p,p,B.o),p,36,p,p,p,p,36)
+var lblWidget=A.m(dayOfWeek,p,p,p,p,A.J(p,p,dayNum===30?B.am:B.af,p,p,p,p,p,p,p,p,10,p,p,B.x,p,p,!0,p,p,p,p,p,p,p,p),p,p,p)
+return A.X(p,A.a0(A.a([statusIcon,B.ao,dateCircle,B.ao,lblWidget],t.p),B.w,B.h,B.av,0,B.m),B.j,p,p,p,p,46,p,p,p,p,88)
+},
 $S:616}
 A.awM.prototype={
 $1(a){return J.d(a.h(0,"isCompleted"),!0)},

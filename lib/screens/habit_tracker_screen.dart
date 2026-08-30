@@ -215,8 +215,8 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                   ),
                   const SizedBox(height: 20),
 
-                  // 7-Day Streak Activity Bar Chart
-                  _buildWeeklyStreakChart(context, isDark, provider),
+                  // Monthly Habit Calendar Activity Matrix
+                  _buildMonthlyHabitCalendar(context, isDark, provider),
                   const SizedBox(height: 20),
 
                   // Impressive 4-Stat Grid
@@ -580,133 +580,197 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
     );
   }
 
-  Widget _buildWeeklyStreakChart(BuildContext context, bool isDark, AppProvider provider) {
+  Widget _buildMonthlyHabitCalendar(BuildContext context, bool isDark, AppProvider provider) {
     final habits = provider.habits.where((h) => h.status != 'archived').toList();
-    final dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    final weekDays = List.generate(7, (i) => _weekStartDate.add(Duration(days: i)));
-    final today = DateTime.now();
+    final selectedDate = provider.selectedHabitDate;
+    final now = DateTime.now();
+    final year = selectedDate.year;
+    final month = selectedDate.month;
+    final daysInMonth = DateTime(year, month + 1, 0).day;
+    final firstDayWeekday = DateTime(year, month, 1).weekday; // 1 = Mon, 7 = Sun
+    final monthNames = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    final dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+    // Count how many days in this month had at least one habit completed
+    int completedDaysCount = 0;
+    for (int d = 1; d <= daysInMonth; d++) {
+      final dStr = '$year-${month.toString().padLeft(2, '0')}-${d.toString().padLeft(2, '0')}';
+      if (habits.any((h) => h.isCompletedOnDate(dStr))) {
+        completedDaysCount++;
+      }
+    }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? Colors.black.withOpacity(0.25) : Colors.white.withOpacity(0.7),
-        borderRadius: BorderRadius.circular(18),
+        color: isDark ? Colors.black.withOpacity(0.3) : Colors.white.withOpacity(0.85),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: isDark ? const Color(0xFF78350F).withOpacity(0.5) : const Color(0xFFFDE68A),
+          color: isDark ? const Color(0xFF78350F).withOpacity(0.6) : const Color(0xFFFDE68A),
+          width: 1.5,
         ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Month Header & Navigation
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Row(
                 children: [
-                  const Icon(Icons.bar_chart_rounded, size: 16, color: Color(0xFFF59E0B)),
-                  const SizedBox(width: 6),
+                  const Icon(Icons.calendar_month_rounded, size: 18, color: Color(0xFFF59E0B)),
+                  const SizedBox(width: 8),
                   Text(
-                    '7-DAY STREAK ACTIVITY',
+                    '${monthNames[month - 1].toUpperCase()} $year',
                     style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.8,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.6,
                       color: isDark ? const Color(0xFFFDE68A) : const Color(0xFF92400E),
                     ),
                   ),
                 ],
               ),
-              Text(
-                'Weekly Velocity',
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white60 : Colors.black54,
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF10B981).withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  '🔥 $completedDaysCount / $daysInMonth Days Active',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF10B981),
+                  ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 14),
-          // 7 Vertical Chart Columns
-          SizedBox(
-            height: 90,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: List.generate(7, (idx) {
-                final d = weekDays[idx];
-                final dStr = '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
-                final isToday = d.year == today.year && d.month == today.month && d.day == today.day;
-                
-                final scheduledForDay = habits.where((h) => h.isScheduledForDate(d)).toList();
-                final completedForDay = scheduledForDay.where((h) => h.isCompletedOnDate(dStr)).length;
-                final rate = scheduledForDay.isEmpty ? 0.0 : (completedForDay / scheduledForDay.length);
-                final barHeight = (rate * 50).clamp(6.0, 50.0);
-                final isFull = rate >= 1.0 && scheduledForDay.isNotEmpty;
 
-                return Expanded(
+          // Weekday Labels
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: List.generate(7, (idx) {
+              return Expanded(
+                child: Center(
+                  child: Text(
+                    dayNames[idx],
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                    ),
+                  ),
+                ),
+              );
+            }),
+          ),
+          const SizedBox(height: 8),
+
+          // 31-Day Month Calendar Grid
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: (firstDayWeekday - 1) + daysInMonth,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 7,
+              mainAxisSpacing: 6,
+              crossAxisSpacing: 6,
+              childAspectRatio: 1.1,
+            ),
+            itemBuilder: (context, index) {
+              if (index < firstDayWeekday - 1) {
+                return const SizedBox.shrink(); // Empty offset cell
+              }
+
+              final dayNum = index - (firstDayWeekday - 1) + 1;
+              final cellDate = DateTime(year, month, dayNum);
+              final dStr = '$year-${month.toString().padLeft(2, '0')}-${dayNum.toString().padLeft(2, '0')}';
+              final isToday = cellDate.year == now.year && cellDate.month == now.month && cellDate.day == now.day;
+              final isSelected = cellDate.year == selectedDate.year && cellDate.month == selectedDate.month && cellDate.day == selectedDate.day;
+
+              final scheduledForDay = habits.where((h) => h.isScheduledForDate(cellDate)).toList();
+              final completedForDay = scheduledForDay.where((h) => h.isCompletedOnDate(dStr)).length;
+              final isFullyDone = scheduledForDay.isNotEmpty && completedForDay == scheduledForDay.length;
+              final isPartiallyDone = completedForDay > 0 && !isFullyDone;
+
+              Color cellBg;
+              Color textColor;
+              Border? cellBorder;
+
+              if (isFullyDone) {
+                cellBg = const Color(0xFF10B981);
+                textColor = Colors.white;
+              } else if (isPartiallyDone) {
+                cellBg = const Color(0xFFF59E0B).withOpacity(0.85);
+                textColor = Colors.white;
+              } else if (isSelected) {
+                cellBg = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+                textColor = isDark ? Colors.white : const Color(0xFF0F172A);
+                cellBorder = Border.all(color: const Color(0xFFF59E0B), width: 2);
+              } else {
+                cellBg = isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.04);
+                textColor = isDark ? Colors.white70 : const Color(0xFF334155);
+                if (isToday) {
+                  cellBorder = Border.all(color: const Color(0xFFF59E0B), width: 1.5);
+                }
+              }
+
+              return GestureDetector(
+                onTap: () {
+                  provider.setSelectedHabitDate(cellDate);
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: cellBg,
+                    borderRadius: BorderRadius.circular(10),
+                    border: cellBorder,
+                    boxShadow: isFullyDone
+                        ? [
+                            BoxShadow(
+                              color: const Color(0xFF10B981).withOpacity(0.4),
+                              blurRadius: 4,
+                              offset: const Offset(0, 1),
+                            ),
+                          ]
+                        : null,
+                  ),
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Top flame badge or percentage
-                      if (isFull)
-                        const Icon(Icons.local_fire_department_rounded, size: 13, color: Color(0xFFEF4444))
-                      else
-                        Text(
-                          scheduledForDay.isEmpty ? '-' : '${(rate * 100).toInt()}%',
-                          style: TextStyle(
-                            fontSize: 9,
-                            fontWeight: FontWeight.w700,
-                            color: rate > 0
-                                ? (isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706))
-                                : (isDark ? Colors.white30 : Colors.black26),
+                      Text(
+                        '$dayNum',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: (isFullyDone || isSelected || isToday) ? FontWeight.w900 : FontWeight.w600,
+                          color: textColor,
+                        ),
+                      ),
+                      if (isFullyDone)
+                        const Icon(Icons.check_rounded, size: 10, color: Colors.white)
+                      else if (isPartiallyDone)
+                        const Icon(Icons.local_fire_department_rounded, size: 10, color: Colors.white)
+                      else if (isToday)
+                        Container(
+                          width: 4,
+                          height: 4,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFF59E0B),
+                            shape: BoxShape.circle,
                           ),
                         ),
-                      const SizedBox(height: 4),
-                      // Rounded Vertical Bar
-                      Container(
-                        width: 14,
-                        height: barHeight,
-                        decoration: BoxDecoration(
-                          gradient: rate > 0
-                              ? LinearGradient(
-                                  colors: isFull
-                                      ? [const Color(0xFFEF4444), const Color(0xFFF59E0B)]
-                                      : [const Color(0xFFF59E0B), const Color(0xFF10B981)],
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                )
-                              : null,
-                          color: rate > 0 ? null : (isDark ? Colors.white12 : Colors.black12),
-                          borderRadius: BorderRadius.circular(7),
-                          boxShadow: isFull
-                              ? [
-                                  BoxShadow(
-                                    color: const Color(0xFFEF4444).withOpacity(0.4),
-                                    blurRadius: 6,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ]
-                              : null,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      // Day Label
-                      Text(
-                        dayLabels[idx],
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: isToday ? FontWeight.w900 : FontWeight.w600,
-                          color: isToday
-                              ? const Color(0xFFF59E0B)
-                              : (isDark ? Colors.white70 : Colors.black87),
-                        ),
-                      ),
                     ],
                   ),
-                );
-              }),
-            ),
+                ),
+              );
+            },
           ),
         ],
       ),
