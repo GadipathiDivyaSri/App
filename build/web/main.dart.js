@@ -100758,10 +100758,19 @@ s.K(new A.awp(s,this.b,this.c))},
 $S:0}
 A.awp.prototype={
 $0(){var s="streakDay",r=this.a.d,q=this.b,p=!this.c
-r[q].p(0,"isCompleted",p)
-if(p){r=r[q]
-q=A.fV(r.h(0,s))
-r.p(0,s,(q==null?0:q)+1)}},
+var habit=r[q]
+habit.p(0,"isCompleted",p)
+var cur=A.fV(habit.h(0,s))
+var val=cur==null?0:cur
+if(p){habit.p(0,s,val+1)}else{habit.p(0,s,val>0?val-1:0)}
+try{
+  var hid=habit.h(0,"id")
+  if(hid&&typeof fetch!=="undefined"){
+    var today=new Date().toISOString().split("T")[0]
+    fetch("/api/habits/"+hid+"/toggle",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({date:today,isCompleted:p})}).catch(function(){})
+  }
+}catch(e){}
+},
 $S:0}
 A.aws.prototype={
 $1(a){var s,r=this
@@ -100771,7 +100780,20 @@ else if(a==="delete"){s=r.a
 s.K(new A.awo(s,r.b))}},
 $S:21}
 A.awn.prototype={
-$0(){this.a.d[this.b].p(0,"isCompleted",!this.c)},
+$0(){var s="streakDay",r=this.a.d,q=this.b,p=!this.c
+var habit=r[q]
+habit.p(0,"isCompleted",p)
+var cur=A.fV(habit.h(0,s))
+var val=cur==null?0:cur
+if(p){habit.p(0,s,val+1)}else{habit.p(0,s,val>0?val-1:0)}
+try{
+  var hid=habit.h(0,"id")
+  if(hid&&typeof fetch!=="undefined"){
+    var today=new Date().toISOString().split("T")[0]
+    fetch("/api/habits/"+hid+"/toggle",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({date:today,isCompleted:p})}).catch(function(){})
+  }
+}catch(e){}
+},
 $S:0}
 A.awo.prototype={
 $0(){B.b.h6(this.a.d,this.b)},
