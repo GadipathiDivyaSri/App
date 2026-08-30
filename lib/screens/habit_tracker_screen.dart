@@ -103,101 +103,59 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
             _buildDateNavigator(context, isDark, provider),
             const SizedBox(height: 16),
 
-            // 2. High-Impact Impressive Streaks Hero & Metrics Card
+            // 2. Progress & Metrics Summary Card
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(22),
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: isDark
-                      ? [const Color(0xFF2E1906), const Color(0xFF1E1408), const Color(0xFF15100B)]
-                      : [const Color(0xFFFFF7ED), const Color(0xFFFEF3C7), const Color(0xFFFFFBEB)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: isDark ? const Color(0xFF78350F) : const Color(0xFFFDE68A),
-                  width: 1.5,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFFF59E0B).withOpacity(isDark ? 0.15 : 0.1),
-                    blurRadius: 16,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
+                color: isDark ? AppTheme.darkCardBg : AppTheme.personalGrowth,
+                borderRadius: BorderRadius.circular(22),
+                border: isDark ? Border.all(color: AppTheme.darkCardBorder, width: 1) : null,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Streak Tier Badge & Flame Header
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFFF59E0B), Color(0xFFEF4444)],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              borderRadius: BorderRadius.circular(14),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color(0xFFEF4444).withOpacity(0.4),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 3),
-                                ),
-                              ],
-                            ),
-                            child: const Icon(
-                              Icons.local_fire_department_rounded,
-                              color: Colors.white,
-                              size: 24,
+                          Text(
+                            isViewingToday
+                                ? "Today's Habit Progress"
+                                : "Progress for ${_formatDisplayDate(selectedDate)}",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              color: textPrimary,
                             ),
                           ),
-                          const SizedBox(width: 12),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '$totalStreaks Active Streak${totalStreaks == 1 ? '' : 's'}',
-                                style: TextStyle(
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.w900,
-                                  color: isDark ? const Color(0xFFFDE68A) : const Color(0xFF92400E),
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                _getStreakLevelTitle(bestStreak),
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
-                                  color: isDark ? const Color(0xFFFBBF24) : const Color(0xFFB45309),
-                                ),
-                              ),
-                            ],
+                          const SizedBox(height: 4),
+                          Text(
+                            scheduledHabits.isEmpty
+                                ? 'No habits scheduled for this day'
+                                : '$completedCount of ${scheduledHabits.length} completed',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: textSecondary,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ],
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF59E0B).withOpacity(0.2),
+                          color: primaryColor.withOpacity(0.15),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: const Color(0xFFF59E0B).withOpacity(0.4)),
                         ),
                         child: Text(
-                          '${(progress * 100).round()}% Today',
-                          style: const TextStyle(
-                            fontSize: 13,
+                          '${(progress * 100).round()}%',
+                          style: TextStyle(
+                            fontSize: 14,
                             fontWeight: FontWeight.w800,
-                            color: Color(0xFFF59E0B),
+                            color: primaryColor,
                           ),
                         ),
                       ),
@@ -210,46 +168,37 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                       value: progress,
                       minHeight: 8,
                       backgroundColor: isDark ? Colors.white10 : Colors.black12,
-                      valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFF59E0B)),
+                      valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
                     ),
                   ),
-                  const SizedBox(height: 20),
-
-                  // 7-Day Streak Activity Bar Chart
-                  _buildWeeklyStreakChart(context, isDark, provider),
-                  const SizedBox(height: 20),
-
-                  // Impressive 4-Stat Grid
+                  const SizedBox(height: 16),
+                  // Streaks & Stats Row
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _buildImpressiveStat(
+                      _buildMiniStat(
                         icon: Icons.local_fire_department_rounded,
-                        iconColor: const Color(0xFFEF4444),
-                        label: 'Active Flame',
-                        value: '$totalStreaks 🔥',
-                        isDark: isDark,
-                      ),
-                      _buildImpressiveStat(
-                        icon: Icons.emoji_events_rounded,
                         iconColor: const Color(0xFFF59E0B),
-                        label: 'Best Record',
-                        value: '$bestStreak Days',
-                        isDark: isDark,
+                        label: 'Active Streaks',
+                        value: '$totalStreaks 🔥',
+                        textPrimary: textPrimary,
+                        textSecondary: textSecondary,
                       ),
-                      _buildImpressiveStat(
-                        icon: Icons.check_circle_rounded,
-                        iconColor: const Color(0xFF10B981),
-                        label: 'Completed',
-                        value: '$completedCount / ${scheduledHabits.length}',
-                        isDark: isDark,
-                      ),
-                      _buildImpressiveStat(
-                        icon: Icons.repeat_rounded,
+                      _buildMiniStat(
+                        icon: Icons.emoji_events_rounded,
                         iconColor: const Color(0xFF3B82F6),
+                        label: 'Best Streak',
+                        value: '$bestStreak Days',
+                        textPrimary: textPrimary,
+                        textSecondary: textSecondary,
+                      ),
+                      _buildMiniStat(
+                        icon: Icons.repeat_rounded,
+                        iconColor: const Color(0xFF10B981),
                         label: 'Total Habits',
                         value: '${habits.length}',
-                        isDark: isDark,
+                        textPrimary: textPrimary,
+                        textSecondary: textSecondary,
                       ),
                     ],
                   ),
@@ -575,186 +524,6 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
               ),
             );
           }),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildWeeklyStreakChart(BuildContext context, bool isDark, AppProvider provider) {
-    final habits = provider.habits.where((h) => h.status != 'archived').toList();
-    final dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    final weekDays = List.generate(7, (i) => _weekStartDate.add(Duration(days: i)));
-    final today = DateTime.now();
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-      decoration: BoxDecoration(
-        color: isDark ? Colors.black.withOpacity(0.25) : Colors.white.withOpacity(0.7),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: isDark ? const Color(0xFF78350F).withOpacity(0.5) : const Color(0xFFFDE68A),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.bar_chart_rounded, size: 16, color: Color(0xFFF59E0B)),
-                  const SizedBox(width: 6),
-                  Text(
-                    '7-DAY STREAK ACTIVITY',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.8,
-                      color: isDark ? const Color(0xFFFDE68A) : const Color(0xFF92400E),
-                    ),
-                  ),
-                ],
-              ),
-              Text(
-                'Weekly Velocity',
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white60 : Colors.black54,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          // 7 Vertical Chart Columns
-          SizedBox(
-            height: 90,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: List.generate(7, (idx) {
-                final d = weekDays[idx];
-                final dStr = '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
-                final isToday = d.year == today.year && d.month == today.month && d.day == today.day;
-                
-                final scheduledForDay = habits.where((h) => h.isScheduledForDate(d)).toList();
-                final completedForDay = scheduledForDay.where((h) => h.isCompletedOnDate(dStr)).length;
-                final rate = scheduledForDay.isEmpty ? 0.0 : (completedForDay / scheduledForDay.length);
-                final barHeight = (rate * 50).clamp(6.0, 50.0);
-                final isFull = rate >= 1.0 && scheduledForDay.isNotEmpty;
-
-                return Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      // Top flame badge or percentage
-                      if (isFull)
-                        const Icon(Icons.local_fire_department_rounded, size: 13, color: Color(0xFFEF4444))
-                      else
-                        Text(
-                          scheduledForDay.isEmpty ? '-' : '${(rate * 100).toInt()}%',
-                          style: TextStyle(
-                            fontSize: 9,
-                            fontWeight: FontWeight.w700,
-                            color: rate > 0
-                                ? (isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706))
-                                : (isDark ? Colors.white30 : Colors.black26),
-                          ),
-                        ),
-                      const SizedBox(height: 4),
-                      // Rounded Vertical Bar
-                      Container(
-                        width: 14,
-                        height: barHeight,
-                        decoration: BoxDecoration(
-                          gradient: rate > 0
-                              ? LinearGradient(
-                                  colors: isFull
-                                      ? [const Color(0xFFEF4444), const Color(0xFFF59E0B)]
-                                      : [const Color(0xFFF59E0B), const Color(0xFF10B981)],
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                )
-                              : null,
-                          color: rate > 0 ? null : (isDark ? Colors.white12 : Colors.black12),
-                          borderRadius: BorderRadius.circular(7),
-                          boxShadow: isFull
-                              ? [
-                                  BoxShadow(
-                                    color: const Color(0xFFEF4444).withOpacity(0.4),
-                                    blurRadius: 6,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ]
-                              : null,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      // Day Label
-                      Text(
-                        dayLabels[idx],
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: isToday ? FontWeight.w900 : FontWeight.w600,
-                          color: isToday
-                              ? const Color(0xFFF59E0B)
-                              : (isDark ? Colors.white70 : Colors.black87),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _getStreakLevelTitle(int bestStreak) {
-    if (bestStreak >= 30) return '🌟 Supernova Master (30+ Days)';
-    if (bestStreak >= 21) return '💎 Habit Solidified (21 Days)';
-    if (bestStreak >= 14) return '⚡ Momentum Dynamo (2 Weeks)';
-    if (bestStreak >= 7) return '🔥 Flame Ignition (7 Days)';
-    if (bestStreak >= 3) return '✨ Rising Spark (3 Days)';
-    if (bestStreak > 0) return '🌱 Momentum Initiated';
-    return '🚀 Ready to Ignite Daily Habit';
-  }
-
-  Widget _buildImpressiveStat({
-    required IconData icon,
-    required Color iconColor,
-    required String label,
-    required String value,
-    required bool isDark,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(icon, size: 15, color: iconColor),
-            const SizedBox(width: 4),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w900,
-                color: isDark ? Colors.white : const Color(0xFF1E293B),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 2),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w600,
-            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-          ),
         ),
       ],
     );

@@ -190,7 +190,7 @@ class AppProvider extends ChangeNotifier {
       _habits[idx].status = 'paused';
       _saveHabits();
       notifyListeners();
-      ApiService.pauseHabitOnBackend(id);
+      ApiService.updateHabitStatusOnBackend(id, 'paused');
     }
   }
 
@@ -200,23 +200,14 @@ class AppProvider extends ChangeNotifier {
       _habits[idx].status = 'active';
       _saveHabits();
       notifyListeners();
-      ApiService.resumeHabitOnBackend(id);
-    }
-  }
-
-  void archiveHabit(String id) {
-    final idx = _habits.indexWhere((h) => h.id == id);
-    if (idx != -1) {
-      _habits[idx].status = 'archived';
-      _saveHabits();
-      notifyListeners();
-      ApiService.archiveHabitOnBackend(id);
+      ApiService.updateHabitStatusOnBackend(id, 'active');
     }
   }
 
   void toggleHabit(String id, {DateTime? targetDate}) {
     final date = targetDate ?? _selectedHabitDate;
     final dateStr = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+    final todayStr = DateTime.now().toIso8601String().split('T')[0];
 
     final idx = _habits.indexWhere((h) => h.id == id);
     if (idx != -1) {
@@ -225,15 +216,24 @@ class AppProvider extends ChangeNotifier {
 
       if (isCurrentlyCompleted) {
         habit.completionHistory.remove(dateStr);
+        if (dateStr == todayStr) {
+          habit.isCompleted = false;
+          if (habit.streakDay > 0) habit.streakDay -= 1;
+        }
       } else {
         if (!habit.completionHistory.contains(dateStr)) {
           habit.completionHistory.add(dateStr);
         }
+        if (dateStr == todayStr) {
+          habit.isCompleted = true;
+          habit.streakDay += 1;
+          if (habit.streakDay > habit.longestStreak) {
+            habit.longestStreak = habit.streakDay;
+          }
+        }
       }
 
-      // Comprehensive schedule-aware streak recalculation
-      habit.recalculateStreaks();
-
+      habit.totalCompletions = habit.completionHistory.length;
       _saveHabits();
       notifyListeners();
 
