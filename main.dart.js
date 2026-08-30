@@ -29464,7 +29464,7 @@ _.b=b
 _.c=c
 _.d=d},
 Os:function Os(a){this.a=a},
-SmartAssistantWidget:function SmartAssistantWidget(a){this.a=a},
+SmartAssistantWidget:function SmartAssistantWidget(a,b){this.c=a;this.a=b},
 SmartAssistantBackClosure:function SmartAssistantBackClosure(a){this.a=a},
 SmartAssistantChipClosure:function SmartAssistantChipClosure(a,b,c){this.a=a;this.b=b;this.c=c},
 SmartAssistantSendClosure:function SmartAssistantSendClosure(a,b){this.a=a;this.b=b},
@@ -100898,103 +100898,414 @@ A.SmartAssistantSendClosure.prototype = {
   $S: 0
 };
 
+
 A.SmartAssistantWidget.prototype = {
-  executeCommand: function(rawText, appProvider) {
-    if (!this.messages) this.messages = [];
-    var text = (rawText || "").trim();
-    if (!text) return;
-    
-    this.messages.push({ text: text, isUser: true });
-    var lower = text.toLowerCase();
-    var responseText = "";
-    
-    if (lower.includes("what should i do") || lower.includes("what to do") || lower.includes("focus on")) {
-      responseText = "🎯 **Your next best action is Physics Revision.**\nIt is marked high priority and due today.\nEstimated focus time: **45 minutes**.";
-    } else if (lower.includes("plan my day") || lower.includes("schedule")) {
-      responseText = "📋 **Optimized Daily Plan**:\n• **09:00 AM – 10:00 AM**: 🌅 Morning Habit Routine\n• **10:15 AM – 12:00 PM**: 🧠 Deep Focus Block: Physics Revision\n• **12:00 PM – 01:00 PM**: 🍽️ Lunch & Rest\n• **02:00 PM – 03:30 PM**: ⚡ Priority Task Execution\n• **04:30 PM – 06:00 PM**: 📚 Study Review & Exercises\n• **08:00 PM – 08:30 PM**: 📝 Evening Reflection";
-    } else if (lower.includes("task") || lower.includes("todo") || lower.includes("deadlines")) {
-      responseText = "📋 **You have 3 critical tasks in your Priority Matrix**:\n\n1. **Physics Problem Set 3** (High Priority)\n2. **System Architecture Notes** (Due Today)\n3. **Math Calculus Practice** (Medium Priority)";
-    } else if (lower.includes("habit") || lower.includes("meditation") || lower.includes("reading")) {
-      responseText = "🔥 Great streak! I marked your **Daily Reading & Meditation** habit as completed today (Streak: **6 days**).";
-    } else if (lower.includes("spent") || lower.includes("expense") || lower.includes("rupees") || lower.includes("₹")) {
-      responseText = "💸 Logged expense: **₹250** for **Food & Dining**.\nYour remaining monthly balance is **₹8,150**.";
-    } else if (lower.includes("free") || lower.includes("when am i")) {
-      responseText = "⏱️ **Available Free Bandwidth Today**:\n• **11:00 AM – 01:00 PM** (2 hrs open)\n• **03:30 PM – 05:00 PM** (1.5 hrs open)\n• **07:30 PM – 09:30 PM** (2 hrs open)";
-    } else if (lower.includes("progress") || lower.includes("analytics") || lower.includes("summary")) {
-      responseText = "📈 **Productivity & Focus Analytics**:\n• Focus Score: **92%**\n• Active Streak: **14 Days**\n• Tasks Completed: **8/10**\n• Habit Consistency: **100% this week**";
-    } else {
-      responseText = "Hi! I can help you **manage tasks**, **plan your day**, **track habits**, **log expenses**, or find **what to do next**.";
+  E: function(a5) {
+    var a = null,
+      provider = A.f1(a5, !0, t.T),
+      isDark = A.p(a5).ax.a === B.A,
+      bgColor = isDark ? B.aZ : B.aV,
+      primaryBlue = isDark ? B.X : B.N,
+      textColor = isDark ? B.d : B.B,
+      subColor = isDark ? B.as : B.a6,
+      cardBg = isDark ? B.T : B.d,
+      bubbleBg = isDark ? B.T : A.Z(255, 238, 242, 255), // #EEF2FF
+      self = this;
+
+    // 1. App Bar with Back Button
+    var backBtn = A.c3(a, a, a, A.as(B.bm, isDark ? B.d : B.B, a, 20), a, a, new A.air(self, a5), a, a, a, a);
+    var appBar = A.da(
+      a,
+      a,
+      a,
+      !1,
+      a,
+      backBtn,
+      A.m(
+        "Wrindha Assistant",
+        a,
+        a,
+        a,
+        a,
+        A.J(a, a, primaryBlue, a, a, a, a, a, a, a, a, 18, a, a, B.K, a, a, !0, a, -0.2, a, a, a, a, a, a),
+        a,
+        a,
+        a
+      )
+    );
+
+    var list = [];
+    var pList = t.p;
+
+    // 2. Timestamp Header: "TODAY 09:41 AM"
+    list.push(B.a4);
+    list.push(
+      A.cG(
+        A.m(
+          "TODAY 09:41 AM",
+          a,
+          a,
+          a,
+          a,
+          A.J(a, a, subColor, a, a, a, a, a, a, a, a, 11, a, a, B.fL, a, a, !0, a, 0.5, a, a, a, a, a, a),
+          a,
+          a,
+          a
+        ),
+        a,
+        a
+      )
+    );
+    list.push(B.aD);
+
+    // 3. Assistant Welcome Message
+    var robotAvatar = A.X(
+      a,
+      A.as(B.tU, B.d, a, 16),
+      B.j,
+      a,
+      a,
+      new A.O(primaryBlue, a, a, a, a, a, B.b5),
+      a,
+      32,
+      a,
+      a,
+      a,
+      a,
+      32
+    );
+    var welcomeText = A.m(
+      "Hello! I'm your WrindhaOS assistant.\nHow can I help you today?",
+      a,
+      a,
+      a,
+      a,
+      A.J(a, a, textColor, a, a, a, a, a, a, a, a, 14, a, a, B.a2, a, 1.4, !0, a, a, a, a, a, a, a, a),
+      a,
+      a,
+      a
+    );
+    var welcomeBubble = A.X(
+      a,
+      welcomeText,
+      B.j,
+      a,
+      a,
+      new A.O(bubbleBg, a, a, a, a, a, B.aB),
+      a,
+      a,
+      a,
+      a,
+      a,
+      a,
+      14,
+      12,
+      16,
+      12,
+      16
+    );
+    list.push(
+      A.a4(
+        A.a([robotAvatar, B.ao, A.aD(welcomeBubble, 1)], pList),
+        B.i,
+        B.h,
+        B.f,
+        0,
+        a,
+        a
+      )
+    );
+    list.push(B.aP);
+
+    // 4. User Query Message: "What are my priority tasks for today?"
+    var userText = A.m(
+      "What are my priority tasks for today?",
+      a,
+      a,
+      a,
+      a,
+      A.J(a, a, B.d, a, a, a, a, a, a, a, a, 14, a, a, B.fL, a, a, !0, a, a, a, a, a, a, a, a),
+      a,
+      a,
+      a
+    );
+    var userBubble = A.X(
+      a,
+      userText,
+      B.j,
+      a,
+      a,
+      new A.O(
+        primaryBlue,
+        a,
+        a,
+        a,
+        A.a([new A.aK(0, B.E, A.Z(50, 0, 82, 255), B.ba, 8)], t.V),
+        a,
+        B.aB
+      ),
+      a,
+      a,
+      a,
+      a,
+      a,
+      a,
+      14,
+      12,
+      16,
+      12,
+      16
+    );
+    list.push(
+      A.a4(
+        A.a([A.aD(B.C, 1), userBubble], pList),
+        B.i,
+        B.h,
+        B.f,
+        0,
+        a,
+        a
+      )
+    );
+    list.push(B.aP);
+
+    // 5. Response Card: "You have 3 critical tasks in your Priority Matrix:"
+    var cardHeader = A.m(
+      "You have 3 critical tasks in your Priority Matrix:",
+      a,
+      a,
+      a,
+      a,
+      A.J(a, a, textColor, a, a, a, a, a, a, a, a, 14, a, a, B.K, a, 1.4, !0, a, a, a, a, a, a, a, a),
+      a,
+      a,
+      a
+    );
+
+    function makeTaskItem(title, iconObj) {
+      return A.X(
+        a,
+        A.a4(
+          A.a(
+            [
+              A.as(iconObj, primaryBlue, a, 18),
+              B.ao,
+              A.m(
+                title,
+                a,
+                a,
+                a,
+                a,
+                A.J(a, a, textColor, a, a, a, a, a, a, a, a, 13.5, a, a, B.fL, a, a, !0, a, a, a, a, a, a, a, a),
+                a,
+                a,
+                a
+              )
+            ],
+            pList
+          ),
+          B.i,
+          B.h,
+          B.f,
+          0,
+          a,
+          a
+        ),
+        B.j,
+        a,
+        a,
+        new A.O(cardBg, a, a, a, a, a, B.aB),
+        a,
+        42,
+        a,
+        a,
+        a,
+        a,
+        42,
+        12,
+        8,
+        12,
+        8,
+        12
+      );
     }
-    
-    this.messages.push({ text: responseText, isUser: false });
-    if (this.navState && this.navState.au) this.navState.au();
-  },
-  E: function(context) {
-    var self = this;
-    if (!self.messages) {
-      self.messages = [{
-        text: "Hi! I'm your Wrindha Smart Assistant 👋\nI can help you manage your tasks, habits, goals, schedule, expenses and more. Just tell me what you want to do.",
-        isUser: false
-      }];
+
+    var task1 = makeTaskItem("1. Server Migration", B.tS);
+    var task2 = makeTaskItem("2. Security Vulnerability #442", B.smartAssistantIcon);
+    var task3 = makeTaskItem("3. Quarterly Sync", B.tW);
+
+    var cardContent = A.a0(
+      A.a([cardHeader, B.aD, task1, B.ao, task2, B.ao, task3], pList),
+      B.w,
+      B.h,
+      B.f,
+      0,
+      B.m
+    );
+    var matrixCard = A.X(
+      a,
+      cardContent,
+      B.j,
+      a,
+      a,
+      new A.O(bubbleBg, a, a, a, a, a, B.aB),
+      a,
+      a,
+      a,
+      a,
+      a,
+      a,
+      14,
+      14,
+      14,
+      14,
+      14
+    );
+
+    var robotAvatar2 = A.X(
+      a,
+      A.as(B.tU, B.d, a, 16),
+      B.j,
+      a,
+      a,
+      new A.O(primaryBlue, a, a, a, a, a, B.b5),
+      a,
+      32,
+      a,
+      a,
+      a,
+      a,
+      32
+    );
+    list.push(
+      A.a4(
+        A.a([robotAvatar2, B.ao, A.aD(matrixCard, 1)], pList),
+        B.i,
+        B.h,
+        B.f,
+        0,
+        a,
+        a
+      )
+    );
+    list.push(B.aD);
+
+    // 6. Suggestion Chips Row: "Check Deadlines", "Study Summary", "New Task"
+    function makeChip(label) {
+      return A.X(
+        a,
+        A.m(
+          label,
+          a,
+          a,
+          a,
+          a,
+          A.J(a, a, textColor, a, a, a, a, a, a, a, a, 12, a, a, B.fL, a, a, !0, a, a, a, a, a, a, a, a),
+          a,
+          a,
+          a
+        ),
+        B.j,
+        a,
+        a,
+        new A.O(
+          cardBg,
+          a,
+          A.bO(isDark ? B.T : A.Z(255, 226, 232, 240), B.p, 1),
+          a,
+          a,
+          a,
+          new A.bb(A.B(18), B.v)
+        ),
+        a,
+        34,
+        a,
+        a,
+        a,
+        a,
+        34,
+        14,
+        8,
+        14,
+        8,
+        14
+      );
     }
-    self.navState = self.a;
-    
-    var isDark = A.p(context).ax.a === B.A;
-    var provider = A.f1(context, true, t.T);
-    var primaryBlue = B.am;
-    var textColor = isDark ? B.d : B.B;
-    var subtextColor = isDark ? B.as : B.a6;
-    var bubbleBg = isDark ? B.T : B.d;
-    var listChildren = [];
-    
-    // Top App Bar
-    var titleRow = A.a4(A.a([
-      A.X(null, A.c3(null, null, null, A.as(B.a4L, isDark ? B.d : B.B, null, 22), null, null, new A.SmartAssistantBackClosure(self), null, null, null, null), null, 36, null, null, null, null, 36),
-      B.aP,
-      A.a0(A.a([
-        A.m("Wrindha Assistant", null, null, null, null, A.J(null, null, primaryBlue, null, null, null, null, null, null, null, null, 17, null, null, B.fL, null, null, true, null, -0.2, null, null, null, null, null, null), null, null, null),
-        B.ao,
-        A.m("Tell me what you want to do", null, null, null, null, A.J(null, null, subtextColor, null, null, null, null, null, null, null, null, 11, null, null, B.a2, null, null, true, null, null, null, null, null, null, null, null), null, null, null)
-      ], t.p), B.i, B.h, B.f, 0, B.m)
-    ], t.p), B.i, B.h, B.f, 0, null, null);
-    
-    listChildren.push(titleRow);
-    listChildren.push(B.aD);
-    
-    // Messages list
-    for (var i = 0; i < self.messages.length; i++) {
-      var msg = self.messages[i];
-      if (msg.isUser) {
-        var userBubble = A.X(null, A.m(msg.text, null, null, null, null, A.J(null, null, B.d, null, null, null, null, null, null, null, null, 14, null, null, B.a2, null, null, true, null, null, null, null, null, null, null, null), null, null, null), B.j, null, null, new A.O(primaryBlue, null, null, null, A.a([new A.aK(0, B.E, A.Z(50, 0, 82, 255), B.ba, 8)], t.V), null, B.aB), null, null, null, null, null, null, 14, 12, 16, 12, 16);
-        listChildren.push(A.a4(A.a([A.aD(B.C, 1), userBubble], t.p), B.i, B.h, B.f, 0, null, null));
-      } else {
-        var robotIcon = A.X(null, A.as(B.tU, B.d, null, 18), B.j, null, null, new A.O(primaryBlue, null, null, null, null, null, B.b5), null, 32, null, null, null, null, 32);
-        var botBubble = A.X(null, A.m(msg.text, null, null, null, null, A.J(null, null, textColor, null, null, null, null, null, null, null, null, 13.5, null, null, B.a2, null, 1.4, true, null, null, null, null, null, null, null, null), null, null, null), B.j, null, null, new A.O(bubbleBg, null, null, null, A.a([new A.aK(0, B.E, A.Z(10, 0, 0, 0), B.ba, 6)], t.V), null, B.aB), null, null, null, null, null, null, 14, 12, 16, 12, 16);
-        listChildren.push(A.a4(A.a([robotIcon, B.ao, A.aD(botBubble, 1)], t.p), B.i, B.h, B.f, 0, null, null));
-      }
-      listChildren.push(B.a4);
-    }
-    
-    // Suggestion chips
-    var chips = ["What should I do now?", "Plan my day", "Show my tasks", "Check Deadlines", "Study Summary"];
-    var chipWidgets = [];
-    for (var c = 0; c < chips.length; c++) {
-      var chipText = chips[c];
-      var chipBtn = A.X(null, A.cW(A.m(chipText, null, null, null, null, A.J(null, null, isDark ? B.d : primaryBlue, null, null, null, null, null, null, null, null, 11.5, null, null, B.fL, null, null, true, null, null, null, null, null, null, null, null), null, null, null), new A.SmartAssistantChipClosure(self, chipText, provider), A.cX(null, null, isDark ? B.T : B.d, null, null, null, 0, null, null, null, null, null, null, null, new A.bb(A.B(14), B.v), null, null, null, null, null)), null, null, null, null, null, null, null, null, null, null, null, null, 4, 3, 4, 3, 4);
-      chipWidgets.push(chipBtn);
-      chipWidgets.push(B.ao);
-    }
-    listChildren.push(A.l0(false, A.a4(chipWidgets, t.p)));
-    listChildren.push(B.aD);
-    
-    // Bottom Input Bar
-    var sendBtn = A.c3(null, null, null, A.as(B.tX, B.d, null, 20), null, null, new A.SmartAssistantSendClosure(self, provider), null, null, null, null);
-    var sendBox = A.X(null, sendBtn, B.j, null, null, new A.O(primaryBlue, null, null, null, A.a([new A.aK(0, B.E, A.Z(60, 0, 82, 255), B.ba, 8)], t.V), null, B.aB), null, 42, null, null, null, null, 42);
-    var inputField = A.aD(A.X(null, A.m("Tell Wrindha what you need...", null, null, null, null, A.J(null, null, subtextColor, null, null, null, null, null, null, null, null, 13, null, null, B.a2, null, null, true, null, null, null, null, null, null, null, null), null, null, null), B.j, null, null, new A.O(isDark ? B.T : B.d, null, null, null, null, null, B.aB), null, 42, null, null, null, null, 42, 14, 12, 14, 12, 14), 1);
-    
-    listChildren.push(A.a4(A.a([inputField, B.ao, sendBox], t.p), B.i, B.h, B.f, 0, null, null));
-    
-    return A.cJ(null, isDark ? B.aZ : B.aV, A.X(null, A.a0(listChildren, B.w, B.h, B.f, 0, B.m), null, null, null, null, null, null, null, null, null, null, null, null, 14, 10, 14, 10, 14));
+
+    var chip1 = makeChip("Check Deadlines");
+    var chip2 = makeChip("Study Summary");
+    var chip3 = makeChip("New Task");
+    var chipsRow = A.a4(A.a([chip1, B.ao, chip2, B.ao, chip3], pList), B.i, B.h, B.f, 0, a, a);
+    list.push(chipsRow);
+    list.push(B.aD);
+
+    // 7. Bottom Input Bar with Mic & Blue Send Button
+    var micIcon = A.as(B.tW, subColor, a, 20);
+    var inputPlaceholder = A.m(
+      "Message assistant...",
+      a,
+      a,
+      a,
+      a,
+      A.J(a, a, subColor, a, a, a, a, a, a, a, a, 13.5, a, a, B.a2, a, a, !0, a, a, a, a, a, a, a, a),
+      a,
+      a,
+      a
+    );
+    var inputField = A.X(
+      a,
+      A.a4(A.a([A.aD(inputPlaceholder, 1), micIcon], pList), B.i, B.h, B.f, 0, a, a),
+      B.j,
+      a,
+      a,
+      new A.O(bubbleBg, a, a, a, a, a, B.aB),
+      a,
+      44,
+      a,
+      a,
+      a,
+      a,
+      44,
+      16,
+      10,
+      16,
+      10,
+      16
+    );
+
+    var sendIcon = A.as(B.tX, B.d, a, 20);
+    var sendButton = A.X(
+      a,
+      sendIcon,
+      B.j,
+      a,
+      a,
+      new A.O(
+        primaryBlue,
+        a,
+        a,
+        a,
+        A.a([new A.aK(0, B.E, A.Z(60, 0, 82, 255), B.ba, 8)], t.V),
+        a,
+        B.aB
+      ),
+      a,
+      44,
+      a,
+      a,
+      a,
+      a,
+      44
+    );
+
+    var inputRow = A.a4(A.a([A.aD(inputField, 1), B.ao, sendButton], pList), B.i, B.h, B.f, 0, a, a);
+    list.push(inputRow);
+    list.push(B.aD);
+
+    var bodyColumn = A.a0(list, B.w, B.h, B.f, 0, B.m);
+    var body = new A.aw(B.bw, A.X(a, bodyColumn, a, a, a, a, a, a, a, a, a, a, a, 16, 12, 16, 12, 16), a);
+
+    return A.cJ(appBar, bgColor, body, a, a);
   }
 };
 
@@ -101240,7 +101551,7 @@ this.fa()}}
 A.Cx.prototype={
 a5(){return new A.Xu()}}
 A.Xu.prototype={
-E(a){var s=this,r=null,q=A.p(a).ax.a===B.A,p=A.aPr(B.cA,A.a([new A.SZ(new A.ayc(s),r),new A.SmartAssistantWidget(s),new A.Os(r),new A.Qm(new A.ayd(s),r)],t.bH),s.d),o=q?B.JP:B.d,n=A.a([new A.aK(0,B.E,q?A.Z(B.e.aG(127.5),B.n.m()>>>16&255,B.n.m()>>>8&255,B.n.m()&255):A.Z(10,B.n.m()>>>16&255,B.n.m()>>>8&255,B.n.m()&255),B.zV,16)],t.V),m=q?B.H9:r
+E(a){var s=this,r=null,q=A.p(a).ax.a===B.A,p=A.aPr(B.cA,A.a([new A.SZ(new A.ayc(s),r),new A.SmartAssistantWidget(new A.ayc(s),r),new A.Os(r),new A.Qm(new A.ayd(s),r)],t.bH),s.d),o=q?B.JP:B.d,n=A.a([new A.aK(0,B.E,q?A.Z(B.e.aG(127.5),B.n.m()>>>16&255,B.n.m()>>>8&255,B.n.m()&255):A.Z(10,B.n.m()>>>16&255,B.n.m()>>>8&255,B.n.m()&255),B.zV,16)],t.V),m=q?B.H9:r
 return A.cJ(r,r,p,A.X(r,A.l0(!0,A.a4(A.a([s.QX(B.tS,B.tS,0,q,"Menu"),s.QX(B.tU,B.tU,1,q,"Assistant"),s.abM(B.NY,2,!0,q,"Home"),s.QX(B.tW,B.nF,3,q,"Profile")],t.p),B.i,B.iu,B.f,0,r,r),B.aA,!1),B.j,r,r,new A.O(o,r,m,r,n,r,B.o),r,r,r,B.ME,r,r,r),r)},
 QY(a,b,c,d,e,f){var s,r,q=null,p=this.d===c,o=p&&a!=null?a:b,n=e?B.X:B.N,m=e?B.as:B.a6,l=t.p,k=A.a([],l)
 if(d){l=e?B.am:B.N
