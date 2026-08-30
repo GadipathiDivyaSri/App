@@ -1,9 +1,11 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../config/subscription_config.dart';
 import '../models/models.dart';
 import '../services/api_service.dart';
 import '../services/auth_api_service.dart';
+import '../services/feature_access_service.dart';
 
 class AppProvider extends ChangeNotifier {
   ThemeMode _themeMode = ThemeMode.light;
@@ -19,8 +21,31 @@ class AppProvider extends ChangeNotifier {
     focusScore: 0,
     activeStreak: 0,
     isPremium: false,
+    subscriptionPlan: 'FREE',
   );
   UserProfile get user => _user;
+
+  // ---------------------------------------------------------------------------
+  // CENTRALIZED SUBSCRIPTION & FEATURE ACCESS SYSTEM
+  // ---------------------------------------------------------------------------
+  SubscriptionPlanType get currentPlan =>
+      SubscriptionRegistry.parsePlanString(
+        _user.subscriptionPlan.isNotEmpty
+            ? _user.subscriptionPlan
+            : (_user.isPremium ? 'PRO' : 'FREE'),
+      );
+
+  bool hasFeatureAccess(AppFeature feature) =>
+      FeatureAccessService.hasAccess(plan: currentPlan, feature: feature);
+
+  FeatureAccessResult checkFeatureAccess(AppFeature feature) =>
+      FeatureAccessService.checkAccess(plan: currentPlan, feature: feature);
+
+  void updateSubscriptionPlan(SubscriptionPlanType plan) {
+    _user.subscriptionPlan = plan.nameCode;
+    _user.isPremium = plan.isPro;
+    notifyListeners();
+  }
 
   void setUser(UserProfile user) {
     _user = user;
@@ -37,6 +62,7 @@ class AppProvider extends ChangeNotifier {
       focusScore: 0,
       activeStreak: 0,
       isPremium: false,
+      subscriptionPlan: 'FREE',
     );
     await ApiService.clearSession();
     notifyListeners();
@@ -48,8 +74,14 @@ class AppProvider extends ChangeNotifier {
   List<Habit> _habits = [];
   List<Habit> get habits => _habits;
 
-  // Free Plan Limit: Max 2 Habits
-  bool get canAddHabit => _user.isPremium || _habits.length < 2;
+  // Centralized Plan Limits
+  bool get canAddHabit =>
+      FeatureAccessService.canCreateHabit(plan: currentPlan, currentHabitCount: _habits.length);
+
+  int get maxHabits => FeatureAccessService.getMaxHabits(currentPlan);
+
+  int get remainingHabitSlots =>
+      FeatureAccessService.getRemainingHabitSlots(plan: currentPlan, currentCount: _habits.length);
 
   void addHabit(Habit habit) {
     _habits.add(habit);
@@ -100,8 +132,14 @@ class AppProvider extends ChangeNotifier {
   List<StudySubject> _subjects = [];
   List<StudySubject> get subjects => _subjects;
 
-  // Free Plan Limit: Max 2 Subjects
-  bool get canAddSubject => _user.isPremium || _subjects.length < 2;
+  // Centralized Plan Limits for Subjects
+  bool get canAddSubject =>
+      FeatureAccessService.canCreateSubject(plan: currentPlan, currentSubjectCount: _subjects.length);
+
+  int get maxSubjects => FeatureAccessService.getMaxSubjects(currentPlan);
+
+  int get remainingSubjectSlots =>
+      FeatureAccessService.getRemainingSubjectSlots(plan: currentPlan, currentCount: _subjects.length);
 
   void addSubject(StudySubject subject) {
     _subjects.add(subject);
