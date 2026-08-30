@@ -35,6 +35,7 @@ class AppTheme {
 
   // Compatibility aliases
   static const Color lightBg = background;
+  static const Color lightBackground = background;
   static const Color lightPrimary = primaryAccent;
   static const Color primaryColor = primaryAccent;
   static const Color lightTextPrimary = textPrimary;
@@ -64,6 +65,7 @@ class AppTheme {
   // DARK MODE PALETTE (Deep Navy / Midnight Glow)
   // ---------------------------------------------------------------------------
   static const Color darkBg = Color(0xFF060B1E); // Deep Navy Canvas
+  static const Color darkBackground = darkBg;
   static const Color darkCardBg = Color(0xFF0D1B3E); // Midnight Blue Card
   static const Color darkCardBorder = Color(0x332A85FF); // Subtle 20% Blue Border
   static const Color darkPrimary = Color(0xFF2563EB); // Royal Electric Blue

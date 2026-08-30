@@ -30,7 +30,7 @@ class ApiService {
       if (clean.length < 3 || clean.length > 20) {
         return {'available': false, 'error': 'Username must be between 3 and 20 characters.'};
       }
-      if (!RegExp(r'^[a-zA-Z0-9_]+$').test(clean)) {
+      if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(clean)) {
         return {'available': false, 'error': 'Only letters, numbers, and underscores allowed.'};
       }
       if (reserved.contains(clean)) {
