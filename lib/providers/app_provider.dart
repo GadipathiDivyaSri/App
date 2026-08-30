@@ -14,10 +14,15 @@ class AppProvider extends ChangeNotifier {
 
   AppProvider() {
     loadThemePreference();
+    _initData();
   }
 
-  void toggleTheme() {
-    _themeMode = _themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
+  void toggleTheme([bool? isDark]) {
+    if (isDark != null) {
+      _themeMode = isDark ? ThemeMode.dark : ThemeMode.light;
+    } else {
+      _themeMode = _themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
+    }
     _saveThemePreference();
     notifyListeners();
   }
@@ -483,10 +488,6 @@ class AppProvider extends ChangeNotifier {
     return !targetMidnight.isBefore(todayMidnight);
   }
 
-  AppProvider() {
-    _initData();
-  }
-
   void setAuthenticatedSession({
     required Map<String, dynamic> userMap,
     required String token,
@@ -630,12 +631,6 @@ class AppProvider extends ChangeNotifier {
 
     notifyListeners();
     return result;
-  }
-
-  void toggleTheme(bool isDark) {
-    _themeMode = isDark ? ThemeMode.dark : ThemeMode.light;
-    _saveTheme();
-    notifyListeners();
   }
 
   void setNotificationFilter(String filter) {
