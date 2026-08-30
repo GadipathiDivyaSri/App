@@ -190,8 +190,9 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   // ---------------------------------------------------------------------------
   // 1. STOPWATCH TAB (COUNT UP)
@@ -398,8 +399,7 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
             ),
           ],
         ),
-      ),
-    ),
-  );
-}
+      ],
+    );
+  }
 }
