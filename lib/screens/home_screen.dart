@@ -7,7 +7,6 @@ import 'personal_growth_screen.dart';
 import 'career_screen.dart';
 import 'studies_screen.dart';
 import 'calendar_screen.dart';
-import 'notifications_screen.dart';
 import 'priority_matrix_screen.dart';
 import 'analytics_screen.dart';
 
@@ -29,7 +28,7 @@ class HomeScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header with Title & Notification Bell
+              // Header with Title
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -51,38 +50,6 @@ class HomeScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-                  ),
-                  Stack(
-                    children: [
-                      IconButton(
-                        icon: Icon(
-                          Icons.notifications_none_rounded,
-                          size: 28,
-                          color: isDark ? AppTheme.darkIconGlow : AppTheme.lightPrimary,
-                        ),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const NotificationsScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      if (provider.notifications.isNotEmpty)
-                        Positioned(
-                          right: 12,
-                          top: 12,
-                          child: Container(
-                            width: 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              color: isDark ? const Color(0xFFEF4444) : AppTheme.lightPrimary,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ),
-                    ],
                   ),
                 ],
               ),

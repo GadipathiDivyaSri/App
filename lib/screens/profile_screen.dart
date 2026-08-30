@@ -4,7 +4,6 @@ import '../providers/app_provider.dart';
 import '../theme/app_theme.dart';
 import 'pricing_screen.dart';
 import 'payment_history_screen.dart';
-import 'notification_settings_screen.dart';
 import 'referral_screen.dart';
 import 'about_us_screen.dart';
 import 'terms_conditions_screen.dart';
@@ -298,20 +297,6 @@ class ProfileScreen extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  _buildListTile(
-                    context,
-                    icon: Icons.notifications_none_rounded,
-                    title: 'Notification Settings',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const NotificationSettingsScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  const Divider(height: 1, indent: 50),
                   Padding(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16.0, vertical: 12.0),
