@@ -1,30 +1,20 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
-import '../models/models.dart';
-import '../providers/app_provider.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
-import 'main_navigation.dart';
+import 'create_new_password_screen.dart';
 
-class EmailOtpScreen extends StatefulWidget {
+class PasswordResetOtpScreen extends StatefulWidget {
   final String email;
-  final String? username;
-  final bool isForgotPassword;
 
-  const EmailOtpScreen({
-    super.key,
-    required this.email,
-    this.username,
-    this.isForgotPassword = false,
-  });
+  const PasswordResetOtpScreen({super.key, required this.email});
 
   @override
-  State<EmailOtpScreen> createState() => _EmailOtpScreenState();
+  State<PasswordResetOtpScreen> createState() => _PasswordResetOtpScreenState();
 }
 
-class _EmailOtpScreenState extends State<EmailOtpScreen> {
+class _PasswordResetOtpScreenState extends State<PasswordResetOtpScreen> {
   final List<TextEditingController> _otpControllers =
       List.generate(6, (_) => TextEditingController());
   final List<FocusNode> _otpFocusNodes = List.generate(6, (_) => FocusNode());
@@ -32,9 +22,7 @@ class _EmailOtpScreenState extends State<EmailOtpScreen> {
   bool _isLoading = false;
   bool _isResending = false;
   String? _errorMessage;
-  int _attemptsCount = 0;
 
-  // 60-Second Resend Cooldown Timer
   Timer? _cooldownTimer;
   int _secondsRemaining = 60;
   bool _canResend = false;
@@ -79,9 +67,7 @@ class _EmailOtpScreenState extends State<EmailOtpScreen> {
     final parts = email.split('@');
     final name = parts[0];
     final domain = parts[1];
-    if (name.length <= 2) {
-      return '$name***@$domain';
-    }
+    if (name.length <= 2) return '$name***@$domain';
     final prefix = name.substring(0, 2);
     return '$prefix***@$domain';
   }
@@ -102,38 +88,26 @@ class _EmailOtpScreenState extends State<EmailOtpScreen> {
       _errorMessage = null;
     });
 
-    final res = await ApiService.registerVerify(
+    final res = await ApiService.forgotPasswordVerifyOtp(
       email: widget.email,
       otp: otp,
-      username: widget.username,
     );
 
     if (!mounted) return;
+    setState(() => _isLoading = false);
 
-    if (res['success'] == true) {
-      final userMap = res['user'];
-      if (userMap != null) {
-        final provider = Provider.of<AppProvider>(context, listen: false);
-        provider.setUser(UserProfile(
-          id: userMap['id'] ?? 'u_1',
-          name: userMap['name'] ?? widget.username ?? 'Student',
-          contact: userMap['email'] ?? widget.email,
-          focusScore: userMap['focusScore'] ?? 85,
-          activeStreak: userMap['activeStreak'] ?? 1,
-          isPremium: userMap['isPremium'] ?? false,
-          referralCode: 'WRINDHA2026',
-        ));
-      }
-
-      Navigator.pushAndRemoveUntil(
+    if (res['success'] == true && res['resetToken'] != null) {
+      Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
-        (route) => false,
+        MaterialPageRoute(
+          builder: (_) => CreateNewPasswordScreen(
+            email: widget.email,
+            resetToken: res['resetToken'],
+          ),
+        ),
       );
     } else {
-      _attemptsCount++;
       setState(() {
-        _isLoading = false;
         _errorMessage = res['message'] ?? 'Invalid verification code. Please try again.';
       });
     }
@@ -147,28 +121,23 @@ class _EmailOtpScreenState extends State<EmailOtpScreen> {
       _errorMessage = null;
     });
 
-    final res = await ApiService.resendRegistrationOtp(widget.email);
+    final res = await ApiService.forgotPasswordInitiate(widget.email);
 
     if (!mounted) return;
     setState(() => _isResending = false);
 
-    if (res['success'] == true) {
-      for (var c in _otpControllers) {
-        c.clear();
-      }
-      _otpFocusNodes[0].requestFocus();
-      _startCooldownTimer();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(res['message'] ?? 'New verification code sent!'),
-          backgroundColor: const Color(0xFF10B981),
-        ),
-      );
-    } else {
-      setState(() {
-        _errorMessage = res['message'] ?? 'Failed to resend verification code.';
-      });
+    for (var c in _otpControllers) {
+      c.clear();
     }
+    _otpFocusNodes[0].requestFocus();
+    _startCooldownTimer();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(res['message'] ?? 'Verification code resent!'),
+        backgroundColor: const Color(0xFF10B981),
+      ),
+    );
   }
 
   @override
@@ -199,7 +168,7 @@ class _EmailOtpScreenState extends State<EmailOtpScreen> {
 
               // Title
               Text(
-                'Verify your email',
+                'Verify your identity',
                 style: TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.w800,
@@ -209,7 +178,7 @@ class _EmailOtpScreenState extends State<EmailOtpScreen> {
               ),
               const SizedBox(height: 8),
 
-              // Subtitle with Masked Email
+              // Subtitle
               RichText(
                 text: TextSpan(
                   style: TextStyle(
@@ -218,7 +187,7 @@ class _EmailOtpScreenState extends State<EmailOtpScreen> {
                     height: 1.4,
                   ),
                   children: [
-                    const TextSpan(text: "We've sent a 6-digit verification code to \n"),
+                    const TextSpan(text: "Enter the 6-digit verification code sent to \n"),
                     TextSpan(
                       text: _getMaskedEmail(widget.email),
                       style: TextStyle(
@@ -319,7 +288,7 @@ class _EmailOtpScreenState extends State<EmailOtpScreen> {
               ),
               const SizedBox(height: 32),
 
-              // Verify Email Button
+              // Verify Code Button
               SizedBox(
                 height: 52,
                 child: ElevatedButton(
@@ -342,7 +311,7 @@ class _EmailOtpScreenState extends State<EmailOtpScreen> {
                           ),
                         )
                       : const Text(
-                          'Verify Email',
+                          'Verify Code',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
@@ -352,7 +321,7 @@ class _EmailOtpScreenState extends State<EmailOtpScreen> {
               ),
               const SizedBox(height: 20),
 
-              // Resend Code Action with Countdown Timer
+              // Resend Code Action
               Center(
                 child: _canResend
                     ? GestureDetector(
@@ -374,22 +343,6 @@ class _EmailOtpScreenState extends State<EmailOtpScreen> {
                           color: isDark ? Colors.white38 : const Color(0xFF9CA3AF),
                         ),
                       ),
-              ),
-              const SizedBox(height: 16),
-
-              // Change Email Action
-              Center(
-                child: GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: Text(
-                    'Change Email',
-                    style: TextStyle(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w600,
-                      color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
-                    ),
-                  ),
-                ),
               ),
             ],
           ),

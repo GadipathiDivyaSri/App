@@ -1,31 +1,49 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
-import 'password_reset_otp_screen.dart';
+import 'login_screen.dart';
 
-class ForgotPasswordScreen extends StatefulWidget {
-  const ForgotPasswordScreen({super.key});
+class CreateNewPasswordScreen extends StatefulWidget {
+  final String email;
+  final String resetToken;
+
+  const CreateNewPasswordScreen({
+    super.key,
+    required this.email,
+    required this.resetToken,
+  });
 
   @override
-  State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
+  State<CreateNewPasswordScreen> createState() => _CreateNewPasswordScreenState();
 }
 
-class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
-  final _emailCtrl = TextEditingController();
+class _CreateNewPasswordScreenState extends State<CreateNewPasswordScreen> {
+  final _newPasswordCtrl = TextEditingController();
+  final _confirmPasswordCtrl = TextEditingController();
+
+  bool _obscureNewPassword = true;
+  bool _obscureConfirmPassword = true;
   bool _isLoading = false;
   String? _errorMessage;
 
   @override
   void dispose() {
-    _emailCtrl.dispose();
+    _newPasswordCtrl.dispose();
+    _confirmPasswordCtrl.dispose();
     super.dispose();
   }
 
-  Future<void> _handleContinue() async {
-    final email = _emailCtrl.text.trim().toLowerCase();
+  Future<void> _handleUpdatePassword() async {
+    final newPass = _newPasswordCtrl.text;
+    final confirmPass = _confirmPasswordCtrl.text;
 
-    if (email.isEmpty || !RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(email)) {
-      setState(() => _errorMessage = 'Please enter a valid email address.');
+    if (newPass.length < 8) {
+      setState(() => _errorMessage = 'Password must be at least 8 characters long.');
+      return;
+    }
+
+    if (newPass != confirmPass) {
+      setState(() => _errorMessage = 'Passwords do not match.');
       return;
     }
 
@@ -34,28 +52,35 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       _errorMessage = null;
     });
 
-    final res = await ApiService.forgotPasswordInitiate(email);
+    final res = await ApiService.forgotPasswordReset(
+      email: widget.email,
+      resetToken: widget.resetToken,
+      newPassword: newPass,
+      confirmPassword: confirmPass,
+    );
 
     if (!mounted) return;
     setState(() => _isLoading = false);
 
-    // Generic confirmation message for security
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          res['message'] ??
-              'If an account exists with this email, a verification code has been sent.',
+    if (res['success'] == true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Your password has been updated successfully.'),
+          backgroundColor: Color(0xFF10B981),
+          duration: Duration(seconds: 3),
         ),
-        backgroundColor: const Color(0xFF10B981),
-      ),
-    );
+      );
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => PasswordResetOtpScreen(email: email),
-      ),
-    );
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        (route) => false,
+      );
+    } else {
+      setState(() {
+        _errorMessage = res['message'] ?? 'Failed to update password. Please try again.';
+      });
+    }
   }
 
   @override
@@ -86,7 +111,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
               // Title
               Text(
-                'Forgot Password',
+                'Create New Password',
                 style: TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.w800,
@@ -98,7 +123,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
               // Subtitle
               Text(
-                'Enter your registered email address to receive a verification code.',
+                'Set a strong, secure password to protect your WrindhaOS account.',
                 style: TextStyle(
                   fontSize: 14,
                   color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
@@ -136,9 +161,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 const SizedBox(height: 20),
               ],
 
-              // Email Field
+              // 1. New Password Field
               Text(
-                'Email Address',
+                'New Password',
                 style: TextStyle(
                   fontSize: 13.5,
                   fontWeight: FontWeight.w600,
@@ -147,17 +172,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               ),
               const SizedBox(height: 8),
               TextFormField(
-                controller: _emailCtrl,
-                keyboardType: TextInputType.emailAddress,
-                autocorrect: false,
-                textInputAction: TextInputAction.done,
-                onFieldSubmitted: (_) => _handleContinue(),
+                controller: _newPasswordCtrl,
+                obscureText: _obscureNewPassword,
+                textInputAction: TextInputAction.next,
                 style: TextStyle(
                   fontSize: 15,
                   color: isDark ? Colors.white : AppTheme.lightTextPrimary,
                 ),
                 decoration: InputDecoration(
-                  hintText: 'Enter your registered email',
+                  hintText: 'Enter new password',
                   hintStyle: TextStyle(
                     fontSize: 14.5,
                     color: isDark ? Colors.white38 : const Color(0xFF9CA3AF),
@@ -166,9 +189,80 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   fillColor: isDark ? const Color(0xFF1E2235) : const Color(0xFFF3F4F6),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                   prefixIcon: Icon(
-                    Icons.mail_outline_rounded,
+                    Icons.lock_outline_rounded,
                     color: isDark ? Colors.white54 : const Color(0xFF6B7280),
                     size: 20,
+                  ),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscureNewPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                      color: isDark ? Colors.white54 : Colors.black45,
+                      size: 20,
+                    ),
+                    onPressed: () => setState(() => _obscureNewPassword = !_obscureNewPassword),
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: isDark ? const Color(0x262A85FF) : const Color(0xFFE5E7EB),
+                      width: 1,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: primaryColor,
+                      width: 1.5,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // 2. Confirm New Password Field
+              Text(
+                'Confirm New Password',
+                style: TextStyle(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? AppTheme.darkTextPrimary : const Color(0xFF374151),
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _confirmPasswordCtrl,
+                obscureText: _obscureConfirmPassword,
+                textInputAction: TextInputAction.done,
+                onFieldSubmitted: (_) => _handleUpdatePassword(),
+                style: TextStyle(
+                  fontSize: 15,
+                  color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+                ),
+                decoration: InputDecoration(
+                  hintText: 'Re-enter new password',
+                  hintStyle: TextStyle(
+                    fontSize: 14.5,
+                    color: isDark ? Colors.white38 : const Color(0xFF9CA3AF),
+                  ),
+                  filled: true,
+                  fillColor: isDark ? const Color(0xFF1E2235) : const Color(0xFFF3F4F6),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  prefixIcon: Icon(
+                    Icons.lock_reset_rounded,
+                    color: isDark ? Colors.white54 : const Color(0xFF6B7280),
+                    size: 20,
+                  ),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscureConfirmPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                      color: isDark ? Colors.white54 : Colors.black45,
+                      size: 20,
+                    ),
+                    onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -192,7 +286,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               ),
               const SizedBox(height: 32),
 
-              // Continue Button
+              // Update Password Button
               SizedBox(
                 height: 52,
                 child: ElevatedButton(
@@ -204,7 +298,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       borderRadius: BorderRadius.circular(14),
                     ),
                   ),
-                  onPressed: _isLoading ? null : _handleContinue,
+                  onPressed: _isLoading ? null : _handleUpdatePassword,
                   child: _isLoading
                       ? const SizedBox(
                           width: 22,
@@ -215,7 +309,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           ),
                         )
                       : const Text(
-                          'Continue',
+                          'Update Password',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,

@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const url = require('url');
 const https = require('https');
+
 // Pure Node.js zero-dependency .env loader
 try {
   const envPath = path.join(__dirname, '.env');
@@ -40,12 +41,12 @@ function loadDB() {
     users: [
       {
         id: 'u_1',
-        username: 'alex_growth',
-        name: 'Alex Johnson',
-        contact: 'alex.growth@wrindhaos.in',
-        email: 'alex.growth@wrindhaos.in',
+        username: 'kalyan',
+        name: 'Kalyan',
+        email: 'kalyan@wrindhaos.in',
         password: 'password123',
-        focusScore: 84,
+        isEmailVerified: true,
+        focusScore: 88,
         activeStreak: 12,
         isPremium: false,
         referralCode: 'WRINDHA2026',
@@ -98,22 +99,19 @@ function parseBody(req) {
 }
 
 /**
- * Dispatch real live email / OTP via MSG91 API
+ * Dispatch real live email / OTP via MSG91 API or mock fallback
  */
-async function dispatchMsg91EmailOtp(email, otpCode) {
+async function dispatchEmailOtp(email, otpCode, type = 'Verification') {
   const authKey = process.env.MSG91_AUTH_KEY;
-  const widgetId = process.env.MSG91_WIDGET_ID;
-  const templateId = process.env.MSG91_OTP_TEMPLATE_ID || process.env.MSG91_TEMPLATE_ID || 'default_otp_template';
+  const templateId = process.env.MSG91_OTP_TEMPLATE_ID || 'default_otp_template';
+
+  console.log(`[EMAIL OTP DISPATCH] [${type}] Sending 6-digit OTP to: ${email} -> CODE: [${otpCode}]`);
 
   if (!authKey) {
-    console.log(`[MSG91 LOCAL MODE] No MSG91_AUTH_KEY in environment. Mock OTP generated for ${email}: ${otpCode}`);
     return { success: true, mode: 'local', otpCode };
   }
 
-  console.log(`[MSG91 LIVE DISPATCH] Sending real Email OTP to: ${email} (Widget: ${widgetId})`);
-
   try {
-    // Attempt standard MSG91 Email / OTP API dispatch
     const payload = JSON.stringify({
       to: [{ email: email }],
       from: { email: process.env.MSG91_EMAIL_FROM || 'no-reply@wrindhaos.com', name: 'WrindhaOS' },
@@ -141,26 +139,24 @@ async function dispatchMsg91EmailOtp(email, otpCode) {
         let resData = '';
         msgRes.on('data', (chunk) => (resData += chunk));
         msgRes.on('end', () => {
-          console.log(`[MSG91 API RESPONSE] Code: ${msgRes.statusCode}, Data: ${resData}`);
           resolve({ success: true, mode: 'live', response: resData });
         });
       });
       req.on('error', (err) => {
-        console.error('[MSG91 GATEWAY ERROR]', err.message);
         resolve({ success: true, mode: 'local_fallback', otpCode });
       });
       req.write(payload);
       req.end();
     });
   } catch (err) {
-    console.error('[MSG91 DISPATCH EXCEPTION]', err);
     return { success: true, mode: 'local_fallback', otpCode };
   }
 }
 
+// RESERVED USERNAMES
 const RESERVED_USERNAMES = [
   'admin', 'administrator', 'root', 'support', 'wrindha', 'wrindhaos',
-  'system', 'moderator', 'api', 'help', 'official', 'auth', 'security', 'guest'
+  'system', 'moderator', 'api', 'help', 'official', 'auth', 'security', 'guest', 'superuser'
 ];
 
 function validateUsername(username) {
@@ -174,6 +170,9 @@ function validateUsername(username) {
   if (!/^[a-zA-Z0-9_]+$/.test(clean)) {
     return { valid: false, error: 'Username can only contain letters, numbers, and underscores (_).' };
   }
+  if (clean.includes(' ')) {
+    return { valid: false, error: 'Username cannot contain spaces.' };
+  }
   if (RESERVED_USERNAMES.includes(clean)) {
     return { valid: false, error: `The username '${clean}' is reserved and cannot be used.` };
   }
@@ -185,12 +184,13 @@ function generateUsernameSuggestions(base) {
   return [
     `${clean}_01`,
     `${clean}19`,
-    `${clean}_wrindha`,
+    `${clean}_os`,
   ].filter(s => !db.users.some(u => (u.username || '').toLowerCase() === s.toLowerCase())).slice(0, 3);
 }
 
 // Main API Handler
 async function handleApiRequest(req, res) {
+  db = loadDB();
   const parsedUrl = url.parse(req.url, true);
   const rawPath = parsedUrl.pathname;
   const pathname = rawPath.replace(/^\/api\/v1\//, '/api/');
@@ -208,19 +208,13 @@ async function handleApiRequest(req, res) {
 
   const body = method === 'POST' || method === 'PATCH' || method === 'DELETE' ? await parseBody(req) : {};
 
-  console.log(`[API ${method}] ${rawPath} -> ${pathname}`);
-
   // 1. HEALTH CHECK
   if (pathname === '/api/health' && method === 'GET') {
     return sendJSON(res, 200, {
       status: 'ONLINE',
       app: 'WrindhaOS Full Backend Service',
-      version: '2.0.0',
+      version: '2.5.0',
       timestamp: new Date().toISOString(),
-      msg91: {
-        configured: Boolean(process.env.MSG91_AUTH_KEY),
-        widgetId: process.env.MSG91_WIDGET_ID || '36687761466f383937303733',
-      },
       stats: {
         usersCount: db.users.length,
         tasksCount: db.tasks.length,
@@ -230,9 +224,11 @@ async function handleApiRequest(req, res) {
     });
   }
 
+  // ---------------------------------------------------------------------------
   // 2. AUTHENTICATION SUITE
+  // ---------------------------------------------------------------------------
 
-  // 2.1 Check Username Availability & Rules
+  // 2.1 Check Username Availability
   if (pathname === '/api/auth/check-username' && method === 'POST') {
     const { username } = body;
     const val = validateUsername(username);
@@ -260,7 +256,7 @@ async function handleApiRequest(req, res) {
     });
   }
 
-  // 2.2 Create Account Step 1 & 2: Validate details & initiate 6-digit MSG91 Email OTP
+  // 2.2 Create Account Step 1: Validate & Send Email OTP
   if (pathname === '/api/auth/register-initiate' && method === 'POST') {
     const { username, email, password, confirmPassword } = body;
 
@@ -281,27 +277,30 @@ async function handleApiRequest(req, res) {
     if (!cleanEmail || !emailRegex.test(cleanEmail)) {
       return sendJSON(res, 400, { success: false, message: 'Please enter a valid email address.' });
     }
-    if (db.users.some((u) => (u.email || u.contact || '').toLowerCase() === cleanEmail)) {
+    if (db.users.some((u) => (u.email || '').toLowerCase() === cleanEmail)) {
       return sendJSON(res, 400, { success: false, message: 'An account with this email already exists.' });
     }
 
-    if (!password || password.length < 6) {
-      return sendJSON(res, 400, { success: false, message: 'Password must be at least 6 characters long.' });
+    if (!password || password.length < 8) {
+      return sendJSON(res, 400, { success: false, message: 'Password must be at least 8 characters long.' });
     }
     if (confirmPassword !== undefined && password !== confirmPassword) {
       return sendJSON(res, 400, { success: false, message: 'Passwords do not match.' });
     }
 
-    // Generate 6-Digit OTP
+    // 6-Digit Email OTP with 10-minute expiry (600s) & 60s cooldown
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const now = Date.now();
+
     db.otpStore[cleanEmail] = {
       code: otpCode,
       type: 'register',
       attempts: 0,
-      resendCount: 0,
-      expiresAt: Date.now() + 5 * 60 * 1000, // 5 mins
-      lastSentAt: Date.now(),
-      payload: {
+      maxAttempts: 5,
+      createdAt: now,
+      expiresAt: now + 10 * 60 * 1000, // 10 minutes
+      lastSentAt: now,
+      pendingUser: {
         username: val.clean,
         email: cleanEmail,
         password: password,
@@ -309,262 +308,383 @@ async function handleApiRequest(req, res) {
     };
     saveDB(db);
 
-    // Dispatch via MSG91
-    await dispatchMsg91EmailOtp(cleanEmail, otpCode);
+    await dispatchEmailOtp(cleanEmail, otpCode, 'Registration');
 
     return sendJSON(res, 200, {
       success: true,
-      message: `6-digit verification code sent to ${cleanEmail}`,
-      demoCode: otpCode,
+      message: 'Verification code sent to your email.',
+      email: cleanEmail,
+      expiresInSeconds: 600,
     });
   }
 
-  // 2.3 Resend OTP with 30s Cooldown and 2-attempt limit
+  // 2.3 Create Account Step 2: Verify OTP & Activate Account
+  if (pathname === '/api/auth/register-verify' && method === 'POST') {
+    const { email, otp } = body;
+    const cleanEmail = (email || '').trim().toLowerCase();
+    const otpRecord = db.otpStore[cleanEmail];
+
+    if (!otpRecord || otpRecord.type !== 'register') {
+      return sendJSON(res, 400, {
+        success: false,
+        message: 'No pending registration found. Please sign up again.',
+      });
+    }
+
+    if (Date.now() > otpRecord.expiresAt) {
+      delete db.otpStore[cleanEmail];
+      saveDB(db);
+      return sendJSON(res, 400, {
+        success: false,
+        message: 'Verification code has expired. Please request a new one.',
+      });
+    }
+
+    otpRecord.attempts = (otpRecord.attempts || 0) + 1;
+    if (otpRecord.attempts > (otpRecord.maxAttempts || 5)) {
+      delete db.otpStore[cleanEmail];
+      saveDB(db);
+      return sendJSON(res, 400, {
+        success: false,
+        message: 'Maximum verification attempts exceeded. Please sign up again.',
+      });
+    }
+
+    if (otpRecord.code !== (otp || '').trim()) {
+      saveDB(db);
+      const remaining = (otpRecord.maxAttempts || 5) - otpRecord.attempts;
+      return sendJSON(res, 400, {
+        success: false,
+        message: `Invalid verification code. ${remaining} attempt(s) remaining.`,
+      });
+    }
+
+    // OTP is valid -> Activate and create User Profile
+    const pending = otpRecord.pendingUser;
+    const newUser = {
+      id: 'u_' + Date.now(),
+      username: pending.username,
+      name: pending.username[0].toUpperCase() + pending.username.slice(1),
+      email: cleanEmail,
+      password: pending.password,
+      isEmailVerified: true,
+      focusScore: 85,
+      activeStreak: 1,
+      isPremium: false,
+      referralCode: 'WOS' + Math.floor(1000 + Math.random() * 9000),
+      createdAt: new Date().toISOString(),
+      onboardingCompleted: false,
+    };
+
+    db.users.push(newUser);
+    delete db.otpStore[cleanEmail]; // Invalidate single-use OTP
+    saveDB(db);
+
+    const token = 'jwt_' + Buffer.from(`${newUser.id}:${Date.now()}`).toString('base64');
+
+    return sendJSON(res, 200, {
+      success: true,
+      message: 'Account verified and activated successfully!',
+      token: token,
+      user: {
+        id: newUser.id,
+        username: newUser.username,
+        name: newUser.name,
+        email: newUser.email,
+        focusScore: newUser.focusScore,
+        activeStreak: newUser.activeStreak,
+        isPremium: newUser.isPremium,
+      },
+    });
+  }
+
+  // 2.4 Resend OTP
   if (pathname === '/api/auth/resend-otp' && method === 'POST') {
-    const cleanEmail = (body.email || body.contact || '').trim().toLowerCase();
+    const { email, type = 'register' } = body;
+    const cleanEmail = (email || '').trim().toLowerCase();
     const record = db.otpStore[cleanEmail];
 
-    if (record) {
-      if (record.resendCount >= 2) {
-        return sendJSON(res, 400, {
-          success: false,
-          message: 'Maximum resend limit of 2 attempts reached. Please start over.',
-        });
-      }
+    if (!record) {
+      return sendJSON(res, 400, {
+        success: false,
+        message: 'Session not found. Please restart the request.',
+      });
+    }
 
-      const elapsed = Date.now() - (record.lastSentAt || 0);
-      if (elapsed < 30 * 1000) {
-        const remaining = Math.ceil((30 * 1000 - elapsed) / 1000);
-        return sendJSON(res, 400, {
-          success: false,
-          message: `Please wait ${remaining} seconds before requesting another code.`,
-        });
-      }
+    const now = Date.now();
+    const elapsedSinceLast = Math.floor((now - (record.lastSentAt || 0)) / 1000);
+    if (elapsedSinceLast < 60) {
+      const waitTime = 60 - elapsedSinceLast;
+      return sendJSON(res, 429, {
+        success: false,
+        message: `Please wait ${waitTime}s before requesting another code.`,
+      });
     }
 
     const newCode = Math.floor(100000 + Math.random() * 900000).toString();
-    db.otpStore[cleanEmail] = {
-      ...(record || {}),
-      code: newCode,
-      resendCount: (record?.resendCount || 0) + 1,
-      expiresAt: Date.now() + 5 * 60 * 1000,
-      lastSentAt: Date.now(),
-    };
+    record.code = newCode;
+    record.createdAt = now;
+    record.expiresAt = now + 10 * 60 * 1000;
+    record.lastSentAt = now;
+    record.attempts = 0;
     saveDB(db);
 
-    await dispatchMsg91EmailOtp(cleanEmail, newCode);
+    await dispatchEmailOtp(cleanEmail, newCode, type === 'reset' ? 'Password Reset' : 'Registration');
 
     return sendJSON(res, 200, {
       success: true,
-      message: `New 6-digit verification code sent to ${cleanEmail}`,
-      demoCode: newCode,
+      message: 'A new 6-digit code has been sent to your email.',
+      expiresInSeconds: 600,
     });
   }
 
-  // 2.4 Verify 6-digit OTP & Complete Registration
-  if (pathname === '/api/auth/verify-otp' && method === 'POST') {
-    const cleanEmail = (body.email || body.contact || '').trim().toLowerCase();
-    const code = (body.code || body.otp || '').trim();
-    const record = db.otpStore[cleanEmail];
-
-    if (!record && code !== '123456' && code !== '1234') {
-      return sendJSON(res, 400, {
-        success: false,
-        message: 'No active OTP session found. Please request a new code.',
-      });
-    }
-
-    if (record) {
-      if (Date.now() > record.expiresAt) {
-        delete db.otpStore[cleanEmail];
-        saveDB(db);
-        return sendJSON(res, 400, {
-          success: false,
-          message: 'The verification code has expired. Please request a new one.',
-        });
-      }
-
-      record.attempts = (record.attempts || 0) + 1;
-      if (record.attempts > 5) {
-        delete db.otpStore[cleanEmail];
-        saveDB(db);
-        return sendJSON(res, 400, {
-          success: false,
-          message: 'Too many failed verification attempts. Please request a new OTP.',
-        });
-      }
-
-      if (record.code !== code && code !== '123456' && code !== '1234') {
-        saveDB(db);
-        return sendJSON(res, 400, {
-          success: false,
-          message: 'Invalid verification code. Please check and try again.',
-        });
-      }
-    }
-
-    const payload = (record && record.payload) ? record.payload : {
-      username: body.username || cleanEmail.split('@')[0],
-      email: cleanEmail,
-      password: body.password || 'demo_password',
-    };
-
-    if (record) {
-      delete db.otpStore[cleanEmail];
-    }
-
-    let user = db.users.find(
-      (u) => (u.email || '').toLowerCase() === cleanEmail || (u.username || '').toLowerCase() === payload.username.toLowerCase()
-    );
-
-    if (!user) {
-      user = {
-        id: `u_${Date.now()}`,
-        username: payload.username.toLowerCase(),
-        email: cleanEmail,
-        name: payload.username,
-        password: payload.password,
-        contact: cleanEmail,
-        isEmailVerified: true,
-        focusScore: 0,
-        activeStreak: 0,
-        isPremium: false,
-        referralCode: `WRINDHA${Math.floor(1000 + Math.random() * 9000)}`,
-        createdAt: new Date().toISOString(),
-      };
-      db.users.push(user);
-    } else {
-      user.isEmailVerified = true;
-      if (payload.password) user.password = payload.password;
-    }
-    saveDB(db);
-
-    const token = `jwt_session_${user.id}_${Date.now()}`;
-    return sendJSON(res, 200, {
-      success: true,
-      token: token,
-      user: user,
-      message: 'Account verified and created successfully!',
-    });
-  }
-
-  // 2.5 Login with Username / Email + Password
+  // 2.5 Login (Username + Password)
   if (pathname === '/api/auth/login' && method === 'POST') {
-    const identifier = (body.identifier || body.username || body.email || '').trim().toLowerCase();
-    const password = (body.password || '').trim();
+    const { username, password } = body;
+    const cleanUser = (username || '').trim().toLowerCase();
 
-    if (!identifier) {
-      return sendJSON(res, 400, { success: false, message: 'Please enter your username or email address.' });
-    }
-    if (!password) {
-      return sendJSON(res, 400, { success: false, message: 'Please enter your account password.' });
-    }
-
+    // Find user by username or email
     const user = db.users.find(
       (u) =>
-        (u.username && u.username.toLowerCase() === identifier) ||
-        (u.email && u.email.toLowerCase() === identifier) ||
-        (u.contact && u.contact.toLowerCase() === identifier)
+        (u.username || '').toLowerCase() === cleanUser ||
+        (u.email || '').toLowerCase() === cleanUser
     );
 
+    // Secure generic error to prevent username enumeration
+    if (!user || user.password !== password) {
+      return sendJSON(res, 400, {
+        success: false,
+        message: 'Incorrect username or password.',
+      });
+    }
+
+    // Check if email verification is complete
+    if (user.isEmailVerified === false) {
+      // Trigger verification OTP
+      const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+      const now = Date.now();
+      db.otpStore[user.email] = {
+        code: otpCode,
+        type: 'register',
+        attempts: 0,
+        maxAttempts: 5,
+        createdAt: now,
+        expiresAt: now + 10 * 60 * 1000,
+        lastSentAt: now,
+        pendingUser: user,
+      };
+      saveDB(db);
+      await dispatchEmailOtp(user.email, otpCode, 'Verification Required');
+
+      return sendJSON(res, 200, {
+        success: false,
+        isVerified: false,
+        email: user.email,
+        message: 'Please verify your email before logging in.',
+      });
+    }
+
+    const token = 'jwt_' + Buffer.from(`${user.id}:${Date.now()}`).toString('base64');
+
+    return sendJSON(res, 200, {
+      success: true,
+      message: 'Login successful.',
+      token: token,
+      user: {
+        id: user.id,
+        username: user.username,
+        name: user.name,
+        email: user.email,
+        focusScore: user.focusScore || 85,
+        activeStreak: user.activeStreak || 1,
+        isPremium: user.isPremium || false,
+      },
+    });
+  }
+
+  // 2.6 Forgot Password Step 1: Request Reset OTP
+  if (pathname === '/api/auth/forgot-password/initiate' && method === 'POST') {
+    const { email } = body;
+    const cleanEmail = (email || '').trim().toLowerCase();
+
+    // Security: Always return generic message regardless of existence
+    const user = db.users.find((u) => (u.email || '').toLowerCase() === cleanEmail);
+
+    if (user) {
+      const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+      const now = Date.now();
+      db.otpStore[cleanEmail] = {
+        code: otpCode,
+        type: 'reset',
+        attempts: 0,
+        maxAttempts: 5,
+        createdAt: now,
+        expiresAt: now + 10 * 60 * 1000, // 10 minutes
+        lastSentAt: now,
+        userId: user.id,
+      };
+      saveDB(db);
+      await dispatchEmailOtp(cleanEmail, otpCode, 'Password Reset');
+    }
+
+    return sendJSON(res, 200, {
+      success: true,
+      message: 'If an account exists with this email, a verification code has been sent.',
+      email: cleanEmail,
+    });
+  }
+
+  // 2.7 Forgot Password Step 2: Verify Reset OTP
+  if (pathname === '/api/auth/forgot-password/verify-otp' && method === 'POST') {
+    const { email, otp } = body;
+    const cleanEmail = (email || '').trim().toLowerCase();
+    const otpRecord = db.otpStore[cleanEmail];
+
+    if (!otpRecord || otpRecord.type !== 'reset') {
+      return sendJSON(res, 400, {
+        success: false,
+        message: 'Invalid or expired password reset session. Please request a new code.',
+      });
+    }
+
+    if (Date.now() > otpRecord.expiresAt) {
+      delete db.otpStore[cleanEmail];
+      saveDB(db);
+      return sendJSON(res, 400, {
+        success: false,
+        message: 'Verification code has expired. Please request a new one.',
+      });
+    }
+
+    otpRecord.attempts = (otpRecord.attempts || 0) + 1;
+    if (otpRecord.attempts > (otpRecord.maxAttempts || 5)) {
+      delete db.otpStore[cleanEmail];
+      saveDB(db);
+      return sendJSON(res, 400, {
+        success: false,
+        message: 'Maximum verification attempts exceeded. Please request a new code.',
+      });
+    }
+
+    if (otpRecord.code !== (otp || '').trim()) {
+      saveDB(db);
+      const remaining = (otpRecord.maxAttempts || 5) - otpRecord.attempts;
+      return sendJSON(res, 400, {
+        success: false,
+        message: `Invalid verification code. ${remaining} attempt(s) remaining.`,
+      });
+    }
+
+    // Generate single-use resetToken
+    const resetToken = 'rst_' + Buffer.from(`${cleanEmail}:${Date.now()}`).toString('base64');
+    otpRecord.resetToken = resetToken;
+    saveDB(db);
+
+    return sendJSON(res, 200, {
+      success: true,
+      message: 'Identity verified successfully.',
+      resetToken: resetToken,
+    });
+  }
+
+  // 2.8 Forgot Password Step 3: Create New Password
+  if (pathname === '/api/auth/forgot-password/reset' && method === 'POST') {
+    const { email, resetToken, newPassword, confirmPassword } = body;
+    const cleanEmail = (email || '').trim().toLowerCase();
+    const otpRecord = db.otpStore[cleanEmail];
+
+    if (!otpRecord || otpRecord.resetToken !== resetToken) {
+      return sendJSON(res, 400, {
+        success: false,
+        message: 'Invalid or expired reset session. Please request a new code.',
+      });
+    }
+
+    if (!newPassword || newPassword.length < 8) {
+      return sendJSON(res, 400, {
+        success: false,
+        message: 'Password must be at least 8 characters long.',
+      });
+    }
+
+    if (confirmPassword && newPassword !== confirmPassword) {
+      return sendJSON(res, 400, {
+        success: false,
+        message: 'Passwords do not match.',
+      });
+    }
+
+    const user = db.users.find((u) => (u.email || '').toLowerCase() === cleanEmail);
     if (!user) {
       return sendJSON(res, 400, {
         success: false,
-        message: 'No account found with this username/email. Please create an account.',
+        message: 'Account not found.',
       });
     }
 
-    if (user.password && user.password !== password && password !== 'demo123' && password !== 'password123') {
-      return sendJSON(res, 400, {
-        success: false,
-        message: 'Incorrect password. Please check your credentials and try again.',
-      });
-    }
-
-    return sendJSON(res, 200, {
-      success: true,
-      token: `jwt_token_${user.id}_${Date.now()}`,
-      user: user,
-      message: 'Welcome back to WrindhaOS!',
-    });
-  }
-
-  // 2.6 Backward Compatibility: send-otp
-  if (pathname === '/api/auth/send-otp' && method === 'POST') {
-    const contact = (body.contact || body.email || 'demo@wrindhaos.in').trim().toLowerCase();
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    db.otpStore[contact] = { code, expiresAt: Date.now() + 5 * 60 * 1000, lastSentAt: Date.now() };
-    saveDB(db);
-
-    await dispatchMsg91EmailOtp(contact, code);
-
-    return sendJSON(res, 200, {
-      success: true,
-      message: `OTP sent successfully to ${contact}`,
-      demoCode: code,
-    });
-  }
-
-  // 2.7 Delete Account
-  if ((pathname === '/api/user/delete-account' || pathname === '/api/auth/delete-account') && (method === 'DELETE' || method === 'POST')) {
-    const userId = body.userId || parsedUrl.query.userId || 'u_1';
-    db.users = db.users.filter((u) => u.id !== userId);
-    db.tasks = db.tasks.filter((t) => t.userId !== userId);
-    db.expenses = db.expenses.filter((e) => e.userId !== userId);
+    // Update password securely
+    user.password = newPassword;
+    delete db.otpStore[cleanEmail]; // Clear single-use reset token
     saveDB(db);
 
     return sendJSON(res, 200, {
       success: true,
-      message: 'Account and associated data deleted permanently.',
+      message: 'Your password has been updated successfully.',
     });
   }
 
-  // 3. TASKS
+  // 2.9 Logout
+  if (pathname === '/api/auth/logout' && method === 'POST') {
+    return sendJSON(res, 200, {
+      success: true,
+      message: 'Logged out successfully.',
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // 3. APPLICATION CRUD ROUTES (Tasks, Habits, Expenses, etc.)
+  // ---------------------------------------------------------------------------
   if (pathname === '/api/tasks' && method === 'GET') {
-    return sendJSON(res, 200, { success: true, tasks: db.tasks });
+    return sendJSON(res, 200, db.tasks);
   }
-
   if (pathname === '/api/tasks' && method === 'POST') {
-    const newTask = {
-      id: `t_${Date.now()}`,
-      title: body.title || 'New Task',
-      category: body.category || 'General',
-      dueDateLabel: body.dueDateLabel || 'Today',
-      dueDate: body.dueDate || new Date().toISOString(),
-      dueTime: body.dueTime || '05:00 PM',
-      priority: body.priority !== undefined ? Number(body.priority) : 1,
-      isCompleted: false,
-      priority: body.priority || 1,
-      createdAt: new Date().toISOString(),
-    };
+    const newTask = { id: 't_' + Date.now(), ...body };
     db.tasks.push(newTask);
     saveDB(db);
-    return sendJSON(res, 201, { success: true, task: newTask });
+    return sendJSON(res, 201, newTask);
+  }
+  if (pathname.startsWith('/api/tasks/') && method === 'DELETE') {
+    const id = pathname.split('/').pop();
+    db.tasks = db.tasks.filter((t) => t.id !== id);
+    saveDB(db);
+    return sendJSON(res, 200, { success: true });
   }
 
-  // 4. EXPENSES
+  if (pathname === '/api/habits' && method === 'GET') {
+    return sendJSON(res, 200, db.habits);
+  }
+  if (pathname === '/api/habits' && method === 'POST') {
+    const newHabit = { id: 'h_' + Date.now(), ...body };
+    db.habits.push(newHabit);
+    saveDB(db);
+    return sendJSON(res, 201, newHabit);
+  }
+
   if (pathname === '/api/expenses' && method === 'GET') {
-    return sendJSON(res, 200, { success: true, expenses: db.expenses });
+    return sendJSON(res, 200, db.expenses);
   }
-
   if (pathname === '/api/expenses' && method === 'POST') {
-    const newExpense = {
-      id: `e_${Date.now()}`,
-      title: body.title || 'Expense',
-      amount: parseFloat(body.amount) || 0.0,
-      category: body.category || 'General',
-      isIncome: body.isIncome === true,
-      date: body.date || new Date().toISOString(),
-    };
+    const newExpense = { id: 'e_' + Date.now(), ...body };
     db.expenses.push(newExpense);
     saveDB(db);
-    return sendJSON(res, 201, { success: true, expense: newExpense });
+    return sendJSON(res, 201, newExpense);
   }
 
-  // 404 Catch-All
-  return sendJSON(res, 404, { success: false, message: `Route not found: ${method} ${pathname}` });
+  // Fallback 404
+  return sendJSON(res, 404, {
+    success: false,
+    message: `Route not found: ${method} ${rawPath}`,
+  });
 }
 
-module.exports = {
-  handleApiRequest,
-};
+module.exports = { handleApiRequest };

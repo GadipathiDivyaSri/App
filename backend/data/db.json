@@ -13,6 +13,33 @@
       "isPremium": false,
       "referralCode": "WRINDHA8439",
       "createdAt": "2026-08-26T13:30:44.018Z"
+    },
+    {
+      "id": "u_1001",
+      "username": "kalyan",
+      "email": "kalyan@wrindhaos.in",
+      "name": "Kalyan",
+      "password": "password123",
+      "isEmailVerified": true,
+      "focusScore": 92,
+      "activeStreak": 15,
+      "isPremium": false,
+      "referralCode": "WRINDHA2026",
+      "createdAt": "2026-08-30T04:43:31.773Z"
+    },
+    {
+      "id": "u_1788065094520",
+      "username": "growth_user",
+      "name": "Growth_user",
+      "email": "test_1788065094488@wrindhaos.in",
+      "password": "brandNewPassword999",
+      "isEmailVerified": true,
+      "focusScore": 85,
+      "activeStreak": 1,
+      "isPremium": false,
+      "referralCode": "WOS6565",
+      "createdAt": "2026-08-30T04:44:54.520Z",
+      "onboardingCompleted": false
     }
   ],
   "tasks": [
@@ -87,6 +114,16 @@
       "attempts": 0,
       "expiresAt": 1787496413477,
       "lastSentAt": 1787496113477
+    },
+    "kalyan@wrindhaos.in": {
+      "code": "524223",
+      "type": "reset",
+      "attempts": 0,
+      "maxAttempts": 5,
+      "createdAt": 1788065083995,
+      "expiresAt": 1788065683995,
+      "lastSentAt": 1788065083995,
+      "userId": "u_1001"
     }
   }
 }

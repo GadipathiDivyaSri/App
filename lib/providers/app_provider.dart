@@ -22,6 +22,26 @@ class AppProvider extends ChangeNotifier {
   );
   UserProfile get user => _user;
 
+  void setUser(UserProfile user) {
+    _user = user;
+    _isLoggedIn = true;
+    notifyListeners();
+  }
+
+  Future<void> logout() async {
+    _isLoggedIn = false;
+    _user = UserProfile(
+      id: 'u_guest',
+      name: 'Guest User',
+      contact: '',
+      focusScore: 0,
+      activeStreak: 0,
+      isPremium: false,
+    );
+    await ApiService.clearSession();
+    notifyListeners();
+  }
+
   // ---------------------------------------------------------------------------
   // 1. Habits (Personal Growth)
   // ---------------------------------------------------------------------------
