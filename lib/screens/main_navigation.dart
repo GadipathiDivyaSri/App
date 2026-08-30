@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../features/smart_assistant/smart_assistant_screen.dart';
 import '../theme/app_theme.dart';
 import 'home_screen.dart';
 import 'todo_screen.dart';
@@ -13,7 +12,7 @@ class MainNavigationScreen extends StatefulWidget {
 }
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
-  int _currentIndex = 2; // Default to Home (Center tab)
+  int _currentIndex = 1; // Default to Home (Center tab)
 
   @override
   Widget build(BuildContext context) {
@@ -21,16 +20,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
     final pages = [
       TodoScreen(onNavigateToHome: () {
-        setState(() => _currentIndex = 2);
-      }),
-      SmartAssistantScreen(onBack: () {
-        setState(() => _currentIndex = 2);
+        setState(() => _currentIndex = 1);
       }),
       HomeScreen(onTabChange: (index) {
         setState(() => _currentIndex = index);
       }),
       ProfileScreen(onNavigateToHome: () {
-        setState(() => _currentIndex = 2);
+        setState(() => _currentIndex = 1);
       }),
     ];
 
@@ -59,7 +55,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              // 1. Menu / To-Do
+              // Left Tab: Menu / To-Do
               _buildNavItem(
                 index: 0,
                 icon: Icons.menu_rounded,
@@ -67,25 +63,17 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 label: 'Menu',
                 isDark: isDark,
               ),
-              // 2. Smart Assistant (Beside Home)
+              // Center Tab: Home (Floating round button)
               _buildNavItem(
                 index: 1,
-                icon: Icons.smart_toy_outlined,
-                activeIcon: Icons.smart_toy_rounded,
-                label: 'Assistant',
-                isDark: isDark,
-              ),
-              // 3. Home (Floating round button)
-              _buildNavItem(
-                index: 2,
                 icon: Icons.home_rounded,
                 isCenter: true,
                 label: 'Home',
                 isDark: isDark,
               ),
-              // 4. Profile
+              // Right Tab: Profile
               _buildNavItem(
-                index: 3,
+                index: 2,
                 icon: Icons.person_outline_rounded,
                 activeIcon: Icons.person_rounded,
                 label: 'Profile',
