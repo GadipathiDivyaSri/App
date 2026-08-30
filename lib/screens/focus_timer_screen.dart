@@ -36,6 +36,11 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
 
   // --- STOPWATCH LOGIC ---
   void _toggleStopwatch() {
+    final provider = Provider.of<AppProvider>(context, listen: false);
+    if (!provider.user.isPremium) {
+      ProUpgradeDialog.showFeatureLockedDialog(context, AppFeature.focusTimer);
+      return;
+    }
     if (_isStopwatchRunning) {
       _stopwatchTimer?.cancel();
       setState(() => _isStopwatchRunning = false);
@@ -57,6 +62,11 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
 
   // --- POMODORO LOGIC ---
   void _togglePomodoro() {
+    final provider = Provider.of<AppProvider>(context, listen: false);
+    if (!provider.user.isPremium) {
+      ProUpgradeDialog.showFeatureLockedDialog(context, AppFeature.focusTimer);
+      return;
+    }
     if (_isPomodoroRunning) {
       _pomodoroTimer?.cancel();
       setState(() => _isPomodoroRunning = false);

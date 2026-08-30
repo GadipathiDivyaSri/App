@@ -74,11 +74,7 @@ class _NotesScreenState extends State<NotesScreen> {
             child: TextButton.icon(
               onPressed: () {
                 if (!isPremium) {
-                  showUpgradeProModal(
-                    context,
-                    featureTitle: 'Journal & Notes',
-                    limitExplanation: 'Free plan includes read-only preview of Journal. Upgrade to Pro for ₹49/month to write unlimited personal diary entries.',
-                  );
+                  ProUpgradeDialog.showFeatureLockedDialog(context, AppFeature.notes);
                 } else {
                   _showEntryEditor(context, null);
                 }

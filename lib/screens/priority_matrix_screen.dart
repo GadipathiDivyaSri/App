@@ -115,7 +115,14 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddTaskModal(context),
+        onPressed: () {
+          final provider = Provider.of<AppProvider>(context, listen: false);
+          if (!provider.user.isPremium) {
+            ProUpgradeDialog.showFeatureLockedDialog(context, AppFeature.priorityMatrix);
+          } else {
+            _showAddTaskModal(context);
+          }
+        },
         backgroundColor: isDark ? AppTheme.darkPrimary : AppTheme.primaryAccent,
         icon: const Icon(Icons.add_task_rounded, color: Colors.white),
         label: const Text(

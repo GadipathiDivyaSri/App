@@ -222,11 +222,7 @@ class _OrganizeMatrixScreenState extends State<OrganizeMatrixScreen> {
                 icon: const Icon(Icons.add_rounded, size: 20),
                 onPressed: () {
                   if (!isPremium) {
-                    showUpgradeProModal(
-                      context,
-                      featureTitle: 'Eisenhower Matrix',
-                      limitExplanation: 'Free mode includes read-only preview. Upgrade to Pro for ₹49/month to add and manage matrix tasks.',
-                    );
+                    ProUpgradeDialog.showFeatureLockedDialog(context, AppFeature.eisenhowerMatrix);
                   } else {
                     _showAddTaskDialog(context, priority);
                   }

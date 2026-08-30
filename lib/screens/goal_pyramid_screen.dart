@@ -43,12 +43,8 @@ class _GoalPyramidScreenState extends State<GoalPyramidScreen> {
         onPressed: () {
           final provider = Provider.of<AppProvider>(context, listen: false);
           final isPremium = provider.user.isPremium;
-          if (!isPremium && totalGoals >= 2) {
-            showUpgradeProModal(
-              context,
-              featureTitle: 'Goals Hierarchy',
-              limitExplanation: 'Free plan includes up to 2 active goals. Upgrade to Pro for ₹49/month to track unlimited OKRs and goal pyramid milestones!',
-            );
+          if (!isPremium) {
+            ProUpgradeDialog.showFeatureLockedDialog(context, AppFeature.goals);
           } else {
             _showAddGoalDialog(context);
           }

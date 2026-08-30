@@ -226,11 +226,7 @@ class _CareerRoadmapScreenState extends State<CareerRoadmapScreen> {
                               ),
                               onPressed: () {
                                 if (!isPremium) {
-                                  showUpgradeProModal(
-                                    context,
-                                    featureTitle: 'Career Roadmap ($secTitle)',
-                                    limitExplanation: 'Upgrade to Pro for ₹49/month to add unlimited custom nodes to your career roadmap.',
-                                  );
+                                  ProUpgradeDialog.showFeatureLockedDialog(context, AppFeature.careerRoadmap);
                                 } else {
                                   _showAddNodeDialog(context, secKey, secTitle);
                                 }

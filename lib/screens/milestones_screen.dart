@@ -49,6 +49,11 @@ class _MilestonesScreenState extends State<MilestonesScreen> {
         elevation: 4,
         child: const Icon(Icons.add, color: Colors.white, size: 28),
         onPressed: () {
+          final provider = Provider.of<AppProvider>(context, listen: false);
+          if (!provider.user.isPremium) {
+            ProUpgradeDialog.showFeatureLockedDialog(context, AppFeature.milestones);
+            return;
+          }
           Navigator.push(
             context,
             MaterialPageRoute(
