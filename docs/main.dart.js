@@ -100693,7 +100693,7 @@ E(a){var s,r,q,p,o,n,m,l,k=this,j=null,i=A.p(a).ax.a===B.A,h=i?B.am:B.c7,g=i?B.a
 f=A.da(j,j,j,j,j,f,A.m("Habit Tracker",j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,j,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j))
 s=i?B.am:B.N
 s=A.jE(s,B.ei,4,"habit_fab",new A.awJ(k,a),B.di)
-r=A.m("Current Streaks",j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,18,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j)
+r=A.m("🔥 7-DAY STREAK ACTIVITY CHART",j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,18,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j)
 q=k.d
 p=q.length===0?"🔥 0 STREAKS (IGNITE TODAY)":"🔥 "+new A.aB(q,new A.awK(),A.a1(q).i("aB<1>")).gG(0)+" ACTIVE FLAMES"
 o=t.p
@@ -100739,13 +100739,13 @@ A.awK.prototype={
 $1(a){return J.d(a.h(0,"isCompleted"),!0)},
 $S:54}
 A.awL.prototype={
-$1(a){var s,r,q,p=null,o=this.a.d[a],n=J.d(o.h(0,"isCompleted"),!0),m=A.fV(o.h(0,"streakDay")),l=A.m("Day "+(m==null?1:m),p,p,p,p,B.Fv,p,p,p)
-if(n)s=B.u
-else s=B.C
-r=A.bO(n?B.u:B.dk,B.p,2)
-if(n)q=B.i9
-else q=B.Nt
-return A.a0(A.a([l,B.ao,A.X(p,A.as(q,n?B.d:B.a_,p,20),B.j,p,p,new A.O(s,p,r,p,p,p,B.b5),p,44,p,p,p,p,44)],t.p),B.i,B.h,B.f,0,B.m)},
+$1(a){var s,r,q,p=null,days=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],o=this.a.d,h=(o&&o.length>0)?o[a%o.length]:null,n=h?J.d(h.h(0,"isCompleted"),!0):!1,dayLabel=days[a%7]
+var pctText=n?"100%":(h?"0%":"-")
+var pctLabel=A.m(pctText,p,p,p,p,A.J(p,p,n?B.u:B.dk,p,p,p,p,p,p,p,p,10,p,p,B.x,p,p,!0,p,p,p,p,p,p,p,p),p,p,p)
+var barH=n?38:(h?14:8)
+var barWidget=A.X(p,p,B.j,p,p,new A.O(n?B.u:B.dk,p,p,A.B(6),p,p,B.o),p,14,p,p,p,p,barH)
+var lblWidget=A.m(dayLabel,p,p,p,p,A.J(p,p,B.af,p,p,p,p,p,p,p,p,11,p,p,B.x,p,p,!0,p,p,p,p,p,p,p,p),p,p,p)
+return A.a0(A.a([pctLabel,B.ao,barWidget,B.ao,lblWidget],t.p),B.w,B.h,B.av,0,B.m)},
 $S:616}
 A.awM.prototype={
 $1(a){return J.d(a.h(0,"isCompleted"),!0)},

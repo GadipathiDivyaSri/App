@@ -83,35 +83,6 @@
   ],
   "referralCodes": [],
   "referralTrackings": [],
-  "otpStore": {
-    "audit_user_1788089470642@wrindhaos.in": {
-      "code": "907005",
-      "type": "register",
-      "attempts": 0,
-      "maxAttempts": 5,
-      "createdAt": 1788089470657,
-      "expiresAt": 1788090070657,
-      "lastSentAt": 1788089470657,
-      "pendingUser": {
-        "username": "audit_1788089470642",
-        "email": "audit_user_1788089470642@wrindhaos.in",
-        "passwordHash": "cf0d34614492018f0f50fa114fa25a6c:53939c0bd5b08cc30baad4aad4c52857745fbedb18d2efa59e38db1051fe727e3bd880093ca05d8f2b96a854c3ae04371e5b04e061a5d9af18ea340300662479"
-      }
-    },
-    "audit_user_1788089981432@wrindhaos.in": {
-      "code": "720270",
-      "type": "register",
-      "attempts": 0,
-      "maxAttempts": 5,
-      "createdAt": 1788089981437,
-      "expiresAt": 1788090581437,
-      "lastSentAt": 1788089981437,
-      "pendingUser": {
-        "username": "audit_1788089981432",
-        "email": "audit_user_1788089981432@wrindhaos.in",
-        "passwordHash": "28e27a0dd9c6659cc251699c0fbcc6b1:491b937fad962bb4683fabdebfe83a9a78b3db9669d7edccdb5cab1a575912c5e9542ed6206c7d4cbed5049853b5045c645f39af1b73a89aa54f35c414ed79c4"
-      }
-    }
-  },
+  "otpStore": {},
   "habitCompletions": []
 }

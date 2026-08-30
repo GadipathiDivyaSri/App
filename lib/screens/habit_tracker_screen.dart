@@ -213,7 +213,12 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                       valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFF59E0B)),
                     ),
                   ),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 20),
+
+                  // 7-Day Streak Activity Bar Chart
+                  _buildWeeklyStreakChart(context, isDark, provider),
+                  const SizedBox(height: 20),
+
                   // Impressive 4-Stat Grid
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -572,6 +577,139 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
           }),
         ),
       ],
+    );
+  }
+
+  Widget _buildWeeklyStreakChart(BuildContext context, bool isDark, AppProvider provider) {
+    final habits = provider.habits.where((h) => h.status != 'archived').toList();
+    final dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    final weekDays = List.generate(7, (i) => _weekStartDate.add(Duration(days: i)));
+    final today = DateTime.now();
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.black.withOpacity(0.25) : Colors.white.withOpacity(0.7),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: isDark ? const Color(0xFF78350F).withOpacity(0.5) : const Color(0xFFFDE68A),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.bar_chart_rounded, size: 16, color: Color(0xFFF59E0B)),
+                  const SizedBox(width: 6),
+                  Text(
+                    '7-DAY STREAK ACTIVITY',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.8,
+                      color: isDark ? const Color(0xFFFDE68A) : const Color(0xFF92400E),
+                    ),
+                  ),
+                ],
+              ),
+              Text(
+                'Weekly Velocity',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white60 : Colors.black54,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          // 7 Vertical Chart Columns
+          SizedBox(
+            height: 90,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: List.generate(7, (idx) {
+                final d = weekDays[idx];
+                final dStr = '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+                final isToday = d.year == today.year && d.month == today.month && d.day == today.day;
+                
+                final scheduledForDay = habits.where((h) => h.isScheduledForDate(d)).toList();
+                final completedForDay = scheduledForDay.where((h) => h.isCompletedOnDate(dStr)).length;
+                final rate = scheduledForDay.isEmpty ? 0.0 : (completedForDay / scheduledForDay.length);
+                final barHeight = (rate * 50).clamp(6.0, 50.0);
+                final isFull = rate >= 1.0 && scheduledForDay.isNotEmpty;
+
+                return Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      // Top flame badge or percentage
+                      if (isFull)
+                        const Icon(Icons.local_fire_department_rounded, size: 13, color: Color(0xFFEF4444))
+                      else
+                        Text(
+                          scheduledForDay.isEmpty ? '-' : '${(rate * 100).toInt()}%',
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w700,
+                            color: rate > 0
+                                ? (isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706))
+                                : (isDark ? Colors.white30 : Colors.black26),
+                          ),
+                        ),
+                      const SizedBox(height: 4),
+                      // Rounded Vertical Bar
+                      Container(
+                        width: 14,
+                        height: barHeight,
+                        decoration: BoxDecoration(
+                          gradient: rate > 0
+                              ? LinearGradient(
+                                  colors: isFull
+                                      ? [const Color(0xFFEF4444), const Color(0xFFF59E0B)]
+                                      : [const Color(0xFFF59E0B), const Color(0xFF10B981)],
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                )
+                              : null,
+                          color: rate > 0 ? null : (isDark ? Colors.white12 : Colors.black12),
+                          borderRadius: BorderRadius.circular(7),
+                          boxShadow: isFull
+                              ? [
+                                  BoxShadow(
+                                    color: const Color(0xFFEF4444).withOpacity(0.4),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ]
+                              : null,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      // Day Label
+                      Text(
+                        dayLabels[idx],
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: isToday ? FontWeight.w900 : FontWeight.w600,
+                          color: isToday
+                              ? const Color(0xFFF59E0B)
+                              : (isDark ? Colors.white70 : Colors.black87),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
