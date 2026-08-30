@@ -43,46 +43,6 @@ class ApiService {
   static Future<Map<String, dynamic>> send2FAOTP(String contact) => sendOTP(contact);
   static Future<Map<String, dynamic>> verify2FAOTP(String contact, String code) => verifyOTP(contact, code);
 
-  static Future<Map<String, dynamic>> googleSignIn(String token) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/auth/google'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': email,
-          'name': name,
-          'googleId': googleId ?? 'gid_${DateTime.now().millisecondsSinceEpoch}',
-        }),
-      );
-      return jsonDecode(response.body);
-    } catch (e) {
-      return {'success': false, 'message': 'Google Sign-In failed: $e'};
-    }
-  }
-
-  /// Finalize Google account creation with chosen unique username
-  static Future<Map<String, dynamic>> googleCompleteRegistration({
-    required String email,
-    required String name,
-    required String googleId,
-    required String username,
-  }) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/auth/google-complete'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': email,
-          'name': name,
-          'googleId': googleId,
-          'username': username,
-        }),
-      );
-      return jsonDecode(response.body);
-    } catch (e) {
-      return {'success': false, 'message': 'Failed to complete Google registration: $e'};
-    }
-  }
 
   /// Forgot Password Step 1: Initiate reset by identifier (username or email)
   static Future<Map<String, dynamic>> forgotPasswordInitiate(String identifier) async {
