@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
-import '../screens/pricing_screen.dart';
+import 'pro_upgrade_dialog.dart';
 
 /// Reusable Premium Lock Banner Component for WrindhaOS
 /// 
 /// Used across locked features (Analytics, Expense Tracker, Eisenhower Matrix,
 /// Journal, Career Roadmap, Advanced Studies) to display a consistent, elegant
-/// locked state with a clear upgrade CTA.
+/// locked state banner with a clear upgrade CTA that triggers [ProUpgradeDialog].
 class PremiumLockBanner extends StatelessWidget {
   final String featureName;
   final String description;
@@ -50,9 +50,11 @@ class PremiumLockBanner extends StatelessWidget {
             ),
             ElevatedButton(
               onPressed: () {
-                Navigator.push(
+                ProUpgradeDialog.show(
                   context,
-                  MaterialPageRoute(builder: (_) => const PricingScreen()),
+                  featureName: featureName,
+                  title: 'Unlock $featureName Pro',
+                  description: description,
                 );
               },
               style: ElevatedButton.styleFrom(
@@ -134,9 +136,11 @@ class PremiumLockBanner extends StatelessWidget {
             height: 46,
             child: ElevatedButton(
               onPressed: () {
-                Navigator.push(
+                ProUpgradeDialog.show(
                   context,
-                  MaterialPageRoute(builder: (_) => const PricingScreen()),
+                  featureName: featureName,
+                  title: 'Unlock $featureName Pro',
+                  description: description,
                 );
               },
               style: ElevatedButton.styleFrom(
@@ -147,16 +151,9 @@ class PremiumLockBanner extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.lock_open_rounded, size: 18),
-                  SizedBox(width: 8),
-                  Text(
-                    'Upgrade to Pro for ₹49',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
-                  ),
-                ],
+              child: const Text(
+                'Unlock Pro Feature',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
               ),
             ),
           ),
