@@ -39,20 +39,35 @@ class FeatureAccessResult {
 /// Evaluates and enforces permission rules, plan limits, and feature gates.
 class FeatureAccessService {
   /// Check if a user on a given subscription plan has access to a specific application feature
-  static bool hasAccess({
-    required SubscriptionPlanType plan,
-    required AppFeature feature,
+  static bool hasAccess(
+    AppFeature feature, {
+    SubscriptionPlanType plan = SubscriptionPlanType.free,
   }) {
     final config = SubscriptionRegistry.getConfig(plan);
     return config.accessibleFeatures.contains(feature);
   }
 
+  /// Reusable method to get max habit limit for a plan (returns 2 on Free, -1 for unlimited on Pro)
+  static int getHabitLimit([SubscriptionPlanType plan = SubscriptionPlanType.free]) {
+    return SubscriptionRegistry.getConfig(plan).maxHabits;
+  }
+
+  /// Reusable method to get max subject limit for a plan (returns 2 on Free, -1 for unlimited on Pro)
+  static int getSubjectLimit([SubscriptionPlanType plan = SubscriptionPlanType.free]) {
+    return SubscriptionRegistry.getConfig(plan).maxSubjects;
+  }
+
+  /// Reusable method to check if a plan is Pro
+  static bool isProUser([SubscriptionPlanType plan = SubscriptionPlanType.free]) {
+    return plan == SubscriptionPlanType.pro;
+  }
+
   /// Detailed permission evaluation returning structured error & upgrade prompt if denied
-  static FeatureAccessResult checkAccess({
-    required SubscriptionPlanType plan,
-    required AppFeature feature,
+  static FeatureAccessResult checkAccess(
+    AppFeature feature, {
+    SubscriptionPlanType plan = SubscriptionPlanType.free,
   }) {
-    final allowed = hasAccess(plan: plan, feature: feature);
+    final allowed = hasAccess(feature, plan: plan);
     if (allowed) {
       return FeatureAccessResult.granted(feature, plan);
     }
@@ -65,8 +80,8 @@ class FeatureAccessService {
 
   /// Evaluates whether a new habit can be added given current habit count and plan
   static bool canCreateHabit({
-    required SubscriptionPlanType plan,
     required int currentHabitCount,
+    SubscriptionPlanType plan = SubscriptionPlanType.free,
   }) {
     final config = SubscriptionRegistry.getConfig(plan);
     if (config.isHabitsUnlimited) return true;
@@ -75,30 +90,20 @@ class FeatureAccessService {
 
   /// Evaluates whether a new study subject can be added given current subject count and plan
   static bool canCreateSubject({
-    required SubscriptionPlanType plan,
     required int currentSubjectCount,
+    SubscriptionPlanType plan = SubscriptionPlanType.free,
   }) {
     final config = SubscriptionRegistry.getConfig(plan);
     if (config.isSubjectsUnlimited) return true;
     return currentSubjectCount < config.maxSubjects;
   }
 
-  /// Get maximum allowed habits for a plan (-1 for unlimited)
-  static int getMaxHabits(SubscriptionPlanType plan) {
-    return SubscriptionRegistry.getConfig(plan).maxHabits;
-  }
-
-  /// Get maximum allowed subjects for a plan (-1 for unlimited)
-  static int getMaxSubjects(SubscriptionPlanType plan) {
-    return SubscriptionRegistry.getConfig(plan).maxSubjects;
-  }
-
   /// Calculate remaining slots for habits (-1 for unlimited)
   static int getRemainingHabitSlots({
-    required SubscriptionPlanType plan,
     required int currentCount,
+    SubscriptionPlanType plan = SubscriptionPlanType.free,
   }) {
-    final max = getMaxHabits(plan);
+    final max = getHabitLimit(plan);
     if (max == SubscriptionRegistry.unlimited) return SubscriptionRegistry.unlimited;
     final remaining = max - currentCount;
     return remaining < 0 ? 0 : remaining;
@@ -106,10 +111,10 @@ class FeatureAccessService {
 
   /// Calculate remaining slots for subjects (-1 for unlimited)
   static int getRemainingSubjectSlots({
-    required SubscriptionPlanType plan,
     required int currentCount,
+    SubscriptionPlanType plan = SubscriptionPlanType.free,
   }) {
-    final max = getMaxSubjects(plan);
+    final max = getSubjectLimit(plan);
     if (max == SubscriptionRegistry.unlimited) return SubscriptionRegistry.unlimited;
     final remaining = max - currentCount;
     return remaining < 0 ? 0 : remaining;

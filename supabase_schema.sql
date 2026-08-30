@@ -290,28 +290,30 @@ CREATE TABLE IF NOT EXISTS public.user_referrals (
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS public.subscriptions (
+CREATE TABLE IF NOT EXISTS public.user_subscriptions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID NOT NULL REFERENCES public.user_profiles(user_id) ON DELETE CASCADE,
-    package_name VARCHAR(150) NOT NULL DEFAULT 'com.wrindhaos.productivity',
-    subscription_id VARCHAR(100) NOT NULL,
-    purchase_token TEXT NOT NULL UNIQUE,
-    plan_tier VARCHAR(20) NOT NULL CHECK (plan_tier IN ('PRO_MONTHLY')),
-    status VARCHAR(30) NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE', 'CANCELED', 'EXPIRED', 'PAUSED')),
-    auto_renewing BOOLEAN DEFAULT TRUE,
-    expiry_timestamp TIMESTAMPTZ NOT NULL,
-    verified_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    user_id UUID NOT NULL UNIQUE REFERENCES auth.users(id) ON DELETE CASCADE,
+    plan VARCHAR(20) NOT NULL DEFAULT 'free' CHECK (plan IN ('free', 'pro')),
+    status VARCHAR(20) NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'expired', 'cancelled', 'trial')),
+    started_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMPTZ,
+    payment_provider VARCHAR(50) DEFAULT 'NONE',
+    transaction_id VARCHAR(255),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX IF NOT EXISTS idx_subscriptions_user_status ON public.subscriptions(user_id, status, expiry_timestamp);
+CREATE INDEX IF NOT EXISTS idx_user_subscriptions_user ON public.user_subscriptions(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_subscriptions_plan_status ON public.user_subscriptions(plan, status);
+CREATE INDEX IF NOT EXISTS idx_user_subscriptions_expiry ON public.user_subscriptions(expires_at);
 
 CREATE TABLE IF NOT EXISTS public.payment_history (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES public.user_profiles(user_id) ON DELETE CASCADE,
-    google_order_id VARCHAR(100) NOT NULL UNIQUE,
+    order_id VARCHAR(100) NOT NULL UNIQUE,
     amount_inr NUMERIC(10, 2) NOT NULL,
     currency VARCHAR(10) DEFAULT 'INR',
+    payment_provider VARCHAR(50) DEFAULT 'GOOGLE_PLAY',
     payment_state VARCHAR(30) DEFAULT 'PAYMENT_RECEIVED',
     purchase_timestamp TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP

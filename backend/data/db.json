@@ -125,5 +125,19 @@
       "lastSentAt": 1788065083995,
       "userId": "u_1001"
     }
-  }
+  },
+  "subscriptions": [
+    {
+      "id": "sub_free_u_1",
+      "user_id": "u_1",
+      "plan": "free",
+      "status": "active",
+      "started_at": "2026-08-30T05:21:43.064Z",
+      "expires_at": null,
+      "payment_provider": "NONE",
+      "transaction_id": null,
+      "created_at": "2026-08-30T05:21:43.072Z",
+      "updated_at": "2026-08-30T05:21:43.072Z"
+    }
+  ]
 }

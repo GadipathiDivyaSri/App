@@ -25,34 +25,92 @@ class AppProvider extends ChangeNotifier {
   );
   UserProfile get user => _user;
 
+  UserSubscription _subscription = UserSubscription.defaultFree('u_1');
+  UserSubscription get subscription => _subscription;
+
   // ---------------------------------------------------------------------------
   // CENTRALIZED SUBSCRIPTION & FEATURE ACCESS SYSTEM
   // ---------------------------------------------------------------------------
   SubscriptionPlanType get currentPlan =>
-      SubscriptionRegistry.parsePlanString(
-        _user.subscriptionPlan.isNotEmpty
-            ? _user.subscriptionPlan
-            : (_user.isPremium ? 'PRO' : 'FREE'),
-      );
+      _subscription.isPro || _user.isPremium || _user.subscriptionPlan.toUpperCase() == 'PRO'
+          ? SubscriptionPlanType.pro
+          : SubscriptionPlanType.free;
+
+  bool get isProUser => FeatureAccessService.isProUser(currentPlan);
+
+  bool hasAccess(AppFeature feature) =>
+      FeatureAccessService.hasAccess(feature, plan: currentPlan);
 
   bool hasFeatureAccess(AppFeature feature) =>
-      FeatureAccessService.hasAccess(plan: currentPlan, feature: feature);
+      FeatureAccessService.hasAccess(feature, plan: currentPlan);
 
   FeatureAccessResult checkFeatureAccess(AppFeature feature) =>
-      FeatureAccessService.checkAccess(plan: currentPlan, feature: feature);
+      FeatureAccessService.checkAccess(feature, plan: currentPlan);
+
+  int getHabitLimit() => FeatureAccessService.getHabitLimit(currentPlan);
+
+  int getSubjectLimit() => FeatureAccessService.getSubjectLimit(currentPlan);
+
+  void setSubscription(UserSubscription sub) {
+    _subscription = sub;
+    _user.subscriptionPlan = sub.plan.toUpperCase();
+    _user.isPremium = sub.isPro;
+    notifyListeners();
+  }
 
   void updateSubscriptionPlan(SubscriptionPlanType plan) {
     _user.subscriptionPlan = plan.nameCode;
     _user.isPremium = plan.isPro;
+    _subscription = UserSubscription(
+      id: 'sub_${plan.nameCode.toLowerCase()}_${_user.id}',
+      userId: _user.id,
+      plan: plan.nameCode.toLowerCase(),
+      status: 'active',
+      startedAt: DateTime.now(),
+    );
     notifyListeners();
   }
 
-  void setUser(UserProfile user) {
+  Future<void> syncSubscription() async {
+    final remoteSub = await ApiService.fetchUserSubscription();
+    if (remoteSub != null) {
+      setSubscription(remoteSub);
+    }
+  }
+
+  void setUser(UserProfile user, {UserSubscription? subscription}) {
     _user = user;
+    if (subscription != null) {
+      _subscription = subscription;
+    } else {
+      _subscription = UserSubscription(
+        id: 'sub_${user.id}',
+        userId: user.id,
+        plan: user.isPremium || user.subscriptionPlan.toUpperCase() == 'PRO' ? 'pro' : 'free',
+        status: 'active',
+        startedAt: DateTime.now(),
+      );
+    }
     _isLoggedIn = true;
+    syncSubscription();
     notifyListeners();
   }
 
+  Future<void> logout() async {
+    _isLoggedIn = false;
+    _user = UserProfile(
+      id: 'u_guest',
+      name: 'Guest User',
+      contact: '',
+      focusScore: 0,
+      activeStreak: 0,
+      isPremium: false,
+      subscriptionPlan: 'FREE',
+    );
+    _subscription = UserSubscription.defaultFree('u_guest');
+    await ApiService.clearSession();
+    notifyListeners();
+  }
   // ---------------------------------------------------------------------------
   // 1. Habits (Personal Growth)
   // ---------------------------------------------------------------------------
@@ -61,12 +119,12 @@ class AppProvider extends ChangeNotifier {
 
   // Centralized Plan Limits
   bool get canAddHabit =>
-      FeatureAccessService.canCreateHabit(plan: currentPlan, currentHabitCount: _habits.length);
+      FeatureAccessService.canCreateHabit(currentHabitCount: _habits.length, plan: currentPlan);
 
-  int get maxHabits => FeatureAccessService.getMaxHabits(currentPlan);
+  int get maxHabits => FeatureAccessService.getHabitLimit(currentPlan);
 
   int get remainingHabitSlots =>
-      FeatureAccessService.getRemainingHabitSlots(plan: currentPlan, currentCount: _habits.length);
+      FeatureAccessService.getRemainingHabitSlots(currentCount: _habits.length, plan: currentPlan);
 
   void addHabit(Habit habit) {
     _habits.add(habit);
@@ -119,12 +177,12 @@ class AppProvider extends ChangeNotifier {
 
   // Centralized Plan Limits for Subjects
   bool get canAddSubject =>
-      FeatureAccessService.canCreateSubject(plan: currentPlan, currentSubjectCount: _subjects.length);
+      FeatureAccessService.canCreateSubject(currentSubjectCount: _subjects.length, plan: currentPlan);
 
-  int get maxSubjects => FeatureAccessService.getMaxSubjects(currentPlan);
+  int get maxSubjects => FeatureAccessService.getSubjectLimit(currentPlan);
 
   int get remainingSubjectSlots =>
-      FeatureAccessService.getRemainingSubjectSlots(plan: currentPlan, currentCount: _subjects.length);
+      FeatureAccessService.getRemainingSubjectSlots(currentCount: _subjects.length, plan: currentPlan);
 
   void addSubject(StudySubject subject) {
     _subjects.add(subject);

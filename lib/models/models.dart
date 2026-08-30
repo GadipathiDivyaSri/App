@@ -510,13 +510,79 @@ class UserProfile {
         isEmailVerified: json['isEmailVerified'] ?? true,
         focusScore: json['focusScore'] ?? 92,
         activeStreak: json['activeStreak'] ?? 14,
-        isPremium: json['isPremium'] ?? false,
-        subscriptionPlan: json['subscriptionPlan'] ?? (json['isPremium'] == true ? 'PREMIUM' : 'FREE'),
+        isPremium: json['isPremium'] == true || (json['subscriptionPlan'] ?? '').toString().toUpperCase() == 'PRO',
+        subscriptionPlan: json['subscriptionPlan'] ?? (json['isPremium'] == true ? 'PRO' : 'FREE'),
         token: json['token'],
         referralCode: json['referralCode'] ?? 'WRINDHA7K92',
         referredByCode: json['referredByCode'],
         successfulReferrals: json['successfulReferrals'] ?? 3,
         pendingReferrals: json['pendingReferrals'] ?? 1,
         activeDiscountPercent: json['activeDiscountPercent'] ?? 10,
+      );
+}
+
+class UserSubscription {
+  final String id;
+  final String userId;
+  final String plan; // 'free', 'pro'
+  final String status; // 'active', 'expired', 'cancelled', 'trial'
+  final DateTime startedAt;
+  final DateTime? expiresAt;
+  final String paymentProvider;
+  final String? transactionId;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  UserSubscription({
+    required this.id,
+    required this.userId,
+    this.plan = 'free',
+    this.status = 'active',
+    DateTime? startedAt,
+    this.expiresAt,
+    this.paymentProvider = 'NONE',
+    this.transactionId,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  })  : startedAt = startedAt ?? DateTime.now(),
+        createdAt = createdAt ?? DateTime.now(),
+        updatedAt = updatedAt ?? DateTime.now();
+
+  bool get isActive => status.toLowerCase() == 'active' || status.toLowerCase() == 'trial';
+  bool get isPro => (plan.toLowerCase() == 'pro' || plan.toLowerCase() == 'pro_monthly' || plan.toLowerCase() == 'premium') && isActive;
+  bool get isFree => !isPro;
+
+  factory UserSubscription.defaultFree(String userId) => UserSubscription(
+        id: 'sub_free_$userId',
+        userId: userId,
+        plan: 'free',
+        status: 'active',
+        startedAt: DateTime.now(),
+      );
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'user_id': userId,
+        'plan': plan,
+        'status': status,
+        'started_at': startedAt.toIso8601String(),
+        'expires_at': expiresAt?.toIso8601String(),
+        'payment_provider': paymentProvider,
+        'transaction_id': transactionId,
+        'created_at': createdAt.toIso8601String(),
+        'updated_at': updatedAt.toIso8601String(),
+      };
+
+  factory UserSubscription.fromJson(Map<String, dynamic> json) => UserSubscription(
+        id: json['id'] ?? json['subscription_id'] ?? 'sub_${DateTime.now().millisecondsSinceEpoch}',
+        userId: json['user_id'] ?? json['userId'] ?? '',
+        plan: (json['plan'] ?? json['plan_tier'] ?? 'free').toString().toLowerCase(),
+        status: (json['status'] ?? 'active').toString().toLowerCase(),
+        startedAt: json['started_at'] != null ? (DateTime.tryParse(json['started_at'].toString()) ?? DateTime.now()) : DateTime.now(),
+        expiresAt: json['expires_at'] != null ? DateTime.tryParse(json['expires_at'].toString()) : null,
+        paymentProvider: json['payment_provider'] ?? 'NONE',
+        transactionId: json['transaction_id'],
+        createdAt: json['created_at'] != null ? (DateTime.tryParse(json['created_at'].toString()) ?? DateTime.now()) : DateTime.now(),
+        updatedAt: json['updated_at'] != null ? (DateTime.tryParse(json['updated_at'].toString()) ?? DateTime.now()) : DateTime.now(),
       );
 }

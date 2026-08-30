@@ -381,6 +381,7 @@ async function handleApiRequest(req, res) {
     saveDB(db);
 
     const token = 'jwt_' + Buffer.from(`${newUser.id}:${Date.now()}`).toString('base64');
+    const sub = getUserSubscription(newUser.id);
 
     return sendJSON(res, 200, {
       success: true,
@@ -393,8 +394,10 @@ async function handleApiRequest(req, res) {
         email: newUser.email,
         focusScore: newUser.focusScore,
         activeStreak: newUser.activeStreak,
-        isPremium: newUser.isPremium,
+        isPremium: sub.plan === 'pro' && sub.status === 'active',
+        subscriptionPlan: sub.plan.toUpperCase(),
       },
+      subscription: sub,
     });
   }
 
@@ -485,6 +488,7 @@ async function handleApiRequest(req, res) {
     }
 
     const token = 'jwt_' + Buffer.from(`${user.id}:${Date.now()}`).toString('base64');
+    const sub = getUserSubscription(user.id);
 
     return sendJSON(res, 200, {
       success: true,
@@ -497,8 +501,10 @@ async function handleApiRequest(req, res) {
         email: user.email,
         focusScore: user.focusScore || 85,
         activeStreak: user.activeStreak || 1,
-        isPremium: user.isPremium || false,
+        isPremium: sub.plan === 'pro' && sub.status === 'active',
+        subscriptionPlan: sub.plan.toUpperCase(),
       },
+      subscription: sub,
     });
   }
 
@@ -633,7 +639,78 @@ async function handleApiRequest(req, res) {
     });
   }
 
-  // 2.9 Logout
+  // Helper to ensure each user has a valid subscription record
+  function getUserSubscription(userId) {
+    if (!db.subscriptions) db.subscriptions = [];
+    let sub = db.subscriptions.find((s) => s.user_id === userId);
+    if (!sub) {
+      sub = {
+        id: 'sub_free_' + userId,
+        user_id: userId,
+        plan: 'free',
+        status: 'active',
+        started_at: new Date().toISOString(),
+        expires_at: null,
+        payment_provider: 'NONE',
+        transaction_id: null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      db.subscriptions.push(sub);
+      saveDB(db);
+    }
+    return sub;
+  }
+
+  // 2.9 Session Check / Refresh
+  if (pathname === '/api/auth/session' && method === 'GET') {
+    const authHeader = req.headers['authorization'] || '';
+    if (authHeader.startsWith('Bearer jwt_')) {
+      try {
+        const tokenPayload = Buffer.from(authHeader.replace('Bearer jwt_', ''), 'base64').toString('utf8');
+        const [userId] = tokenPayload.split(':');
+        const user = db.users.find((u) => u.id === userId);
+        if (user) {
+          const sub = getUserSubscription(user.id);
+          return sendJSON(res, 200, {
+            success: true,
+            user: {
+              id: user.id,
+              username: user.username,
+              name: user.name,
+              email: user.email,
+              focusScore: user.focusScore || 85,
+              activeStreak: user.activeStreak || 1,
+              isPremium: sub.plan === 'pro' && sub.status === 'active',
+              subscriptionPlan: sub.plan.toUpperCase(),
+            },
+            subscription: sub,
+          });
+        }
+      } catch (_) {}
+    }
+    return sendJSON(res, 401, { success: false, message: 'No active session.' });
+  }
+
+  // 2.10 Subscription Management (Read Only for Client)
+  if (pathname === '/api/subscription/me' && method === 'GET') {
+    const authHeader = req.headers['authorization'] || '';
+    let targetUserId = 'u_1'; // default demo user
+    if (authHeader.startsWith('Bearer jwt_')) {
+      try {
+        const tokenPayload = Buffer.from(authHeader.replace('Bearer jwt_', ''), 'base64').toString('utf8');
+        const [userId] = tokenPayload.split(':');
+        if (userId) targetUserId = userId;
+      } catch (_) {}
+    }
+    const sub = getUserSubscription(targetUserId);
+    return sendJSON(res, 200, {
+      success: true,
+      subscription: sub,
+    });
+  }
+
+  // 2.11 Logout
   if (pathname === '/api/auth/logout' && method === 'POST') {
     return sendJSON(res, 200, {
       success: true,

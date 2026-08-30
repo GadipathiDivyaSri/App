@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../models/models.dart';
 
 class ApiService {
   static String baseUrl = 'http://localhost:3000/api';
@@ -241,5 +242,28 @@ class ApiService {
     try {
       await http.post(Uri.parse('$baseUrl/auth/logout'));
     } catch (_) {}
+  }
+
+  // ---------------------------------------------------------------------------
+  // 6. SUBSCRIPTION & FEATURE ACCESS API
+  // ---------------------------------------------------------------------------
+  static Future<UserSubscription?> fetchUserSubscription() async {
+    try {
+      final token = await getSessionToken();
+      final response = await http.get(
+        Uri.parse('$baseUrl/subscription/me'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['subscription'] != null) {
+          return UserSubscription.fromJson(data['subscription']);
+        }
+      }
+    } catch (_) {}
+    return null;
   }
 }
