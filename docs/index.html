@@ -1,7 +1,25 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <base href="./">
+  <!-- Dynamic Base Detection for GitHub Pages /App/ or root / -->
+  <script>
+    (function() {
+      var path = window.location.pathname;
+      var baseHref = path.indexOf('/App') !== -1 ? '/App/' : './';
+      var baseEl = document.createElement('base');
+      baseEl.href = baseHref;
+      document.head.appendChild(baseEl);
+      
+      // Unregister any stale/stuck service workers
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for (var i = 0; i < registrations.length; i++) {
+            registrations[i].unregister();
+          }
+        });
+      }
+    })();
+  </script>
   <meta charset="UTF-8">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
