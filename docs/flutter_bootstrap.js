@@ -42,7 +42,8 @@ _flutter.buildConfig = {"engineRevision":"5d531788691ec3404cac0cee66ead4007b1773
 
 _flutter.loader.load({
   config: {
-    useLocalCanvasKit: false
+    canvasKitBaseUrl: "canvaskit/",
+    useLocalCanvasKit: true
   }
 });
 
