@@ -420,20 +420,6 @@
       "discountApplied": 24.5,
       "paymentStatus": "success",
       "createdAt": "2026-08-30T13:31:18.656Z"
-    },
-    {
-      "id": "cu_1788100939827",
-      "userId": "u_1788100939802",
-      "couponId": "c_welcome50",
-      "code": "WELCOME50",
-      "date": "2026-08-30T14:42:19.827Z",
-      "validationStatus": "applied",
-      "purchaseStatus": "completed",
-      "productPurchased": "pro_monthly",
-      "purchaseAmount": 24.5,
-      "discountApplied": 24.5,
-      "paymentStatus": "success",
-      "createdAt": "2026-08-30T14:42:19.827Z"
     }
   ],
   "referralCodes": [
@@ -479,6 +465,5 @@
     }
   ],
   "referralTrackings": [],
-  "otpStore": {},
-  "habitCompletions": []
+  "otpStore": {}
 }
