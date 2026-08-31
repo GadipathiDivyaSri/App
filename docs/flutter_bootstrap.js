@@ -47,8 +47,3 @@ _flutter.loader.load({
   }
 });
 
-_flutter.loader.load({
-  serviceWorkerSettings: {
-    serviceWorkerVersion: "1367865771" /* Flutter's service worker is deprecated and will be removed in a future Flutter release. */
-  }
-});
