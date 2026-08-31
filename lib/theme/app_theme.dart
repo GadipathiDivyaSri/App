@@ -62,18 +62,18 @@ class AppTheme {
   static const Color matrixEliminate = Color(0xFFEF4444); // Q4: Not Urgent, Not Important (Red)
 
   // ---------------------------------------------------------------------------
-  // DARK MODE PALETTE (Deep Navy / Midnight Glow)
+  // DEFAULT PALETTE (Soft Warm Cream & Pastel Colors Everywhere)
   // ---------------------------------------------------------------------------
-  static const Color darkBg = Color(0xFF060B1E); // Deep Navy Canvas
-  static const Color darkBackground = darkBg;
-  static const Color darkCardBg = Color(0xFF0D1B3E); // Midnight Blue Card
-  static const Color darkCardBorder = Color(0x332A85FF); // Subtle 20% Blue Border
-  static const Color darkPrimary = Color(0xFF2563EB); // Royal Electric Blue
-  static const Color darkIconGlow = Color(0xFF2A85FF); // Glowing Cyan/Blue Icon
-  static const Color darkIconBg = Color(0xFF132F5C); // Squircle Container
-  static const Color darkTextPrimary = Colors.white; // Crisp White
-  static const Color darkTextSecondary = Color(0xFF7E97B8); // Muted Steel Blue
-  static const Color darkNavBg = Color(0xFF070D22); // Dark Navy Bar
+  static const Color darkBg = background; // #FFF9F0
+  static const Color darkBackground = background;
+  static const Color darkCardBg = Color(0xFFFFFDF9); // Soft Warm Off-White
+  static const Color darkCardBorder = Color(0x1AE87552); // Subtle Warm 10% Border
+  static const Color darkPrimary = primaryAccent; // #E87552 Coral
+  static const Color darkIconGlow = primaryAccent; // #E87552 Coral
+  static const Color darkIconBg = Color(0xFFFFECE5); // Soft Peach Container
+  static const Color darkTextPrimary = textPrimary; // #2D2622 Deep Espresso
+  static const Color darkTextSecondary = textSecondary; // #8D827A Warm Taupe
+  static const Color darkNavBg = Colors.white; // Pure White Nav
 
   // ---------------------------------------------------------------------------
   // ELEVATION & SHADOWS
@@ -91,13 +91,7 @@ class AppTheme {
         ),
       ];
 
-  static List<BoxShadow> get darkCardShadow => [
-        BoxShadow(
-          color: Colors.black.withOpacity(0.35),
-          blurRadius: 12,
-          offset: const Offset(0, 6),
-        ),
-      ];
+  static List<BoxShadow> get darkCardShadow => cardShadow;
 
   // ---------------------------------------------------------------------------
   // THEME DATA DEFINITIONS
@@ -124,7 +118,6 @@ class AppTheme {
         color: textPrimary,
         fontSize: 22,
         fontWeight: FontWeight.w800,
-        
       ),
     ),
     cardTheme: CardThemeData(
@@ -145,59 +138,10 @@ class AppTheme {
         textStyle: const TextStyle(
           fontWeight: FontWeight.bold,
           fontSize: 15,
-          
         ),
       ),
     ),
   );
 
-  static ThemeData darkTheme = ThemeData(
-    useMaterial3: true,
-    brightness: Brightness.dark,
-    
-    scaffoldBackgroundColor: darkBg,
-    primaryColor: darkPrimary,
-    colorScheme: ColorScheme.fromSeed(
-      seedColor: darkPrimary,
-      brightness: Brightness.dark,
-      surface: darkBg,
-      primary: darkPrimary,
-      secondary: darkIconGlow,
-      onSurface: Colors.white,
-    ),
-    appBarTheme: const AppBarTheme(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      iconTheme: IconThemeData(color: Colors.white),
-      titleTextStyle: TextStyle(
-        color: Colors.white,
-        fontSize: 22,
-        fontWeight: FontWeight.w800,
-        
-      ),
-    ),
-    cardTheme: CardThemeData(
-      color: darkCardBg,
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: const BorderSide(color: darkCardBorder, width: 1),
-      ),
-    ),
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: darkPrimary,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        textStyle: const TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 15,
-          fontFamily: 'Poppins',
-        ),
-      ),
-    ),
-  );
+  static ThemeData darkTheme = lightTheme;
 }
