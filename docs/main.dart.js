@@ -102265,7 +102265,7 @@ return A.P(A.ad(o,!1).bJ(p),$async$ny)
 case 2:if(b===!0&&q.c!=null){q.K(new A.aDA(q))
 q.c.Y(t.J).f.d7(B.a0f)}return A.T(null,r)}})
 return A.U($async$ny,r)},
-ajp(){var s,r,q,p,o,n=this,m=null,l=B.c.aN(n.e.a.a),r=B.c.aN(n.r.a.a),q=B.c.aN(n.x.a.a),p=B.c.aN(n.y.a.a),k=n.c
+ajp(){var s,r,q,p,o,n=this,m=null,l=B.c.aN(n.e.a.a),r=B.c.aN(n.r.a.a),q=B.c.aN(n.x.a.a),p=(n.confirmCtrl?B.c.aN(n.confirmCtrl.a.a):B.c.aN(n.x.a.a)),k=n.c
 if(l.length===0){n.c.Y(t.J).f.d7(B.a0h)
 return}if(r.length===0){k.Y(t.J).f.d7(A.jd(m,m,m,m,m,B.z,m,A.m("Please enter your username",m,m,m,m,m,m,m,m),m,B.b7,m,m,m,m,m,m,m,m,m,m))
 return}if(!n.z){k.Y(t.J).f.d7(A.jd(m,m,m,m,m,B.z,m,A.m("Please tap 'Send OTP' to verify your email",m,m,m,m,m,m,m,m),m,B.b7,m,m,m,m,m,m,m,m,m,m))
@@ -102325,7 +102325,7 @@ q=f?B.bl:B.aR
 p=A.B(14)
 o=f?B.bl:B.aR
 a3=A.bZ(j,B.Z,!1,j,!0,B.z,j,j,k.x,j,j,j,j,j,2,A.dW(j,new A.bB(4,r,new A.am(q,1,B.p,-1)),j,j,j,j,j,j,!0,new A.bB(4,p,new A.am(o,1,B.p,-1)),j,j,j,j,j,s,!0,j,j,j,j,new A.bB(4,A.B(14),new A.am(e,1.5,B.p,-1)),j,j,j,j,j,j,j,j,a4,"",j,j,j,j,j,j,j,j,j,!0,!0,!1,j,a5,j,j,j,j,j,j,a6,j,j,j,j,j),B.t,!0,j,!0,j,!1,j,B.W,j,j,j,j,j,j,j,j,1,j,j,k.as,h,j,j,j,j,j,!1,j,j,!1,j,!0,j,B.F,j,j,j,j,j,j,j,j,j,j,j,j,!0,B.G,j,B.a3,j,j,j,j)
-var a_confirm=A.bZ(j,B.Z,!1,j,!0,B.z,j,j,k.y,j,j,j,j,j,2,A.dW(j,new A.bB(4,r,new A.am(q,1,B.p,-1)),j,j,j,j,j,j,!0,new A.bB(4,p,new A.am(o,1,B.p,-1)),j,j,j,j,j,s,!0,j,j,j,j,new A.bB(4,A.B(14),new A.am(e,1.5,B.p,-1)),j,j,j,j,j,j,j,j,a4,"",j,j,j,j,j,j,j,j,j,!0,!0,!1,j,a5,j,j,j,j,j,j,A.c3(j,j,j,A.as(k.as?B.tG:B.tH,j,j,20),j,j,new A.aDF(k),j,j,j,j),j,j,j,j,j),B.t,!0,j,!0,j,!1,j,B.W,j,j,j,j,j,j,j,j,1,j,j,k.as,h,j,j,j,j,j,!1,j,j,!1,j,!0,j,B.F,j,j,j,j,j,j,j,j,j,j,j,j,!0,B.G,j,B.a3,j,j,j,j)
+var a_confirm=A.bZ(j,B.Z,!1,j,!0,B.z,j,j,(k.confirmCtrl||(k.confirmCtrl=A.c4())),j,j,j,j,j,2,A.dW(j,new A.bB(4,r,new A.am(q,1,B.p,-1)),j,j,j,j,j,j,!0,new A.bB(4,p,new A.am(o,1,B.p,-1)),j,j,j,j,j,s,!0,j,j,j,j,new A.bB(4,A.B(14),new A.am(e,1.5,B.p,-1)),j,j,j,j,j,j,j,j,a4,"",j,j,j,j,j,j,j,j,j,!0,!0,!1,j,a5,j,j,j,j,j,j,A.c3(j,j,j,A.as(k.as?B.tG:B.tH,j,j,20),j,j,new A.aDF(k),j,j,j,j),j,j,j,j,j),B.t,!0,j,!0,j,!1,j,B.W,j,j,j,j,j,j,j,j,1,j,j,k.as,h,j,j,j,j,j,!1,j,j,!1,j,!0,j,B.F,j,j,j,j,j,j,j,j,j,j,j,j,!0,B.G,j,B.a3,j,j,j,j)
 a6=A.J(j,j,A.b1(i),j,j,j,j,j,j,j,j,13.5,j,j,j,j,j,!0,j,j,j,j,j,j,j,j)
 a5=A.as(B.u4,e,j,20)
 a4=f?B.T:B.b3
