@@ -211,6 +211,7 @@ function loadDB() {
     couponUsages: Array.isArray(dbData.couponUsages) ? dbData.couponUsages : [],
     referralCodes: Array.isArray(dbData.referralCodes) ? dbData.referralCodes : [],
     referralTrackings: Array.isArray(dbData.referralTrackings) ? dbData.referralTrackings : [],
+    referralRewards: Array.isArray(dbData.referralRewards) ? dbData.referralRewards : [],
     otpStore: dbData.otpStore || {},
   };
 
@@ -629,6 +630,51 @@ async function handleApiRequest(req, res) {
     // =========================================================================
 
     // 1.1 Initiate Registration (OTP Step 1)
+        // 1.0 Check Username Availability
+    if ((pathname === '/api/auth/check-username') && (method === 'POST' || method === 'GET')) {
+      const uName = (body.username || query.username || '').trim().toLowerCase();
+      if (!uName || uName.length < 3) {
+        return sendJSON(res, 400, { success: false, available: false, message: 'Username must be at least 3 characters long.' });
+      }
+      const isTaken = db.users.some((u) => (u.username || '').toLowerCase() === uName);
+      if (isTaken) {
+        return sendJSON(res, 200, { success: true, available: false, message: 'Username is already taken.' });
+      }
+      return sendJSON(res, 200, { success: true, available: true, message: 'Username is available!' });
+    }
+
+    // 1.0.1 Check Email Availability
+    if ((pathname === '/api/auth/check-email') && (method === 'POST' || method === 'GET')) {
+      const cleanEmail = (body.email || query.email || '').trim().toLowerCase();
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!cleanEmail || !emailRegex.test(cleanEmail)) {
+        return sendJSON(res, 400, { success: false, available: false, message: 'Please enter a valid email address.' });
+      }
+      const isRegistered = db.users.some((u) => (u.email || '').toLowerCase() === cleanEmail);
+      if (isRegistered) {
+        return sendJSON(res, 200, { success: true, available: false, message: 'An account with this email already exists.' });
+      }
+      return sendJSON(res, 200, { success: true, available: true, message: 'Email is available for registration!' });
+    }
+
+    // 1.0.2 Validate Referral Code
+    if ((pathname === '/api/auth/validate-referral' || pathname === '/api/referrals/validate') && (method === 'POST' || method === 'GET')) {
+      const code = (body.referralCode || body.code || query.referralCode || query.code || '').trim().toUpperCase();
+      if (!code) {
+        return sendJSON(res, 400, { success: false, valid: false, message: 'Please provide a referral code.' });
+      }
+      const referrer = db.users.find((u) => (u.referralCode || '').toUpperCase() === code);
+      if (!referrer) {
+        return sendJSON(res, 400, { success: false, valid: false, message: 'Invalid or non-existent referral code.' });
+      }
+      return sendJSON(res, 200, {
+        success: true,
+        valid: true,
+        message: 'Valid referral code! You will receive a 10% discount on your first subscription billing.',
+        referrerName: referrer.name || referrer.username,
+      });
+    }
+
     if (pathname === '/api/auth/register-initiate' && method === 'POST') {
       const { username, email, password, confirmPassword } = body;
 
@@ -1446,23 +1492,106 @@ async function handleApiRequest(req, res) {
       return sendJSON(res, 200, { success: true, subscription: sub });
     }
 
+    // 3.0 Calculate Subscription Price (Evaluates available one-time 10% referral discount)
+    if (pathname === '/api/subscription/calculate-price' && method === 'GET') {
+      const basePrice = 49.0;
+      db.referralRewards = db.referralRewards || [];
+      const availableReward = db.referralRewards.find(
+        (r) => r.userId === userId && r.status === 'AVAILABLE' && r.oneTimeNextBillingOnly
+      );
+
+      if (availableReward) {
+        const discountAmount = (basePrice * (availableReward.discountPercentage || 10)) / 100.0;
+        const finalPrice = Math.round((basePrice - discountAmount) * 100) / 100;
+        return sendJSON(res, 200, {
+          success: true,
+          basePrice,
+          discountPercentage: availableReward.discountPercentage || 10,
+          discountAmount,
+          finalPrice,
+          hasReferralDiscount: true,
+          rewardId: availableReward.id,
+          billingNotice: '10% referral reward discount applied for this upcoming billing cycle only.',
+        });
+      }
+
+      return sendJSON(res, 200, {
+        success: true,
+        basePrice,
+        discountPercentage: 0,
+        discountAmount: 0.0,
+        finalPrice: basePrice,
+        hasReferralDiscount: false,
+        billingNotice: 'Standard recurring monthly rate of ₹49.00/month.',
+      });
+    }
+
     if (pathname === '/api/subscription/upgrade' && method === 'POST') {
       const sub = getUserSubscription(userId);
+      const basePrice = 49.0;
+      let finalPrice = basePrice;
+      let discountApplied = 0.0;
+      let referralRewardRedeemed = null;
+
+      db.referralRewards = db.referralRewards || [];
+      const availableReward = db.referralRewards.find(
+        (r) => r.userId === userId && r.status === 'AVAILABLE' && r.oneTimeNextBillingOnly
+      );
+
+      if (availableReward) {
+        discountApplied = (basePrice * (availableReward.discountPercentage || 10)) / 100.0;
+        finalPrice = Math.round((basePrice - discountApplied) * 100) / 100;
+        availableReward.status = 'REDEEMED';
+        availableReward.redeemedAt = new Date().toISOString();
+        availableReward.redeemedForAmount = finalPrice;
+        referralRewardRedeemed = availableReward;
+      }
+
       sub.plan = 'pro';
       sub.status = 'active';
       sub.started_at = new Date().toISOString();
       sub.updated_at = new Date().toISOString();
       sub.payment_provider = body.provider || 'GOOGLE_PLAY';
       sub.transaction_id = body.transactionId || 'tx_' + Date.now();
+      sub.last_billing_amount = finalPrice;
 
       const user = db.users.find((u) => u.id === userId);
       if (user) user.isPremium = true;
+
+      // Check if this paying user (User Y) was referred by another user (User X)
+      // When User Y completes their first purchase, User X earns a 10% discount on their NEXT single billing cycle only
+      db.referralTrackings = db.referralTrackings || [];
+      const tracking = db.referralTrackings.find((rt) => rt.referredUserId === userId);
+      if (tracking && tracking.firstPurchaseStatus !== 'completed') {
+        tracking.firstPurchaseStatus = 'completed';
+        tracking.firstPurchaseDate = new Date().toISOString();
+        tracking.purchaseAmount = finalPrice;
+        tracking.referrerRewardStatus = 'issued';
+
+        // Credit User X with 10% discount for their NEXT single billing cycle only
+        db.referralRewards.push({
+          id: 'rr_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+          userId: tracking.referrerUserId, // User X
+          earnedFromUserId: userId, // User Y
+          discountPercentage: 10,
+          oneTimeNextBillingOnly: true,
+          status: 'AVAILABLE',
+          createdAt: new Date().toISOString(),
+          redeemedAt: null,
+        });
+      }
 
       saveDB(db);
       return sendJSON(res, 200, {
         success: true,
         message: 'Successfully upgraded to WrindhaOS Pro!',
         subscription: sub,
+        pricing: {
+          basePrice,
+          discountApplied,
+          finalPrice,
+          appliedOneTimeDiscount: !!availableReward,
+        },
       });
     }
 

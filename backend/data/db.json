@@ -74,6 +74,36 @@
       "referralCode": "WOS3294",
       "createdAt": "2026-08-30T12:36:07.629Z",
       "updatedAt": "2026-08-30T12:36:07.630Z"
+    },
+    {
+      "id": "u_1788272227107",
+      "username": "user_x_1788272223880",
+      "name": "User_x_1788272223880",
+      "email": "user_x_1788272223880@wrindhaos.in",
+      "password": "85435a21a4908b7d61577b679a65df8d:acfa5fae59ee8625d5f584a74fb26b9ea0eb1f7fa6734b5e60a5a09aab46e8eb9a70bba16d3b27f4d94122b2c1343a637259f6907e17cf8077920ebe985ce2d3",
+      "isEmailVerified": true,
+      "focusScore": 85,
+      "activeStreak": 1,
+      "isPremium": true,
+      "referralCode": "WOS5007",
+      "createdAt": "2026-09-01T14:17:07.107Z",
+      "updatedAt": "2026-09-01T14:17:07.107Z",
+      "onboardingCompleted": false
+    },
+    {
+      "id": "u_1788272227943",
+      "username": "user_y_1788272223880",
+      "name": "User_y_1788272223880",
+      "email": "user_y_1788272223880@wrindhaos.in",
+      "password": "3f6860f024063fd14678d4009a1e4a9f:b04ae43465a236a1109a811197c56379c14ee88bd9fea0114fa1bd90c92434e8b927641d9378435e618d41f760032d8c0e10281ffdc67f8718431d775fe03c55",
+      "isEmailVerified": true,
+      "focusScore": 85,
+      "activeStreak": 1,
+      "isPremium": true,
+      "referralCode": "WOS8945",
+      "createdAt": "2026-09-01T14:17:07.943Z",
+      "updatedAt": "2026-09-01T14:17:07.943Z",
+      "onboardingCompleted": false
     }
   ],
   "subscriptions": [
@@ -136,6 +166,30 @@
       "transaction_id": null,
       "created_at": "2026-08-30T12:36:07.630Z",
       "updated_at": "2026-08-30T12:36:07.630Z"
+    },
+    {
+      "id": "sub_free_u_1788272227107",
+      "user_id": "u_1788272227107",
+      "plan": "pro",
+      "status": "active",
+      "started_at": "2026-09-01T14:17:08.004Z",
+      "expires_at": null,
+      "payment_provider": "GOOGLE_PLAY",
+      "transaction_id": "tx_1788272228004",
+      "created_at": "2026-09-01T14:17:07.107Z",
+      "updated_at": "2026-09-01T14:17:08.004Z"
+    },
+    {
+      "id": "sub_free_u_1788272227943",
+      "user_id": "u_1788272227943",
+      "plan": "pro",
+      "status": "active",
+      "started_at": "2026-09-01T14:17:07.998Z",
+      "expires_at": null,
+      "payment_provider": "GOOGLE_PLAY",
+      "transaction_id": "tx_1788272227998",
+      "created_at": "2026-09-01T14:17:07.943Z",
+      "updated_at": "2026-09-01T14:17:07.998Z"
     }
   ],
   "tasks": [],
@@ -420,6 +474,20 @@
       "discountApplied": 24.5,
       "paymentStatus": "success",
       "createdAt": "2026-08-30T13:31:18.656Z"
+    },
+    {
+      "id": "cu_1788272354694",
+      "userId": "u_1788272354662",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-09-01T14:19:14.694Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-09-01T14:19:14.694Z"
     }
   ],
   "referralCodes": [
@@ -462,8 +530,81 @@
       "status": "active",
       "totalCount": 0,
       "createdAt": "2026-08-30T12:36:07.632Z"
+    },
+    {
+      "id": "ref_u_1788272227107",
+      "userId": "u_1788272227107",
+      "referralCode": "WOS5007",
+      "status": "active",
+      "totalCount": 1,
+      "createdAt": "2026-09-01T14:17:07.108Z"
+    },
+    {
+      "id": "ref_u_1788272227943",
+      "userId": "u_1788272227943",
+      "referralCode": "WOS8945",
+      "status": "active",
+      "totalCount": 0,
+      "createdAt": "2026-09-01T14:17:07.944Z"
     }
   ],
-  "referralTrackings": [],
-  "otpStore": {}
+  "referralTrackings": [
+    {
+      "id": "rt_1788272227944",
+      "referrerUserId": "u_1788272227107",
+      "referredUserId": "u_1788272227943",
+      "referralCode": "WOS5007",
+      "signupDate": "2026-09-01T14:17:07.944Z",
+      "eligibilityStatus": "eligible",
+      "conversionStatus": "signed_up",
+      "firstPurchaseStatus": "pending",
+      "rewardStatus": "issued",
+      "rewardIssuedDate": "2026-09-01T14:17:07.944Z"
+    },
+    {
+      "id": "rt_1788272343841",
+      "referrerUserId": "u_1788272343227",
+      "referredUserId": "u_1788272343840",
+      "referralCode": "WOS2577",
+      "signupDate": "2026-09-01T14:19:03.841Z",
+      "eligibilityStatus": "eligible",
+      "conversionStatus": "signed_up",
+      "firstPurchaseStatus": "completed",
+      "rewardStatus": "issued",
+      "rewardIssuedDate": "2026-09-01T14:19:03.841Z",
+      "firstPurchaseDate": "2026-09-01T14:19:03.885Z",
+      "purchaseAmount": 49,
+      "referrerRewardStatus": "issued"
+    }
+  ],
+  "referralRewards": [
+    {
+      "id": "rr_1788272343885_836",
+      "userId": "u_1788272343227",
+      "earnedFromUserId": "u_1788272343840",
+      "discountPercentage": 10,
+      "oneTimeNextBillingOnly": true,
+      "status": "REDEEMED",
+      "createdAt": "2026-09-01T14:19:03.885Z",
+      "redeemedAt": "2026-09-01T14:19:03.889Z",
+      "redeemedForAmount": 44.1
+    }
+  ],
+  "otpStore": {
+    "audit_user_1788272353234@wrindhaos.in": {
+      "code": "218472",
+      "type": "register",
+      "attempts": 0,
+      "maxAttempts": 5,
+      "createdAt": 1788272353243,
+      "expiresAt": 1788272953243,
+      "lastSentAt": 1788272353243,
+      "pendingUser": {
+        "username": "audit_1788272353234",
+        "email": "audit_user_1788272353234@wrindhaos.in",
+        "passwordHash": "fc4634e4683cb7174ed0278aed1194a0:8f2e4c14936c2e45f57f0e3c2fea6adcd1eadc94e6c4428f261281c28518d230e612313aebbf8c4d059d1c8ee68deaea05be9e8c1713e39eb2a0cd6a9ee2e658"
+      }
+    }
+  },
+  "habitCompletions": []
 }
