@@ -175,8 +175,7 @@ function loadDB() {
     notes: Array.isArray(dbData.notes) ? dbData.notes : [],
     focusSessions: Array.isArray(dbData.focusSessions) ? dbData.focusSessions : [],
     milestones: Array.isArray(dbData.milestones) ? dbData.milestones : [],
-    notifications: Array.isArray(dbData.notifications) ? dbData.notifications : [],
-    coupons: Array.isArray(dbData.coupons) ? dbData.coupons : [
+        coupons: Array.isArray(dbData.coupons) ? dbData.coupons : [
       {
         id: 'c_welcome50',
         code: 'WELCOME50',
@@ -1051,8 +1050,7 @@ async function handleApiRequest(req, res) {
       db.goals = (db.goals || []).filter((g) => g.userId !== userId);
       db.milestones = (db.milestones || []).filter((m) => m.userId !== userId);
       db.timetable = (db.timetable || []).filter((tt) => tt.userId !== userId);
-      db.notifications = (db.notifications || []).filter((n) => n.userId !== userId);
-      db.referralCodes = (db.referralCodes || []).filter((rc) => rc.userId !== userId);
+            db.referralCodes = (db.referralCodes || []).filter((rc) => rc.userId !== userId);
 
       saveDB(db);
 
@@ -1486,12 +1484,7 @@ async function handleApiRequest(req, res) {
       return sendJSON(res, 201, newMilestone);
     }
 
-    // 2.7 Notifications
-    if (pathname === '/api/notifications' && method === 'GET') {
-      const userNotifs = db.notifications.filter((n) => n.userId === userId || !n.userId);
-      return sendJSON(res, 200, userNotifs);
-    }
-
+    
     // 2.8 Dynamic Real Analytics Calculations
     if (pathname === '/api/analytics/summary' && method === 'GET') {
       const userTasks = db.tasks.filter((t) => t.userId === userId);
