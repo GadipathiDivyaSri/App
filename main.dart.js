@@ -102259,7 +102259,7 @@ return A.P(A.ad(o,!1).bJ(p),$async$ny)
 case 2:if(b===!0&&q.c!=null){q.K(new A.aDA(q))
 q.c.Y(t.J).f.d7(B.a0f)}return A.T(null,r)}})
 return A.U($async$ny,r)},
-ajp(){var s,r,q,p,o,n=this,m=null,l=B.c.aN(n.e.a.a),r=B.c.aN(n.r.a.a),q=B.c.aN(n.x.a.a),p=(n.confirmCtrl?B.c.aN(n.confirmCtrl.a.a):B.c.aN(n.x.a.a)),k=n.c
+ajp(){var s,r,q,p,o,n=this,m=null,l=B.c.aN(n.e.a.a),r=B.c.aN(n.r.a.a),q=B.c.aN(n.x.a.a),p=B.c.aN(n.f.a.a),refCode=B.c.aN(n.y.a.a),k=n.c
 if(l.length===0){n.c.Y(t.J).f.d7(B.a0h)
 return}if(r.length===0){k.Y(t.J).f.d7(A.jd(m,m,m,m,m,B.z,m,A.m("Please enter your username",m,m,m,m,m,m,m,m),m,B.b7,m,m,m,m,m,m,m,m,m,m))
 return}if(!n.z){k.Y(t.J).f.d7(A.jd(m,m,m,m,m,B.z,m,A.m("Please tap 'Send OTP' to verify your email",m,m,m,m,m,m,m,m),m,B.b7,m,m,m,m,m,m,m,m,m,m))
@@ -102271,7 +102271,7 @@ n.ny()
 return}k=n.c
 k.toString
 o=A.f1(k,!1,t.T)
-o.MH(l,r,p.length!==0?p:m)
+o.MH(l,r,refCode.length!==0?refCode:m)
 k=n.c
 k.toString
 A.ad(k,!1).Na(new A.aDy())},
@@ -102319,7 +102319,7 @@ q=f?B.bl:B.aR
 p=A.B(14)
 o=f?B.bl:B.aR
 a3=A.bZ(j,B.Z,!1,j,!0,B.z,j,j,k.x,j,j,j,j,j,2,A.dW(j,new A.bB(4,r,new A.am(q,1,B.p,-1)),j,j,j,j,j,j,!0,new A.bB(4,p,new A.am(o,1,B.p,-1)),j,j,j,j,j,s,!0,j,j,j,j,new A.bB(4,A.B(14),new A.am(e,1.5,B.p,-1)),j,j,j,j,j,j,j,j,a4,"",j,j,j,j,j,j,j,j,j,!0,!0,!1,j,a5,j,j,j,j,j,j,a6,j,j,j,j,j),B.t,!0,j,!0,j,!1,j,B.W,j,j,j,j,j,j,j,j,1,j,j,k.as,h,j,j,j,j,j,!1,j,j,!1,j,!0,j,B.F,j,j,j,j,j,j,j,j,j,j,j,j,!0,B.G,j,B.a3,j,j,j,j)
-var a_confirm=A.bZ(j,B.Z,!1,j,!0,B.z,j,j,(k.confirmCtrl||(k.confirmCtrl=A.c4())),j,j,j,j,j,2,A.dW(j,new A.bB(4,r,new A.am(q,1,B.p,-1)),j,j,j,j,j,j,!0,new A.bB(4,p,new A.am(o,1,B.p,-1)),j,j,j,j,j,s,!0,j,j,j,j,new A.bB(4,A.B(14),new A.am(e,1.5,B.p,-1)),j,j,j,j,j,j,j,j,a4,"",j,j,j,j,j,j,j,j,j,!0,!0,!1,j,a5,j,j,j,j,j,j,A.c3(j,j,j,A.as(k.as?B.tG:B.tH,j,j,20),j,j,new A.aDF(k),j,j,j,j),j,j,j,j,j),B.t,!0,j,!0,j,!1,j,B.W,j,j,j,j,j,j,j,j,1,j,j,k.as,h,j,j,j,j,j,!1,j,j,!1,j,!0,j,B.F,j,j,j,j,j,j,j,j,j,j,j,j,!0,B.G,j,B.a3,j,j,j,j)
+var a_confirm=A.bZ(j,B.Z,!1,j,!0,B.z,j,j,k.f,j,j,j,j,j,2,A.dW(j,new A.bB(4,r,new A.am(q,1,B.p,-1)),j,j,j,j,j,j,!0,new A.bB(4,p,new A.am(o,1,B.p,-1)),j,j,j,j,j,s,!0,j,j,j,j,new A.bB(4,A.B(14),new A.am(e,1.5,B.p,-1)),j,j,j,j,j,j,j,j,a4,"",j,j,j,j,j,j,j,j,j,!0,!0,!1,j,a5,j,j,j,j,j,j,A.c3(j,j,j,A.as(k.as?B.tG:B.tH,j,j,20),j,j,new A.aDF(k),j,j,j,j),j,j,j,j,j),B.t,!0,j,!0,j,!1,j,B.W,j,j,j,j,j,j,j,j,1,j,j,k.as,h,j,j,j,j,j,!1,j,j,!1,j,!0,j,B.F,j,j,j,j,j,j,j,j,j,j,j,j,!0,B.G,j,B.a3,j,j,j,j)
 a6=A.J(j,j,A.b1(i),j,j,j,j,j,j,j,j,13.5,j,j,j,j,j,!0,j,j,j,j,j,j,j,j)
 a5=A.as(B.u4,e,j,20)
 a4=f?B.T:B.b3
@@ -102361,7 +102361,7 @@ s=A.b_(A.aJG(e,new A.aDG(k),new A.bb(A.B(5),B.v),s),24,24)
 a4=A.a4(A.a([s,B.ep,A.aD(A.cc(j,A.m("I confirm that I have read and agree to the Terms & Conditions and Privacy Policy.",j,j,j,j,A.J(j,j,f?B.ar:B.a_,j,j,j,j,j,j,j,j,12.5,j,j,j,j,1.45,!0,j,j,j,j,j,j,j,j),j,j,j),B.t,!1,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,new A.aDH(k),j,j,j,j,j,j),1)],n),B.w,B.h,B.f,0,j,j)
 s=A.b_(A.cW(B.a8C,k.gajo(),A.cX(j,j,e,j,j,j,0,j,j,j,j,j,j,j,new A.bb(A.B(16),B.v),j,j,j,j,j)),52,1/0)
 r=A.Da(j,j,j,j,j,j,j,j,j,j,j,j,j,j,new A.bb(A.B(16),B.v),new A.am(A.b1(4291548641),1,B.p,-1),j,j,j,j)
-return A.cJ(c,d,A.l0(!0,A.dA(A.a0(A.a([B.a7U,B.an,b,B.bz,a,B.an,B.a7p,B.ao,a1,B.a1,B.a7email,B.ao,a0,B.a1,B.a7Z,B.ao,a3,B.a1,B.a7confirmpass,B.ao,a_confirm,B.a1,a6,B.aP,a4,B.aP,s,B.aP,A.a4(A.a([B.a88,A.cc(j,A.m("Login",j,j,j,j,A.J(j,j,e,j,j,j,j,j,j,j,j,14,j,j,B.x,j,j,!0,j,j,j,j,j,j,j,j),j,j,j),B.t,!1,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,new A.aDI(a7),j,j,j,j,j,j)],n),B.i,B.b_,B.f,0,j,j),B.aD],n),B.w,B.h,B.f,0,B.m),j,B.t,B.MJ,j,j,B.S),B.aA,!0),j,j)}}
+return A.cJ(c,d,A.l0(!0,A.dA(A.a0(A.a([B.a7U,B.an,b,B.bz,a,B.an,B.a7p,B.ao,a1,B.a1,B.a7email,B.ao,a0,B.a1,B.a7Z,B.ao,a3,B.a1,B.a7confirmpass,B.ao,a_confirm,B.a1,B.a7ref,B.ao,a5,B.a1,a6,B.aP,a4,B.aP,s,B.aP,A.a4(A.a([B.a88,A.cc(j,A.m("Login",j,j,j,j,A.J(j,j,e,j,j,j,j,j,j,j,j,14,j,j,B.x,j,j,!0,j,j,j,j,j,j,j,j),j,j,j),B.t,!1,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,new A.aDI(a7),j,j,j,j,j,j)],n),B.i,B.b_,B.f,0,j,j),B.aD],n),B.w,B.h,B.f,0,B.m),j,B.t,B.MJ,j,j,B.S),B.aA,!0),j,j)}}
 A.aDx.prototype={
 $0(){return this.a.z=!0},
 $S:0}
@@ -110635,6 +110635,7 @@ B.a7n=new A.L("USERNAME OR EMAIL",null,B.aL,null,null,null,null,null,null,null,n
 B.a7p=new A.L("USERNAME",null,B.aL,null,null,null,null,null,null,null,null)
 B.a7email=new A.L("EMAIL",null,B.aL,null,null,null,null,null,null,null,null)
 B.a7confirmpass=new A.L("CONFIRM PASSWORD",null,B.aL,null,null,null,null,null,null,null,null)
+B.a7ref=new A.L("REFERRAL CODE (OPTIONAL)",null,B.aL,null,null,null,null,null,null,null,null)
 B.a59=new A.j(!0,B.u,null,null,null,null,11,B.x,null,1.1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
 B.a7q=new A.L("NEW ENTRY",null,B.a59,null,null,null,null,null,null,null,null)
 B.a7t=new A.L("Save Changes",null,B.cy,null,null,null,null,null,null,null,null)

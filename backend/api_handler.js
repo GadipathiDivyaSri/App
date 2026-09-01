@@ -747,7 +747,12 @@ async function handleApiRequest(req, res) {
         createdAt: now,
         expiresAt: now + 10 * 60 * 1000,
         lastSentAt: now,
-        pendingUser: { username: cleanUser, email: cleanEmail, passwordHash: hashPassword(password) },
+        pendingUser: {
+          username: cleanUser,
+          email: cleanEmail,
+          passwordHash: hashPassword(password),
+          referralCode: (body.referralCode || '').trim().toUpperCase(),
+        },
       };
       saveDB(db);
 
@@ -823,14 +828,15 @@ async function handleApiRequest(req, res) {
         createdAt: new Date().toISOString(),
       });
 
-      if (referralCode) {
-        const referrer = db.users.find((u) => u.referralCode === referralCode.trim());
+      const activeReferralCode = (referralCode || pending?.referralCode || '').trim().toUpperCase();
+      if (activeReferralCode) {
+        const referrer = db.users.find((u) => (u.referralCode || '').toUpperCase() === activeReferralCode);
         if (referrer && referrer.id !== newUserId) {
           db.referralTrackings.push({
             id: 'rt_' + Date.now(),
             referrerUserId: referrer.id,
             referredUserId: newUserId,
-            referralCode: referralCode.trim(),
+            referralCode: activeReferralCode,
             signupDate: new Date().toISOString(),
             eligibilityStatus: 'eligible',
             conversionStatus: 'signed_up',

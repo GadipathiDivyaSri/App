@@ -28,6 +28,7 @@ class ApiService {
     required String email,
     required String password,
     required String confirmPassword,
+    String? referralCode,
   }) async {
     try {
       final response = await http.post(
@@ -38,11 +39,28 @@ class ApiService {
           'email': email.trim().toLowerCase(),
           'password': password,
           'confirmPassword': confirmPassword,
+          if (referralCode != null && referralCode.trim().isNotEmpty)
+            'referralCode': referralCode.trim().toUpperCase(),
         }),
       );
       return jsonDecode(response.body);
     } catch (e) {
       return {'success': false, 'message': 'Network error: Unable to connect to server.'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> validateReferralCode(String code) async {
+    try {
+      final clean = code.trim().toUpperCase();
+      if (clean.isEmpty) {
+        return {'valid': false, 'message': 'Please enter a referral code.'};
+      }
+      final response = await http.get(
+        Uri.parse('$baseUrl/auth/validate-referral?code=${Uri.encodeComponent(clean)}'),
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {'valid': false, 'message': 'Error validating referral code.'};
     }
   }
 
