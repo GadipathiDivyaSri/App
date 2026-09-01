@@ -192,6 +192,7 @@
       "updated_at": "2026-09-01T14:17:07.998Z"
     }
   ],
+  "paymentHistory": [],
   "tasks": [],
   "calendarEvents": [],
   "habits": [
@@ -329,6 +330,9 @@
       "updatedAt": "2026-08-30T12:36:07.656Z"
     }
   ],
+  "habitCompletions": [],
+  "habitPausePeriods": [],
+  "habitScheduleHistory": [],
   "subjects": [],
   "studyItems": [],
   "timetable": [],
@@ -336,6 +340,8 @@
   "goals": [],
   "expenses": [],
   "journalEntries": [],
+  "notes": [],
+  "focusSessions": [],
   "milestones": [],
   "notifications": [],
   "coupons": [
@@ -488,6 +494,20 @@
       "discountApplied": 24.5,
       "paymentStatus": "success",
       "createdAt": "2026-09-01T14:19:14.694Z"
+    },
+    {
+      "id": "cu_1788273574557",
+      "userId": "u_1788273574482",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-09-01T14:39:34.558Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-09-01T14:39:34.558Z"
     }
   ],
   "referralCodes": [
@@ -575,6 +595,21 @@
       "firstPurchaseDate": "2026-09-01T14:19:03.885Z",
       "purchaseAmount": 49,
       "referrerRewardStatus": "issued"
+    },
+    {
+      "id": "rt_1788273584923",
+      "referrerUserId": "u_1788273584083",
+      "referredUserId": "u_1788273584922",
+      "referralCode": "WOS5050",
+      "signupDate": "2026-09-01T14:39:44.923Z",
+      "eligibilityStatus": "eligible",
+      "conversionStatus": "signed_up",
+      "firstPurchaseStatus": "completed",
+      "rewardStatus": "issued",
+      "rewardIssuedDate": "2026-09-01T14:39:44.923Z",
+      "firstPurchaseDate": "2026-09-01T14:39:44.962Z",
+      "purchaseAmount": 49,
+      "referrerRewardStatus": "issued"
     }
   ],
   "referralRewards": [
@@ -588,23 +623,33 @@
       "createdAt": "2026-09-01T14:19:03.885Z",
       "redeemedAt": "2026-09-01T14:19:03.889Z",
       "redeemedForAmount": 44.1
+    },
+    {
+      "id": "rr_1788273584962_923",
+      "userId": "u_1788273584083",
+      "earnedFromUserId": "u_1788273584922",
+      "discountPercentage": 10,
+      "oneTimeNextBillingOnly": true,
+      "status": "REDEEMED",
+      "createdAt": "2026-09-01T14:39:44.962Z",
+      "redeemedAt": "2026-09-01T14:39:44.966Z",
+      "redeemedForAmount": 44.1
     }
   ],
   "otpStore": {
-    "audit_user_1788272353234@wrindhaos.in": {
-      "code": "218472",
+    "audit_user_1788273572769@wrindhaos.in": {
+      "code": "461407",
       "type": "register",
       "attempts": 0,
       "maxAttempts": 5,
-      "createdAt": 1788272353243,
-      "expiresAt": 1788272953243,
-      "lastSentAt": 1788272353243,
+      "createdAt": 1788273572790,
+      "expiresAt": 1788274172790,
+      "lastSentAt": 1788273572790,
       "pendingUser": {
-        "username": "audit_1788272353234",
-        "email": "audit_user_1788272353234@wrindhaos.in",
-        "passwordHash": "fc4634e4683cb7174ed0278aed1194a0:8f2e4c14936c2e45f57f0e3c2fea6adcd1eadc94e6c4428f261281c28518d230e612313aebbf8c4d059d1c8ee68deaea05be9e8c1713e39eb2a0cd6a9ee2e658"
+        "username": "audit_1788273572769",
+        "email": "audit_user_1788273572769@wrindhaos.in",
+        "passwordHash": "bddf50df5ff815d4b50904a5b7bb04a6:cebd64108d117836d494035a163145fb60d33bdd9ed0ff7b2712bf2758907631b8c0081e3b2b4f4d5de701bf6afc95ec69decec2332c97b26b24e445b7d4f6ad"
       }
     }
-  },
-  "habitCompletions": []
+  }
 }

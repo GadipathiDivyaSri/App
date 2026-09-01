@@ -54,6 +54,81 @@ class Habit {
     return completionHistory.contains(dateStr);
   }
 
+  void recalculateStreaks([DateTime? asOfDate]) {
+    final today = asOfDate ?? DateTime.now();
+    final todayStr = '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+    final compSet = completionHistory.toSet();
+
+    DateTime start = DateTime.tryParse(startDate) ?? today;
+    if (completionHistory.isNotEmpty) {
+      final sorted = List<String>.from(completionHistory)..sort();
+      final earliest = DateTime.tryParse(sorted.first);
+      if (earliest != null && earliest.isBefore(start)) {
+        start = earliest;
+      }
+    }
+
+    if (start.isAfter(today)) {
+      streakDay = 0;
+      longestStreak = 0;
+      totalCompletions = compSet.length;
+      isCompleted = compSet.contains(todayStr);
+      return;
+    }
+
+    final scheduledDates = <String>[];
+    DateTime cur = DateTime(start.year, start.month, start.day);
+    final todayClean = DateTime(today.year, today.month, today.day);
+
+    while (!cur.isAfter(todayClean)) {
+      if (isScheduledForDate(cur)) {
+        final dStr = '${cur.year}-${cur.month.toString().padLeft(2, '0')}-${cur.day.toString().padLeft(2, '0')}';
+        scheduledDates.add(dStr);
+      }
+      cur = cur.add(const Duration(days: 1));
+    }
+
+    int maxStreak = 0;
+    int running = 0;
+    for (final dStr in scheduledDates) {
+      if (compSet.contains(dStr)) {
+        running++;
+        if (running > maxStreak) maxStreak = running;
+      } else {
+        running = 0;
+      }
+    }
+
+    int current = 0;
+    if (scheduledDates.isNotEmpty) {
+      int idx = scheduledDates.length - 1;
+      final lastDate = scheduledDates[idx];
+
+      if (lastDate == todayStr && compSet.contains(todayStr)) {
+        while (idx >= 0 && compSet.contains(scheduledDates[idx])) {
+          current++;
+          idx--;
+        }
+      } else if (lastDate == todayStr && !compSet.contains(todayStr)) {
+        idx--;
+        while (idx >= 0 && compSet.contains(scheduledDates[idx])) {
+          current++;
+          idx--;
+        }
+      } else {
+        while (idx >= 0 && compSet.contains(scheduledDates[idx])) {
+          current++;
+          idx--;
+        }
+      }
+    }
+
+    streakDay = current;
+    longestStreak = maxStreak > current ? maxStreak : current;
+    totalCompletions = compSet.length;
+    isCompleted = compSet.contains(todayStr);
+  }
+
   Map<String, dynamic> toJson() => {
         'id': id,
         'title': title,

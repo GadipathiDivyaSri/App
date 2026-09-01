@@ -261,11 +261,26 @@ const rateLimitStore = new Map();
 /**
  * Habit Scheduling & Streak Calculation Engine
  */
-function isHabitScheduledForDate(habit, dateStr) {
+function isHabitScheduledForDate(habit, dateStr, db) {
   if (!habit) return false;
-  if (habit.status === 'archived' || habit.status === 'paused') return false;
+  if (habit.status === 'archived' || habit.isDeleted) return false;
 
   const date = new Date(dateStr + 'T00:00:00Z');
+
+  // Check if habit was paused on this date
+  if (db && Array.isArray(db.habitPausePeriods)) {
+    const pausePeriods = db.habitPausePeriods.filter((p) => p.habitId === habit.id);
+    for (const p of pausePeriods) {
+      const pStart = p.pausedAt.split('T')[0];
+      const pEnd = p.resumedAt ? p.resumedAt.split('T')[0] : '9999-12-31';
+      if (dateStr >= pStart && dateStr <= pEnd) {
+        return false;
+      }
+    }
+  } else if (habit.status === 'paused') {
+    return false;
+  }
+
   let dayOfWeek = date.getUTCDay();
   if (dayOfWeek === 0) dayOfWeek = 7; // 1 = Monday, 7 = Sunday
 
@@ -273,9 +288,17 @@ function isHabitScheduledForDate(habit, dateStr) {
   if (freq === 'DAILY') return true;
   if (freq === 'WEEKDAYS') return dayOfWeek >= 1 && dayOfWeek <= 5;
   if (freq === 'WEEKENDS') return dayOfWeek === 6 || dayOfWeek === 7;
-  if (freq === 'CUSTOM') {
-    const selected = habit.selectedDays || [];
-    return selected.includes(dayOfWeek) || selected.includes(dayOfWeek.toString());
+  if (freq === 'CUSTOM' || freq === 'SELECTED_DAYS') {
+    const selected = (habit.selectedDays || []).map(Number);
+    return selected.includes(dayOfWeek);
+  }
+  if (freq === 'CUSTOM_INTERVAL' || freq === 'INTERVAL' || (habit.intervalDays && habit.intervalDays > 1)) {
+    const interval = habit.intervalDays || 2;
+    const startDateStr = habit.startDate || dateStr;
+    const startDate = new Date(startDateStr + 'T00:00:00Z');
+    const diffTime = date.getTime() - startDate.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays >= 0 && (diffDays % interval === 0);
   }
   if (freq === 'WEEKLY') {
     return dayOfWeek === 1;
@@ -283,7 +306,7 @@ function isHabitScheduledForDate(habit, dateStr) {
   return true;
 }
 
-function calculateHabitStreaks(habit, completionDates, todayStr) {
+function calculateHabitStreaks(habit, completionDates, todayStr, db) {
   const compSet = new Set(completionDates || []);
   const sortedComps = (completionDates || []).slice().sort();
   const earliestComp = sortedComps[0];
@@ -291,53 +314,59 @@ function calculateHabitStreaks(habit, completionDates, todayStr) {
   if (earliestComp && earliestComp < effectiveStart) {
     effectiveStart = earliestComp;
   }
-  
+
   const start = new Date(effectiveStart + 'T00:00:00Z');
   const today = new Date(todayStr + 'T00:00:00Z');
 
-  if (start > today) {
-    return { currentStreak: 0, longestStreak: 0, totalCompletions: compSet.size };
-  }
-
+  // Collect all scheduled dates from start to today
   const scheduledDates = [];
   let cur = new Date(start);
   while (cur <= today) {
     const dStr = cur.toISOString().split('T')[0];
-    if (isHabitScheduledForDate(habit, dStr)) {
+    if (isHabitScheduledForDate(habit, dStr, db)) {
       scheduledDates.push(dStr);
     }
     cur.setUTCDate(cur.getUTCDate() + 1);
   }
 
+  // Calculate Longest Streak across all history
   let maxStreak = 0;
-  let runningStreak = 0;
+  let running = 0;
   for (const dStr of scheduledDates) {
     if (compSet.has(dStr)) {
-      runningStreak++;
-      if (runningStreak > maxStreak) maxStreak = runningStreak;
+      running++;
+      if (running > maxStreak) maxStreak = running;
     } else {
-      if (dStr < todayStr) {
-        runningStreak = 0;
-      }
+      running = 0;
     }
   }
 
+  // Calculate Current Streak
   let currentStreak = 0;
   if (scheduledDates.length > 0) {
     let idx = scheduledDates.length - 1;
     const lastDate = scheduledDates[idx];
 
-    if (lastDate === todayStr && !compSet.has(todayStr)) {
-      idx--;
-    }
-
-    while (idx >= 0) {
-      const dStr = scheduledDates[idx];
-      if (compSet.has(dStr)) {
+    // If today is scheduled and completed -> count starts from today
+    if (lastDate === todayStr && compSet.has(todayStr)) {
+      while (idx >= 0 && compSet.has(scheduledDates[idx])) {
         currentStreak++;
         idx--;
-      } else {
-        break;
+      }
+    }
+    // If today is scheduled but NOT completed yet -> check from yesterday / prior scheduled date
+    else if (lastDate === todayStr && !compSet.has(todayStr)) {
+      idx--; // Look at prior scheduled day
+      while (idx >= 0 && compSet.has(scheduledDates[idx])) {
+        currentStreak++;
+        idx--;
+      }
+    }
+    // If today is NOT scheduled (e.g. weekend or non-selected day) -> check from most recent scheduled day
+    else {
+      while (idx >= 0 && compSet.has(scheduledDates[idx])) {
+        currentStreak++;
+        idx--;
       }
     }
   }
@@ -1138,10 +1167,13 @@ async function handleApiRequest(req, res) {
       }
 
       // Recalculate streaks
+      const todayStr = new Date().toISOString().split('T')[0];
       const habitComps = db.habitCompletions.filter((c) => c.habitId === habitId && c.userId === userId).map((c) => c.completionDate);
-      const streakInfo = calculateHabitStreaks(habit, habitComps, new Date().toISOString().split('T')[0]);
-      habit.currentStreak = streakInfo.currentStreak;
-      habit.longestStreak = streakInfo.longestStreak;
+      const streakInfoAsOfDate = calculateHabitStreaks(habit, habitComps, targetDate, db);
+      const todayStreaks = calculateHabitStreaks(habit, habitComps, todayStr, db);
+
+      habit.currentStreak = targetDate >= todayStr ? streakInfoAsOfDate.currentStreak : todayStreaks.currentStreak;
+      habit.longestStreak = Math.max(streakInfoAsOfDate.longestStreak, todayStreaks.longestStreak);
       habit.updatedAt = new Date().toISOString();
 
       saveDB(db);
@@ -1151,9 +1183,9 @@ async function handleApiRequest(req, res) {
         isCompleted: isNowCompleted,
         habitId,
         date: targetDate,
-        currentStreak: habit.currentStreak,
+        currentStreak: streakInfoAsOfDate.currentStreak,
         longestStreak: habit.longestStreak,
-        totalCompletions: streakInfo.totalCompletions,
+        totalCompletions: streakInfoAsOfDate.totalCompletions,
       });
     }
 
