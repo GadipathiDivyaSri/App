@@ -158,9 +158,13 @@ function loadDB() {
   const schema = {
     users: Array.isArray(dbData.users) ? dbData.users : [],
     subscriptions: Array.isArray(dbData.subscriptions) ? dbData.subscriptions : [],
+    paymentHistory: Array.isArray(dbData.paymentHistory) ? dbData.paymentHistory : [],
     tasks: Array.isArray(dbData.tasks) ? dbData.tasks : [],
     calendarEvents: Array.isArray(dbData.calendarEvents) ? dbData.calendarEvents : [],
     habits: Array.isArray(dbData.habits) ? dbData.habits : [],
+    habitCompletions: Array.isArray(dbData.habitCompletions) ? dbData.habitCompletions : [],
+    habitPausePeriods: Array.isArray(dbData.habitPausePeriods) ? dbData.habitPausePeriods : [],
+    habitScheduleHistory: Array.isArray(dbData.habitScheduleHistory) ? dbData.habitScheduleHistory : [],
     subjects: Array.isArray(dbData.subjects) ? dbData.subjects : [],
     studyItems: Array.isArray(dbData.studyItems) ? dbData.studyItems : [],
     timetable: Array.isArray(dbData.timetable) ? dbData.timetable : [],
@@ -168,6 +172,8 @@ function loadDB() {
     goals: Array.isArray(dbData.goals) ? dbData.goals : [],
     expenses: Array.isArray(dbData.expenses) ? dbData.expenses : [],
     journalEntries: Array.isArray(dbData.journalEntries) ? dbData.journalEntries : [],
+    notes: Array.isArray(dbData.notes) ? dbData.notes : [],
+    focusSessions: Array.isArray(dbData.focusSessions) ? dbData.focusSessions : [],
     milestones: Array.isArray(dbData.milestones) ? dbData.milestones : [],
     notifications: Array.isArray(dbData.notifications) ? dbData.notifications : [],
     coupons: Array.isArray(dbData.coupons) ? dbData.coupons : [
