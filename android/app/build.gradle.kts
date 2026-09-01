@@ -16,7 +16,6 @@ if (keystorePropertiesFile.exists()) {
 android {
     namespace = "com.wrindha.app"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
