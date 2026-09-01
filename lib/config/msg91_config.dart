@@ -1,7 +1,7 @@
 class Msg91Config {
   // MSG91 Widget Configuration
   static const String widgetId = '36687761466f383937303733';
-  static const String authKey = '563368T7dxQrK5Wo6a8da71fP1';
+  static const String authKey = '563368AbE6Nls32x6a9703baP1';
   static const String tokenAuthUrl =
       'https://control.msg91.com/api/v5/widget/verifyAccessToken';
 

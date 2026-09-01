@@ -112,6 +112,34 @@ class ApiService {
     }
   }
 
+  /// Verify MSG91 Widget JWT Access Token with backend
+  static Future<Map<String, dynamic>> verifyMsg91AccessToken({
+    required String accessToken,
+    String? referralCode,
+    String? username,
+    String? email,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/auth/msg91/verify-access-token'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'access-token': accessToken.trim(),
+          if (referralCode != null) 'referralCode': referralCode.trim(),
+          if (username != null) 'username': username.trim(),
+          if (email != null) 'email': email.trim(),
+        }),
+      );
+      final data = jsonDecode(response.body);
+      if (data['success'] == true && data['token'] != null) {
+        await saveSession(data['token'], data['user']);
+      }
+      return data;
+    } catch (e) {
+      return {'success': false, 'message': 'MSG91 Token Verification error: $e'};
+    }
+  }
+
   static Future<Map<String, dynamic>> resendRegistrationOtp(String email) async {
     try {
       final response = await http.post(

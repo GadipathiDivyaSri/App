@@ -509,7 +509,7 @@ function parseBody(req) {
  * Dispatch real live email / OTP via MSG91 API or mock fallback
  */
 async function dispatchEmailOtp(email, otpCode, type = 'Verification') {
-  const authKey = process.env.MSG91_AUTH_KEY || '563368T7dxQrK5Wo6a8da71fP1';
+  const authKey = process.env.MSG91_AUTH_KEY || '563368AbE6Nls32x6a9703baP1';
   const widgetId = process.env.MSG91_WIDGET_ID || '36687761466f383937303733';
 
   console.log(`[EMAIL OTP DISPATCH] [${type}] Sending 6-digit OTP to: ${email} -> CODE: [${otpCode}]`);
@@ -560,6 +560,55 @@ async function dispatchEmailOtp(email, otpCode, type = 'Verification') {
   } catch (e) {
     return { success: true, mode: 'fallback', otpCode };
   }
+}
+
+/**
+ * Verify MSG91 Widget JWT access token via official MSG91 verifyAccessToken API
+ */
+async function verifyMsg91AccessToken(accessToken) {
+  const authKey = process.env.MSG91_AUTH_KEY || '563368AbE6Nls32x6a9703baP1';
+
+  const payload = JSON.stringify({
+    authkey: authKey,
+    'access-token': (accessToken || '').trim(),
+  });
+
+  const options = {
+    hostname: 'control.msg91.com',
+    port: 443,
+    path: '/api/v5/widget/verifyAccessToken',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Content-Length': Buffer.byteLength(payload),
+    },
+  };
+
+  return new Promise((resolve) => {
+    const req = https.request(options, (msgRes) => {
+      let resData = '';
+      msgRes.on('data', (chunk) => (resData += chunk));
+      msgRes.on('end', () => {
+        try {
+          const parsed = JSON.parse(resData);
+          console.log(`[MSG91 VERIFY ACCESS TOKEN] Status: ${msgRes.statusCode}, Response:`, parsed);
+          resolve({ statusCode: msgRes.statusCode, data: parsed });
+        } catch (e) {
+          console.log(`[MSG91 VERIFY ACCESS TOKEN] Raw text: ${resData}`);
+          resolve({ statusCode: msgRes.statusCode, data: { message: resData } });
+        }
+      });
+    });
+
+    req.on('error', (err) => {
+      console.error('[MSG91 VERIFY ACCESS TOKEN ERROR]:', err.message);
+      resolve({ statusCode: 500, data: { type: 'error', message: err.message } });
+    });
+
+    req.write(payload);
+    req.end();
+  });
 }
 
 /**
@@ -869,6 +918,114 @@ async function handleApiRequest(req, res) {
           subscriptionPlan: sub.plan.toUpperCase(),
         },
         subscription: sub,
+      });
+    }
+
+    // 1.2.1 MSG91 Widget Access Token Verification Endpoint
+    if ((pathname === '/api/auth/msg91/verify-access-token' || pathname === '/api/auth/msg91/verify' || pathname === '/api/auth/verify-msg91-token') && method === 'POST') {
+      const accessToken = (body.accessToken || body['access-token'] || body.jwtToken || body.token || '').trim();
+      if (!accessToken) {
+        return sendJSON(res, 400, { success: false, message: 'access-token is required' });
+      }
+
+      const verifyRes = await verifyMsg91AccessToken(accessToken);
+      if (verifyRes.statusCode !== 200 || verifyRes.data?.type === 'error' || verifyRes.data?.code === 701) {
+        return sendJSON(res, 400, {
+          success: false,
+          message: verifyRes.data?.message || 'Invalid or expired access token.',
+          msg91Response: verifyRes.data,
+        });
+      }
+
+      const msg91Data = verifyRes.data || {};
+      const verifiedIdentifier = (msg91Data.email || msg91Data.mobile || msg91Data.identifier || body.email || '').trim().toLowerCase();
+      const cleanUser = (body.username || verifiedIdentifier.split('@')[0] || ('user_' + Date.now().toString().slice(-4))).trim().toLowerCase();
+
+      let user = db.users.find(
+        (u) =>
+          (verifiedIdentifier && u.email && u.email.toLowerCase() === verifiedIdentifier) ||
+          (verifiedIdentifier && u.mobile && u.mobile === verifiedIdentifier) ||
+          (cleanUser && u.username && u.username.toLowerCase() === cleanUser)
+      );
+
+      let isNewUser = false;
+      let newUserId = user ? user.id : 'u_' + Date.now();
+      let userRefCode = user ? user.referralCode : ('WOS' + Math.floor(1000 + Math.random() * 9000));
+
+      if (!user) {
+        isNewUser = true;
+        user = {
+          id: newUserId,
+          username: cleanUser,
+          name: cleanUser[0].toUpperCase() + cleanUser.slice(1),
+          email: verifiedIdentifier.includes('@') ? verifiedIdentifier : (cleanUser + '@wrindhaos.in'),
+          mobile: !verifiedIdentifier.includes('@') ? verifiedIdentifier : null,
+          password: hashPassword('MSG91_OAUTH_' + Date.now()),
+          isEmailVerified: true,
+          focusScore: 85,
+          activeStreak: 1,
+          isPremium: false,
+          referralCode: userRefCode,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          onboardingCompleted: false,
+        };
+        db.users.push(user);
+        getUserSubscription(newUserId);
+
+        db.referralCodes.push({
+          id: 'ref_' + newUserId,
+          userId: newUserId,
+          referralCode: userRefCode,
+          status: 'active',
+          totalCount: 0,
+          createdAt: new Date().toISOString(),
+        });
+
+        const activeReferralCode = (body.referralCode || '').trim().toUpperCase();
+        if (activeReferralCode) {
+          const referrer = db.users.find((u) => (u.referralCode || '').toUpperCase() === activeReferralCode);
+          if (referrer && referrer.id !== newUserId) {
+            db.referralTrackings.push({
+              id: 'rt_' + Date.now(),
+              referrerUserId: referrer.id,
+              referredUserId: newUserId,
+              referralCode: activeReferralCode,
+              signupDate: new Date().toISOString(),
+              eligibilityStatus: 'eligible',
+              conversionStatus: 'signed_up',
+              firstPurchaseStatus: 'pending',
+              rewardStatus: 'issued',
+              rewardIssuedDate: new Date().toISOString(),
+            });
+            const refRecord = db.referralCodes.find((r) => r.userId === referrer.id);
+            if (refRecord) refRecord.totalCount = (refRecord.totalCount || 0) + 1;
+          }
+        }
+        saveDB(db);
+      }
+
+      const token = generateJwtToken(user.id);
+      const sub = getUserSubscription(user.id);
+
+      return sendJSON(res, 200, {
+        success: true,
+        isNewUser,
+        message: 'MSG91 OTP token verified successfully!',
+        token,
+        user: {
+          id: user.id,
+          username: user.username,
+          name: user.name,
+          email: user.email,
+          focusScore: user.focusScore || 85,
+          activeStreak: user.activeStreak || 1,
+          isPremium: sub.plan === 'pro' && sub.status === 'active',
+          subscriptionPlan: sub.plan.toUpperCase(),
+          referralCode: user.referralCode,
+        },
+        subscription: sub,
+        msg91Response: msg91Data,
       });
     }
 
