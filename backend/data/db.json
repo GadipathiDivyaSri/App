@@ -192,7 +192,6 @@
       "updated_at": "2026-09-01T14:17:07.998Z"
     }
   ],
-  "paymentHistory": [],
   "tasks": [],
   "calendarEvents": [],
   "habits": [
@@ -330,9 +329,6 @@
       "updatedAt": "2026-08-30T12:36:07.656Z"
     }
   ],
-  "habitCompletions": [],
-  "habitPausePeriods": [],
-  "habitScheduleHistory": [],
   "subjects": [],
   "studyItems": [],
   "timetable": [],
@@ -340,9 +336,8 @@
   "goals": [],
   "expenses": [],
   "journalEntries": [],
-  "notes": [],
-  "focusSessions": [],
   "milestones": [],
+  "notifications": [],
   "coupons": [
     {
       "id": "c_welcome50",
@@ -493,34 +488,6 @@
       "discountApplied": 24.5,
       "paymentStatus": "success",
       "createdAt": "2026-09-01T14:19:14.694Z"
-    },
-    {
-      "id": "cu_1788273574557",
-      "userId": "u_1788273574482",
-      "couponId": "c_welcome50",
-      "code": "WELCOME50",
-      "date": "2026-09-01T14:39:34.558Z",
-      "validationStatus": "applied",
-      "purchaseStatus": "completed",
-      "productPurchased": "pro_monthly",
-      "purchaseAmount": 24.5,
-      "discountApplied": 24.5,
-      "paymentStatus": "success",
-      "createdAt": "2026-09-01T14:39:34.558Z"
-    },
-    {
-      "id": "cu_1788274509170",
-      "userId": "u_1788274509116",
-      "couponId": "c_welcome50",
-      "code": "WELCOME50",
-      "date": "2026-09-01T14:55:09.170Z",
-      "validationStatus": "applied",
-      "purchaseStatus": "completed",
-      "productPurchased": "pro_monthly",
-      "purchaseAmount": 24.5,
-      "discountApplied": 24.5,
-      "paymentStatus": "success",
-      "createdAt": "2026-09-01T14:55:09.170Z"
     }
   ],
   "referralCodes": [
@@ -608,21 +575,6 @@
       "firstPurchaseDate": "2026-09-01T14:19:03.885Z",
       "purchaseAmount": 49,
       "referrerRewardStatus": "issued"
-    },
-    {
-      "id": "rt_1788273584923",
-      "referrerUserId": "u_1788273584083",
-      "referredUserId": "u_1788273584922",
-      "referralCode": "WOS5050",
-      "signupDate": "2026-09-01T14:39:44.923Z",
-      "eligibilityStatus": "eligible",
-      "conversionStatus": "signed_up",
-      "firstPurchaseStatus": "completed",
-      "rewardStatus": "issued",
-      "rewardIssuedDate": "2026-09-01T14:39:44.923Z",
-      "firstPurchaseDate": "2026-09-01T14:39:44.962Z",
-      "purchaseAmount": 49,
-      "referrerRewardStatus": "issued"
     }
   ],
   "referralRewards": [
@@ -636,33 +588,7 @@
       "createdAt": "2026-09-01T14:19:03.885Z",
       "redeemedAt": "2026-09-01T14:19:03.889Z",
       "redeemedForAmount": 44.1
-    },
-    {
-      "id": "rr_1788273584962_923",
-      "userId": "u_1788273584083",
-      "earnedFromUserId": "u_1788273584922",
-      "discountPercentage": 10,
-      "oneTimeNextBillingOnly": true,
-      "status": "REDEEMED",
-      "createdAt": "2026-09-01T14:39:44.962Z",
-      "redeemedAt": "2026-09-01T14:39:44.966Z",
-      "redeemedForAmount": 44.1
     }
   ],
-  "otpStore": {
-    "audit_user_1788274507463@wrindhaos.in": {
-      "code": "515726",
-      "type": "register",
-      "attempts": 0,
-      "maxAttempts": 5,
-      "createdAt": 1788274507511,
-      "expiresAt": 1788275107511,
-      "lastSentAt": 1788274507511,
-      "pendingUser": {
-        "username": "audit_1788274507463",
-        "email": "audit_user_1788274507463@wrindhaos.in",
-        "passwordHash": "8e19c3396fc3ba3f71b980eecdaa6127:173b4c9434af7631b39a331e87d73ab1d57aeb8b1bee3ac0b71bc6435c6957c5b915f67fd28eb33eb38bc1f4dbac7ea92e23c9f6404179566ed741ce46dd8ff7"
-      }
-    }
-  }
+  "otpStore": {}
 }
