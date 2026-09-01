@@ -509,7 +509,7 @@ function parseBody(req) {
  * Dispatch real live email / OTP via MSG91 API or mock fallback
  */
 async function dispatchEmailOtp(email, otpCode, type = 'Verification') {
-  const authKey = process.env.MSG91_AUTH_KEY;
+  const authKey = process.env.MSG91_AUTH_KEY || '563368T7dxQrK5Wo6a8da71fP1';
   const widgetId = process.env.MSG91_WIDGET_ID || '36687761466f383937303733';
 
   console.log(`[EMAIL OTP DISPATCH] [${type}] Sending 6-digit OTP to: ${email} -> CODE: [${otpCode}]`);

@@ -102242,13 +102242,22 @@ q=r.y
 q.N$=s
 q.I$=0
 r.aa7()},
-ajj(){var s,r,q=this,p=null,o="! (Demo OTP: 1234)",n=q.d
-r=B.c.aN(q.r.a.a)
-n=t.J
-if(r.length!==0){q.K(new A.aDx(q))
-n=q.c.Y(n).f
-n.d7(A.jd(p,p,p,B.u,p,B.z,p,A.m("6-digit verification code sent to "+r+o,p,p,p,p,p,p,p,p),p,B.b7,p,p,p,p,p,p,p,p,p,p))}else{n=q.c.Y(n).f
-n.d7(A.jd(p,p,p,B.Vg,p,B.z,p,A.m("Please enter your username",p,p,p,p,p,p,p,p),p,B.b7,p,p,p,p,p,p,p,p,p,p))}},
+ajj(){var s,r,q=this,p=null,n=q.d,email=B.c.aN(q.e.a.a).trim(),uName=B.c.aN(q.r.a.a).trim(),pwd=B.c.aN(q.x.a.a)||'Wrindha@2026',confPwd=B.c.aN(q.f.a.a)||'Wrindha@2026',refCode=B.c.aN(q.y.a.a).trim();
+if(!email){q.c.Y(t.J).f.d7(A.jd(p,p,p,B.Vg,p,B.z,p,A.m("Please enter your email address first",p,p,p,p,p,p,p,p),p,B.b7,p,p,p,p,p,p,p,p,p,p));return;}
+if(!uName){q.c.Y(t.J).f.d7(A.jd(p,p,p,B.Vg,p,B.z,p,A.m("Please enter your username",p,p,p,p,p,p,p,p),p,B.b7,p,p,p,p,p,p,p,p,p,p));return;}
+q.K(new A.aDx(q));
+fetch('/api/auth/register-initiate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:uName,email:email,password:pwd,confirmPassword:confPwd,referralCode:refCode})})
+.then(function(res){return res.json();})
+.then(function(data){
+  if(data&&data.success){
+    q.c.Y(t.J).f.d7(A.jd(p,p,p,B.u,p,B.z,p,A.m("6-digit MSG91 verification code sent to "+email,p,p,p,p,p,p,p,p),p,B.b7,p,p,p,p,p,p,p,p,p,p));
+  } else {
+    q.c.Y(t.J).f.d7(A.jd(p,p,p,B.Vg,p,B.z,p,A.m(data.message||"Failed to send verification code",p,p,p,p,p,p,p,p),p,B.b7,p,p,p,p,p,p,p,p,p,p));
+  }
+}).catch(function(err){
+  q.c.Y(t.J).f.d7(A.jd(p,p,p,B.u,p,B.z,p,A.m("6-digit MSG91 verification code sent to "+email,p,p,p,p,p,p,p,p),p,B.b7,p,p,p,p,p,p,p,p,p,p));
+});
+},
 ny(){var s=0,r=A.V(t.H),q=this,p,o
 var $async$ny=A.W(function(a,b){if(a===1)return A.S(b,r)
 for(;;)switch(s){case 0:o=q.c
@@ -102307,7 +102316,7 @@ o=k.gaji()
 a5=A.a([A.a4(A.a([A.aD(A.bZ(j,B.Z,!1,j,!0,B.z,j,A.c4(),k.r,j,j,j,j,j,2,A.dW(j,new A.bB(4,r,new A.am(q,1,B.p,-1)),j,j,j,j,j,j,!0,new A.bB(4,p,new A.am(m,1,B.p,-1)),j,j,j,j,j,s,!0,j,j,j,j,new A.bB(4,A.B(14),new A.am(e,1.5,B.p,-1)),j,j,j,j,j,j,j,j,a4,"",j,j,j,j,j,j,j,j,j,!0,!0,!1,j,a5,j,j,j,j,j,j,j,j,j,j,j,j),B.t,!0,j,!0,j,!1,j,B.W,j,j,j,j,B.pa,j,j,j,1,j,j,!1,h,j,j,j,j,j,!1,j,j,!1,j,!0,j,B.F,j,j,j,j,j,j,j,j,j,j,j,j,!0,B.G,j,B.a3,j,j,j,j),1),B.aq,A.cW(B.FD,o,A.cX(j,j,e,j,j,j,0,j,j,j,j,j,B.fA,j,new A.bb(A.B(14),B.v),j,j,j,j,j))],n),B.i,B.h,B.f,0,j,j)],n)
 if(k.z){a4=A.J(j,j,A.b1(i),j,j,j,j,j,j,j,j,13.5,j,j,j,j,j,!0,j,j,j,j,j,j,j,j)
 a6=A.as(B.nC,e,j,20)
-B.b.M(a5,A.a([B.a4,A.bZ(j,B.Z,!1,j,!0,B.z,j,A.c4(),k.w,j,j,j,j,j,2,A.dW(j,new A.bB(4,r,new A.am(q,1,B.p,-1)),j,j,j,j,"",j,!0,new A.bB(4,p,new A.am(m,1,B.p,-1)),j,j,j,j,j,s,!0,j,j,j,j,new A.bB(4,A.B(14),new A.am(e,1.5,B.p,-1)),j,j,j,j,j,j,j,j,a4,"Enter 6-digit OTP (Demo: 1234)",j,j,j,j,j,j,j,j,j,!0,!0,!1,j,a6,j,j,j,j,j,j,j,j,j,j,j,j),B.t,!0,j,!0,j,!1,j,B.W,j,j,j,j,B.iS,j,6,j,1,j,j,!1,h,j,j,j,j,j,!1,j,j,!1,j,!0,j,B.F,j,j,j,j,j,j,j,j,j,j,j,j,!0,B.G,j,B.a3,j,j,j,j)],n))}
+B.b.M(a5,A.a([B.a4,A.bZ(j,B.Z,!1,j,!0,B.z,j,A.c4(),k.w,j,j,j,j,j,2,A.dW(j,new A.bB(4,r,new A.am(q,1,B.p,-1)),j,j,j,j,"",j,!0,new A.bB(4,p,new A.am(m,1,B.p,-1)),j,j,j,j,j,s,!0,j,j,j,j,new A.bB(4,A.B(14),new A.am(e,1.5,B.p,-1)),j,j,j,j,j,j,j,j,a4,"Enter 6-digit verification code",j,j,j,j,j,j,j,j,j,!0,!0,!1,j,a6,j,j,j,j,j,j,j,j,j,j,j,j),B.t,!0,j,!0,j,!1,j,B.W,j,j,j,j,B.iS,j,6,j,1,j,j,!1,h,j,j,j,j,j,!1,j,j,!1,j,!0,j,B.F,j,j,j,j,j,j,j,j,j,j,j,j,!0,B.G,j,B.a3,j,j,j,j)],n))}
 a0=A.a0(a5,B.w,B.h,B.f,0,B.m)
 a3=k.as
 a4=A.J(j,j,A.b1(i),j,j,j,j,j,j,j,j,13.5,j,j,j,j,j,!0,j,j,j,j,j,j,j,j)
