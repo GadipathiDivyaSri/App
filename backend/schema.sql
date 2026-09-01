@@ -1,7 +1,7 @@
 -- =============================================================================
 -- WRINDHAOS - COMPLETE PRODUCTION SUPABASE / POSTGRESQL SCHEMA
 -- Architecture: Supabase Auth + PostgreSQL + Row Level Security
--- Version: 1.0
+-- Version: 2.0 (Includes Units, Topics, Priority Matrix & Eisenhower Matrix)
 --
 -- IMPORTANT:
 -- 1. auth.users is the authentication source of truth.
@@ -50,6 +50,21 @@ END $$;
 
 DO $$ BEGIN
     CREATE TYPE study_status AS ENUM ('pending', 'in_progress', 'completed');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE task_priority AS ENUM ('high', 'medium', 'low', 'none');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE eisenhower_quadrant AS ENUM (
+        'q1_do_first',     -- Urgent & Important (Do First)
+        'q2_schedule',     -- Not Urgent & Important (Schedule / Plan)
+        'q3_delegate',     -- Urgent & Not Important (Delegate)
+        'q4_eliminate'     -- Not Urgent & Not Important (Eliminate)
+    );
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
@@ -108,7 +123,6 @@ CREATE INDEX IF NOT EXISTS idx_profiles_referral_code
 
 -- =============================================================================
 -- SECTION 3: SUBSCRIPTIONS
--- Current subscription state. Historical payment records are stored separately.
 -- =============================================================================
 
 CREATE TABLE IF NOT EXISTS public.subscriptions (
@@ -136,7 +150,6 @@ CREATE INDEX IF NOT EXISTS idx_subscriptions_status
 
 -- =============================================================================
 -- SECTION 4: PAYMENTS
--- All Google Play verification must happen in backend/server.
 -- =============================================================================
 
 CREATE TABLE IF NOT EXISTS public.payments (
@@ -172,7 +185,6 @@ CREATE INDEX IF NOT EXISTS idx_payments_subscription
 
 -- =============================================================================
 -- SECTION 5: REFERRALS & REWARDS
--- One user can be referred only once.
 -- =============================================================================
 
 CREATE TABLE IF NOT EXISTS public.referrals (
@@ -197,7 +209,6 @@ CREATE TABLE IF NOT EXISTS public.referrals (
 
 CREATE INDEX IF NOT EXISTS idx_referrals_referrer
     ON public.referrals(referrer_id);
-
 
 CREATE TABLE IF NOT EXISTS public.referral_rewards (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -229,8 +240,7 @@ CREATE INDEX IF NOT EXISTS idx_referral_rewards_user_status
     ON public.referral_rewards(user_id, status);
 
 -- =============================================================================
--- SECTION 6: COUPONS
--- Coupon creation/redemption business logic should be server controlled.
+-- SECTION 6: COUPONS & USAGES
 -- =============================================================================
 
 CREATE TABLE IF NOT EXISTS public.coupons (
@@ -260,7 +270,6 @@ CREATE TABLE IF NOT EXISTS public.coupons (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-
 CREATE TABLE IF NOT EXISTS public.coupon_usages (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
@@ -283,7 +292,7 @@ CREATE INDEX IF NOT EXISTS idx_coupon_usages_user
     ON public.coupon_usages(user_id);
 
 -- =============================================================================
--- SECTION 7: TASKS / TODO / EISENHOWER MATRIX
+-- SECTION 7: TASKS TABLE
 -- =============================================================================
 
 CREATE TABLE IF NOT EXISTS public.tasks (
@@ -296,11 +305,8 @@ CREATE TABLE IF NOT EXISTS public.tasks (
     description TEXT,
     category VARCHAR(50),
 
-    priority SMALLINT NOT NULL DEFAULT 1
-        CHECK (priority BETWEEN 1 AND 4),
-
-    quadrant SMALLINT
-        CHECK (quadrant BETWEEN 1 AND 4),
+    priority task_priority NOT NULL DEFAULT 'medium',
+    quadrant eisenhower_quadrant DEFAULT 'q1_do_first',
 
     is_completed BOOLEAN NOT NULL DEFAULT FALSE,
     completed_at TIMESTAMPTZ,
@@ -314,8 +320,78 @@ CREATE TABLE IF NOT EXISTS public.tasks (
 CREATE INDEX IF NOT EXISTS idx_tasks_user_due
     ON public.tasks(user_id, due_at);
 
+CREATE INDEX IF NOT EXISTS idx_tasks_priority
+    ON public.tasks(user_id, priority);
+
+CREATE INDEX IF NOT EXISTS idx_tasks_quadrant
+    ON public.tasks(user_id, quadrant);
+
 -- =============================================================================
--- SECTION 8: HABITS
+-- SECTION 7.1: PRIORITY MATRIX TABLE (High Priority, Medium Priority, Low Priority)
+-- =============================================================================
+
+CREATE TABLE IF NOT EXISTS public.priority_matrix (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
+    user_id UUID NOT NULL
+        REFERENCES public.profiles(id) ON DELETE CASCADE,
+
+    task_id UUID
+        REFERENCES public.tasks(id) ON DELETE CASCADE,
+
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+
+    priority task_priority NOT NULL DEFAULT 'high', -- 'high', 'medium', 'low', 'none'
+
+    due_date TIMESTAMPTZ,
+    is_completed BOOLEAN NOT NULL DEFAULT FALSE,
+    completed_at TIMESTAMPTZ,
+
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_priority_matrix_user_priority
+    ON public.priority_matrix(user_id, priority);
+
+-- =============================================================================
+-- SECTION 7.2: EISENHOWER MATRIX TABLE (Q1, Q2, Q3, Q4)
+-- =============================================================================
+
+CREATE TABLE IF NOT EXISTS public.eisenhower_matrix (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
+    user_id UUID NOT NULL
+        REFERENCES public.profiles(id) ON DELETE CASCADE,
+
+    task_id UUID
+        REFERENCES public.tasks(id) ON DELETE CASCADE,
+
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+
+    quadrant eisenhower_quadrant NOT NULL DEFAULT 'q1_do_first',
+    -- q1_do_first: Urgent & Important
+    -- q2_schedule: Not Urgent & Important
+    -- q3_delegate: Urgent & Not Important
+    -- q4_eliminate: Not Urgent & Not Important
+
+    is_urgent BOOLEAN NOT NULL DEFAULT TRUE,
+    is_important BOOLEAN NOT NULL DEFAULT TRUE,
+
+    is_completed BOOLEAN NOT NULL DEFAULT FALSE,
+    completed_at TIMESTAMPTZ,
+
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_eisenhower_matrix_user_quadrant
+    ON public.eisenhower_matrix(user_id, quadrant);
+
+-- =============================================================================
+-- SECTION 8: HABITS & COMPLETIONS
 -- =============================================================================
 
 CREATE TABLE IF NOT EXISTS public.habits (
@@ -351,7 +427,6 @@ CREATE TABLE IF NOT EXISTS public.habits (
 CREATE INDEX IF NOT EXISTS idx_habits_user_status
     ON public.habits(user_id, status);
 
-
 CREATE TABLE IF NOT EXISTS public.habit_completions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
@@ -373,7 +448,6 @@ CREATE TABLE IF NOT EXISTS public.habit_completions (
 
 CREATE INDEX IF NOT EXISTS idx_habit_completions_user_date
     ON public.habit_completions(user_id, completion_date);
-
 
 CREATE TABLE IF NOT EXISTS public.habit_pause_periods (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -424,9 +498,10 @@ CREATE INDEX IF NOT EXISTS idx_calendar_events_user_date
     ON public.calendar_events(user_id, event_date);
 
 -- =============================================================================
--- SECTION 10: SUBJECTS / STUDY PLANNER / TIMETABLE
+-- SECTION 10: ACADEMICS - SUBJECTS, UNITS & TOPICS HIERARCHY
 -- =============================================================================
 
+-- 10.1 SUBJECTS TABLE
 CREATE TABLE IF NOT EXISTS public.subjects (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
@@ -447,12 +522,82 @@ CREATE TABLE IF NOT EXISTS public.subjects (
 CREATE INDEX IF NOT EXISTS idx_subjects_user
     ON public.subjects(user_id);
 
+-- 10.2 STUDY UNITS TABLE (e.g. Unit 1: Thermodynamics, Unit 2: Kinematics)
+CREATE TABLE IF NOT EXISTS public.study_units (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
+    subject_id UUID NOT NULL
+        REFERENCES public.subjects(id) ON DELETE CASCADE,
+
+    user_id UUID NOT NULL
+        REFERENCES public.profiles(id) ON DELETE CASCADE,
+
+    unit_number INTEGER NOT NULL DEFAULT 1,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+
+    progress NUMERIC(5,2) NOT NULL DEFAULT 0.00
+        CHECK (progress >= 0 AND progress <= 100),
+
+    status study_status NOT NULL DEFAULT 'pending',
+
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_study_units_subject
+    ON public.study_units(subject_id);
+
+-- 10.3 STUDY TOPICS TABLE (e.g. Carnot Engine, Entropy, Newton's Laws)
+CREATE TABLE IF NOT EXISTS public.study_topics (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
+    unit_id UUID NOT NULL
+        REFERENCES public.study_units(id) ON DELETE CASCADE,
+
+    subject_id UUID NOT NULL
+        REFERENCES public.subjects(id) ON DELETE CASCADE,
+
+    user_id UUID NOT NULL
+        REFERENCES public.profiles(id) ON DELETE CASCADE,
+
+    topic_number INTEGER NOT NULL DEFAULT 1,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+
+    estimated_minutes INTEGER DEFAULT 30
+        CHECK (estimated_minutes IS NULL OR estimated_minutes >= 0),
+
+    completed_minutes INTEGER NOT NULL DEFAULT 0
+        CHECK (completed_minutes >= 0),
+
+    is_completed BOOLEAN NOT NULL DEFAULT FALSE,
+    completed_at TIMESTAMPTZ,
+
+    status study_status NOT NULL DEFAULT 'pending',
+
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_study_topics_unit
+    ON public.study_topics(unit_id);
+
+CREATE INDEX IF NOT EXISTS idx_study_topics_subject
+    ON public.study_topics(subject_id);
+
+-- 10.4 STUDY ITEMS (Assignments, Exams, Study Tasks)
 CREATE TABLE IF NOT EXISTS public.study_items (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
     subject_id UUID NOT NULL
         REFERENCES public.subjects(id) ON DELETE CASCADE,
+
+    unit_id UUID
+        REFERENCES public.study_units(id) ON DELETE SET NULL,
+
+    topic_id UUID
+        REFERENCES public.study_topics(id) ON DELETE SET NULL,
 
     user_id UUID NOT NULL
         REFERENCES public.profiles(id) ON DELETE CASCADE,
@@ -467,9 +612,7 @@ CREATE TABLE IF NOT EXISTS public.study_items (
         CHECK (completed_minutes >= 0),
 
     status study_status NOT NULL DEFAULT 'pending',
-
-    priority SMALLINT
-        CHECK (priority BETWEEN 1 AND 4),
+    priority task_priority NOT NULL DEFAULT 'medium',
 
     due_at TIMESTAMPTZ,
 
@@ -480,7 +623,7 @@ CREATE TABLE IF NOT EXISTS public.study_items (
 CREATE INDEX IF NOT EXISTS idx_study_items_user
     ON public.study_items(user_id);
 
-
+-- 10.5 TIMETABLE
 CREATE TABLE IF NOT EXISTS public.timetable (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
@@ -559,7 +702,6 @@ CREATE TABLE IF NOT EXISTS public.journal_entries (
 CREATE INDEX IF NOT EXISTS idx_journal_entries_user_date
     ON public.journal_entries(user_id, entry_date);
 
-
 CREATE TABLE IF NOT EXISTS public.notes (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
@@ -633,7 +775,6 @@ CREATE TABLE IF NOT EXISTS public.goals (
 
 CREATE INDEX IF NOT EXISTS idx_goals_user
     ON public.goals(user_id);
-
 
 CREATE TABLE IF NOT EXISTS public.milestones (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -717,6 +858,16 @@ CREATE TRIGGER trg_tasks_updated_at
 BEFORE UPDATE ON public.tasks
 FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
+DROP TRIGGER IF EXISTS trg_priority_matrix_updated_at ON public.priority_matrix;
+CREATE TRIGGER trg_priority_matrix_updated_at
+BEFORE UPDATE ON public.priority_matrix
+FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+DROP TRIGGER IF EXISTS trg_eisenhower_matrix_updated_at ON public.eisenhower_matrix;
+CREATE TRIGGER trg_eisenhower_matrix_updated_at
+BEFORE UPDATE ON public.eisenhower_matrix
+FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
 DROP TRIGGER IF EXISTS trg_habits_updated_at ON public.habits;
 CREATE TRIGGER trg_habits_updated_at
 BEFORE UPDATE ON public.habits
@@ -730,6 +881,16 @@ FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 DROP TRIGGER IF EXISTS trg_subjects_updated_at ON public.subjects;
 CREATE TRIGGER trg_subjects_updated_at
 BEFORE UPDATE ON public.subjects
+FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+DROP TRIGGER IF EXISTS trg_study_units_updated_at ON public.study_units;
+CREATE TRIGGER trg_study_units_updated_at
+BEFORE UPDATE ON public.study_units
+FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+DROP TRIGGER IF EXISTS trg_study_topics_updated_at ON public.study_topics;
+CREATE TRIGGER trg_study_topics_updated_at
+BEFORE UPDATE ON public.study_topics
 FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
 DROP TRIGGER IF EXISTS trg_study_items_updated_at ON public.study_items;
@@ -768,17 +929,7 @@ BEFORE UPDATE ON public.career_nodes
 FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
 -- =============================================================================
--- SECTION 17: AUTOMATIC PROFILE + FREE SUBSCRIPTION CREATION
---
--- REQUIRED SIGNUP METADATA:
--- username
--- name
--- referral_code (optional; generated if missing)
--- terms_accepted
--- terms_version
---
--- IMPORTANT:
--- This trigger runs after auth.users creation.
+-- SECTION 17: AUTOMATIC PROFILE + FREE SUBSCRIPTION CREATION TRIGGER
 -- =============================================================================
 
 CREATE OR REPLACE FUNCTION public.handle_new_user()
@@ -866,13 +1017,20 @@ ALTER TABLE public.coupons ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.coupon_usages ENABLE ROW LEVEL SECURITY;
 
 ALTER TABLE public.tasks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.priority_matrix ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.eisenhower_matrix ENABLE ROW LEVEL SECURITY;
+
 ALTER TABLE public.habits ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.habit_completions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.habit_pause_periods ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.calendar_events ENABLE ROW LEVEL SECURITY;
+
 ALTER TABLE public.subjects ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.study_units ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.study_topics ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.study_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.timetable ENABLE ROW LEVEL SECURITY;
+
 ALTER TABLE public.expenses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.journal_entries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.notes ENABLE ROW LEVEL SECURITY;
@@ -899,8 +1057,7 @@ USING (id = auth.uid())
 WITH CHECK (id = auth.uid());
 
 -- =============================================================================
--- SECTION 20: USER READ-ONLY BUSINESS DATA RLS
--- Payments and subscription state are written by secure backend/service role.
+-- SECTION 20: BUSINESS DATA RLS (Read-only for users)
 -- =============================================================================
 
 DROP POLICY IF EXISTS "subscriptions_select_own" ON public.subscriptions;
@@ -947,309 +1104,95 @@ USING (
 );
 
 -- =============================================================================
--- SECTION 21: PRIVATE OWNER-ONLY DATA RLS
--- Explicit SELECT / INSERT / UPDATE / DELETE policies.
--- No admin bypass exists in these policies.
+-- SECTION 21: PRIVATE OWNER-ONLY PRODUCTIVITY DATA RLS
+-- (Strictly owner-only: zero admin visibility)
 -- =============================================================================
 
 -- TASKS
-DROP POLICY IF EXISTS "tasks_owner_select" ON public.tasks;
-DROP POLICY IF EXISTS "tasks_owner_insert" ON public.tasks;
-DROP POLICY IF EXISTS "tasks_owner_update" ON public.tasks;
-DROP POLICY IF EXISTS "tasks_owner_delete" ON public.tasks;
+DROP POLICY IF EXISTS "tasks_owner_all" ON public.tasks;
+CREATE POLICY "tasks_owner_all" ON public.tasks FOR ALL TO authenticated
+USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
 
-CREATE POLICY "tasks_owner_select" ON public.tasks
-FOR SELECT TO authenticated USING (user_id = auth.uid());
+-- PRIORITY MATRIX (High / Medium / Low / None)
+DROP POLICY IF EXISTS "priority_matrix_owner_all" ON public.priority_matrix;
+CREATE POLICY "priority_matrix_owner_all" ON public.priority_matrix FOR ALL TO authenticated
+USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
 
-CREATE POLICY "tasks_owner_insert" ON public.tasks
-FOR INSERT TO authenticated WITH CHECK (user_id = auth.uid());
+-- EISENHOWER MATRIX (Q1, Q2, Q3, Q4)
+DROP POLICY IF EXISTS "eisenhower_matrix_owner_all" ON public.eisenhower_matrix;
+CREATE POLICY "eisenhower_matrix_owner_all" ON public.eisenhower_matrix FOR ALL TO authenticated
+USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
 
-CREATE POLICY "tasks_owner_update" ON public.tasks
-FOR UPDATE TO authenticated
-USING (user_id = auth.uid())
-WITH CHECK (user_id = auth.uid());
+-- HABITS & COMPLETIONS
+DROP POLICY IF EXISTS "habits_owner_all" ON public.habits;
+CREATE POLICY "habits_owner_all" ON public.habits FOR ALL TO authenticated
+USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
 
-CREATE POLICY "tasks_owner_delete" ON public.tasks
-FOR DELETE TO authenticated USING (user_id = auth.uid());
+DROP POLICY IF EXISTS "habit_completions_owner_all" ON public.habit_completions;
+CREATE POLICY "habit_completions_owner_all" ON public.habit_completions FOR ALL TO authenticated
+USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
 
--- HABITS
-DROP POLICY IF EXISTS "habits_owner_select" ON public.habits;
-DROP POLICY IF EXISTS "habits_owner_insert" ON public.habits;
-DROP POLICY IF EXISTS "habits_owner_update" ON public.habits;
-DROP POLICY IF EXISTS "habits_owner_delete" ON public.habits;
-
-CREATE POLICY "habits_owner_select" ON public.habits
-FOR SELECT TO authenticated USING (user_id = auth.uid());
-
-CREATE POLICY "habits_owner_insert" ON public.habits
-FOR INSERT TO authenticated WITH CHECK (user_id = auth.uid());
-
-CREATE POLICY "habits_owner_update" ON public.habits
-FOR UPDATE TO authenticated
-USING (user_id = auth.uid())
-WITH CHECK (user_id = auth.uid());
-
-CREATE POLICY "habits_owner_delete" ON public.habits
-FOR DELETE TO authenticated USING (user_id = auth.uid());
-
--- HABIT COMPLETIONS
-DROP POLICY IF EXISTS "habit_completions_owner_select" ON public.habit_completions;
-DROP POLICY IF EXISTS "habit_completions_owner_insert" ON public.habit_completions;
-DROP POLICY IF EXISTS "habit_completions_owner_update" ON public.habit_completions;
-DROP POLICY IF EXISTS "habit_completions_owner_delete" ON public.habit_completions;
-
-CREATE POLICY "habit_completions_owner_select" ON public.habit_completions
-FOR SELECT TO authenticated USING (user_id = auth.uid());
-
-CREATE POLICY "habit_completions_owner_insert" ON public.habit_completions
-FOR INSERT TO authenticated WITH CHECK (user_id = auth.uid());
-
-CREATE POLICY "habit_completions_owner_update" ON public.habit_completions
-FOR UPDATE TO authenticated
-USING (user_id = auth.uid())
-WITH CHECK (user_id = auth.uid());
-
-CREATE POLICY "habit_completions_owner_delete" ON public.habit_completions
-FOR DELETE TO authenticated USING (user_id = auth.uid());
-
--- HABIT PAUSES
-DROP POLICY IF EXISTS "habit_pauses_owner_select" ON public.habit_pause_periods;
-DROP POLICY IF EXISTS "habit_pauses_owner_insert" ON public.habit_pause_periods;
-DROP POLICY IF EXISTS "habit_pauses_owner_update" ON public.habit_pause_periods;
-DROP POLICY IF EXISTS "habit_pauses_owner_delete" ON public.habit_pause_periods;
-
-CREATE POLICY "habit_pauses_owner_select" ON public.habit_pause_periods
-FOR SELECT TO authenticated USING (user_id = auth.uid());
-
-CREATE POLICY "habit_pauses_owner_insert" ON public.habit_pause_periods
-FOR INSERT TO authenticated WITH CHECK (user_id = auth.uid());
-
-CREATE POLICY "habit_pauses_owner_update" ON public.habit_pause_periods
-FOR UPDATE TO authenticated
-USING (user_id = auth.uid())
-WITH CHECK (user_id = auth.uid());
-
-CREATE POLICY "habit_pauses_owner_delete" ON public.habit_pause_periods
-FOR DELETE TO authenticated USING (user_id = auth.uid());
+DROP POLICY IF EXISTS "habit_pauses_owner_all" ON public.habit_pause_periods;
+CREATE POLICY "habit_pauses_owner_all" ON public.habit_pause_periods FOR ALL TO authenticated
+USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
 
 -- CALENDAR
-DROP POLICY IF EXISTS "calendar_owner_select" ON public.calendar_events;
-DROP POLICY IF EXISTS "calendar_owner_insert" ON public.calendar_events;
-DROP POLICY IF EXISTS "calendar_owner_update" ON public.calendar_events;
-DROP POLICY IF EXISTS "calendar_owner_delete" ON public.calendar_events;
+DROP POLICY IF EXISTS "calendar_owner_all" ON public.calendar_events;
+CREATE POLICY "calendar_owner_all" ON public.calendar_events FOR ALL TO authenticated
+USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
 
-CREATE POLICY "calendar_owner_select" ON public.calendar_events
-FOR SELECT TO authenticated USING (user_id = auth.uid());
+-- SUBJECTS, UNITS & TOPICS
+DROP POLICY IF EXISTS "subjects_owner_all" ON public.subjects;
+CREATE POLICY "subjects_owner_all" ON public.subjects FOR ALL TO authenticated
+USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
 
-CREATE POLICY "calendar_owner_insert" ON public.calendar_events
-FOR INSERT TO authenticated WITH CHECK (user_id = auth.uid());
+DROP POLICY IF EXISTS "study_units_owner_all" ON public.study_units;
+CREATE POLICY "study_units_owner_all" ON public.study_units FOR ALL TO authenticated
+USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
 
-CREATE POLICY "calendar_owner_update" ON public.calendar_events
-FOR UPDATE TO authenticated
-USING (user_id = auth.uid())
-WITH CHECK (user_id = auth.uid());
+DROP POLICY IF EXISTS "study_topics_owner_all" ON public.study_topics;
+CREATE POLICY "study_topics_owner_all" ON public.study_topics FOR ALL TO authenticated
+USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
 
-CREATE POLICY "calendar_owner_delete" ON public.calendar_events
-FOR DELETE TO authenticated USING (user_id = auth.uid());
+DROP POLICY IF EXISTS "study_items_owner_all" ON public.study_items;
+CREATE POLICY "study_items_owner_all" ON public.study_items FOR ALL TO authenticated
+USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
 
--- SUBJECTS
-DROP POLICY IF EXISTS "subjects_owner_select" ON public.subjects;
-DROP POLICY IF EXISTS "subjects_owner_insert" ON public.subjects;
-DROP POLICY IF EXISTS "subjects_owner_update" ON public.subjects;
-DROP POLICY IF EXISTS "subjects_owner_delete" ON public.subjects;
-
-CREATE POLICY "subjects_owner_select" ON public.subjects
-FOR SELECT TO authenticated USING (user_id = auth.uid());
-
-CREATE POLICY "subjects_owner_insert" ON public.subjects
-FOR INSERT TO authenticated WITH CHECK (user_id = auth.uid());
-
-CREATE POLICY "subjects_owner_update" ON public.subjects
-FOR UPDATE TO authenticated
-USING (user_id = auth.uid())
-WITH CHECK (user_id = auth.uid());
-
-CREATE POLICY "subjects_owner_delete" ON public.subjects
-FOR DELETE TO authenticated USING (user_id = auth.uid());
-
--- STUDY ITEMS
-DROP POLICY IF EXISTS "study_items_owner_select" ON public.study_items;
-DROP POLICY IF EXISTS "study_items_owner_insert" ON public.study_items;
-DROP POLICY IF EXISTS "study_items_owner_update" ON public.study_items;
-DROP POLICY IF EXISTS "study_items_owner_delete" ON public.study_items;
-
-CREATE POLICY "study_items_owner_select" ON public.study_items
-FOR SELECT TO authenticated USING (user_id = auth.uid());
-
-CREATE POLICY "study_items_owner_insert" ON public.study_items
-FOR INSERT TO authenticated WITH CHECK (user_id = auth.uid());
-
-CREATE POLICY "study_items_owner_update" ON public.study_items
-FOR UPDATE TO authenticated
-USING (user_id = auth.uid())
-WITH CHECK (user_id = auth.uid());
-
-CREATE POLICY "study_items_owner_delete" ON public.study_items
-FOR DELETE TO authenticated USING (user_id = auth.uid());
-
--- TIMETABLE
-DROP POLICY IF EXISTS "timetable_owner_select" ON public.timetable;
-DROP POLICY IF EXISTS "timetable_owner_insert" ON public.timetable;
-DROP POLICY IF EXISTS "timetable_owner_update" ON public.timetable;
-DROP POLICY IF EXISTS "timetable_owner_delete" ON public.timetable;
-
-CREATE POLICY "timetable_owner_select" ON public.timetable
-FOR SELECT TO authenticated USING (user_id = auth.uid());
-
-CREATE POLICY "timetable_owner_insert" ON public.timetable
-FOR INSERT TO authenticated WITH CHECK (user_id = auth.uid());
-
-CREATE POLICY "timetable_owner_update" ON public.timetable
-FOR UPDATE TO authenticated
-USING (user_id = auth.uid())
-WITH CHECK (user_id = auth.uid());
-
-CREATE POLICY "timetable_owner_delete" ON public.timetable
-FOR DELETE TO authenticated USING (user_id = auth.uid());
+DROP POLICY IF EXISTS "timetable_owner_all" ON public.timetable;
+CREATE POLICY "timetable_owner_all" ON public.timetable FOR ALL TO authenticated
+USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
 
 -- EXPENSES
-DROP POLICY IF EXISTS "expenses_owner_select" ON public.expenses;
-DROP POLICY IF EXISTS "expenses_owner_insert" ON public.expenses;
-DROP POLICY IF EXISTS "expenses_owner_update" ON public.expenses;
-DROP POLICY IF EXISTS "expenses_owner_delete" ON public.expenses;
+DROP POLICY IF EXISTS "expenses_owner_all" ON public.expenses;
+CREATE POLICY "expenses_owner_all" ON public.expenses FOR ALL TO authenticated
+USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
 
-CREATE POLICY "expenses_owner_select" ON public.expenses
-FOR SELECT TO authenticated USING (user_id = auth.uid());
+-- JOURNAL & NOTES
+DROP POLICY IF EXISTS "journal_owner_all" ON public.journal_entries;
+CREATE POLICY "journal_owner_all" ON public.journal_entries FOR ALL TO authenticated
+USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
 
-CREATE POLICY "expenses_owner_insert" ON public.expenses
-FOR INSERT TO authenticated WITH CHECK (user_id = auth.uid());
-
-CREATE POLICY "expenses_owner_update" ON public.expenses
-FOR UPDATE TO authenticated
-USING (user_id = auth.uid())
-WITH CHECK (user_id = auth.uid());
-
-CREATE POLICY "expenses_owner_delete" ON public.expenses
-FOR DELETE TO authenticated USING (user_id = auth.uid());
-
--- JOURNAL
-DROP POLICY IF EXISTS "journal_owner_select" ON public.journal_entries;
-DROP POLICY IF EXISTS "journal_owner_insert" ON public.journal_entries;
-DROP POLICY IF EXISTS "journal_owner_update" ON public.journal_entries;
-DROP POLICY IF EXISTS "journal_owner_delete" ON public.journal_entries;
-
-CREATE POLICY "journal_owner_select" ON public.journal_entries
-FOR SELECT TO authenticated USING (user_id = auth.uid());
-
-CREATE POLICY "journal_owner_insert" ON public.journal_entries
-FOR INSERT TO authenticated WITH CHECK (user_id = auth.uid());
-
-CREATE POLICY "journal_owner_update" ON public.journal_entries
-FOR UPDATE TO authenticated
-USING (user_id = auth.uid())
-WITH CHECK (user_id = auth.uid());
-
-CREATE POLICY "journal_owner_delete" ON public.journal_entries
-FOR DELETE TO authenticated USING (user_id = auth.uid());
-
--- NOTES
-DROP POLICY IF EXISTS "notes_owner_select" ON public.notes;
-DROP POLICY IF EXISTS "notes_owner_insert" ON public.notes;
-DROP POLICY IF EXISTS "notes_owner_update" ON public.notes;
-DROP POLICY IF EXISTS "notes_owner_delete" ON public.notes;
-
-CREATE POLICY "notes_owner_select" ON public.notes
-FOR SELECT TO authenticated USING (user_id = auth.uid());
-
-CREATE POLICY "notes_owner_insert" ON public.notes
-FOR INSERT TO authenticated WITH CHECK (user_id = auth.uid());
-
-CREATE POLICY "notes_owner_update" ON public.notes
-FOR UPDATE TO authenticated
-USING (user_id = auth.uid())
-WITH CHECK (user_id = auth.uid());
-
-CREATE POLICY "notes_owner_delete" ON public.notes
-FOR DELETE TO authenticated USING (user_id = auth.uid());
+DROP POLICY IF EXISTS "notes_owner_all" ON public.notes;
+CREATE POLICY "notes_owner_all" ON public.notes FOR ALL TO authenticated
+USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
 
 -- FOCUS SESSIONS
-DROP POLICY IF EXISTS "focus_owner_select" ON public.focus_sessions;
-DROP POLICY IF EXISTS "focus_owner_insert" ON public.focus_sessions;
-DROP POLICY IF EXISTS "focus_owner_update" ON public.focus_sessions;
-DROP POLICY IF EXISTS "focus_owner_delete" ON public.focus_sessions;
+DROP POLICY IF EXISTS "focus_owner_all" ON public.focus_sessions;
+CREATE POLICY "focus_owner_all" ON public.focus_sessions FOR ALL TO authenticated
+USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
 
-CREATE POLICY "focus_owner_select" ON public.focus_sessions
-FOR SELECT TO authenticated USING (user_id = auth.uid());
+-- GOALS & MILESTONES
+DROP POLICY IF EXISTS "goals_owner_all" ON public.goals;
+CREATE POLICY "goals_owner_all" ON public.goals FOR ALL TO authenticated
+USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
 
-CREATE POLICY "focus_owner_insert" ON public.focus_sessions
-FOR INSERT TO authenticated WITH CHECK (user_id = auth.uid());
-
-CREATE POLICY "focus_owner_update" ON public.focus_sessions
-FOR UPDATE TO authenticated
-USING (user_id = auth.uid())
-WITH CHECK (user_id = auth.uid());
-
-CREATE POLICY "focus_owner_delete" ON public.focus_sessions
-FOR DELETE TO authenticated USING (user_id = auth.uid());
-
--- GOALS
-DROP POLICY IF EXISTS "goals_owner_select" ON public.goals;
-DROP POLICY IF EXISTS "goals_owner_insert" ON public.goals;
-DROP POLICY IF EXISTS "goals_owner_update" ON public.goals;
-DROP POLICY IF EXISTS "goals_owner_delete" ON public.goals;
-
-CREATE POLICY "goals_owner_select" ON public.goals
-FOR SELECT TO authenticated USING (user_id = auth.uid());
-
-CREATE POLICY "goals_owner_insert" ON public.goals
-FOR INSERT TO authenticated WITH CHECK (user_id = auth.uid());
-
-CREATE POLICY "goals_owner_update" ON public.goals
-FOR UPDATE TO authenticated
-USING (user_id = auth.uid())
-WITH CHECK (user_id = auth.uid());
-
-CREATE POLICY "goals_owner_delete" ON public.goals
-FOR DELETE TO authenticated USING (user_id = auth.uid());
-
--- MILESTONES
-DROP POLICY IF EXISTS "milestones_owner_select" ON public.milestones;
-DROP POLICY IF EXISTS "milestones_owner_insert" ON public.milestones;
-DROP POLICY IF EXISTS "milestones_owner_update" ON public.milestones;
-DROP POLICY IF EXISTS "milestones_owner_delete" ON public.milestones;
-
-CREATE POLICY "milestones_owner_select" ON public.milestones
-FOR SELECT TO authenticated USING (user_id = auth.uid());
-
-CREATE POLICY "milestones_owner_insert" ON public.milestones
-FOR INSERT TO authenticated WITH CHECK (user_id = auth.uid());
-
-CREATE POLICY "milestones_owner_update" ON public.milestones
-FOR UPDATE TO authenticated
-USING (user_id = auth.uid())
-WITH CHECK (user_id = auth.uid());
-
-CREATE POLICY "milestones_owner_delete" ON public.milestones
-FOR DELETE TO authenticated USING (user_id = auth.uid());
+DROP POLICY IF EXISTS "milestones_owner_all" ON public.milestones;
+CREATE POLICY "milestones_owner_all" ON public.milestones FOR ALL TO authenticated
+USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
 
 -- CAREER NODES
-DROP POLICY IF EXISTS "career_nodes_owner_select" ON public.career_nodes;
-DROP POLICY IF EXISTS "career_nodes_owner_insert" ON public.career_nodes;
-DROP POLICY IF EXISTS "career_nodes_owner_update" ON public.career_nodes;
-DROP POLICY IF EXISTS "career_nodes_owner_delete" ON public.career_nodes;
-
-CREATE POLICY "career_nodes_owner_select" ON public.career_nodes
-FOR SELECT TO authenticated USING (user_id = auth.uid());
-
-CREATE POLICY "career_nodes_owner_insert" ON public.career_nodes
-FOR INSERT TO authenticated WITH CHECK (user_id = auth.uid());
-
-CREATE POLICY "career_nodes_owner_update" ON public.career_nodes
-FOR UPDATE TO authenticated
-USING (user_id = auth.uid())
-WITH CHECK (user_id = auth.uid());
-
-CREATE POLICY "career_nodes_owner_delete" ON public.career_nodes
-FOR DELETE TO authenticated USING (user_id = auth.uid());
+DROP POLICY IF EXISTS "career_nodes_owner_all" ON public.career_nodes;
+CREATE POLICY "career_nodes_owner_all" ON public.career_nodes FOR ALL TO authenticated
+USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
 
 COMMIT;
