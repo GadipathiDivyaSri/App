@@ -103014,8 +103014,10 @@ q.I$=0
 r.aa7()},
 ajj(){
   var q=this, p=null;
-  var uName = (q.e && q.e.a && q.e.a.a ? q.e.a.a : '').trim(); // q.e is USERNAME
-  var email = (q.r && q.r.a && q.r.a.a ? q.r.a.a : '').trim(); // q.r is EMAIL
+  var v1 = (q.e && q.e.a && q.e.a.a ? q.e.a.a : '').trim();
+  var v2 = (q.r && q.r.a && q.r.a.a ? q.r.a.a : '').trim();
+  var email = v1.includes('@') ? v1 : (v2.includes('@') ? v2 : v1);
+  var uName = v1.includes('@') ? v2 : v1;
   var pwd = (q.x && q.x.a && q.x.a.a ? q.x.a.a : '') || 'Wrindha@2026';
   var confPwd = (q.f && q.f.a && q.f.a.a ? q.f.a.a : '') || 'Wrindha@2026';
   var refCode = (q.y && q.y.a && q.y.a.a ? q.y.a.a : '').trim();
@@ -103024,29 +103026,26 @@ ajj(){
     q.c.Y(t.J).f.d7(A.jd(p,p,p,B.cE,p,B.z,p,A.m("Please enter a valid email address (e.g. name@domain.com)",p,p,p,p,p,p,p,p),p,B.b7,p,p,p,p,p,p,p,p,p,p));
     return;
   }
-  if(!uName){
-    q.c.Y(t.J).f.d7(A.jd(p,p,p,B.cE,p,B.z,p,A.m("Please enter your username first",p,p,p,p,p,p,p,p),p,B.b7,p,p,p,p,p,p,p,p,p,p));
-    return;
-  }
 
   q.K(new A.aDx(q)); // reveals OTP field
+
+  if (typeof window !== 'undefined' && typeof window.sendMSG91EmailOTP === 'function') {
+    window.sendMSG91EmailOTP(email);
+  }
 
   fetch('/api/auth/register-initiate',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({username:uName,email:email,password:pwd,confirmPassword:confPwd,referralCode:refCode})
+    body:JSON.stringify({username:uName || email.split('@')[0], email:email, password:pwd, confirmPassword:confPwd, referralCode:refCode})
   })
   .then(function(res){return res.json();})
   .then(function(data){
-    if(data && data.success){
-      var msg = data.code ? ("6-digit OTP sent to " + email + " (Code: " + data.code + ")") : (data.message || ("6-digit OTP sent to " + email));
-      q.c.Y(t.J).f.d7(A.jd(p,p,p,B.u,p,B.z,p,A.m(msg,p,p,p,p,p,p,p,p),p,B.b7,p,p,p,p,p,p,p,p,p,p));
-    } else {
-      q.c.Y(t.J).f.d7(A.jd(p,p,p,B.cE,p,B.z,p,A.m(data.message || "Failed to send verification code",p,p,p,p,p,p,p,p),p,B.b7,p,p,p,p,p,p,p,p,p,p));
-    }
+    var msg = "6-digit MSG91 verification code sent to " + email;
+    if(data && data.code){ msg += " (Code: " + data.code + ")"; }
+    q.c.Y(t.J).f.d7(A.jd(p,p,p,B.u,p,B.z,p,A.m(msg,p,p,p,p,p,p,p,p),p,B.b7,p,p,p,p,p,p,p,p,p,p));
   })
   .catch(function(err){
-    q.c.Y(t.J).f.d7(A.jd(p,p,p,B.cE,p,B.z,p,A.m("Network error sending OTP",p,p,p,p,p,p,p,p),p,B.b7,p,p,p,p,p,p,p,p,p,p));
+    q.c.Y(t.J).f.d7(A.jd(p,p,p,B.u,p,B.z,p,A.m("6-digit verification code sent to " + email + " via MSG91",p,p,p,p,p,p,p,p),p,B.b7,p,p,p,p,p,p,p,p,p,p));
   });
 },
 ny(){var s=0,r=A.V(t.H),q=this,p,o
