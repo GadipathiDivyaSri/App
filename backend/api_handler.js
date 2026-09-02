@@ -23,6 +23,7 @@ try {
   }
 } catch (e) {}
 
+const { supabase, isConfigured: isSupabaseConfigured } = require('./supabase_client');
 const DB_FILE = path.join(__dirname, 'data', 'db.json');
 const DB_TMP_FILE = path.join(__dirname, 'data', '.db.json.tmp');
 const JWT_SECRET = process.env.JWT_SECRET || 'wrindhaos_prod_secret_key_2026_super_secure';
@@ -253,6 +254,105 @@ setInterval(() => {
     console.log(`[GC WORKER] Pruned ${keysRemoved} expired OTP entries from memory.`);
   }
 }, 5 * 60 * 1000); // Runs every 5 minutes
+
+
+// -----------------------------------------------------------------------------
+// SUPABASE REALTIME CLOUD DATABASE SYNCHRONIZER
+// -----------------------------------------------------------------------------
+async function syncUserToSupabase(user) {
+  if (!isSupabaseConfigured() || !supabase || !user) return;
+  try {
+    const { error } = await supabase.from('user_profiles').upsert({
+      user_id: user.id,
+      username: user.username || user.email.split('@')[0],
+      email: user.email,
+      display_name: user.name || user.username || 'Student User',
+      subscription_plan: (user.subscriptionPlan || 'FREE').toUpperCase(),
+      focus_score: user.focusScore || 85,
+      active_streak: user.activeStreak || 1,
+      referral_code: user.referralCode || ('WOS' + Math.floor(1000 + Math.random() * 9000)),
+      is_premium: !!user.isPremium,
+    });
+    if (error) console.warn('[SUPABASE SYNC USER ERROR]:', error.message);
+    else console.log('[SUPABASE CLOUD SYNC] User Profile synced:', user.email);
+  } catch (err) {
+    console.warn('[SUPABASE SYNC USER EXCEPTION]:', err.message);
+  }
+}
+
+async function syncHabitToSupabase(habit) {
+  if (!isSupabaseConfigured() || !supabase || !habit) return;
+  try {
+    const { error } = await supabase.from('habits').upsert({
+      id: habit.id,
+      user_id: habit.userId,
+      title: habit.title,
+      category: habit.category || 'General',
+      frequency: habit.frequency || 'DAILY',
+      streak_day: habit.streakDay || 0,
+      status: habit.status || 'active',
+    });
+    if (error) console.warn('[SUPABASE SYNC HABIT ERROR]:', error.message);
+    else console.log('[SUPABASE CLOUD SYNC] Habit synced:', habit.title);
+  } catch (err) {
+    console.warn('[SUPABASE SYNC HABIT EXCEPTION]:', err.message);
+  }
+}
+
+async function syncTaskToSupabase(task) {
+  if (!isSupabaseConfigured() || !supabase || !task) return;
+  try {
+    const { error } = await supabase.from('tasks').upsert({
+      id: task.id,
+      user_id: task.userId,
+      title: task.title,
+      category: task.category || 'Studies',
+      due_date: task.dueDate || new Date().toISOString(),
+      is_completed: !!task.isCompleted,
+    });
+    if (error) console.warn('[SUPABASE SYNC TASK ERROR]:', error.message);
+    else console.log('[SUPABASE CLOUD SYNC] Task synced:', task.title);
+  } catch (err) {
+    console.warn('[SUPABASE SYNC TASK EXCEPTION]:', err.message);
+  }
+}
+
+async function syncExpenseToSupabase(expense) {
+  if (!isSupabaseConfigured() || !supabase || !expense) return;
+  try {
+    const { error } = await supabase.from('expenses').upsert({
+      id: expense.id,
+      user_id: expense.userId,
+      title: expense.title,
+      category: expense.category || 'General',
+      amount: Number(expense.amount) || 0,
+      is_income: !!expense.isIncome,
+      date: expense.date || new Date().toISOString(),
+    });
+    if (error) console.warn('[SUPABASE SYNC EXPENSE ERROR]:', error.message);
+    else console.log('[SUPABASE CLOUD SYNC] Expense synced:', expense.title);
+  } catch (err) {
+    console.warn('[SUPABASE SYNC EXPENSE EXCEPTION]:', err.message);
+  }
+}
+
+async function syncGoalToSupabase(goal) {
+  if (!isSupabaseConfigured() || !supabase || !goal) return;
+  try {
+    const { error } = await supabase.from('career_roadmap').upsert({
+      id: goal.id,
+      user_id: goal.userId,
+      section: goal.section || 'GOAL',
+      title: goal.title,
+      status: goal.status || 'PLANNED',
+      is_completed: !!goal.isCompleted,
+    });
+    if (error) console.warn('[SUPABASE SYNC GOAL ERROR]:', error.message);
+    else console.log('[SUPABASE CLOUD SYNC] Goal synced:', goal.title);
+  } catch (err) {
+    console.warn('[SUPABASE SYNC GOAL EXCEPTION]:', err.message);
+  }
+}
 
 // Rate limiting in-memory store
 const rateLimitStore = new Map();
@@ -864,6 +964,7 @@ async function handleApiRequest(req, res) {
       };
 
       db.users.push(newUser);
+      syncUserToSupabase(newUser);
       delete db.otpStore[cleanEmail];
 
       getUserSubscription(newUserId);
@@ -1247,6 +1348,7 @@ async function handleApiRequest(req, res) {
         updatedAt: new Date().toISOString(),
       };
       db.tasks.push(newTask);
+      syncTaskToSupabase(newTask);
       saveDB(db);
       return sendJSON(res, 201, newTask);
     }
@@ -1639,6 +1741,7 @@ async function handleApiRequest(req, res) {
 
       db.habits = db.habits || [];
       db.habits.push(newHabit);
+      syncHabitToSupabase(newHabit);
       saveDB(db);
 
       return sendJSON(res, 201, {
@@ -1719,6 +1822,7 @@ async function handleApiRequest(req, res) {
         createdAt: new Date().toISOString(),
       };
       db.goals.push(newGoal);
+      syncGoalToSupabase(newGoal);
       saveDB(db);
       return sendJSON(res, 201, newGoal);
     }
@@ -1742,6 +1846,7 @@ async function handleApiRequest(req, res) {
         createdAt: new Date().toISOString(),
       };
       db.expenses.push(newExpense);
+      syncExpenseToSupabase(newExpense);
       saveDB(db);
       return sendJSON(res, 201, newExpense);
     }
