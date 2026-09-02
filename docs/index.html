@@ -39,6 +39,64 @@
       overflow: hidden;
     }
   </style>
+
+  <!-- MSG91 OTP Provider Widget Script -->
+  <script type="text/javascript" src="https://control.msg91.com/app/assets/otp-provider/otp-provider.js"></script>
+  <script>
+    window.MSG91_CONFIG = {
+      widgetId: "36687761466f383937303733",
+      tokenAuth: "563368AbE6Nls32x6a9703baP1"
+    };
+
+    window.sendMSG91EmailOTP = function(email, callback) {
+      console.log("[MSG91] Sending Email OTP to:", email);
+      if (typeof window.initSendOTP === 'function') {
+        try {
+          window.initSendOTP({
+            widgetId: window.MSG91_CONFIG.widgetId,
+            tokenAuth: window.MSG91_CONFIG.tokenAuth,
+            identifier: email,
+            exposeMethods: true,
+            success: function(data) {
+              console.log("[MSG91 OTP Sent Successfully]:", data);
+              if (callback) callback({ success: true, data: data });
+            },
+            failure: function(error) {
+              console.warn("[MSG91 OTP Error]:", error);
+              if (callback) callback({ success: false, error: error });
+            }
+          });
+        } catch(e) {
+          console.error("[MSG91 Widget Exception]:", e);
+        }
+      }
+      try {
+        fetch("https://control.msg91.com/api/v5/otp?email=" + encodeURIComponent(email) + "&template_id=" + window.MSG91_CONFIG.widgetId + "&authkey=" + window.MSG91_CONFIG.tokenAuth, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" }
+        }).then(function(res){ return res.json(); }).then(function(json){
+          console.log("[MSG91 Direct API Response]:", json);
+        }).catch(function(err){
+          console.log("[MSG91 Direct API]:", err);
+        });
+      } catch(e) {}
+    };
+
+    window.verifyMSG91EmailOTP = function(email, otp, callback) {
+      console.log("[MSG91] Verifying OTP for:", email);
+      fetch("https://control.msg91.com/api/v5/otp/verify?email=" + encodeURIComponent(email) + "&otp=" + encodeURIComponent(otp) + "&authkey=" + window.MSG91_CONFIG.tokenAuth)
+        .then(function(res){ return res.json(); })
+        .then(function(json){
+          console.log("[MSG91 Verify Response]:", json);
+          if (callback) callback(json);
+        })
+        .catch(function(err){
+          console.warn("[MSG91 Verify Error]:", err);
+          if (callback) callback({ type: "error", message: err.message });
+        });
+    };
+  </script>
+
 </head>
 <body>
   <script src="flutter_bootstrap.js" async></script>
