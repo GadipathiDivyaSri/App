@@ -99569,7 +99569,7 @@ A.pB.prototype={
 a5(){return new A.TK(null,null)}}
 A.TK.prototype={
 ao(){this.aH()
-this.d=A.ao1(5,this)},
+this.d=A.ao1(6,this)},
 l(){var s=this.d
 s===$&&A.b()
 s.l()
@@ -99584,7 +99584,7 @@ o=A.B(14)
 p=A.X(e,A.as(B.tJ,d?B.X:B.d,e,26),B.j,e,e,new A.O(p,e,e,o,e,e,B.o),e,48,e,e,e,e,48)
 o=A.m("Analytics",e,e,e,e,A.J(e,e,d?B.d:B.B,e,e,e,e,e,e,e,e,17,e,e,B.K,e,e,!0,e,e,e,e,e,e,e,e),e,e,e)
 n=t.p
-r=A.X(e,A.a4(A.a([p,B.bx,A.aD(A.a0(A.a([o,B.a04,A.m("Track your progress \ud83d\udcc8",e,e,e,e,A.J(e,e,d?B.as:B.a6,e,e,e,e,e,e,e,e,12,e,e,B.a2,e,e,!0,e,e,e,e,e,e,e,e),e,e,e)],n),B.w,B.h,B.f,0,B.m),1)],n),B.i,B.h,B.f,0,e,e),B.j,e,e,new A.O(s,e,q,r,e,e,B.o),e,e,e,B.d2,e,e,1/0)
+r=A.X(e,A.a4(A.a([p,B.bx,A.aD(A.a0(A.a([o,B.a04,A.m("Transform activity into actionable insights 📈",e,e,e,e,A.J(e,e,d?B.as:B.a6,e,e,e,e,e,e,e,e,12,e,e,B.a2,e,e,!0,e,e,e,e,e,e,e,e),e,e,e)],n),B.w,B.h,B.f,0,B.m),1)],n),B.i,B.h,B.f,0,e,e),B.j,e,e,new A.O(s,e,q,r,e,e,B.o),e,e,e,B.d2,e,e,1/0)
 s=d?B.ah:B.d
 q=A.B(14)
 p=d?A.bO(B.ay,B.p,1):e
@@ -99593,69 +99593,79 @@ o===$&&A.b()
 m=A.B(10)
 l=d?B.as:B.a6
 q=A.X(e,A.anZ(o,B.C,new A.O(c,e,e,m,e,e,B.o),B.C,!0,B.d,B.a4g,B.QJ,l),B.j,e,e,new A.O(s,e,p,q,e,e,B.o),e,40,B.MF,e,e,e,e)
-p=this.abP(a0)
-d=A.p(a0).ax.a===B.A
-s=A.m("Habit Momentum & Consistency",e,e,e,e,A.J(e,e,d?B.d:B.af,e,e,e,e,e,e,e,e,22,e,e,B.K,e,e,!0,e,e,e,e,e,e,e,e),e,e,e)
-m=d?B.T:B.d
-l=A.B(20)
-k=t.V
-j=A.a([],k)
-i=!d
-if(i)j.push(new A.aK(0,B.E,A.Z(8,B.n.m()>>>16&255,B.n.m()>>>8&255,B.n.m()&255),B.ba,10))
-m=A.X(e,A.a0(A.a([A.a4(A.a([B.a7c,A.X(e,B.a95,B.j,e,e,new A.O(B.bC,e,e,A.B(8),e,e,B.o),e,e,e,B.mR,e,e,e)],n),B.i,B.ap,B.f,0,e,e),B.a1,A.b_(A.dV(e,e,e,new A.On(d,e),B.V),180,1/0)],n),B.w,B.h,B.f,0,B.m),B.j,e,e,new A.O(m,e,e,l,j,e,B.o),e,e,e,B.F,e,e,e)
-l=d?B.T:B.d
-j=A.B(20)
-h=A.a([],k)
-if(i)h.push(new A.aK(0,B.E,A.Z(8,B.n.m()>>>16&255,B.n.m()>>>8&255,B.n.m()&255),B.ba,10))
-s=A.j0(A.a([s,B.aW,B.a9v,B.aD,m,B.aD,A.X(e,A.a0(A.a([B.a81,B.a1,A.b_(A.dV(e,e,e,new A.vL(d,B.T4,B.uz,B.u,e),B.V),160,1/0)],n),B.w,B.h,B.f,0,B.m),B.j,e,e,new A.O(l,e,e,j,h,e,B.o),e,e,e,B.F,e,e,e),B.cw],n),B.dK,e,B.S,!1)
-d=A.p(a0).ax.a===B.A
-m=A.m("Financial Breakdown & Cashflow",e,e,e,e,A.J(e,e,d?B.d:B.af,e,e,e,e,e,e,e,e,22,e,e,B.K,e,e,!0,e,e,e,e,e,e,e,e),e,e,e)
-l=d?B.T:B.d
-j=A.B(20)
-i=A.a([],k)
-h=!d
-if(h)i.push(new A.aK(0,B.E,A.Z(8,B.n.m()>>>16&255,B.n.m()>>>8&255,B.n.m()&255),B.ba,10))
-l=A.X(e,A.a0(A.a([B.a9x,B.a1,A.a4(A.a([A.b_(A.dV(e,e,e,new A.O_(e),B.V),160,160),B.oU,A.aD(A.a0(B.QV,B.i,B.h,B.f,0,B.m),1)],n),B.i,B.h,B.f,0,e,e)],n),B.w,B.h,B.f,0,B.m),B.j,e,e,new A.O(l,e,e,j,i,e,B.o),e,e,e,B.F,e,e,e)
-j=d?B.T:B.d
-i=A.B(20)
-g=A.a([],k)
-if(h)g.push(new A.aK(0,B.E,A.Z(8,B.n.m()>>>16&255,B.n.m()>>>8&255,B.n.m()&255),B.ba,10))
-m=A.j0(A.a([m,B.aW,B.a8Z,B.aD,l,B.aD,A.X(e,A.a0(A.a([B.a9e,B.a1,A.b_(A.dV(e,e,e,new A.vL(d,B.R5,B.SH,B.al,e),B.V),160,1/0)],n),B.w,B.h,B.f,0,B.m),B.j,e,e,new A.O(j,e,e,i,g,e,B.o),e,e,e,B.F,e,e,e),B.cw],n),B.dK,e,B.S,!1)
-d=A.p(a0).ax.a===B.A
-l=A.m("Milestones & Goals Progress",e,e,e,e,A.J(e,e,d?B.d:B.af,e,e,e,e,e,e,e,e,22,e,e,B.K,e,e,!0,e,e,e,e,e,e,e,e),e,e,e)
-j=d?B.T:B.d
-i=A.B(20)
-h=A.a([],k)
-if(!d)h.push(new A.aK(0,B.E,A.Z(8,B.n.m()>>>16&255,B.n.m()>>>8&255,B.n.m()&255),B.ba,10))
-j=A.X(e,A.a0(A.a([B.a7b,B.a1,A.a4(A.a([A.b_(A.dV(e,e,e,new A.Ol(e),B.V),160,160),B.oU,A.aD(A.a0(B.Qg,B.i,B.h,B.f,0,B.m),1)],n),B.i,B.h,B.f,0,e,e)],n),B.w,B.h,B.f,0,B.m),B.j,e,e,new A.O(j,e,e,i,h,e,B.o),e,e,e,B.F,e,e,e)
-i=d?B.T:B.bC
-h=A.B(20)
-h=A.j0(A.a([l,B.aW,B.a9Y,B.aD,j,B.aD,A.X(e,A.a4(A.a([A.X(e,B.Jl,B.j,e,e,B.j9,e,60,e,e,e,e,60),B.dU,B.MX],n),B.i,B.h,B.f,0,e,e),B.j,e,e,new A.O(i,e,e,h,e,e,B.o),e,e,e,B.F,e,e,e),B.cw],n),B.dK,e,B.S,!1)
-d=A.p(a0).ax.a===B.A
-l=A.m("Academic Study Analytics",e,e,e,e,A.J(e,e,d?B.d:B.af,e,e,e,e,e,e,e,e,22,e,e,B.K,e,e,!0,e,e,e,e,e,e,e,e),e,e,e)
-j=d?B.T:B.d
-i=A.B(20)
-g=A.a([],k)
-f=!d
-if(f)g.push(new A.aK(0,B.E,A.Z(8,B.n.m()>>>16&255,B.n.m()>>>8&255,B.n.m()&255),B.ba,10))
-j=A.X(e,A.a0(A.a([B.a9p,B.a1,A.b_(A.dV(e,e,e,new A.vL(d,B.S3,B.uz,B.ji,e),B.V),160,1/0)],n),B.w,B.h,B.f,0,B.m),B.j,e,e,new A.O(j,e,e,i,g,e,B.o),e,e,e,B.F,e,e,e)
-i=d?B.T:B.d
-g=A.B(20)
-k=A.a([],k)
-if(f)k.push(new A.aK(0,B.E,A.Z(8,B.n.m()>>>16&255,B.n.m()>>>8&255,B.n.m()&255),B.ba,10))
-return A.cJ(a,b,A.a0(A.a([new A.aw(B.dK,r,e),B.ao,q,B.a4,A.aD(A.ao0(A.a([p,s,m,h,A.j0(A.a([l,B.aW,B.a72,B.aD,j,B.aD,A.X(e,A.a0(A.a([B.a7S,B.a1,A.b_(A.dV(e,e,e,new A.Sw(d,e),B.V),180,1/0)],n),B.w,B.h,B.f,0,B.m),B.j,e,e,new A.O(i,e,e,g,k,e,B.o),e,e,e,B.F,e,e,e),B.cw],n),B.dK,e,B.S,!1)],n),o),1)],n),B.i,B.h,B.f,0,B.m),e,e)},
+
+// Tab 0: Overview
+var tabOverview = this.abP(a0)
+
+// Tab 1: Habits
+var tabHabits = this.buildHabitsTab(a0, d, n)
+
+// Tab 2: Studies
+var tabStudies = this.buildStudiesTab(a0, d, n)
+
+// Tab 3: Expenses
+var tabExpenses = this.buildExpensesTab(a0, d, n)
+
+// Tab 4: Goals
+var tabGoals = this.buildGoalsTab(a0, d, n)
+
+// Tab 5: Milestones
+var tabMilestones = this.buildMilestonesTab(a0, d, n)
+
+return A.cJ(a,b,A.a0(A.a([new A.aw(B.dK,r,e),B.ao,q,B.a4,A.aD(A.ao0(A.a([tabOverview,tabHabits,tabStudies,tabExpenses,tabGoals,tabMilestones],n),o),1)],n),B.i,B.h,B.f,0,B.m),e,e)},
+
 abP(a){var s,r,q,p,o,n,m=null,l=A.p(a).ax.a===B.A,k=A.f1(a,!0,t.T),j=k.c.e,i=k.e
-if(new A.aB(i,new A.aqF(),A.a1(i).i("aB<1>")).gG(0)>0){i=k.e
-i=new A.aB(i,new A.aqG(),A.a1(i).i("aB<1>")).gG(0)}else i=7
+var activeHabitsCount=k.c.d.length
+var streakCount=j||0
+var activeGoalsCount=7
 s=A.m("Overview",m,m,m,m,A.J(m,m,l?B.d:B.B,m,m,m,m,m,m,m,m,18,m,m,B.K,m,m,!0,m,m,m,m,m,m,m,m),m,m,m)
 r=t.p
-i=A.a4(A.a([A.aD(this.Gn(l,"Total","Habits","18"),1),B.bE,A.aD(this.Gn(l,"Days","Streak",""+j),1),B.bE,A.aD(this.Gn(l,"Active","Goals",""+i),1)],r),B.i,B.h,B.f,0,m,m)
-j=A.m("Progress",m,m,m,m,A.J(m,m,l?B.d:B.B,m,m,m,m,m,m,m,m,18,m,m,B.K,m,m,!0,m,m,m,m,m,m,m,m),m,m,m)
+i=A.a4(A.a([A.aD(this.Gn(l,"Total","Habits",""+activeHabitsCount),1),B.bE,A.aD(this.Gn(l,"Days","Streak",""+streakCount),1),B.bE,A.aD(this.Gn(l,"Active","Goals",""+activeGoalsCount),1)],r),B.i,B.h,B.f,0,m,m)
+j=A.m("Overall Progress",m,m,m,m,A.J(m,m,l?B.d:B.B,m,m,m,m,m,m,m,m,18,m,m,B.K,m,m,!0,m,m,m,m,m,m,m,m),m,m,m)
 q=l?B.ah:B.d
 p=A.B(20)
 o=l?A.bO(B.ay,B.p,1):m
 n=l?A.fY():A.iN()
 return A.j0(A.a([s,B.a4,i,B.an,j,B.a4,A.X(m,A.a0(A.a([B.a9O,B.a1,A.b_(A.dV(m,m,m,new A.N1(l,m),B.V),180,1/0)],r),B.w,B.h,B.f,0,B.m),B.j,m,m,new A.O(q,m,o,p,n,m,B.o),m,m,m,B.F,m,m,m),B.cw],r),B.dK,m,B.S,!1)},
+
+buildHabitsTab(a0, d, n){
+  var e=null, s=A.m("Habit Momentum & Consistency",e,e,e,e,A.J(e,e,d?B.d:B.af,e,e,e,e,e,e,e,e,20,e,e,B.K,e,e,!0,e,e,e,e,e,e,e,e),e,e,e)
+  var m=d?B.T:B.d, l=A.B(20)
+  var card1=A.X(e,A.a0(A.a([A.a4(A.a([B.a7c,A.X(e,B.a95,B.j,e,e,new A.O(B.bC,e,e,A.B(8),e,e,B.o),e,e,e,B.mR,e,e,e)],n),B.i,B.ap,B.f,0,e,e),B.a1,A.b_(A.dV(e,e,e,new A.On(d,e),B.V),180,1/0)],n),B.w,B.h,B.f,0,B.m),B.j,e,e,new A.O(m,e,e,l,e,e,B.o),e,e,e,B.F,e,e,e)
+  var card2=A.X(e,A.a0(A.a([B.a81,B.a1,A.b_(A.dV(e,e,e,new A.vL(d,B.T4,B.uz,B.u,e),B.V),160,1/0)],n),B.w,B.h,B.f,0,B.m),B.j,e,e,new A.O(m,e,e,l,e,e,B.o),e,e,e,B.F,e,e,e)
+  return A.j0(A.a([s,B.aW,B.a9v,B.aD,card1,B.aD,card2,B.cw],n),B.dK,e,B.S,!1)
+},
+
+buildStudiesTab(a0, d, n){
+  var e=null, l=A.m("Academic Study Analytics",e,e,e,e,A.J(e,e,d?B.d:B.af,e,e,e,e,e,e,e,e,20,e,e,B.K,e,e,!0,e,e,e,e,e,e,e,e),e,e,e)
+  var j=d?B.T:B.d, i=A.B(20)
+  var card1=A.X(e,A.a0(A.a([B.a9p,B.a1,A.b_(A.dV(e,e,e,new A.vL(d,B.S3,B.uz,B.ji,e),B.V),160,1/0)],n),B.w,B.h,B.f,0,B.m),B.j,e,e,new A.O(j,e,e,i,e,e,B.o),e,e,e,B.F,e,e,e)
+  var card2=A.X(e,A.a0(A.a([B.a7S,B.a1,A.b_(A.dV(e,e,e,new A.Sw(d,e),B.V),180,1/0)],n),B.w,B.h,B.f,0,B.m),B.j,e,e,new A.O(j,e,e,i,e,e,B.o),e,e,e,B.F,e,e,e)
+  return A.j0(A.a([l,B.aW,B.a72,B.aD,card1,B.aD,card2,B.cw],n),B.dK,e,B.S,!1)
+},
+
+buildExpensesTab(a0, d, n){
+  var e=null, m=A.m("Financial Breakdown & Cashflow",e,e,e,e,A.J(e,e,d?B.d:B.af,e,e,e,e,e,e,e,e,20,e,e,B.K,e,e,!0,e,e,e,e,e,e,e,e),e,e,e)
+  var l=d?B.T:B.d, j=A.B(20)
+  var card1=A.X(e,A.a0(A.a([B.a9x,B.a1,A.a4(A.a([A.b_(A.dV(e,e,e,new A.O_(e),B.V),160,160),B.oU,A.aD(A.a0(B.QV,B.i,B.h,B.f,0,B.m),1)],n),B.i,B.h,B.f,0,e,e)],n),B.w,B.h,B.f,0,B.m),B.j,e,e,new A.O(l,e,e,j,e,e,B.o),e,e,e,B.F,e,e,e)
+  var card2=A.X(e,A.a0(A.a([B.a9e,B.a1,A.b_(A.dV(e,e,e,new A.vL(d,B.R5,B.SH,B.al,e),B.V),160,1/0)],n),B.w,B.h,B.f,0,B.m),B.j,e,e,new A.O(l,e,e,j,e,e,B.o),e,e,e,B.F,e,e,e)
+  return A.j0(A.a([m,B.aW,B.a8Z,B.aD,card1,B.aD,card2,B.cw],n),B.dK,e,B.S,!1)
+},
+
+buildGoalsTab(a0, d, n){
+  var e=null, l=A.m("Strategic Goals Analytics",e,e,e,e,A.J(e,e,d?B.d:B.af,e,e,e,e,e,e,e,e,20,e,e,B.K,e,e,!0,e,e,e,e,e,e,e,e),e,e,e)
+  var j=d?B.T:B.d, i=A.B(20)
+  var card1=A.X(e,A.a0(A.a([B.a7b,B.a1,A.a4(A.a([A.b_(A.dV(e,e,e,new A.Ol(e),B.V),160,160),B.oU,A.aD(A.a0(B.Qg,B.i,B.h,B.f,0,B.m),1)],n),B.i,B.h,B.f,0,e,e)],n),B.w,B.h,B.f,0,B.m),B.j,e,e,new A.O(j,e,e,i,e,e,B.o),e,e,e,B.F,e,e,e)
+  return A.j0(A.a([l,B.aW,A.m("Track roadmap objectives and execution velocity",e,e,e,e,A.J(e,e,d?B.am:B.c7,e,e,e,e,e,e,e,e,13,e,e,B.x,e,e,!0,e,e,e,e,e,e,e,e),e,e,e),B.aD,card1,B.cw],n),B.dK,e,B.S,!1)
+},
+
+buildMilestonesTab(a0, d, n){
+  var e=null, l=A.m("Milestones & Achievements",e,e,e,e,A.J(e,e,d?B.d:B.af,e,e,e,e,e,e,e,e,20,e,e,B.K,e,e,!0,e,e,e,e,e,e,e,e),e,e,e)
+  var i=d?B.T:B.bC, h=A.B(20)
+  var card1=A.X(e,A.a4(A.a([A.X(e,B.Jl,B.j,e,e,B.j9,e,60,e,e,e,e,60),B.dU,B.MX],n),B.i,B.h,B.f,0,e,e),B.j,e,e,new A.O(i,e,e,h,e,e,B.o),e,e,e,B.F,e,e,e)
+  return A.j0(A.a([l,B.aW,B.a9Y,B.aD,card1,B.cw],n),B.dK,e,B.S,!1)
+},
+
 Gn(a,b,c,d){var s=null,r=a?B.ah:B.d,q=A.B(18),p=a?A.bO(B.ay,B.p,1):s,o=a?A.fY():A.iN(),n=A.m(c,s,s,s,s,A.J(s,s,a?B.as:B.a6,s,s,s,s,s,s,s,s,11,s,s,B.b4,s,s,!0,s,s,s,s,s,s,s,s),s,s,s),m=A.m(d,s,s,s,s,A.J(s,s,a?B.d:B.B,s,s,s,s,s,s,s,s,22,s,s,B.fL,s,s,!0,s,s,s,s,s,s,s,s),s,s,s)
 return A.X(s,A.a0(A.a([n,B.bz,m,B.aW,A.m(b,s,s,s,s,A.J(s,s,a?B.as:B.a6,s,s,s,s,s,s,s,s,10,s,s,B.a2,s,s,!0,s,s,s,s,s,s,s,s),s,s,s)],t.p),B.i,B.h,B.f,0,B.m),B.j,s,s,new A.O(r,s,p,q,o,s,B.o),s,s,s,B.Mx,s,s,s)}}
 A.aqH.prototype={
@@ -108380,7 +108390,8 @@ B.a11=new A.iq("Habits",null)
 B.a10=new A.iq("Expenses",null)
 B.a12=new A.iq("Milestones",null)
 B.a14=new A.iq("Studies",null)
-B.QJ=s([B.a13,B.a11,B.a10,B.a12,B.a14],t.p)
+B.a15=new A.iq("Goals",null)
+B.QJ=s([B.a13,B.a11,B.a14,B.a10,B.a15,B.a12],t.p)
 B.QL=s([4,9,14,19],t.t)
 B.acJ=new A.ll(B.u,"Food (35%)",null)
 B.acD=new A.ll(B.jp,"Shopping (25%)",null)

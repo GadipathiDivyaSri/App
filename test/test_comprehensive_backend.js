@@ -154,11 +154,29 @@ async function runAuditTests() {
     console.log(`[5.2] Self Referral Check (Expect 400): ${selfRef.status} - ${selfRef.data.message}`);
 
     // -------------------------------------------------------------------------
-    // 6. DYNAMIC REAL ANALYTICS CALCULATIONS
+    // 6. DYNAMIC REAL ANALYTICS CALCULATIONS (6 SUITES)
     // -------------------------------------------------------------------------
-    console.log('\n--- 6. DYNAMIC REAL ANALYTICS CALCULATIONS ---');
+    console.log('\n--- 6. DYNAMIC REAL ANALYTICS CALCULATIONS (6 SUITES) ---');
+    const anOverview = await request('GET', '/api/analytics/overview', null, authHeaders);
+    console.log(`[6.1] Analytics Overview: ${anOverview.status} - Score: ${anOverview.data.data.overallProgressScore}/100`);
+
+    const anHabits = await request('GET', '/api/analytics/habits', null, authHeaders);
+    console.log(`[6.2] Analytics Habits: ${anHabits.status} - Tracked: ${anHabits.data.data.totalHabits}, Best Streak: ${anHabits.data.data.bestStreak}d`);
+
+    const anStudies = await request('GET', '/api/analytics/studies', null, authHeaders);
+    console.log(`[6.3] Analytics Studies: ${anStudies.status} - Enrolled: ${anStudies.data.data.totalSubjects} subjects`);
+
+    const anExpenses = await request('GET', '/api/analytics/expenses', null, authHeaders);
+    console.log(`[6.4] Analytics Expenses: ${anExpenses.status} - Spent: ₹${anExpenses.data.data.totalSpent}`);
+
+    const anGoals = await request('GET', '/api/analytics/goals', null, authHeaders);
+    console.log(`[6.5] Analytics Goals: ${anGoals.status} - Total: ${anGoals.data.data.totalGoals}`);
+
+    const anMilestones = await request('GET', '/api/analytics/milestones', null, authHeaders);
+    console.log(`[6.6] Analytics Milestones: ${anMilestones.status} - Achieved: ${anMilestones.data.data.completedMilestones}`);
+
     const analytics = await request('GET', '/api/analytics/summary', null, authHeaders);
-    console.log(`[6.1] Analytics Task Completion Rate: ${analytics.data.analytics.taskCompletionRate}% | Active Habits: ${analytics.data.analytics.activeHabitsCount}`);
+    console.log(`[6.7] Analytics Summary Rate: ${analytics.data.analytics.taskCompletionRate}% | Active Habits: ${analytics.data.analytics.activeHabitsCount}`);
 
     // -------------------------------------------------------------------------
     // 7. USER DATA PURGE & ACCOUNT DELETION

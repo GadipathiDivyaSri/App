@@ -707,6 +707,34 @@
       "discountApplied": 24.5,
       "paymentStatus": "success",
       "createdAt": "2026-09-02T01:33:09.083Z"
+    },
+    {
+      "id": "cu_1788313268554",
+      "userId": "u_1788313268514",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-09-02T01:41:08.554Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-09-02T01:41:08.554Z"
+    },
+    {
+      "id": "cu_1788313418750",
+      "userId": "u_1788313418699",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-09-02T01:43:38.750Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-09-02T01:43:38.750Z"
     }
   ],
   "referralCodes": [
@@ -871,6 +899,36 @@
         "username": "audit_1788312787696",
         "email": "audit_user_1788312787696@wrindhaos.in",
         "passwordHash": "f21e7298cd4496e29ae66a4a0b0b44c9:3f6fe5efb569b3d5e77346d139195e48ab34e0d2fa2a42cdcc75b6d5d8d2f0a47fa4d3d41865dc7edbbb2e76bf9fa3791db5c17060c70ded1ee5eba7fc06abc1",
+        "referralCode": ""
+      }
+    },
+    "audit_user_1788313266921@wrindhaos.in": {
+      "code": "172718",
+      "type": "register",
+      "attempts": 0,
+      "maxAttempts": 5,
+      "createdAt": 1788313266955,
+      "expiresAt": 1788313866955,
+      "lastSentAt": 1788313266955,
+      "pendingUser": {
+        "username": "audit_1788313266922",
+        "email": "audit_user_1788313266921@wrindhaos.in",
+        "passwordHash": "73ce627cdcec2a9e314e0ea5890f3cc5:1971acda2f2a2212206daf79d428799217ff384f90f59da9d55dd52a1016475c906bb49ac3a4b88853f5c11f12f404bedc434972179ef57d8885eece374818cc",
+        "referralCode": ""
+      }
+    },
+    "audit_user_1788313417180@wrindhaos.in": {
+      "code": "429718",
+      "type": "register",
+      "attempts": 0,
+      "maxAttempts": 5,
+      "createdAt": 1788313417242,
+      "expiresAt": 1788314017242,
+      "lastSentAt": 1788313417242,
+      "pendingUser": {
+        "username": "audit_1788313417181",
+        "email": "audit_user_1788313417180@wrindhaos.in",
+        "passwordHash": "e1d2d009710343842890b75d6e0f7325:30780be85e27f68cf68227e55315189750cb14336e935124d86e07666f7f5b5eed4e7a437b61f9a17fe46c77e33f7e9c37bb173b8423330d4b9dab3cfdf1b847",
         "referralCode": ""
       }
     }

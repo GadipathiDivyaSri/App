@@ -1808,8 +1808,119 @@ async function handleApiRequest(req, res) {
       return sendJSON(res, 201, newMilestone);
     }
 
-    
     // 2.8 Dynamic Real Analytics Calculations
+    if (pathname === '/api/analytics/overview' && method === 'GET') {
+      const userTasks = (db.tasks || []).filter((t) => t.userId === userId);
+      const userHabits = (db.habits || []).filter((h) => h.userId === userId && h.status !== 'archived');
+      const userExpenses = (db.expenses || []).filter((e) => e.userId === userId && !e.isIncome);
+      const userGoals = (db.goals || []).filter((g) => g.userId === userId);
+      const userMilestones = (db.milestones || []).filter((m) => m.userId === userId);
+
+      const completedTasks = userTasks.filter((t) => t.isCompleted).length;
+      const taskRate = userTasks.length > 0 ? (completedTasks / userTasks.length) : 0;
+
+      const completedGoals = userGoals.filter((g) => g.isCompleted).length;
+      const goalRate = userGoals.length > 0 ? (completedGoals / userGoals.length) : 0;
+
+      const totalSpent = userExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+      const score = Math.round((taskRate * 0.4 + goalRate * 0.4 + (userHabits.length > 0 ? 0.2 : 0)) * 100);
+
+      return sendJSON(res, 200, {
+        success: true,
+        data: {
+          overallProgressScore: score,
+          habitCount: userHabits.length,
+          totalTasks: userTasks.length,
+          completedTasks,
+          totalExpenses: totalSpent,
+          goalProgress: Math.round(goalRate * 100),
+          milestonesAchieved: userMilestones.filter((m) => m.isCompleted).length,
+          totalMilestones: userMilestones.length,
+        },
+      });
+    }
+
+    if (pathname === '/api/analytics/habits' && method === 'GET') {
+      const userHabits = (db.habits || []).filter((h) => h.userId === userId && h.status !== 'archived');
+      const userCompletions = (db.habitCompletions || []).filter((c) => c.userId === userId);
+      
+      let bestStreak = 0;
+      userHabits.forEach((h) => {
+        if ((h.longestStreak || 0) > bestStreak) bestStreak = h.longestStreak;
+        if ((h.streakDay || 0) > bestStreak) bestStreak = h.streakDay;
+      });
+
+      return sendJSON(res, 200, {
+        success: true,
+        data: {
+          totalHabits: userHabits.length,
+          totalCompletions: userCompletions.length,
+          bestStreak,
+          habits: userHabits.map((h) => ({ id: h.id, title: h.title, streakDay: h.streakDay || 0 })),
+        },
+      });
+    }
+
+    if (pathname === '/api/analytics/studies' && method === 'GET') {
+      const userSubjects = (db.subjects || []).filter((s) => s.userId === userId);
+      const userTasks = (db.tasks || []).filter((t) => t.userId === userId && t.category === 'Studies');
+
+      return sendJSON(res, 200, {
+        success: true,
+        data: {
+          totalSubjects: userSubjects.length,
+          studyTasks: userTasks.length,
+          completedStudyTasks: userTasks.filter((t) => t.isCompleted).length,
+          subjects: userSubjects.map((s) => ({ id: s.id, name: s.name, code: s.code })),
+        },
+      });
+    }
+
+    if (pathname === '/api/analytics/expenses' && method === 'GET') {
+      const userExpenses = (db.expenses || []).filter((e) => e.userId === userId);
+      const spend = userExpenses.filter((e) => !e.isIncome);
+      const totalSpent = spend.reduce((sum, e) => sum + (e.amount || 0), 0);
+      const totalIncome = userExpenses.filter((e) => e.isIncome).reduce((sum, e) => sum + (e.amount || 0), 0);
+
+      const catMap = {};
+      spend.forEach((e) => {
+        catMap[e.category] = (catMap[e.category] || 0) + (e.amount || 0);
+      });
+
+      return sendJSON(res, 200, {
+        success: true,
+        data: {
+          totalSpent,
+          totalIncome,
+          categoryBreakdown: Object.keys(catMap).map((k) => ({ category: k, amount: catMap[k] })),
+        },
+      });
+    }
+
+    if (pathname === '/api/analytics/goals' && method === 'GET') {
+      const userGoals = (db.goals || []).filter((g) => g.userId === userId);
+      return sendJSON(res, 200, {
+        success: true,
+        data: {
+          totalGoals: userGoals.length,
+          completedGoals: userGoals.filter((g) => g.isCompleted).length,
+          goals: userGoals,
+        },
+      });
+    }
+
+    if (pathname === '/api/analytics/milestones' && method === 'GET') {
+      const userMilestones = (db.milestones || []).filter((m) => m.userId === userId);
+      return sendJSON(res, 200, {
+        success: true,
+        data: {
+          totalMilestones: userMilestones.length,
+          completedMilestones: userMilestones.filter((m) => m.isCompleted).length,
+          milestones: userMilestones,
+        },
+      });
+    }
+
     if (pathname === '/api/analytics/summary' && method === 'GET') {
       const userTasks = db.tasks.filter((t) => t.userId === userId);
       const userHabits = db.habits.filter((h) => h.userId === userId);
