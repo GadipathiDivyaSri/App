@@ -101228,40 +101228,102 @@ q=r.x
 q.N$=s
 q.I$=0
 r.a9P()},
-vv(){var s=0,r=A.V(t.H),q=this,p,o,n,m
-var $async$vv=A.W(function(a,b){if(a===1)return A.S(b,r)
-for(;;)switch(s){case 0:s=!q.r?2:4
-break
-case 2:p=B.c.aN(q.e.a.a)
-s=p.length>=10?5:6
-break
-case 5:s=7
-return A.P(A.a3L(p),$async$vv)
-case 7:o=b
-q.K(new A.axW(q))
-p=q.c.Y(t.J).f
-n=o.h(0,"message")
-p.d7(A.jd(null,null,null,B.N,null,B.z,null,A.m(n==null?"OTP sent successfully! (Use code: 1234)":n,null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null))
-case 6:s=3
-break
-case 4:p=q.e
-n=q.f
-s=8
-return A.P(A.a3N(B.c.aN(p.a.a),B.c.aN(n.a.a)),$async$vv)
-case 8:o=b
-n=J.d(o.h(0,"success"),!0)||B.c.aN(n.a.a)==="1234"
-m=q.c
-if(n){m.toString
-A.f1(m,!1,t.T).MG("Alex Johnson",B.c.aN(p.a.a))}else{p=m.Y(t.J).f
-n=o.h(0,"message")
-p.d7(A.jd(null,null,null,B.cE,null,B.z,null,A.m(n==null?"Invalid OTP code. Please enter 1234":n,null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null))}case 3:return A.T(null,r)}})
-return A.U($async$vv,r)},
-agN(){var s=this.w,r=B.c.aN(s.a.a).length!==0&&B.c.aN(this.x.a.a).length!==0,q=this.c
-if(r){q.toString
-A.f1(q,!1,t.T).MG(B.c.aN(s.a.a),B.c.aN(s.a.a))}else q.Y(t.J).f.d7(B.a0k)},
-aha(){var s=this.c
-s.toString
-A.f1(s,!1,t.T).MG("Alex Johnson","alex.google@gmail.com")},
+vv(){var q=this, email=B.c.aN(q.e.a.a).trim(), otp=B.c.aN(q.f.a.a).trim(), ctx=q.c;
+if(!q.r){
+  if(email.length<3){
+    ctx.Y(t.J).f.d7(A.jd(null,null,null,B.cE,null,B.z,null,A.m("Please enter a valid email address",null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null));
+    return;
+  }
+  fetch('/api/auth/register-initiate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,username:email.split('@')[0]})})
+  .then(function(res){return res.json();})
+  .then(function(data){
+    q.K(new A.axW(q));
+    var msg = data.code ? ("Verification code: " + data.code + " (also sent to email)") : (data.message || "OTP sent successfully!");
+    ctx.Y(t.J).f.d7(A.jd(null,null,null,B.N,null,B.z,null,A.m(msg,null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null));
+  }).catch(function(err){
+    ctx.Y(t.J).f.d7(A.jd(null,null,null,B.cE,null,B.z,null,A.m("Network error sending OTP",null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null));
+  });
+} else {
+  if(!otp){
+    ctx.Y(t.J).f.d7(A.jd(null,null,null,B.cE,null,B.z,null,A.m("Please enter your verification code",null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null));
+    return;
+  }
+  fetch('/api/auth/register-verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,code:otp})})
+  .then(function(res){return res.json();})
+  .then(function(data){
+    if(data&&data.success&&data.user){
+      var prov = A.f1(ctx,!1,t.T);
+      prov.MG(data.user.name||data.user.username||email, data.user.email||email);
+      try {
+        localStorage.setItem('wrindha_auth_token', data.token);
+        localStorage.setItem('saved_session_token', data.token);
+        localStorage.setItem('saved_session_user', JSON.stringify(data.user));
+      } catch(e){}
+    } else {
+      var msg = data.message || "Invalid verification code. Please check and try again.";
+      ctx.Y(t.J).f.d7(A.jd(null,null,null,B.cE,null,B.z,null,A.m(msg,null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null));
+    }
+  }).catch(function(err){
+    ctx.Y(t.J).f.d7(A.jd(null,null,null,B.cE,null,B.z,null,A.m("Verification failed: Network error",null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null));
+  });
+}
+},
+agN(){
+  var uCtrl = this.w, pCtrl = this.x, ctx = this.c;
+  var uName = (uCtrl && uCtrl.a && uCtrl.a.a ? uCtrl.a.a : '').trim();
+  var pwd = (pCtrl && pCtrl.a && pCtrl.a.a ? pCtrl.a.a : '');
+
+  if(!uName || !pwd){
+    ctx.Y(t.J).f.d7(A.jd(null,null,null,B.cE,null,B.z,null,A.m("Please enter both username/email and password.",null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null));
+    return;
+  }
+
+  fetch('/api/auth/login',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({username:uName,password:pwd})
+  })
+  .then(function(res){return res.json();})
+  .then(function(data){
+    if(data && data.success && data.user && data.token){
+      var prov = A.f1(ctx,!1,t.T);
+      prov.MG(data.user.name||data.user.username||uName, data.user.email||uName);
+      try {
+        localStorage.setItem('wrindha_auth_token', data.token);
+        localStorage.setItem('saved_session_token', data.token);
+        localStorage.setItem('saved_session_user', JSON.stringify(data.user));
+      } catch(e){}
+    } else {
+      var msg = data && data.message ? data.message : "Incorrect username or password. No account found with these credentials.";
+      ctx.Y(t.J).f.d7(A.jd(null,null,null,B.cE,null,B.z,null,A.m(msg,null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null));
+    }
+  })
+  .catch(function(err){
+    ctx.Y(t.J).f.d7(A.jd(null,null,null,B.cE,null,B.z,null,A.m("Login error: Could not reach server.",null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null));
+  });
+},
+aha(){
+  var ctx = this.c;
+  fetch('/api/auth/google',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({email:'alex.google@gmail.com',googleId:'g_web_user',name:'Google User'})
+  })
+  .then(function(res){return res.json();})
+  .then(function(data){
+    if(data && data.success && data.user && data.token){
+      var prov = A.f1(ctx,!1,t.T);
+      prov.MG(data.user.name, data.user.email);
+      try {
+        localStorage.setItem('wrindha_auth_token', data.token);
+        localStorage.setItem('saved_session_token', data.token);
+        localStorage.setItem('saved_session_user', JSON.stringify(data.user));
+      } catch(e){}
+    } else {
+      ctx.Y(t.J).f.d7(A.jd(null,null,null,B.cE,null,B.z,null,A.m("Google Sign-In failed.",null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null));
+    }
+  });
+},
 E(a4){var s,r,q,p,o,n,m,l,k,j,i,h,g,f,e,d,c=this,b=null,a=4287931320,a0=A.p(a4).ax.a===B.A,a1=a0?B.am:B.N,a2=a0?B.aZ:B.aV,a3=A.B(14)
 a3=new A.c6(null,0,null,null)
 r=A.m("Welcome to WrindhaOS",b,b,B.k,b,A.J(b,b,a0?B.d:B.B,b,b,b,b,b,b,b,b,26,b,b,B.K,b,b,!0,b,b,b,b,b,b,b,b),b,b,b)
@@ -101279,7 +101341,7 @@ k=A.B(14)
 j=a0?B.bl:B.aR
 i=A.B(14)
 h=a0?B.bl:B.aR
-m=A.a([B.a7n,B.ao,A.bZ(b,B.Z,!1,b,!0,B.z,b,A.c4(),c.e,b,b,b,b,b,2,A.dW(b,new A.bB(4,k,new A.am(j,1,B.p,-1)),b,b,b,b,b,b,!0,new A.bB(4,i,new A.am(h,1,B.p,-1)),b,b,b,b,b,l,!0,b,b,b,b,new A.bB(4,A.B(14),new A.am(a1,1.5,B.p,-1)),b,b,b,b,b,b,b,b,n,"",b,b,b,b,b,b,b,b,b,!0,!0,!1,b,m,b,b,b,b,b,b,b,b,b,b,b,b),B.t,!0,b,!0,b,!1,b,B.W,b,b,b,b,B.p9,b,b,b,1,b,b,!1,"\u2022",b,b,b,b,b,!1,b,b,!1,b,!0,b,B.F,b,b,b,b,b,b,b,b,b,b,b,b,!0,B.G,b,B.a3,b,b,b,b),B.a1],s)
+m=A.a([B.a7n,B.ao,A.bZ(b,B.Z,!1,b,!0,B.z,b,A.c4(),c.e,b,b,b,b,b,2,A.dW(b,new A.bB(4,k,new A.am(j,1,B.p,-1)),b,b,b,b,b,b,!0,new A.bB(4,i,new A.am(h,1,B.p,-1)),b,b,b,b,b,l,!0,b,b,b,b,new A.bB(4,A.B(14),new A.am(a1,1.5,B.p,-1)),b,b,b,b,b,b,b,b,n,"",b,b,b,b,b,b,b,b,b,!0,!0,!1,b,m,b,b,b,b,b,b,b,b,b,b,b,b),B.t,!0,b,!0,b,!1,b,B.W,b,b,b,b,B.p9,b,b,b,1,b,b,!1,"•",b,b,b,b,b,!1,b,b,!1,b,!0,b,B.F,b,b,b,b,b,b,b,b,b,b,b,b,!0,B.G,b,B.a3,b,b,b,b),B.a1],s)
 if(true){n=A.J(b,b,A.b1(a),b,b,b,b,b,b,b,b,13.5,b,b,b,b,b,!0,b,b,b,b,b,b,b,b)
 l=A.as(B.nC,a1,b,20)
 k=a0?B.T:B.b3
@@ -101287,7 +101349,7 @@ j=A.B(14)
 i=a0?B.bl:B.aR
 h=A.B(14)
 g=a0?B.bl:B.aR
-B.b.M(m,A.a([B.a77,B.ao,A.bZ(b,B.Z,!1,b,!0,B.z,b,A.c4(),c.f,b,b,b,b,b,2,A.dW(b,new A.bB(4,j,new A.am(i,1,B.p,-1)),b,b,b,b,"",b,!0,new A.bB(4,h,new A.am(g,1,B.p,-1)),b,b,b,b,b,k,!0,b,b,b,b,new A.bB(4,A.B(14),new A.am(a1,1.5,B.p,-1)),b,b,b,b,b,b,b,b,n,"Enter your password",b,b,b,b,b,b,b,b,b,!0,!0,!1,b,l,b,b,b,b,b,b,b,b,b,b,b,b),B.t,!0,b,!0,b,!1,b,B.W,b,b,b,b,B.iS,b,4,b,1,b,b,!1,"\u2022",b,b,b,b,b,!1,b,b,!1,b,!0,b,B.F,b,b,b,b,b,b,b,b,b,b,b,b,!0,B.G,b,B.a3,b,b,b,b),B.a1],s))}n=A.cX(b,b,a1,b,b,b,0,b,b,b,b,b,b,b,new A.bb(A.B(14),B.v),b,b,b,b,b)
+B.b.M(m,A.a([B.a77,B.ao,A.bZ(b,B.Z,!1,b,!0,B.z,b,A.c4(),c.f,b,b,b,b,b,2,A.dW(b,new A.bB(4,j,new A.am(i,1,B.p,-1)),b,b,b,b,"",b,!0,new A.bB(4,h,new A.am(g,1,B.p,-1)),b,b,b,b,b,k,!0,b,b,b,b,new A.bB(4,A.B(14),new A.am(a1,1.5,B.p,-1)),b,b,b,b,b,b,b,b,n,"Enter your password",b,b,b,b,b,b,b,b,b,!0,!0,!1,b,l,b,b,b,b,b,b,b,b,b,b,b,b),B.t,!0,b,!0,b,!1,b,B.W,b,b,b,b,B.iS,b,4,b,1,b,b,!1,"•",b,b,b,b,b,!1,b,b,!1,b,!0,b,B.F,b,b,b,b,b,b,b,b,b,b,b,b,!0,B.G,b,B.a3,b,b,b,b),B.a1],s))}n=A.cX(b,b,a1,b,b,b,0,b,b,b,b,b,b,b,new A.bb(A.B(14),B.v),b,b,b,b,b)
 l=c.r?"Verify & Log In":"Sign In"
 m.push(A.b_(A.cW(A.m(l,b,b,b,b,A.J(b,b,B.d,b,b,b,b,b,b,b,b,15,b,b,B.x,b,b,!0,b,b,b,b,b,b,b,b),b,b,b),c.gahN(),n),50,1/0))
 m.push(B.a4)
@@ -101302,7 +101364,7 @@ j=A.B(14)
 i=a0?B.bl:B.aR
 h=A.B(14)
 g=a0?B.bl:B.aR
-l=A.bZ(b,B.Z,!1,b,!0,B.z,b,A.c4(),c.w,b,b,b,b,b,2,A.dW(b,new A.bB(4,j,new A.am(i,1,B.p,-1)),b,b,b,b,b,b,!0,new A.bB(4,h,new A.am(g,1,B.p,-1)),b,b,b,b,b,k,!0,b,b,b,b,new A.bB(4,A.B(14),new A.am(a1,1.5,B.p,-1)),b,b,b,b,b,b,b,b,m,"",b,b,b,b,b,b,b,b,b,!0,!0,!1,b,l,b,b,b,b,b,b,b,b,b,b,b,b),B.t,!0,b,!0,b,!1,b,B.W,b,b,b,b,B.pa,b,b,b,1,b,b,!1,"\u2022",b,b,b,b,b,!1,b,b,!1,b,!0,b,B.F,b,b,b,b,b,b,b,b,b,b,b,b,!0,B.G,b,B.a3,b,b,b,b)
+l=A.bZ(b,B.Z,!1,b,!0,B.z,b,A.c4(),c.w,b,b,b,b,b,2,A.dW(b,new A.bB(4,j,new A.am(i,1,B.p,-1)),b,b,b,b,b,b,!0,new A.bB(4,h,new A.am(g,1,B.p,-1)),b,b,b,b,b,k,!0,b,b,b,b,new A.bB(4,A.B(14),new A.am(a1,1.5,B.p,-1)),b,b,b,b,b,b,b,b,m,"",b,b,b,b,b,b,b,b,b,!0,!0,!1,b,l,b,b,b,b,b,b,b,b,b,b,b,b),B.t,!0,b,!0,b,!1,b,B.W,b,b,b,b,B.pa,b,b,b,1,b,b,!1,"•",b,b,b,b,b,!1,b,b,!1,b,!0,b,B.F,b,b,b,b,b,b,b,b,b,b,b,b,!0,B.G,b,B.a3,b,b,b,b)
 m=c.y
 k=A.J(b,b,A.b1(a),b,b,b,b,b,b,b,b,13.5,b,b,b,b,b,!0,b,b,b,b,b,b,b,b)
 g=A.as(B.tQ,a1,b,20)
@@ -101312,7 +101374,7 @@ h=A.B(14)
 f=a0?B.bl:B.aR
 e=A.B(14)
 d=a0?B.bl:B.aR
-m=A.bZ(b,B.Z,!1,b,!0,B.z,b,A.c4(),c.x,b,b,b,b,b,2,A.dW(b,new A.bB(4,h,new A.am(f,1,B.p,-1)),b,b,b,b,b,b,!0,new A.bB(4,e,new A.am(d,1,B.p,-1)),b,b,b,b,b,i,!0,b,b,b,b,new A.bB(4,A.B(14),new A.am(a1,1.5,B.p,-1)),b,b,b,b,b,b,b,b,k,"",b,b,b,b,b,b,b,b,b,!0,!0,!1,b,g,b,b,b,b,b,b,j,b,b,b,b,b),B.t,!0,b,!0,b,!1,b,B.W,b,b,b,b,b,b,b,b,1,b,b,m,"\u2022",b,b,b,b,b,!1,b,b,!1,b,!0,b,B.F,b,b,b,b,b,b,b,b,b,b,b,b,!0,B.G,b,B.a3,b,b,b,b)
+m=A.bZ(b,B.Z,!1,b,!0,B.z,b,A.c4(),c.x,b,b,b,b,b,2,A.dW(b,new A.bB(4,h,new A.am(f,1,B.p,-1)),b,b,b,b,b,b,!0,new A.bB(4,e,new A.am(d,1,B.p,-1)),b,b,b,b,b,i,!0,b,b,b,b,new A.bB(4,A.B(14),new A.am(a1,1.5,B.p,-1)),b,b,b,b,b,b,b,b,k,"",b,b,b,b,b,b,b,b,b,!0,!0,!1,b,g,b,b,b,b,b,b,j,b,b,b,b,b),B.t,!0,b,!0,b,!1,b,B.W,b,b,b,b,b,b,b,b,1,b,b,m,"•",b,b,b,b,b,!1,b,b,!1,b,!0,b,B.F,b,b,b,b,b,b,b,b,b,b,b,b,!0,B.G,b,B.a3,b,b,b,b)
 j=c.z
 p=A.a0(A.a([B.a82,B.ao,l,B.aP,B.a79,B.ao,m,B.by,A.a4(A.a([A.a4(A.a([A.b_(A.aJG(a1,new A.ay5(c),new A.bb(A.B(4),B.v),j),24,24),B.aq,B.a93],s),B.i,B.h,B.f,0,b,b),A.e_(A.m("Forgot Password?",b,b,b,b,A.J(b,b,a1,b,b,b,b,b,b,b,b,12,b,b,B.x,b,b,!0,b,b,b,b,b,b,b,b),b,b,b),new A.ay6(),b)],s),B.i,B.ap,B.f,0,b,b),B.aP,A.b_(A.cW(B.a86,c.gagM(),A.cX(b,b,a1,b,b,b,0,b,b,b,b,b,b,b,new A.bb(A.B(14),B.v),b,b,b,b,b)),50,1/0)],s),B.w,B.h,B.f,0,B.m)
 n=A.aD(A.aK2(a0?B.rs:B.aR,b),1)
@@ -101321,19 +101383,6 @@ m=A.Da(b,b,b,b,b,b,b,b,b,b,b,b,b,b,new A.bb(A.B(16),B.v),new A.am(A.b1(429154864
 return A.cJ(b,a2,A.l0(!0,A.dA(A.a0(A.a([B.by,a3,B.an,r,B.bz,q,B.an,p,A.a4(A.a([B.a8q,A.cc(b,A.m("Sign Up",b,b,b,b,A.J(b,b,a1,b,b,b,b,b,b,b,b,14,b,b,B.x,b,b,!0,b,b,b,b,b,b,b,b),b,b,b),B.t,!1,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,new A.ay7(a4),b,b,b,b,b,b)],s),B.i,B.b_,B.f,0,b,b),B.aD],s),B.w,B.h,B.f,0,B.m),b,B.t,B.t3,b,b,B.S),B.aA,!0),b,b)},
 apZ(a){var s=null
 A.hQ(s,s,!0,s,new A.axY(A.p(a).ax.a===B.A),a,s,!0,t.z)}}
-A.axW.prototype={
-$0(){this.a.r=!0},
-$S:0}
-A.ay2.prototype={
-$1(a){var s=this.a
-s.K(new A.ay1(s,a))},
-$S:82}
-A.ay1.prototype={
-$0(){this.a.Q=this.b===!0},
-$S:0}
-A.ay3.prototype={
-$0(){return this.a.apZ(this.b)},
-$S:0}
 A.ay4.prototype={
 $0(){var s=this.a
 return s.K(new A.ay0(s))},
@@ -102546,22 +102595,41 @@ return A.P(A.ad(o,!1).bJ(p),$async$ny)
 case 2:if(b===!0&&q.c!=null){q.K(new A.aDA(q))
 q.c.Y(t.J).f.d7(B.a0f)}return A.T(null,r)}})
 return A.U($async$ny,r)},
-ajp(){var s,r,q,p,o,n=this,m=null,l=B.c.aN(n.e.a.a),r=B.c.aN(n.r.a.a),q=B.c.aN(n.x.a.a),p=B.c.aN(n.f.a.a),refCode=B.c.aN(n.y.a.a),k=n.c
-if(l.length===0){n.c.Y(t.J).f.d7(B.a0h)
-return}if(r.length===0){k.Y(t.J).f.d7(A.jd(m,m,m,m,m,B.z,m,A.m("Please enter your username",m,m,m,m,m,m,m,m),m,B.b7,m,m,m,m,m,m,m,m,m,m))
-return}if(!n.z){k.Y(t.J).f.d7(A.jd(m,m,m,m,m,B.z,m,A.m("Please tap 'Send OTP' to verify your email",m,m,m,m,m,m,m,m),m,B.b7,m,m,m,m,m,m,m,m,m,m))
-return}if(B.c.aN(n.w.a.a).length===0){k.Y(t.J).f.d7(A.jd(m,m,m,m,m,B.z,m,A.m("Please enter the verification code sent to your email",m,m,m,m,m,m,m,m),m,B.b7,m,m,m,m,m,m,m,m,m,m))
-return}if(q.length<6){n.c.Y(t.J).f.d7(B.a0p)
-return}if(p!==q){k.Y(t.J).f.d7(A.jd(m,m,m,m,m,B.z,m,A.m("Passwords do not match",m,m,m,m,m,m,m,m),m,B.b7,m,m,m,m,m,m,m,m,m,m))
-return}if(!n.Q){n.c.Y(t.J).f.d7(B.ET)
-n.ny()
-return}k=n.c
-k.toString
-o=A.f1(k,!1,t.T)
-o.MH(l,r,refCode.length!==0?refCode:m)
-k=n.c
-k.toString
-A.ad(k,!1).Na(new A.aDy())},
+ajp(){
+  var n=this, email=B.c.aN(n.e.a.a).trim(), uName=B.c.aN(n.r.a.a).trim(), pwd=B.c.aN(n.x.a.a), confPwd=B.c.aN(n.f.a.a), otp=B.c.aN(n.w.a.a).trim(), refCode=B.c.aN(n.y.a.a).trim(), ctx=n.c;
+  
+  if(!email){ctx.Y(t.J).f.d7(A.jd(null,null,null,B.cE,null,B.z,null,A.m("Please enter your email address",null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null));return;}
+  if(!uName){ctx.Y(t.J).f.d7(A.jd(null,null,null,B.cE,null,B.z,null,A.m("Please enter your username",null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null));return;}
+  if(!otp){ctx.Y(t.J).f.d7(A.jd(null,null,null,B.cE,null,B.z,null,A.m("Please enter the 6-digit verification code",null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null));return;}
+  if(pwd.length < 6){ctx.Y(t.J).f.d7(A.jd(null,null,null,B.cE,null,B.z,null,A.m("Password must be at least 6 characters",null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null));return;}
+  if(pwd !== confPwd){ctx.Y(t.J).f.d7(A.jd(null,null,null,B.cE,null,B.z,null,A.m("Passwords do not match",null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null));return;}
+  if(!n.Q){ctx.Y(t.J).f.d7(A.jd(null,null,null,B.cE,null,B.z,null,A.m("Please agree to the Terms & Conditions",null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null));return;}
+
+  fetch('/api/auth/register-verify',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({email:email,code:otp,username:uName,password:pwd,referralCode:refCode})
+  })
+  .then(function(res){return res.json();})
+  .then(function(data){
+    if(data && data.success && data.user && data.token){
+      var prov = A.f1(ctx,!1,t.T);
+      prov.MH(data.user.name||uName, data.user.email||email, refCode || null);
+      try {
+        localStorage.setItem('wrindha_auth_token', data.token);
+        localStorage.setItem('saved_session_token', data.token);
+        localStorage.setItem('saved_session_user', JSON.stringify(data.user));
+      } catch(e){}
+      A.ad(ctx,!1).Na(new A.aDy());
+    } else {
+      var msg = data && data.message ? data.message : "Verification failed. Please check your verification code.";
+      ctx.Y(t.J).f.d7(A.jd(null,null,null,B.cE,null,B.z,null,A.m(msg,null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null));
+    }
+  })
+  .catch(function(err){
+    ctx.Y(t.J).f.d7(A.jd(null,null,null,B.cE,null,B.z,null,A.m("Registration failed: Network error",null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null));
+  });
+},
 ahc(){var s,r,q,p,o=this
 if(!o.Q){o.c.Y(t.J).f.d7(B.ET)
 o.ny()
