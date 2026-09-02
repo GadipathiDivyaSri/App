@@ -100707,8 +100707,14 @@ for(var ci=0;ci<q.length;ci++){
     bestHabit=hItem
   }
 }
+
+// 1. Full-Width Top Progress Card
 var dateMonths=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
 var nowD=new Date()
+var jsDay=nowD.getDay()
+var dayOfWeek=jsDay===0?7:jsDay // 1 = Mon ... 7 = Sun
+var monday=new Date(nowD.getFullYear(),nowD.getMonth(),nowD.getDate()-(dayOfWeek-1))
+
 var todayDateLabel="Today, "+dateMonths[nowD.getMonth()]+" "+nowD.getDate()
 var topTitle=A.m(todayDateLabel,j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,16,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j)
 var metricTxt=A.m("◉  "+compCount+" / "+q.length,j,j,j,j,A.J(j,j,compCount>0&&compCount===q.length?B.u:(i?B.d:B.B),j,j,j,j,j,j,j,j,22,j,j,B.K,j,j,!0,j,-0.5,j,j,j,j,j,j),j,j,j)
@@ -100717,35 +100723,75 @@ var compLabel=A.m(pctText,j,j,j,j,A.J(j,j,h,j,j,j,j,j,j,j,j,12,j,j,B.x,j,j,!0,j,
 var topCardContent=A.a0(A.a([topTitle,B.aW,metricTxt,B.aP,compLabel],t.p),B.w,B.h,B.av,0,B.m)
 var topCard=A.X(j,topCardContent,B.j,j,j,new A.O(i?B.ah:B.ec,j,i?A.bO(B.ay,B.p,1):j,A.B(20),j,j,B.o),j,j,j,B.F,j,j,1/0)
 
+// 2. Today's Habits Section
 var todayHabitsHeader=A.a4(A.a([A.m("TODAY'S HABITS",j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,13,j,j,B.K,j,j,!0,j,1.1,j,j,j,j,j,j),j,j,j),A.m(q.length+" ACTIVE",j,j,j,j,A.J(j,j,h,j,j,j,j,j,j,j,j,11,j,j,B.x,j,j,!0,j,0.8,j,j,j,j,j,j),j,j,j)],t.p),B.i,B.ap,B.f,0,j,j)
 var habitsWidget=q.length===0?A.X(j,A.m("No habits created yet.\nTap (+) below to add your first habit!",j,j,j,j,A.J(j,j,h,j,j,j,j,j,j,j,j,13,j,j,B.x,j,j,!0,j,j,j,j,j,j,j,j),j,j,j),B.j,j,j,new A.O(i?B.T:B.d,j,j,A.B(16),j,j,B.o),j,j,j,B.F,j,j,1/0):A.vP(new A.awN(k),q.length,B.f2,!0)
 
-var weeklyHeader=A.m("WEEKLY CONSISTENCY",j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,13,j,j,B.K,j,j,!0,j,1.1,j,j,j,j,j,j),j,j,j)
-var daysHeader=A.m("     M    T    W    T    F    S    S",j,j,j,j,A.J(j,j,h,j,j,j,j,j,j,j,j,12,j,j,B.K,j,j,!0,j,1.2,j,j,j,j,j,j),j,j,j)
+// 3. Weekly Consistency Activity Heat Map (Mon to Sun with exact aligned days)
+var heatmapHeader=A.a4(A.a([
+  A.m("WEEKLY CONSISTENCY HEAT MAP",j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,13,j,j,B.K,j,j,!0,j,1.1,j,j,j,j,j,j),j,j,j),
+  A.m("MON - SUN",j,j,j,j,A.J(j,j,B.u,j,j,j,j,j,j,j,j,11,j,j,B.K,j,j,!0,j,0.8,j,j,j,j,j,j),j,j,j)
+],t.p),B.i,B.ap,B.f,0,j,j)
+
+var dayLabels=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
+var weekDayDates=[]
+var headerColsText="          "
+for(var wi=0;wi<7;wi++){
+  var wDate=new Date(monday.getFullYear(),monday.getMonth(),monday.getDate()+wi)
+  var isT=(wi+1)===dayOfWeek
+  weekDayDates.push(wDate)
+  var colStr=dayLabels[wi]+" "+wDate.getDate()
+  if(isT) colStr="["+dayLabels[wi]+" "+wDate.getDate()+"]"
+  headerColsText += colStr.padEnd(10," ")
+}
+
+var daysHeader=A.m(headerColsText,j,j,j,j,A.J(j,j,h,j,j,j,j,j,j,j,j,11,j,j,B.K,j,j,!0,j,0.5,j,j,j,j,j,j),j,j,j)
 var consistencyRows=[daysHeader]
+
 if(q.length===0){
   consistencyRows.push(B.aW)
-  consistencyRows.push(A.m("No habits to track consistency yet",j,j,j,j,A.J(j,j,h,j,j,j,j,j,j,j,j,13,j,j,B.x,j,j,!0,j,j,j,j,j,j,j,j),j,j,j))
+  consistencyRows.push(A.m("No habits tracked yet. Create a habit to view your weekly activity heat map.",j,j,j,j,A.J(j,j,h,j,j,j,j,j,j,j,j,13,j,j,B.x,j,j,!0,j,j,j,j,j,j,j,j),j,j,j))
 }else{
   for(var hi=0;hi<q.length;hi++){
     var hItem=q[hi]
     var hTitle=A.b3(hItem.h(0,"title"))
-    var hEmoji=hTitle.split(" ")[0]||"🎯"
-    if(hEmoji.length>2)hEmoji="🎯"
     var hDone=J.d(hItem.h(0,"isCompleted"),!0)
-    var dots=hDone?" ●    ●    ●    ○    ○    ○    ○":" ○    ○    ○    ○    ○    ○    ○"
+    var hEmoji=hTitle.split(" ")[0]||"🎯"
+    if(hEmoji.length>2) hEmoji="🎯"
+    var cleanTitle=hTitle.replace(hEmoji,"").trim()
+    if(!cleanTitle) cleanTitle=hTitle
+    if(cleanTitle.length>8) cleanTitle=cleanTitle.substring(0,8)+".."
+    
+    // Build 7 Heatmap Status Dots for Mon(1) to Sun(7)
+    var rowText = (hEmoji+" "+cleanTitle).padEnd(12," ")
+    for(var di=1;di<=7;di++){
+      var cell=""
+      if(di===dayOfWeek){
+        // Today
+        cell = hDone ? " [●] " : " [○] "
+      } else if(di < dayOfWeek){
+        // Past days in current week (if habit was checked)
+        cell = hDone ? "  ●  " : "  ○  "
+      } else {
+        // Upcoming days
+        cell = "  -  "
+      }
+      rowText += cell.padEnd(10," ")
+    }
+    
     consistencyRows.push(B.aW)
-    consistencyRows.push(A.m(hEmoji+"   "+dots,j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,13,j,j,B.x,j,j,!0,j,1.0,j,j,j,j,j,j),j,j,j))
+    consistencyRows.push(A.m(rowText,j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,12,j,j,B.K,j,j,!0,j,0.5,j,j,j,j,j,j),j,j,j))
   }
 }
 var weeklyCard=A.X(j,A.a0(A.a(consistencyRows,t.p),B.w,B.h,B.f,0,B.m),B.j,j,j,new A.O(i?B.T:B.d,j,j,A.B(18),j,j,B.o),j,j,j,B.F,j,j,1/0)
 
+// 4. Best Streak Card
 var bestStreakTitle=A.m("🔥 Best Streak",j,j,j,j,A.J(j,j,i?B.d:B.af,j,j,j,j,j,j,j,j,14,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j)
 var bestStreakDescTxt=bestHabit&&bestStreak>0?(A.b3(bestHabit.h(0,"title"))+" • "+bestStreak+" Days"):"Start completing habits daily to build your best streak!"
 var bestStreakDesc=A.m(bestStreakDescTxt,j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,15,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j)
 var bestStreakCard=A.X(j,A.a0(A.a([bestStreakTitle,B.aW,bestStreakDesc],t.p),B.w,B.h,B.f,0,B.m),B.j,j,j,new A.O(i?B.T:B.d,j,j,A.B(18),j,j,B.o),j,j,j,B.F,j,j,1/0)
 
-return A.cJ(f,g,A.dA(A.a0(A.a([topCard,B.an,todayHabitsHeader,B.aP,habitsWidget,B.an,weeklyHeader,B.aP,weeklyCard,B.an,bestStreakCard,B.dx],t.p),B.w,B.h,B.f,0,B.m),j,B.t,B.bw,j,j,B.S),j,s)},
+return A.cJ(f,g,A.dA(A.a0(A.a([topCard,B.an,todayHabitsHeader,B.aP,habitsWidget,B.an,heatmapHeader,B.aP,weeklyCard,B.an,bestStreakCard,B.dx],t.p),B.w,B.h,B.f,0,B.m),j,B.t,B.bw,j,j,B.S),j,s)},
 R_(a,b,c,d,e){var s,r=null,q=A.p(a).ax.a===B.A,p=q?B.T:B.d,o=A.B(18),n=A.a([],t.V)
 if(!q)n.push(new A.aK(0,B.E,A.Z(8,B.n.m()>>>16&255,B.n.m()>>>8&255,B.n.m()&255),B.ba,10))
 s=A.B(12)
