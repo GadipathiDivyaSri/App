@@ -871,36 +871,5 @@
       "redeemedForAmount": 44.1
     }
   ],
-  "otpStore": {
-    "audit_user_1788313266921@wrindhaos.in": {
-      "code": "172718",
-      "type": "register",
-      "attempts": 0,
-      "maxAttempts": 5,
-      "createdAt": 1788313266955,
-      "expiresAt": 1788313866955,
-      "lastSentAt": 1788313266955,
-      "pendingUser": {
-        "username": "audit_1788313266922",
-        "email": "audit_user_1788313266921@wrindhaos.in",
-        "passwordHash": "73ce627cdcec2a9e314e0ea5890f3cc5:1971acda2f2a2212206daf79d428799217ff384f90f59da9d55dd52a1016475c906bb49ac3a4b88853f5c11f12f404bedc434972179ef57d8885eece374818cc",
-        "referralCode": ""
-      }
-    },
-    "audit_user_1788313417180@wrindhaos.in": {
-      "code": "429718",
-      "type": "register",
-      "attempts": 0,
-      "maxAttempts": 5,
-      "createdAt": 1788313417242,
-      "expiresAt": 1788314017242,
-      "lastSentAt": 1788313417242,
-      "pendingUser": {
-        "username": "audit_1788313417181",
-        "email": "audit_user_1788313417180@wrindhaos.in",
-        "passwordHash": "e1d2d009710343842890b75d6e0f7325:30780be85e27f68cf68227e55315189750cb14336e935124d86e07666f7f5b5eed4e7a437b61f9a17fe46c77e33f7e9c37bb173b8423330d4b9dab3cfdf1b847",
-        "referralCode": ""
-      }
-    }
-  }
+  "otpStore": {}
 }

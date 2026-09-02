@@ -99594,76 +99594,237 @@ m=A.B(10)
 l=d?B.as:B.a6
 q=A.X(e,A.anZ(o,B.C,new A.O(c,e,e,m,e,e,B.o),B.C,!0,B.d,B.a4g,B.QJ,l),B.j,e,e,new A.O(s,e,p,q,e,e,B.o),e,40,B.MF,e,e,e,e)
 
-// Tab 0: Overview
-var tabOverview = this.abP(a0)
+// Get live AppProvider data
+var prov = A.f1(a0, !0, t.T)
+var habits = prov.c ? (prov.c.d || []) : []
+var tasks = prov.e || []
+var expenses = prov.w || []
+var subjects = prov.b || []
+var roadmap = prov.d || []
 
-// Tab 1: Habits
-var tabHabits = this.buildHabitsTab(a0, d, n)
-
-// Tab 2: Studies
-var tabStudies = this.buildStudiesTab(a0, d, n)
-
-// Tab 3: Expenses
-var tabExpenses = this.buildExpensesTab(a0, d, n)
-
-// Tab 4: Goals
-var tabGoals = this.buildGoalsTab(a0, d, n)
-
-// Tab 5: Milestones
-var tabMilestones = this.buildMilestonesTab(a0, d, n)
+// 6 Real Tab Views
+var tabOverview = this.buildOverviewTab(a0, d, n, prov, habits, tasks, expenses, subjects, roadmap)
+var tabHabits = this.buildHabitsTab(a0, d, n, habits)
+var tabStudies = this.buildStudiesTab(a0, d, n, subjects, tasks)
+var tabExpenses = this.buildExpensesTab(a0, d, n, expenses)
+var tabGoals = this.buildGoalsTab(a0, d, n, roadmap)
+var tabMilestones = this.buildMilestonesTab(a0, d, n, roadmap)
 
 return A.cJ(a,b,A.a0(A.a([new A.aw(B.dK,r,e),B.ao,q,B.a4,A.aD(A.ao0(A.a([tabOverview,tabHabits,tabStudies,tabExpenses,tabGoals,tabMilestones],n),o),1)],n),B.i,B.h,B.f,0,B.m),e,e)},
 
-abP(a){var s,r,q,p,o,n,m=null,l=A.p(a).ax.a===B.A,k=A.f1(a,!0,t.T),j=k.c.e,i=k.e
-var activeHabitsCount=k.c.d.length
-var streakCount=j||0
-var activeGoalsCount=7
-s=A.m("Overview",m,m,m,m,A.J(m,m,l?B.d:B.B,m,m,m,m,m,m,m,m,18,m,m,B.K,m,m,!0,m,m,m,m,m,m,m,m),m,m,m)
-r=t.p
-i=A.a4(A.a([A.aD(this.Gn(l,"Total","Habits",""+activeHabitsCount),1),B.bE,A.aD(this.Gn(l,"Days","Streak",""+streakCount),1),B.bE,A.aD(this.Gn(l,"Active","Goals",""+activeGoalsCount),1)],r),B.i,B.h,B.f,0,m,m)
-j=A.m("Overall Progress",m,m,m,m,A.J(m,m,l?B.d:B.B,m,m,m,m,m,m,m,m,18,m,m,B.K,m,m,!0,m,m,m,m,m,m,m,m),m,m,m)
-q=l?B.ah:B.d
-p=A.B(20)
-o=l?A.bO(B.ay,B.p,1):m
-n=l?A.fY():A.iN()
-return A.j0(A.a([s,B.a4,i,B.an,j,B.a4,A.X(m,A.a0(A.a([B.a9O,B.a1,A.b_(A.dV(m,m,m,new A.N1(l,m),B.V),180,1/0)],r),B.w,B.h,B.f,0,B.m),B.j,m,m,new A.O(q,m,o,p,n,m,B.o),m,m,m,B.F,m,m,m),B.cw],r),B.dK,m,B.S,!1)},
-
-buildHabitsTab(a0, d, n){
-  var e=null, s=A.m("Habit Momentum & Consistency",e,e,e,e,A.J(e,e,d?B.d:B.af,e,e,e,e,e,e,e,e,20,e,e,B.K,e,e,!0,e,e,e,e,e,e,e,e),e,e,e)
-  var m=d?B.T:B.d, l=A.B(20)
-  var card1=A.X(e,A.a0(A.a([A.a4(A.a([B.a7c,A.X(e,B.a95,B.j,e,e,new A.O(B.bC,e,e,A.B(8),e,e,B.o),e,e,e,B.mR,e,e,e)],n),B.i,B.ap,B.f,0,e,e),B.a1,A.b_(A.dV(e,e,e,new A.On(d,e),B.V),180,1/0)],n),B.w,B.h,B.f,0,B.m),B.j,e,e,new A.O(m,e,e,l,e,e,B.o),e,e,e,B.F,e,e,e)
-  var card2=A.X(e,A.a0(A.a([B.a81,B.a1,A.b_(A.dV(e,e,e,new A.vL(d,B.T4,B.uz,B.u,e),B.V),160,1/0)],n),B.w,B.h,B.f,0,B.m),B.j,e,e,new A.O(m,e,e,l,e,e,B.o),e,e,e,B.F,e,e,e)
-  return A.j0(A.a([s,B.aW,B.a9v,B.aD,card1,B.aD,card2,B.cw],n),B.dK,e,B.S,!1)
+buildOverviewTab(a0, d, n, prov, habits, tasks, expenses, subjects, roadmap){
+  var e=null, textP = d ? B.d : B.B, textS = d ? B.as : B.a6, cardBg = d ? B.ah : B.d, cardR = A.B(20)
+  
+  var compHabits = 0, bestStreak = 0
+  for(var i=0; i<habits.length; i++){
+    var h = habits[i]
+    if(J.d(h.h(0,"isCompleted"),!0)) compHabits++
+    var st = A.fV(h.h(0,"streakDay")) || 0
+    if(st > bestStreak) bestStreak = st
+  }
+  
+  var compTasks = 0
+  for(var i=0; i<tasks.length; i++){
+    if(J.d(tasks[i].h(0,"isCompleted"),!0)) compTasks++
+  }
+  
+  var totalSpent = 0
+  for(var i=0; i<expenses.length; i++){
+    var exp = expenses[i]
+    if(!exp.isIncome) totalSpent += (exp.amount || 0)
+  }
+  
+  var goals = [], milestones = []
+  for(var i=0; i<roadmap.length; i++){
+    var rNode = roadmap[i]
+    if(rNode.section === 'GOAL') goals.push(rNode)
+    else milestones.push(rNode)
+  }
+  var compGoals = goals.filter(function(g){ return g.isCompleted; }).length
+  var compMilestones = milestones.filter(function(m){ return m.isCompleted; }).length
+  
+  var totalItems = habits.length + tasks.length + goals.length
+  var completedItems = compHabits + compTasks + compGoals
+  var progressScore = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0
+  
+  var bannerTitle = A.m("OVERALL PROGRESS SCORE", e, e, e, e, A.J(e, e, B.dW, e, e, e, e, e, e, e, e, 11, e, e, B.K, e, e, !0, e, 1.1, e, e, e, e, e, e), e, e, e)
+  var bannerScore = A.m(progressScore + " / 100", e, e, e, e, A.J(e, e, B.d, e, e, e, e, e, e, e, e, 30, e, e, B.fL, e, e, !0, e, -0.5, e, e, e, e, e, e), e, e, e)
+  var bannerMsg = progressScore >= 75 ? "Outstanding momentum! Keep it going 🔥" : (progressScore >= 40 ? "Steady progress. Consistency is key 🎯" : "Start completing habits and tasks to build your score ✨")
+  var bannerDesc = A.m(bannerMsg, e, e, e, e, A.J(e, e, B.d, e, e, e, e, e, e, e, e, 12, e, e, B.x, e, e, !0, e, e, e, e, e, e, e, e), e, e, e)
+  var bannerCard = A.X(e, A.a0(A.a([bannerTitle, B.bz, bannerScore, B.bz, bannerDesc], n), B.w, B.h, B.f, 0, B.m), B.j, e, e, new A.O(d ? B.T : B.u, e, e, cardR, e, e, B.o), e, e, e, B.F, e, e, 1/0)
+  
+  // Real Metric Cards
+  var m1 = this.Gn(d, "Habits", "Completed", compHabits + " / " + habits.length)
+  var m2 = this.Gn(d, "Days", "Best Streak", "" + bestStreak)
+  var m3 = this.Gn(d, "Expenses", "Total Spent", "₹" + Math.round(totalSpent))
+  var m4 = this.Gn(d, "Goals", "Achieved", compGoals + " / " + goals.length)
+  
+  var row1 = A.a4(A.a([A.aD(m1, 1), B.bE, A.aD(m2, 1)], n), B.i, B.h, B.f, 0, e, e)
+  var row2 = A.a4(A.a([A.aD(m3, 1), B.bE, A.aD(m4, 1)], n), B.i, B.h, B.f, 0, e, e)
+  
+  // Rule-Based Insight Card
+  var insTitle = A.m("ACTIVITY INSIGHTS", e, e, e, e, A.J(e, e, textP, e, e, e, e, e, e, e, e, 13, e, e, B.K, e, e, !0, e, 1.0, e, e, e, e, e, e), e, e, e)
+  var insTextStr = totalItems === 0 ? "No activity tracked yet. Add habits, studies, and goals to unlock dynamic insights." : ("You have completed " + completedItems + " out of " + totalItems + " total active items with an overall progress score of " + progressScore + "%.")
+  var insDesc = A.m(insTextStr, e, e, e, e, A.J(e, e, textS, e, e, e, e, e, e, e, e, 12, e, e, B.x, e, e, !0, e, e, e, e, e, e, e, e), e, e, e)
+  var insCard = A.X(e, A.a0(A.a([insTitle, B.aW, insDesc], n), B.w, B.h, B.f, 0, B.m), B.j, e, e, new A.O(cardBg, e, e, cardR, e, e, B.o), e, e, e, B.F, e, e, 1/0)
+  
+  return A.j0(A.a([bannerCard, B.an, row1, B.an, row2, B.an, insCard, B.cw], n), B.dK, e, B.S, !1)
 },
 
-buildStudiesTab(a0, d, n){
-  var e=null, l=A.m("Academic Study Analytics",e,e,e,e,A.J(e,e,d?B.d:B.af,e,e,e,e,e,e,e,e,20,e,e,B.K,e,e,!0,e,e,e,e,e,e,e,e),e,e,e)
-  var j=d?B.T:B.d, i=A.B(20)
-  var card1=A.X(e,A.a0(A.a([B.a9p,B.a1,A.b_(A.dV(e,e,e,new A.vL(d,B.S3,B.uz,B.ji,e),B.V),160,1/0)],n),B.w,B.h,B.f,0,B.m),B.j,e,e,new A.O(j,e,e,i,e,e,B.o),e,e,e,B.F,e,e,e)
-  var card2=A.X(e,A.a0(A.a([B.a7S,B.a1,A.b_(A.dV(e,e,e,new A.Sw(d,e),B.V),180,1/0)],n),B.w,B.h,B.f,0,B.m),B.j,e,e,new A.O(j,e,e,i,e,e,B.o),e,e,e,B.F,e,e,e)
-  return A.j0(A.a([l,B.aW,B.a72,B.aD,card1,B.aD,card2,B.cw],n),B.dK,e,B.S,!1)
+buildHabitsTab(a0, d, n, habits){
+  var e=null, textP = d ? B.d : B.B, textS = d ? B.as : B.a6, cardBg = d ? B.ah : B.d, cardR = A.B(20)
+  var title = A.m("Habit Consistency & Streaks", e, e, e, e, A.J(e, e, textP, e, e, e, e, e, e, e, e, 18, e, e, B.K, e, e, !0, e, e, e, e, e, e, e, e), e, e, e)
+  
+  if(habits.length === 0){
+    var emptyCard = A.X(e, A.a0(A.a([
+      A.m("No Habits Tracked", e, e, e, e, A.J(e, e, textP, e, e, e, e, e, e, e, e, 15, e, e, B.K, e, e, !0, e, e, e, e, e, e, e, e), e, e, e),
+      B.aW,
+      A.m("Create habits in the Habit Tracker to track your daily streak consistency and analytics.", e, e, e, e, A.J(e, e, textS, e, e, e, e, e, e, e, e, 12, e, e, B.x, e, e, !0, e, e, e, e, e, e, e, e), e, e, e)
+    ], n), B.w, B.h, B.f, 0, B.m), B.j, e, e, new A.O(cardBg, e, e, cardR, e, e, B.o), e, e, e, B.F, e, e, 1/0)
+    return A.j0(A.a([title, B.aW, emptyCard, B.cw], n), B.dK, e, B.S, !1)
+  }
+  
+  var habitItems = []
+  var compCount = 0
+  for(var i=0; i<habits.length; i++){
+    var h = habits[i]
+    var hTitle = A.b3(h.h(0,"title"))
+    var isDone = J.d(h.h(0,"isCompleted"),!0)
+    if(isDone) compCount++
+    var st = A.fV(h.h(0,"streakDay")) || 0
+    var itemTxt = A.m(hTitle + "  •  🔥 " + st + " Days  •  " + (isDone ? "✓ Completed" : "○ Pending"), e, e, e, e, A.J(e, e, isDone ? B.u : textP, e, e, e, e, e, e, e, e, 13, e, e, B.K, e, e, !0, e, e, e, e, e, e, e, e), e, e, e)
+    habitItems.push(itemTxt)
+    if(i < habits.length - 1) habitItems.push(B.aW)
+  }
+  
+  var card = A.X(e, A.a0(A.a(habitItems, n), B.w, B.h, B.f, 0, B.m), B.j, e, e, new A.O(cardBg, e, e, cardR, e, e, B.o), e, e, e, B.F, e, e, 1/0)
+  return A.j0(A.a([title, B.aW, card, B.cw], n), B.dK, e, B.S, !1)
 },
 
-buildExpensesTab(a0, d, n){
-  var e=null, m=A.m("Financial Breakdown & Cashflow",e,e,e,e,A.J(e,e,d?B.d:B.af,e,e,e,e,e,e,e,e,20,e,e,B.K,e,e,!0,e,e,e,e,e,e,e,e),e,e,e)
-  var l=d?B.T:B.d, j=A.B(20)
-  var card1=A.X(e,A.a0(A.a([B.a9x,B.a1,A.a4(A.a([A.b_(A.dV(e,e,e,new A.O_(e),B.V),160,160),B.oU,A.aD(A.a0(B.QV,B.i,B.h,B.f,0,B.m),1)],n),B.i,B.h,B.f,0,e,e)],n),B.w,B.h,B.f,0,B.m),B.j,e,e,new A.O(l,e,e,j,e,e,B.o),e,e,e,B.F,e,e,e)
-  var card2=A.X(e,A.a0(A.a([B.a9e,B.a1,A.b_(A.dV(e,e,e,new A.vL(d,B.R5,B.SH,B.al,e),B.V),160,1/0)],n),B.w,B.h,B.f,0,B.m),B.j,e,e,new A.O(l,e,e,j,e,e,B.o),e,e,e,B.F,e,e,e)
-  return A.j0(A.a([m,B.aW,B.a8Z,B.aD,card1,B.aD,card2,B.cw],n),B.dK,e,B.S,!1)
+buildStudiesTab(a0, d, n, subjects, tasks){
+  var e=null, textP = d ? B.d : B.B, textS = d ? B.as : B.a6, cardBg = d ? B.ah : B.d, cardR = A.B(20)
+  var title = A.m("Academic Study Analytics", e, e, e, e, A.J(e, e, textP, e, e, e, e, e, e, e, e, 18, e, e, B.K, e, e, !0, e, e, e, e, e, e, e, e), e, e, e)
+  
+  var studyTasks = tasks.filter(function(t){ return t.category === 'Studies' || (t.h && t.h(0,'category') === 'Studies'); })
+  
+  if(subjects.length === 0 && studyTasks.length === 0){
+    var emptyCard = A.X(e, A.a0(A.a([
+      A.m("No Study Data Available", e, e, e, e, A.J(e, e, textP, e, e, e, e, e, e, e, e, 15, e, e, B.K, e, e, !0, e, e, e, e, e, e, e, e), e, e, e),
+      B.aW,
+      A.m("Add subjects and assignments in Academic Planner to analyze your study patterns.", e, e, e, e, A.J(e, e, textS, e, e, e, e, e, e, e, e, 12, e, e, B.x, e, e, !0, e, e, e, e, e, e, e, e), e, e, e)
+    ], n), B.w, B.h, B.f, 0, B.m), B.j, e, e, new A.O(cardBg, e, e, cardR, e, e, B.o), e, e, e, B.F, e, e, 1/0)
+    return A.j0(A.a([title, B.aW, emptyCard, B.cw], n), B.dK, e, B.S, !1)
+  }
+  
+  var subRows = []
+  for(var i=0; i<subjects.length; i++){
+    var s = subjects[i]
+    var subName = s.name || "Subject " + (i+1)
+    var subProg = Math.round((s.progress || 0) * 100)
+    subRows.push(A.m(subName + "  •  " + subProg + "% Progress", e, e, e, e, A.J(e, e, textP, e, e, e, e, e, e, e, e, 13, e, e, B.K, e, e, !0, e, e, e, e, e, e, e, e), e, e, e))
+    if(i < subjects.length - 1) subRows.push(B.aW)
+  }
+  if(subRows.length === 0){
+    subRows.push(A.m("Enrolled: " + subjects.length + " Subjects • " + studyTasks.length + " Tasks", e, e, e, e, A.J(e, e, textP, e, e, e, e, e, e, e, e, 13, e, e, B.K, e, e, !0, e, e, e, e, e, e, e, e), e, e, e))
+  }
+  
+  var card = A.X(e, A.a0(A.a(subRows, n), B.w, B.h, B.f, 0, B.m), B.j, e, e, new A.O(cardBg, e, e, cardR, e, e, B.o), e, e, e, B.F, e, e, 1/0)
+  return A.j0(A.a([title, B.aW, card, B.cw], n), B.dK, e, B.S, !1)
 },
 
-buildGoalsTab(a0, d, n){
-  var e=null, l=A.m("Strategic Goals Analytics",e,e,e,e,A.J(e,e,d?B.d:B.af,e,e,e,e,e,e,e,e,20,e,e,B.K,e,e,!0,e,e,e,e,e,e,e,e),e,e,e)
-  var j=d?B.T:B.d, i=A.B(20)
-  var card1=A.X(e,A.a0(A.a([B.a7b,B.a1,A.a4(A.a([A.b_(A.dV(e,e,e,new A.Ol(e),B.V),160,160),B.oU,A.aD(A.a0(B.Qg,B.i,B.h,B.f,0,B.m),1)],n),B.i,B.h,B.f,0,e,e)],n),B.w,B.h,B.f,0,B.m),B.j,e,e,new A.O(j,e,e,i,e,e,B.o),e,e,e,B.F,e,e,e)
-  return A.j0(A.a([l,B.aW,A.m("Track roadmap objectives and execution velocity",e,e,e,e,A.J(e,e,d?B.am:B.c7,e,e,e,e,e,e,e,e,13,e,e,B.x,e,e,!0,e,e,e,e,e,e,e,e),e,e,e),B.aD,card1,B.cw],n),B.dK,e,B.S,!1)
+buildExpensesTab(a0, d, n, expenses){
+  var e=null, textP = d ? B.d : B.B, textS = d ? B.as : B.a6, cardBg = d ? B.ah : B.d, cardR = A.B(20)
+  var title = A.m("Financial Breakdown & Cashflow", e, e, e, e, A.J(e, e, textP, e, e, e, e, e, e, e, e, 18, e, e, B.K, e, e, !0, e, e, e, e, e, e, e, e), e, e, e)
+  
+  if(expenses.length === 0){
+    var emptyCard = A.X(e, A.a0(A.a([
+      A.m("No Expense Records", e, e, e, e, A.J(e, e, textP, e, e, e, e, e, e, e, e, 15, e, e, B.K, e, e, !0, e, e, e, e, e, e, e, e), e, e, e),
+      B.aW,
+      A.m("Log your daily expenses in the Expense Tracker to analyze spending categories and cashflow.", e, e, e, e, A.J(e, e, textS, e, e, e, e, e, e, e, e, 12, e, e, B.x, e, e, !0, e, e, e, e, e, e, e, e), e, e, e)
+    ], n), B.w, B.h, B.f, 0, B.m), B.j, e, e, new A.O(cardBg, e, e, cardR, e, e, B.o), e, e, e, B.F, e, e, 1/0)
+    return A.j0(A.a([title, B.aW, emptyCard, B.cw], n), B.dK, e, B.S, !1)
+  }
+  
+  var catMap = {}
+  var totalSpent = 0
+  for(var i=0; i<expenses.length; i++){
+    var exp = expenses[i]
+    if(!exp.isIncome){
+      var amt = exp.amount || 0
+      var cat = exp.category || "General"
+      catMap[cat] = (catMap[cat] || 0) + amt
+      totalSpent += amt
+    }
+  }
+  
+  var expRows = [A.m("Total Spent: ₹" + Math.round(totalSpent), e, e, e, e, A.J(e, e, textP, e, e, e, e, e, e, e, e, 14, e, e, B.K, e, e, !0, e, e, e, e, e, e, e, e), e, e, e)]
+  var cats = Object.keys(catMap)
+  for(var i=0; i<cats.length; i++){
+    var c = cats[i]
+    var amt = catMap[c]
+    var pct = totalSpent > 0 ? Math.round((amt / totalSpent) * 100) : 0
+    expRows.push(B.aW)
+    expRows.push(A.m(c + "  •  ₹" + Math.round(amt) + " (" + pct + "%)", e, e, e, e, A.J(e, e, textS, e, e, e, e, e, e, e, e, 12, e, e, B.x, e, e, !0, e, e, e, e, e, e, e, e), e, e, e))
+  }
+  
+  var card = A.X(e, A.a0(A.a(expRows, n), B.w, B.h, B.f, 0, B.m), B.j, e, e, new A.O(cardBg, e, e, cardR, e, e, B.o), e, e, e, B.F, e, e, 1/0)
+  return A.j0(A.a([title, B.aW, card, B.cw], n), B.dK, e, B.S, !1)
 },
 
-buildMilestonesTab(a0, d, n){
-  var e=null, l=A.m("Milestones & Achievements",e,e,e,e,A.J(e,e,d?B.d:B.af,e,e,e,e,e,e,e,e,20,e,e,B.K,e,e,!0,e,e,e,e,e,e,e,e),e,e,e)
-  var i=d?B.T:B.bC, h=A.B(20)
-  var card1=A.X(e,A.a4(A.a([A.X(e,B.Jl,B.j,e,e,B.j9,e,60,e,e,e,e,60),B.dU,B.MX],n),B.i,B.h,B.f,0,e,e),B.j,e,e,new A.O(i,e,e,h,e,e,B.o),e,e,e,B.F,e,e,e)
-  return A.j0(A.a([l,B.aW,B.a9Y,B.aD,card1,B.cw],n),B.dK,e,B.S,!1)
+buildGoalsTab(a0, d, n, roadmap){
+  var e=null, textP = d ? B.d : B.B, textS = d ? B.as : B.a6, cardBg = d ? B.ah : B.d, cardR = A.B(20)
+  var title = A.m("Strategic Goals Analytics", e, e, e, e, A.J(e, e, textP, e, e, e, e, e, e, e, e, 18, e, e, B.K, e, e, !0, e, e, e, e, e, e, e, e), e, e, e)
+  
+  var goals = roadmap.filter(function(r){ return r.section === 'GOAL'; })
+  
+  if(goals.length === 0){
+    var emptyCard = A.X(e, A.a0(A.a([
+      A.m("No Goals Configured", e, e, e, e, A.J(e, e, textP, e, e, e, e, e, e, e, e, 15, e, e, B.K, e, e, !0, e, e, e, e, e, e, e, e), e, e, e),
+      B.aW,
+      A.m("Define your career objectives and milestones in Career Roadmap to track progression.", e, e, e, e, A.J(e, e, textS, e, e, e, e, e, e, e, e, 12, e, e, B.x, e, e, !0, e, e, e, e, e, e, e, e), e, e, e)
+    ], n), B.w, B.h, B.f, 0, B.m), B.j, e, e, new A.O(cardBg, e, e, cardR, e, e, B.o), e, e, e, B.F, e, e, 1/0)
+    return A.j0(A.a([title, B.aW, emptyCard, B.cw], n), B.dK, e, B.S, !1)
+  }
+  
+  var goalRows = []
+  for(var i=0; i<goals.length; i++){
+    var g = goals[i]
+    var gTitle = g.title || "Goal " + (i+1)
+    var isDone = !!g.isCompleted
+    goalRows.push(A.m((isDone ? "✓ " : "○ ") + gTitle + "  •  " + (isDone ? "Completed" : "On Track"), e, e, e, e, A.J(e, e, isDone ? B.u : textP, e, e, e, e, e, e, e, e, 13, e, e, B.K, e, e, !0, e, e, e, e, e, e, e, e), e, e, e))
+    if(i < goals.length - 1) goalRows.push(B.aW)
+  }
+  
+  var card = A.X(e, A.a0(A.a(goalRows, n), B.w, B.h, B.f, 0, B.m), B.j, e, e, new A.O(cardBg, e, e, cardR, e, e, B.o), e, e, e, B.F, e, e, 1/0)
+  return A.j0(A.a([title, B.aW, card, B.cw], n), B.dK, e, B.S, !1)
+},
+
+buildMilestonesTab(a0, d, n, roadmap){
+  var e=null, textP = d ? B.d : B.B, textS = d ? B.as : B.a6, cardBg = d ? B.ah : B.d, cardR = A.B(20)
+  var title = A.m("Milestones & Achievements", e, e, e, e, A.J(e, e, textP, e, e, e, e, e, e, e, e, 18, e, e, B.K, e, e, !0, e, e, e, e, e, e, e, e), e, e, e)
+  
+  var milestones = roadmap.filter(function(r){ return r.section !== 'GOAL'; })
+  
+  if(milestones.length === 0){
+    var emptyCard = A.X(e, A.a0(A.a([
+      A.m("No Milestones Tracked", e, e, e, e, A.J(e, e, textP, e, e, e, e, e, e, e, e, 15, e, e, B.K, e, e, !0, e, e, e, e, e, e, e, e), e, e, e),
+      B.aW,
+      A.m("Add learning milestones and skill achievements to see your milestone timeline.", e, e, e, e, A.J(e, e, textS, e, e, e, e, e, e, e, e, 12, e, e, B.x, e, e, !0, e, e, e, e, e, e, e, e), e, e, e)
+    ], n), B.w, B.h, B.f, 0, B.m), B.j, e, e, new A.O(cardBg, e, e, cardR, e, e, B.o), e, e, e, B.F, e, e, 1/0)
+    return A.j0(A.a([title, B.aW, emptyCard, B.cw], n), B.dK, e, B.S, !1)
+  }
+  
+  var msRows = []
+  for(var i=0; i<milestones.length; i++){
+    var mNode = milestones[i]
+    var mTitle = mNode.title || "Milestone " + (i+1)
+    var isDone = !!mNode.isCompleted
+    msRows.push(A.m((isDone ? "✓ " : "○ ") + mTitle + "  •  " + (mNode.section || "General"), e, e, e, e, A.J(e, e, isDone ? B.u : textP, e, e, e, e, e, e, e, e, 13, e, e, B.K, e, e, !0, e, e, e, e, e, e, e, e), e, e, e))
+    if(i < milestones.length - 1) msRows.push(B.aW)
+  }
+  
+  var card = A.X(e, A.a0(A.a(msRows, n), B.w, B.h, B.f, 0, B.m), B.j, e, e, new A.O(cardBg, e, e, cardR, e, e, B.o), e, e, e, B.F, e, e, 1/0)
+  return A.j0(A.a([title, B.aW, card, B.cw], n), B.dK, e, B.S, !1)
 },
 
 Gn(a,b,c,d){var s=null,r=a?B.ah:B.d,q=A.B(18),p=a?A.bO(B.ay,B.p,1):s,o=a?A.fY():A.iN(),n=A.m(c,s,s,s,s,A.J(s,s,a?B.as:B.a6,s,s,s,s,s,s,s,s,11,s,s,B.b4,s,s,!0,s,s,s,s,s,s,s,s),s,s,s),m=A.m(d,s,s,s,s,A.J(s,s,a?B.d:B.B,s,s,s,s,s,s,s,s,22,s,s,B.fL,s,s,!0,s,s,s,s,s,s,s,s),s,s,s)
