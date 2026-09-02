@@ -16,7 +16,7 @@ import '../widgets/analytics/expenses_tab_view.dart';
 import '../widgets/analytics/goals_tab_view.dart';
 import '../widgets/analytics/milestones_tab_view.dart';
 import 'habit_tracker_screen.dart';
-import 'academic_planner_screen.dart';
+import 'studies_screen.dart';
 import 'expense_tracker_screen.dart';
 import 'career_roadmap_screen.dart';
 
@@ -195,7 +195,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                     onAddSubject: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const AcademicPlannerScreen()),
+                        MaterialPageRoute(builder: (_) => const StudiesScreen()),
                       );
                     },
                   ),

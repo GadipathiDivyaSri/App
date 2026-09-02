@@ -28,7 +28,7 @@ class ExpensesTabView extends StatelessWidget {
     }
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor = isDark ? AppTheme.darkPrimary : AppTheme.financeIcon;
+    final primaryColor = isDark ? AppTheme.darkPrimary : AppTheme.primaryAccent;
     final textPrimary = isDark ? AppTheme.darkTextPrimary : AppTheme.textPrimary;
     final textSecondary = isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary;
     final cardBg = isDark ? AppTheme.darkCardBg : AppTheme.cardSurface;
