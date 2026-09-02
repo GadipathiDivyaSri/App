@@ -104,6 +104,21 @@
       "createdAt": "2026-09-01T14:17:07.943Z",
       "updatedAt": "2026-09-01T14:17:07.943Z",
       "onboardingCompleted": false
+    },
+    {
+      "id": "u_1788311971903",
+      "username": "audit_user_1788311970309",
+      "name": "Audit User",
+      "email": "audit_user_1788311970309@wrindhaos.in",
+      "googleId": "g_123456789",
+      "photoUrl": null,
+      "isEmailVerified": true,
+      "focusScore": 85,
+      "activeStreak": 1,
+      "isPremium": true,
+      "referralCode": "WOS3105",
+      "createdAt": "2026-09-02T01:19:31.903Z",
+      "updatedAt": "2026-09-02T01:19:31.903Z"
     }
   ],
   "subscriptions": [
@@ -190,6 +205,19 @@
       "transaction_id": "tx_1788272227998",
       "created_at": "2026-09-01T14:17:07.943Z",
       "updated_at": "2026-09-01T14:17:07.998Z"
+    },
+    {
+      "id": "sub_free_u_1788311971903",
+      "user_id": "u_1788311971903",
+      "plan": "pro",
+      "status": "active",
+      "started_at": "2026-09-02T01:19:31.931Z",
+      "expires_at": null,
+      "payment_provider": "PLAY_STORE",
+      "transaction_id": "tx_1788311971931",
+      "created_at": "2026-09-02T01:19:31.903Z",
+      "updated_at": "2026-09-02T01:19:31.931Z",
+      "last_billing_amount": 49
     }
   ],
   "paymentHistory": [],
@@ -328,16 +356,76 @@
       "longestStreak": 0,
       "createdAt": "2026-08-30T12:36:07.644Z",
       "updatedAt": "2026-08-30T12:36:07.656Z"
+    },
+    {
+      "id": "h_1788311971915",
+      "userId": "u_1788311971903",
+      "title": "Habit 1",
+      "category": "General",
+      "frequency": "DAILY",
+      "selectedDays": [],
+      "startDate": "2026-09-02",
+      "status": "active",
+      "description": "",
+      "colorHex": "0xFF10B981",
+      "iconName": "repeat",
+      "currentStreak": 0,
+      "longestStreak": 0,
+      "createdAt": "2026-09-02T01:19:31.915Z",
+      "updatedAt": "2026-09-02T01:19:31.915Z"
+    },
+    {
+      "id": "h_1788311971918",
+      "userId": "u_1788311971903",
+      "title": "Habit 2",
+      "category": "General",
+      "frequency": "DAILY",
+      "selectedDays": [],
+      "startDate": "2026-09-02",
+      "status": "active",
+      "description": "",
+      "colorHex": "0xFF10B981",
+      "iconName": "repeat",
+      "currentStreak": 0,
+      "longestStreak": 0,
+      "createdAt": "2026-09-02T01:19:31.918Z",
+      "updatedAt": "2026-09-02T01:19:31.918Z"
     }
   ],
   "habitCompletions": [],
   "habitPausePeriods": [],
   "habitScheduleHistory": [],
-  "subjects": [],
+  "subjects": [
+    {
+      "id": "sub_1788311971922",
+      "userId": "u_1788311971903",
+      "name": "Subject 1",
+      "code": "",
+      "instructor": "",
+      "createdAt": "2026-09-02T01:19:31.922Z"
+    },
+    {
+      "id": "sub_1788311971925",
+      "userId": "u_1788311971903",
+      "name": "Subject 2",
+      "code": "",
+      "instructor": "",
+      "createdAt": "2026-09-02T01:19:31.925Z"
+    }
+  ],
   "studyItems": [],
   "timetable": [],
   "careerNodes": [],
-  "goals": [],
+  "goals": [
+    {
+      "id": "g_1788311971933",
+      "userId": "u_1788311971903",
+      "title": "Pro Goal Hierarchy",
+      "tier": "short",
+      "isCompleted": false,
+      "createdAt": "2026-09-02T01:19:31.933Z"
+    }
+  ],
   "expenses": [],
   "journalEntries": [],
   "notes": [],
@@ -577,6 +665,20 @@
       "discountApplied": 24.5,
       "paymentStatus": "success",
       "createdAt": "2026-09-02T01:11:33.180Z"
+    },
+    {
+      "id": "cu_1788311991100",
+      "userId": "u_1788311991055",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-09-02T01:19:51.100Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-09-02T01:19:51.100Z"
     }
   ],
   "referralCodes": [
@@ -635,6 +737,14 @@
       "status": "active",
       "totalCount": 0,
       "createdAt": "2026-09-01T14:17:07.944Z"
+    },
+    {
+      "id": "ref_u_1788311971903",
+      "userId": "u_1788311971903",
+      "referralCode": "WOS3105",
+      "status": "active",
+      "totalCount": 0,
+      "createdAt": "2026-09-02T01:19:31.904Z"
     }
   ],
   "referralTrackings": [
@@ -718,6 +828,36 @@
         "username": "audit_1788311490692",
         "email": "audit_user_1788311490691@wrindhaos.in",
         "passwordHash": "45e49a8eb03c7de5124d22df935793f4:96484dc3f34012debd17e0dea48a92982bf3d4b8640e233803d74b14a2e15730e261b02698d7f90f169b23a92c1650b2170cf6c6ba66afc4b6cd189d600f689b",
+        "referralCode": ""
+      }
+    },
+    "audit_user_1788311970309@wrindhaos.in": {
+      "code": "561597",
+      "type": "register",
+      "attempts": 0,
+      "maxAttempts": 5,
+      "createdAt": 1788311970359,
+      "expiresAt": 1788312570359,
+      "lastSentAt": 1788311970359,
+      "pendingUser": {
+        "username": "audit_1788311970310",
+        "email": "audit_user_1788311970309@wrindhaos.in",
+        "passwordHash": "3d1ed2ed618194c72c444e0f317580e5:1c36ede8d7a90ee65d5c77ce5495f6edd225f7a5d65289c10087ed095b9784f3f2576e5986765703788f962c9cfb8f5fdd46e20fa599a635976306bebf8f0c92",
+        "referralCode": ""
+      }
+    },
+    "audit_user_1788311989507@wrindhaos.in": {
+      "code": "192220",
+      "type": "register",
+      "attempts": 0,
+      "maxAttempts": 5,
+      "createdAt": 1788311989546,
+      "expiresAt": 1788312589546,
+      "lastSentAt": 1788311989546,
+      "pendingUser": {
+        "username": "audit_1788311989509",
+        "email": "audit_user_1788311989507@wrindhaos.in",
+        "passwordHash": "c88c81c1328b1d37b144f8a097c04a8f:819987ccd18eb1419a7cac468d6d3ae4cc98333df2648667f9838e19c280ab2a78b8e30755bfc5b59663ab9a7ce3f12edbba749f4fe86b9be8d3894f2eec0b93",
         "referralCode": ""
       }
     }

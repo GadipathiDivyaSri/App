@@ -107,6 +107,19 @@ async function runAuditTests() {
     console.log(`[3.2] Pro User Goal Creation (Expect 201): ${goalPro.status} - Goal ID: ${goalPro.data.id}`);
 
     // -------------------------------------------------------------------------
+    // 3.5 HABIT TRACKER BACKEND SUITE (CRUD, Overview, Weekly Matrix, Best Streak)
+    // -------------------------------------------------------------------------
+    console.log('\n--- 3.5 HABIT TRACKER PRODUCTION SUITE ---');
+    const hOverview = await request('GET', '/api/habits/overview', null, authHeaders);
+    console.log(`[3.5.1] Habit Overview: ${hOverview.status} - Scheduled: ${hOverview.data.totalScheduled}, Completed: ${hOverview.data.completedCount}`);
+
+    const hMatrix = await request('GET', '/api/habits/weekly-consistency', null, authHeaders);
+    console.log(`[3.5.2] Weekly Consistency Matrix: ${hMatrix.status} - Habits Tracked: ${hMatrix.data.matrix.length}, Weekdays: ${hMatrix.data.weekDayLabels.join(' ')}`);
+
+    const hBest = await request('GET', '/api/habits/best-streak', null, authHeaders);
+    console.log(`[3.5.3] Best Streak Status: ${hBest.status} - Top Streak: ${hBest.data.bestStreak?.days || 0} Days`);
+
+    // -------------------------------------------------------------------------
     // 4. COUPON & PROMOTIONAL CODE SYSTEM
     // -------------------------------------------------------------------------
     console.log('\n--- 4. COUPON & PROMOTIONAL CODE SYSTEM ---');

@@ -1279,6 +1279,167 @@ async function handleApiRequest(req, res) {
     }
 
     // 2.3 Habits System (Full Production CRUD, Custom Frequencies, Daily Completions, Streaks & Analytics)
+    if (pathname === '/api/habits/overview' && method === 'GET') {
+      const targetDate = query.date || new Date().toISOString().split('T')[0];
+      const userHabits = (db.habits || []).filter((h) => h.userId === userId && h.status !== 'archived');
+      const userCompletions = (db.habitCompletions || []).filter((hc) => hc.userId === userId && hc.status === 'completed');
+
+      const scheduledHabits = userHabits.filter((h) => isHabitScheduledForDate(h, targetDate));
+      const compSet = new Set(userCompletions.map((c) => c.completionDate));
+      const completedToday = scheduledHabits.filter((h) => {
+        const hComps = userCompletions.filter((c) => c.habitId === h.id).map((c) => c.completionDate);
+        return hComps.includes(targetDate);
+      });
+
+      // Weekly Consistency Calculation (Current Mon - Sun)
+      const curDate = new Date(targetDate);
+      let dayOfWeek = curDate.getUTCDay();
+      if (dayOfWeek === 0) dayOfWeek = 7;
+      const monday = new Date(curDate);
+      monday.setUTCDate(monday.getUTCDate() - (dayOfWeek - 1));
+
+      const weekDayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+      const weekDates = [];
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(monday);
+        d.setUTCDate(d.getUTCDate() + i);
+        weekDates.push(d.toISOString().split('T')[0]);
+      }
+
+      const weeklyConsistency = userHabits.map((h) => {
+        const hComps = userCompletions.filter((c) => c.habitId === h.id).map((c) => c.completionDate);
+        const hCompSet = new Set(hComps);
+        const days = weekDates.map((dStr, idx) => ({
+          date: dStr,
+          dayLabel: weekDayLabels[idx],
+          isScheduled: isHabitScheduledForDate(h, dStr),
+          isCompleted: hCompSet.has(dStr),
+        }));
+
+        const streaks = calculateHabitStreaks(h, hComps, targetDate);
+        return {
+          id: h.id,
+          title: h.title,
+          category: h.category || 'General',
+          currentStreak: streaks.currentStreak,
+          longestStreak: streaks.longestStreak,
+          days,
+        };
+      });
+
+      // Top / Best Streak
+      let topHabit = null;
+      let bestStreak = 0;
+      userHabits.forEach((h) => {
+        const hComps = userCompletions.filter((c) => c.habitId === h.id).map((c) => c.completionDate);
+        const streaks = calculateHabitStreaks(h, hComps, targetDate);
+        if (streaks.longestStreak > bestStreak || (streaks.longestStreak === bestStreak && !topHabit)) {
+          bestStreak = streaks.longestStreak;
+          topHabit = {
+            id: h.id,
+            title: h.title,
+            category: h.category,
+            longestStreak: streaks.longestStreak,
+            currentStreak: streaks.currentStreak,
+          };
+        }
+      });
+
+      return sendJSON(res, 200, {
+        success: true,
+        date: targetDate,
+        completedCount: completedToday.length,
+        totalScheduled: scheduledHabits.length,
+        progress: scheduledHabits.length > 0 ? completedToday.length / scheduledHabits.length : 0,
+        habits: userHabits.map((h) => {
+          const hComps = userCompletions.filter((c) => c.habitId === h.id).map((c) => c.completionDate);
+          const streaks = calculateHabitStreaks(h, hComps, targetDate);
+          return {
+            id: h.id,
+            title: h.title,
+            category: h.category || 'General',
+            frequency: h.frequency || 'DAILY',
+            isScheduled: isHabitScheduledForDate(h, targetDate),
+            isCompleted: hComps.includes(targetDate),
+            currentStreak: streaks.currentStreak,
+            longestStreak: streaks.longestStreak,
+          };
+        }),
+        weeklyConsistency,
+        bestStreak: {
+          habitTitle: topHabit?.title || 'Daily Consistency',
+          days: bestStreak,
+          topHabit,
+        },
+      });
+    }
+
+    if (pathname === '/api/habits/weekly-consistency' && method === 'GET') {
+      const targetDate = query.date || new Date().toISOString().split('T')[0];
+      const userHabits = (db.habits || []).filter((h) => h.userId === userId && h.status !== 'archived');
+      const userCompletions = (db.habitCompletions || []).filter((hc) => hc.userId === userId && hc.status === 'completed');
+
+      const curDate = new Date(targetDate);
+      let dayOfWeek = curDate.getUTCDay();
+      if (dayOfWeek === 0) dayOfWeek = 7;
+      const monday = new Date(curDate);
+      monday.setUTCDate(monday.getUTCDate() - (dayOfWeek - 1));
+
+      const weekDayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+      const weekDates = [];
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(monday);
+        d.setUTCDate(d.getUTCDate() + i);
+        weekDates.push(d.toISOString().split('T')[0]);
+      }
+
+      const matrix = userHabits.map((h) => {
+        const hComps = userCompletions.filter((c) => c.habitId === h.id).map((c) => c.completionDate);
+        const hCompSet = new Set(hComps);
+        return {
+          id: h.id,
+          title: h.title,
+          category: h.category,
+          days: weekDates.map((dStr, idx) => ({
+            date: dStr,
+            dayLabel: weekDayLabels[idx],
+            isScheduled: isHabitScheduledForDate(h, dStr),
+            isCompleted: hCompSet.has(dStr),
+          })),
+        };
+      });
+
+      return sendJSON(res, 200, { success: true, weekDates, weekDayLabels, matrix });
+    }
+
+    if (pathname === '/api/habits/best-streak' && method === 'GET') {
+      const targetDate = query.date || new Date().toISOString().split('T')[0];
+      const userHabits = (db.habits || []).filter((h) => h.userId === userId && h.status !== 'archived');
+      const userCompletions = (db.habitCompletions || []).filter((hc) => hc.userId === userId && hc.status === 'completed');
+
+      let topHabit = null;
+      let bestStreak = 0;
+      userHabits.forEach((h) => {
+        const hComps = userCompletions.filter((c) => c.habitId === h.id).map((c) => c.completionDate);
+        const streaks = calculateHabitStreaks(h, hComps, targetDate);
+        if (streaks.longestStreak > bestStreak || (streaks.longestStreak === bestStreak && !topHabit)) {
+          bestStreak = streaks.longestStreak;
+          topHabit = {
+            id: h.id,
+            title: h.title,
+            category: h.category,
+            longestStreak: streaks.longestStreak,
+            currentStreak: streaks.currentStreak,
+          };
+        }
+      });
+
+      return sendJSON(res, 200, {
+        success: true,
+        bestStreak: topHabit ? { habitTitle: topHabit.title, days: bestStreak, topHabit } : null,
+      });
+    }
+
     if (pathname === '/api/habits/analytics' && method === 'GET') {
       const queryDate = query.date || new Date().toISOString().split('T')[0];
       const analytics = calculateHabitAnalytics(userId, db, queryDate);

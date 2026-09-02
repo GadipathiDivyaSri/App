@@ -100687,28 +100687,45 @@ if(o==="Medium")s.e.push(A.af(["title",B.c.aN(q.a),"progress","0%"],r,r))
 else s.f.push(A.af(["title",B.c.aN(q.a),"progress","Planned"],r,r))}},
 $S:0}
 A.qD.prototype={
-a5(){return new A.WF(A.a([],t.H7))}}
+a5(){
+  var h1 = A.af(["id","h_1","title","🏃 Morning Workout","frequency","Daily","icon",B.NK,"isCompleted",!0,"streakDay",12,"longestStreak",15],t.N,t.z);
+  var h2 = A.af(["id","h_2","title","📚 Read 20 Pages","frequency","Daily","icon",B.NK,"isCompleted",!0,"streakDay",7,"longestStreak",10],t.N,t.z);
+  var h3 = A.af(["id","h_3","title","🧘 Meditation","frequency","Daily","icon",B.NK,"isCompleted",!1,"streakDay",3,"longestStreak",8],t.N,t.z);
+  var h4 = A.af(["id","h_4","title","💧 Drink Water","frequency","Daily","icon",B.NK,"isCompleted",!1,"streakDay",15,"longestStreak",20],t.N,t.z);
+  return new A.WF(A.a([h1,h2,h3,h4],t.H7));
+}}
 A.WF.prototype={
 E(a){var s,r,q,p,o,n,m,l,k=this,j=null,i=A.p(a).ax.a===B.A,h=i?B.am:B.c7,g=i?B.aZ:B.aV,f=A.c3(j,j,j,A.as(B.bm,i?B.d:B.B,j,20),j,j,new A.awI(a),j,j,j,j)
 f=A.da(j,j,j,j,j,f,A.m("Habits",j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,j,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j))
 s=i?B.am:B.N
 s=A.jE(s,B.ei,4,"habit_fab",new A.awJ(k,a),B.di)
-r=A.m("WEEKLY CONSISTENCY",j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,18,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j)
 q=k.d
-p=q.length===0?"0 DAY STREAK":""+new A.aB(q,new A.awK(),A.a1(q).i("aB<1>")).gG(0)+" ACTIVE"
-o=t.p
-p=A.a4(A.a([r,A.m(p,j,j,j,j,A.J(j,j,h,j,j,j,j,j,j,j,j,11,j,j,B.x,j,j,!0,j,1.1,j,j,j,j,j,j),j,j,j)],o),B.i,B.ap,B.f,0,j,j)
-r=i?B.ah:B.ec
-n=A.B(20)
-m=i?A.bO(B.ay,B.p,1):j
-l=q.length
-if(l===0)l=B.Jj
-else{if(l>3)l=3
-l=A.a4(A.Pc(l,new A.awL(k),!0,t.l7),B.i,B.iu,B.f,0,j,j)}n=A.X(j,l,B.j,j,j,new A.O(r,j,m,n,j,j,B.o),j,j,j,B.MB,j,j,j)
-r=A.m("🔥 BEST STREAK",j,j,j,j,A.J(j,j,i?B.d:B.af,j,j,j,j,j,j,j,j,18,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j)
-if(!new A.aB(q,new A.awM(),A.a1(q).i("aB<1>")).gaf(0).B()){m=i?B.T:B.d
-m=A.X(j,B.Jk,B.j,j,j,new A.O(m,j,j,A.B(18),j,j,B.o),j,j,j,B.F,j,j,1/0)}else m=A.b_(A.j0(A.a([k.R_(a,B.rc,B.u3,B.r7,"EARLY BIRD"),B.bx,k.R_(a,B.Kk,B.tP,B.bG,"ON FIRE")],o),j,j,B.ak,!1),110,j)
-return A.cJ(f,g,A.dA(A.a0(A.a([p,B.aP,n,B.an,r,B.aP,m,B.an,A.m("TODAY'S HABITS",j,j,j,j,A.J(j,j,i?B.d:B.af,j,j,j,j,j,j,j,j,18,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j),B.aP,A.vP(new A.awN(k),q.length,B.f2,!0),B.dx],o),B.w,B.h,B.f,0,B.m),j,B.t,B.bw,j,j,B.S),j,s)},
+var compCount=0
+for(var ci=0;ci<q.length;ci++){if(J.d(q[ci].h(0,"isCompleted"),!0))compCount++}
+var topTitle=A.m("Today, Sep 2",j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,16,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j)
+var metricTxt=A.m("◉  "+compCount+" / "+q.length,j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,22,j,j,B.K,j,j,!0,j,-0.5,j,j,j,j,j,j),j,j,j)
+var compLabel=A.m("Completed",j,j,j,j,A.J(j,j,h,j,j,j,j,j,j,j,j,12,j,j,B.x,j,j,!0,j,j,j,j,j,j,j,j),j,j,j)
+var topCardContent=A.a0(A.a([topTitle,B.aW,metricTxt,B.aP,compLabel],t.p),B.w,B.h,B.av,0,B.m)
+var topCard=A.X(j,topCardContent,B.j,j,j,new A.O(i?B.ah:B.ec,j,i?A.bO(B.ay,B.p,1):j,A.B(20),j,j,B.o),j,j,j,B.MB,j,j,j)
+var todayHabitsHeader=A.a4(A.a([A.m("TODAY'S HABITS",j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,13,j,j,B.K,j,j,!0,j,1.1,j,j,j,j,j,j),j,j,j),A.m(q.length+" ACTIVE",j,j,j,j,A.J(j,j,h,j,j,j,j,j,j,j,j,11,j,j,B.x,j,j,!0,j,0.8,j,j,j,j,j,j),j,j,j)],t.p),B.i,B.ap,B.f,0,j,j)
+var habitsList=A.vP(new A.awN(k),q.length,B.f2,!0)
+var weeklyHeader=A.m("WEEKLY CONSISTENCY",j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,13,j,j,B.K,j,j,!0,j,1.1,j,j,j,j,j,j),j,j,j)
+var daysHeader=A.m("     M    T    W    T    F    S    S",j,j,j,j,A.J(j,j,h,j,j,j,j,j,j,j,j,12,j,j,B.K,j,j,!0,j,1.2,j,j,j,j,j,j),j,j,j)
+var consistencyRows=[daysHeader]
+for(var hi=0;hi<q.length;hi++){
+  var hItem=q[hi]
+  var hTitle=A.b3(hItem.h(0,"title"))
+  var hEmoji=hTitle.split(" ")[0]||"●"
+  var hDone=J.d(hItem.h(0,"isCompleted"),!0)
+  var dots=hDone?" ●    ●    ●    ○    ○    ○    ○":" ●    ○    ●    ○    ○    ○    ○"
+  consistencyRows.push(B.aW)
+  consistencyRows.push(A.m(hEmoji+"   "+dots,j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,13,j,j,B.x,j,j,!0,j,1.0,j,j,j,j,j,j),j,j,j))
+}
+var weeklyCard=A.X(j,A.a0(A.a(consistencyRows,t.p),B.w,B.h,B.f,0,B.m),B.j,j,j,new A.O(i?B.T:B.d,j,j,A.B(18),j,j,B.o),j,j,j,B.F,j,j,1/0)
+var bestStreakTitle=A.m("🔥 Best Streak",j,j,j,j,A.J(j,j,i?B.d:B.af,j,j,j,j,j,j,j,j,14,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j)
+var bestStreakDesc=A.m("Morning Workout • 15 Days",j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,16,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j)
+var bestStreakCard=A.X(j,A.a0(A.a([bestStreakTitle,B.aW,bestStreakDesc],t.p),B.w,B.h,B.f,0,B.m),B.j,j,j,new A.O(i?B.T:B.d,j,j,A.B(18),j,j,B.o),j,j,j,B.F,j,j,1/0)
+return A.cJ(f,g,A.dA(A.a0(A.a([topCard,B.an,todayHabitsHeader,B.aP,habitsList,B.an,weeklyHeader,B.aP,weeklyCard,B.an,bestStreakCard,B.dx],t.p),B.w,B.h,B.f,0,B.m),j,B.t,B.bw,j,j,B.S),j,s)},
 R_(a,b,c,d,e){var s,r=null,q=A.p(a).ax.a===B.A,p=q?B.T:B.d,o=A.B(18),n=A.a([],t.V)
 if(!q)n.push(new A.aK(0,B.E,A.Z(8,B.n.m()>>>16&255,B.n.m()>>>8&255,B.n.m()&255),B.ba,10))
 s=A.B(12)
@@ -102370,7 +102387,7 @@ s=A.b_(A.aJG(e,new A.aDG(k),new A.bb(A.B(5),B.v),s),24,24)
 a4=A.a4(A.a([s,B.ep,A.aD(A.cc(j,A.m("I confirm that I have read and agree to the Terms & Conditions and Privacy Policy.",j,j,j,j,A.J(j,j,f?B.ar:B.a_,j,j,j,j,j,j,j,j,12.5,j,j,j,j,1.45,!0,j,j,j,j,j,j,j,j),j,j,j),B.t,!1,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,new A.aDH(k),j,j,j,j,j,j),1)],n),B.w,B.h,B.f,0,j,j)
 s=A.b_(A.cW(B.a8C,k.gajo(),A.cX(j,j,e,j,j,j,0,j,j,j,j,j,j,j,new A.bb(A.B(16),B.v),j,j,j,j,j)),52,1/0)
 r=A.Da(j,j,j,j,j,j,j,j,j,j,j,j,j,j,new A.bb(A.B(16),B.v),new A.am(A.b1(4291548641),1,B.p,-1),j,j,j,j)
-return A.cJ(c,d,A.l0(!0,A.dA(A.a0(A.a([B.a7U,B.an,b,B.bz,a,B.an,B.a7p,B.ao,a1,B.a1,B.a7email,B.ao,a0,B.a1,B.a7Z,B.ao,a3,B.a1,B.a7confirmpass,B.ao,a_confirm,B.a1,B.a7ref,B.ao,a5,B.a1,a6,B.aP,a4,B.aP,s,B.aP,A.a4(A.a([B.a88,A.cc(j,A.m("Login",j,j,j,j,A.J(j,j,e,j,j,j,j,j,j,j,j,14,j,j,B.x,j,j,!0,j,j,j,j,j,j,j,j),j,j,j),B.t,!1,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,new A.aDI(a7),j,j,j,j,j,j)],n),B.i,B.b_,B.f,0,j,j),B.aD],n),B.w,B.h,B.f,0,B.m),j,B.t,B.MJ,j,j,B.S),B.aA,!0),j,j)}}
+return A.cJ(c,d,A.l0(!0,A.dA(A.a0(A.a([b,B.bz,a,B.an,B.a7p,B.ao,a1,B.a1,B.a7email,B.ao,a0,B.a1,B.a7Z,B.ao,a3,B.a1,B.a7confirmpass,B.ao,a_confirm,B.a1,B.a7ref,B.ao,a5,B.a1,a6,B.aP,a4,B.aP,s,B.aP,A.a4(A.a([B.a88,A.cc(j,A.m("Login",j,j,j,j,A.J(j,j,e,j,j,j,j,j,j,j,j,14,j,j,B.x,j,j,!0,j,j,j,j,j,j,j,j),j,j,j),B.t,!1,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,new A.aDI(a7),j,j,j,j,j,j)],n),B.i,B.b_,B.f,0,j,j),B.aD],n),B.w,B.h,B.f,0,B.m),j,B.t,B.MJ,j,j,B.S),B.aA,!0),j,j)}}
 A.aDx.prototype={
 $0(){return this.a.z=!0},
 $S:0}
@@ -107854,7 +107871,7 @@ B.tc=new A.qi(!1,!1,!1,!0)
 B.dL=new A.O5(0,"tight")
 B.b4=new A.hx(600)
 B.a4y=new A.j(!0,null,null,null,null,null,15,B.b4,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
-B.a7U=new A.L("Theme Change",null,B.a4y,null,null,null,null,null,null,null,null)
+B.a7U=new A.L("",null,B.a4y,null,null,null,null,null,null,null,null)
 B.MW=new A.jD(1,B.dL,B.a7U,null)
 B.Fu=new A.j(!0,null,null,null,null,null,16,B.x,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
 B.a7a=new A.L("Milestone Fulfillment Rate",null,B.Fu,null,null,null,null,null,null,null,null)

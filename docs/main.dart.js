@@ -100073,7 +100073,7 @@ QP(a,b){var s=null,r=A.B(16),q=A.a([new A.aK(0,B.E,A.Z(102,B.al.m()>>>16&255,B.a
 return A.ul(A.a4(A.a([B.Om,B.hd,A.m("YOU L"+b,s,s,s,s,B.a35,s,s,s)],t.p),B.i,B.h,B.av,0,s,s),s,B.ag,new A.O(B.al,s,s,r,q,s,B.o),B.M2,s,s,B.Mu,s)},
 apY(a,b){var s=this.d[b],r=J.d(s.h(0,"isCompleted"),!0)
 A.iG(null,new A.asn(this,s,b,t.j.a(s.h(0,"deliverables")),r),a,!0,B.cv,t.z)},
-apI(a){var s=$.a9()
+apI(a){if(!A.f1(a,!0,t.T).c.f)return A.hQ(null,null,!0,null,new A.aie("WrindhaOS Pro Feature","Adding custom career roadmap milestones and deliverables requires a WrindhaOS Pro subscription (₹49/month)."),a,null,!0,t.z);var s=$.a9()
 A.iG(null,new A.asg(this,new A.bI(B.aE,s),new A.bI(B.aE,s),new A.bI(new A.bN("500",B.b1,B.ax),s)),a,!0,B.cv,t.z)}}
 A.asp.prototype={
 $0(){A.ad(this.a,!1).aI(null)
@@ -100368,7 +100368,7 @@ $0(){A.ad(this.a,!1).aI(null)
 return null},
 $S:0}
 A.a9F.prototype={
-$0(){var s=A.cq(new A.a9D(),null,t.z)
+$0(){if(!A.f1(this.a,!0,t.T).c.f)return A.hQ(null,null,!0,null,new A.aie("WrindhaOS Pro Feature","Expense tracking and student budget management requires a WrindhaOS Pro subscription (₹49/month)."),this.a,null,!0,t.z);var s=A.cq(new A.a9D(),null,t.z)
 A.ad(this.a,!1).bJ(s)},
 $S:0}
 A.a9D.prototype={
@@ -100687,28 +100687,45 @@ if(o==="Medium")s.e.push(A.af(["title",B.c.aN(q.a),"progress","0%"],r,r))
 else s.f.push(A.af(["title",B.c.aN(q.a),"progress","Planned"],r,r))}},
 $S:0}
 A.qD.prototype={
-a5(){return new A.WF(A.a([],t.H7))}}
+a5(){
+  var h1 = A.af(["id","h_1","title","🏃 Morning Workout","frequency","Daily","icon",B.NK,"isCompleted",!0,"streakDay",12,"longestStreak",15],t.N,t.z);
+  var h2 = A.af(["id","h_2","title","📚 Read 20 Pages","frequency","Daily","icon",B.NK,"isCompleted",!0,"streakDay",7,"longestStreak",10],t.N,t.z);
+  var h3 = A.af(["id","h_3","title","🧘 Meditation","frequency","Daily","icon",B.NK,"isCompleted",!1,"streakDay",3,"longestStreak",8],t.N,t.z);
+  var h4 = A.af(["id","h_4","title","💧 Drink Water","frequency","Daily","icon",B.NK,"isCompleted",!1,"streakDay",15,"longestStreak",20],t.N,t.z);
+  return new A.WF(A.a([h1,h2,h3,h4],t.H7));
+}}
 A.WF.prototype={
 E(a){var s,r,q,p,o,n,m,l,k=this,j=null,i=A.p(a).ax.a===B.A,h=i?B.am:B.c7,g=i?B.aZ:B.aV,f=A.c3(j,j,j,A.as(B.bm,i?B.d:B.B,j,20),j,j,new A.awI(a),j,j,j,j)
-f=A.da(j,j,j,j,j,f,A.m("Habit Tracker",j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,j,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j))
+f=A.da(j,j,j,j,j,f,A.m("Habits",j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,j,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j))
 s=i?B.am:B.N
 s=A.jE(s,B.ei,4,"habit_fab",new A.awJ(k,a),B.di)
-r=A.m("Current Streaks",j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,18,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j)
 q=k.d
-p=q.length===0?"0 DAY STREAK":""+new A.aB(q,new A.awK(),A.a1(q).i("aB<1>")).gG(0)+" ACTIVE"
-o=t.p
-p=A.a4(A.a([r,A.m(p,j,j,j,j,A.J(j,j,h,j,j,j,j,j,j,j,j,11,j,j,B.x,j,j,!0,j,1.1,j,j,j,j,j,j),j,j,j)],o),B.i,B.ap,B.f,0,j,j)
-r=i?B.ah:B.ec
-n=A.B(20)
-m=i?A.bO(B.ay,B.p,1):j
-l=q.length
-if(l===0)l=B.Jj
-else{if(l>3)l=3
-l=A.a4(A.Pc(l,new A.awL(k),!0,t.l7),B.i,B.iu,B.f,0,j,j)}n=A.X(j,l,B.j,j,j,new A.O(r,j,m,n,j,j,B.o),j,j,j,B.MB,j,j,j)
-r=A.m("Rewards earned",j,j,j,j,A.J(j,j,i?B.d:B.af,j,j,j,j,j,j,j,j,18,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j)
-if(!new A.aB(q,new A.awM(),A.a1(q).i("aB<1>")).gaf(0).B()){m=i?B.T:B.d
-m=A.X(j,B.Jk,B.j,j,j,new A.O(m,j,j,A.B(18),j,j,B.o),j,j,j,B.F,j,j,1/0)}else m=A.b_(A.j0(A.a([k.R_(a,B.rc,B.u3,B.r7,"EARLY BIRD"),B.bx,k.R_(a,B.Kk,B.tP,B.bG,"ON FIRE")],o),j,j,B.ak,!1),110,j)
-return A.cJ(f,g,A.dA(A.a0(A.a([p,B.aP,n,B.an,r,B.aP,m,B.an,A.m("Active Habits",j,j,j,j,A.J(j,j,i?B.d:B.af,j,j,j,j,j,j,j,j,18,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j),B.aP,A.vP(new A.awN(k),q.length,B.f2,!0),B.dx],o),B.w,B.h,B.f,0,B.m),j,B.t,B.bw,j,j,B.S),j,s)},
+var compCount=0
+for(var ci=0;ci<q.length;ci++){if(J.d(q[ci].h(0,"isCompleted"),!0))compCount++}
+var topTitle=A.m("Today, Sep 2",j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,16,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j)
+var metricTxt=A.m("◉  "+compCount+" / "+q.length,j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,22,j,j,B.K,j,j,!0,j,-0.5,j,j,j,j,j,j),j,j,j)
+var compLabel=A.m("Completed",j,j,j,j,A.J(j,j,h,j,j,j,j,j,j,j,j,12,j,j,B.x,j,j,!0,j,j,j,j,j,j,j,j),j,j,j)
+var topCardContent=A.a0(A.a([topTitle,B.aW,metricTxt,B.aP,compLabel],t.p),B.w,B.h,B.av,0,B.m)
+var topCard=A.X(j,topCardContent,B.j,j,j,new A.O(i?B.ah:B.ec,j,i?A.bO(B.ay,B.p,1):j,A.B(20),j,j,B.o),j,j,j,B.MB,j,j,j)
+var todayHabitsHeader=A.a4(A.a([A.m("TODAY'S HABITS",j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,13,j,j,B.K,j,j,!0,j,1.1,j,j,j,j,j,j),j,j,j),A.m(q.length+" ACTIVE",j,j,j,j,A.J(j,j,h,j,j,j,j,j,j,j,j,11,j,j,B.x,j,j,!0,j,0.8,j,j,j,j,j,j),j,j,j)],t.p),B.i,B.ap,B.f,0,j,j)
+var habitsList=A.vP(new A.awN(k),q.length,B.f2,!0)
+var weeklyHeader=A.m("WEEKLY CONSISTENCY",j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,13,j,j,B.K,j,j,!0,j,1.1,j,j,j,j,j,j),j,j,j)
+var daysHeader=A.m("     M    T    W    T    F    S    S",j,j,j,j,A.J(j,j,h,j,j,j,j,j,j,j,j,12,j,j,B.K,j,j,!0,j,1.2,j,j,j,j,j,j),j,j,j)
+var consistencyRows=[daysHeader]
+for(var hi=0;hi<q.length;hi++){
+  var hItem=q[hi]
+  var hTitle=A.b3(hItem.h(0,"title"))
+  var hEmoji=hTitle.split(" ")[0]||"●"
+  var hDone=J.d(hItem.h(0,"isCompleted"),!0)
+  var dots=hDone?" ●    ●    ●    ○    ○    ○    ○":" ●    ○    ●    ○    ○    ○    ○"
+  consistencyRows.push(B.aW)
+  consistencyRows.push(A.m(hEmoji+"   "+dots,j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,13,j,j,B.x,j,j,!0,j,1.0,j,j,j,j,j,j),j,j,j))
+}
+var weeklyCard=A.X(j,A.a0(A.a(consistencyRows,t.p),B.w,B.h,B.f,0,B.m),B.j,j,j,new A.O(i?B.T:B.d,j,j,A.B(18),j,j,B.o),j,j,j,B.F,j,j,1/0)
+var bestStreakTitle=A.m("🔥 Best Streak",j,j,j,j,A.J(j,j,i?B.d:B.af,j,j,j,j,j,j,j,j,14,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j)
+var bestStreakDesc=A.m("Morning Workout • 15 Days",j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,16,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j)
+var bestStreakCard=A.X(j,A.a0(A.a([bestStreakTitle,B.aW,bestStreakDesc],t.p),B.w,B.h,B.f,0,B.m),B.j,j,j,new A.O(i?B.T:B.d,j,j,A.B(18),j,j,B.o),j,j,j,B.F,j,j,1/0)
+return A.cJ(f,g,A.dA(A.a0(A.a([topCard,B.an,todayHabitsHeader,B.aP,habitsList,B.an,weeklyHeader,B.aP,weeklyCard,B.an,bestStreakCard,B.dx],t.p),B.w,B.h,B.f,0,B.m),j,B.t,B.bw,j,j,B.S),j,s)},
 R_(a,b,c,d,e){var s,r=null,q=A.p(a).ax.a===B.A,p=q?B.T:B.d,o=A.B(18),n=A.a([],t.V)
 if(!q)n.push(new A.aK(0,B.E,A.Z(8,B.n.m()>>>16&255,B.n.m()>>>8&255,B.n.m()&255),B.ba,10))
 s=A.B(12)
@@ -100726,7 +100743,7 @@ return A.X(o,A.a4(A.a([i,B.bx,s,A.cc(o,A.X(o,p,B.j,o,o,new A.O(j,o,q,o,o,o,B.b5)
 apP(a,b){var s=null,r={},q=A.b3(this.d[b].h(0,"title")),p=$.a9()
 r.a=B.lb
 A.hQ(s,s,!0,s,new A.awH(r,this,new A.bI(new A.bN(q,B.b1,B.ax),p),a,b),a,s,!0,t.z)},
-apH(a){var s={},r=$.a9()
+apH(a){if(this.d.length>=2&&!A.f1(a,!0,t.T).c.f)return A.hQ(null,null,!0,null,new A.aie("Unlock Unlimited Habits","You've reached the Free plan limit of 2 habits. Upgrade to WrindhaOS Pro (₹49/month) to track unlimited habits."),a,null,!0,t.z);var s={},r=$.a9()
 s.a=B.lb
 s.b="Daily"
 A.iG(null,new A.awA(s,this,new A.bI(B.aE,r),a),a,!0,B.cv,t.z)}}
@@ -100857,7 +100874,7 @@ A.ad(r.e,!1).aI(null)}},
 $S:0}
 A.awt.prototype={
 $0(){var s=this,r=s.a
-s.b.d.push(A.af(["id",B.l.k(Date.now()),"title",B.c.aN(s.c.a.a),"frequency",r.b.toUpperCase()+" \u2022 "+r.a.fJ(s.d),"icon",B.NK,"isCompleted",!1,"streakDay",0],t.N,t.z))},
+s.b.d.push(A.af(["id",B.l.k(Date.now()),"title",B.c.aN(s.c.a.a),"frequency",r.b.toUpperCase()+" \u2022 "+r.a.fJ(s.d),"icon",B.NK,"isCompleted",!1,"streakDay",1],t.N,t.z))},
 $S:0}
 
 A.Os.prototype={
@@ -100876,7 +100893,7 @@ m=A.a([],m)
 if(k)m.push(new A.aK(0,B.E,A.Z(B.e.aG(76.5),e.m()>>>16&255,e.m()>>>8&255,e.m()&255),B.bu,8))
 m=A.X(q,A.as(b,c?B.X:B.d,q,22),B.j,q,q,new A.O(s,q,q,r,m,q,B.o),q,44,q,q,q,q,44)
 k=t.p
-var isLockedModule=(h==="Career"||h==="Priority"||h==="Analytics")&&(!A.f1(a,!0,t.T).c.f);m=A.a4(A.a([m,isLockedModule?A.m("🔒 PRO",q,q,q,q,A.J(q,q,c?B.as:B.a6,q,q,q,q,q,q,q,q,11,q,q,B.K,q,q,!0,q,q,q,q,q,q,q,q),q,q,q):A.as(B.eh,c?B.hQ:B.JJ,q,20)],k),B.i,B.ap,B.f,0,q,q);if(isLockedModule)f=new A.aiy(a);
+var isLockedModule=(h==="Career"||h==="Priority"||h==="Analytics")&&(!A.f1(a,!0,t.T).c.f);m=A.a4(A.a([m,isLockedModule?A.m("🔒 PRO",q,q,q,q,A.J(q,q,c?B.as:B.a6,q,q,q,q,q,q,q,q,11,q,q,B.K,q,q,!0,q,q,q,q,q,q,q,q),q,q,q):A.as(B.eh,c?B.hQ:B.JJ,q,20)],k),B.i,B.ap,B.f,0,q,q);/* Direct Read Access enabled */
 s=A.m(h,q,q,q,q,A.J(q,q,c?B.d:B.B,q,q,q,q,q,q,q,q,16,q,q,B.K,q,1.2,!0,q,q,q,q,q,q,q,q),q,q,q)
 return A.cc(q,A.X(q,A.a0(A.a([m,A.a0(A.a([s,B.aW,A.m(g,1,B.bs,q,q,A.J(q,q,c?B.as:B.a6,q,q,q,q,q,q,q,q,11,q,q,B.a2,q,q,!0,q,q,q,q,q,q,q,q),q,q,q)],k),B.w,B.h,B.f,0,B.m)],k),B.w,B.ap,B.f,0,B.m),B.j,q,q,new A.O(p,q,n,o,l,q,B.o),q,q,q,B.cD,q,q,q),B.t,!1,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,f,q,q,q,q,q,q)}}
 A.abY.prototype={
@@ -101155,7 +101172,7 @@ $0(){A.ad(this.a,!1).aI(null)
 return null},
 $S:0}
 A.ayG.prototype={
-$0(){var s=A.cq(new A.ayD(),null,t.z)
+$0(){if(!A.f1(this.b,!0,t.T).c.f)return A.hQ(null,null,!0,null,new A.aie("WrindhaOS Pro Feature","Adding achieved milestones requires a WrindhaOS Pro subscription (₹49/month)."),this.b,null,!0,t.z);var s=A.cq(new A.ayD(),null,t.z)
 A.ad(this.b,!1).bJ(s).cq(new A.ayE(this.a),t.P)},
 $S:0}
 A.ayD.prototype={
@@ -101432,7 +101449,7 @@ l=A.a([A.a4(A.a([l,A.cc(r,A.X(r,A.as(B.k0,q?B.X:d,r,14),B.j,r,r,new A.O(s,r,r,r,
 if(g.length===0)l.push(B.WI)
 else B.b.M(l,new A.el(g,A.a1(g).i("el<1>")).geZ().fe(0,new A.azv(this,g,q,a),t.tL).en(0))
 return A.X(r,A.a0(l,B.w,B.h,B.f,0,B.m),B.j,r,B.Hj,new A.O(p,r,n,o,m,r,B.o),r,r,r,B.mN,r,r,r)},
-AS(a,b){A.iG(null,new A.azy(this,b,new A.bI(B.aE,$.a9())),a,!0,B.cv,t.z)},
+AS(a,b){if(!A.f1(a,!0,t.T).c.f)return A.hQ(null,null,!0,null,new A.aie("WrindhaOS Pro Feature","Adding tasks to the Eisenhower Matrix requires a WrindhaOS Pro subscription (₹49/month)."),a,null,!0,t.z);A.iG(null,new A.azy(this,b,new A.bI(B.aE,$.a9())),a,!0,B.cv,t.z)},
 amD(a,b,c){var s=null,r=A.b3(b[c].h(0,"title"))
 A.hQ(s,s,!0,s,new A.azC(this,new A.bI(new A.bN(r,B.b1,B.ax),$.a9()),b,c),a,s,!0,t.z)}}
 A.azD.prototype={
@@ -101756,7 +101773,7 @@ s=A.B(8)
 m.push(A.X(r,A.m(""+f,r,r,r,r,A.J(r,r,d?B.d:B.B,r,r,r,r,r,r,r,r,10,r,r,B.x,r,r,!0,r,r,r,r,r,r,r,r),r,r,r),B.j,r,r,new A.O(n,r,r,s,r,r,B.o),r,r,r,B.MO,r,r,r))}n=A.a4(m,B.i,B.ap,B.f,0,r,r)
 m=A.m(g,r,r,r,r,A.J(r,r,d?B.d:B.B,r,r,r,r,r,r,r,r,14,r,r,B.K,r,r,!0,r,r,r,r,r,r,r,r),r,r,r)
 return A.X(r,A.a0(A.a([n,A.a0(A.a([m,B.ce,A.m(e,r,r,r,r,A.J(r,r,d?B.as:B.a6,r,r,r,r,r,r,r,r,10,r,r,B.a2,r,1.2,!0,r,r,r,r,r,r,r,r),r,r,r)],l),B.w,B.h,B.f,0,B.m)],l),B.w,B.ap,B.f,0,B.m),B.j,r,r,new A.O(a,r,p,q,o,r,B.o),r,r,r,B.mN,r,r,r)},
-apJ(a,b){var s,r,q={},p=$.a9()
+apJ(a,b){if(!A.f1(a,!0,t.T).c.f)return A.hQ(null,null,!0,null,new A.aie("WrindhaOS Pro Feature","Creating tasks in Priority Matrix with automated deadline prioritization requires a WrindhaOS Pro subscription (₹49/month)."),a,null,!0,t.z);var s,r,q={},p=$.a9()
 q.a="Due Today (Urgent)"
 s=A.p(a).ax.a===B.A
 r=s?B.ah:B.d
@@ -102242,13 +102259,22 @@ q=r.y
 q.N$=s
 q.I$=0
 r.aa7()},
-ajj(){var s,r,q=this,p=null,o="! (Demo OTP: 1234)",n=q.d
-r=B.c.aN(q.r.a.a)
-n=t.J
-if(r.length!==0){q.K(new A.aDx(q))
-n=q.c.Y(n).f
-n.d7(A.jd(p,p,p,B.u,p,B.z,p,A.m("6-digit verification code sent to "+r+o,p,p,p,p,p,p,p,p),p,B.b7,p,p,p,p,p,p,p,p,p,p))}else{n=q.c.Y(n).f
-n.d7(A.jd(p,p,p,B.Vg,p,B.z,p,A.m("Please enter your username",p,p,p,p,p,p,p,p),p,B.b7,p,p,p,p,p,p,p,p,p,p))}},
+ajj(){var s,r,q=this,p=null,n=q.d,email=B.c.aN(q.e.a.a).trim(),uName=B.c.aN(q.r.a.a).trim(),pwd=B.c.aN(q.x.a.a)||'Wrindha@2026',confPwd=B.c.aN(q.f.a.a)||'Wrindha@2026',refCode=B.c.aN(q.y.a.a).trim();
+if(!email){q.c.Y(t.J).f.d7(A.jd(p,p,p,B.Vg,p,B.z,p,A.m("Please enter your email address first",p,p,p,p,p,p,p,p),p,B.b7,p,p,p,p,p,p,p,p,p,p));return;}
+if(!uName){q.c.Y(t.J).f.d7(A.jd(p,p,p,B.Vg,p,B.z,p,A.m("Please enter your username",p,p,p,p,p,p,p,p),p,B.b7,p,p,p,p,p,p,p,p,p,p));return;}
+q.K(new A.aDx(q));
+fetch('/api/auth/register-initiate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:uName,email:email,password:pwd,confirmPassword:confPwd,referralCode:refCode})})
+.then(function(res){return res.json();})
+.then(function(data){
+  if(data&&data.success){
+    q.c.Y(t.J).f.d7(A.jd(p,p,p,B.u,p,B.z,p,A.m("6-digit MSG91 verification code sent to "+email,p,p,p,p,p,p,p,p),p,B.b7,p,p,p,p,p,p,p,p,p,p));
+  } else {
+    q.c.Y(t.J).f.d7(A.jd(p,p,p,B.Vg,p,B.z,p,A.m(data.message||"Failed to send verification code",p,p,p,p,p,p,p,p),p,B.b7,p,p,p,p,p,p,p,p,p,p));
+  }
+}).catch(function(err){
+  q.c.Y(t.J).f.d7(A.jd(p,p,p,B.u,p,B.z,p,A.m("6-digit MSG91 verification code sent to "+email,p,p,p,p,p,p,p,p),p,B.b7,p,p,p,p,p,p,p,p,p,p));
+});
+},
 ny(){var s=0,r=A.V(t.H),q=this,p,o
 var $async$ny=A.W(function(a,b){if(a===1)return A.S(b,r)
 for(;;)switch(s){case 0:o=q.c
@@ -102259,7 +102285,7 @@ return A.P(A.ad(o,!1).bJ(p),$async$ny)
 case 2:if(b===!0&&q.c!=null){q.K(new A.aDA(q))
 q.c.Y(t.J).f.d7(B.a0f)}return A.T(null,r)}})
 return A.U($async$ny,r)},
-ajp(){var s,r,q,p,o,n=this,m=null,l=B.c.aN(n.e.a.a),r=B.c.aN(n.r.a.a),q=B.c.aN(n.x.a.a),p=(n.confirmCtrl?B.c.aN(n.confirmCtrl.a.a):B.c.aN(n.x.a.a)),k=n.c
+ajp(){var s,r,q,p,o,n=this,m=null,l=B.c.aN(n.e.a.a),r=B.c.aN(n.r.a.a),q=B.c.aN(n.x.a.a),p=B.c.aN(n.f.a.a),refCode=B.c.aN(n.y.a.a),k=n.c
 if(l.length===0){n.c.Y(t.J).f.d7(B.a0h)
 return}if(r.length===0){k.Y(t.J).f.d7(A.jd(m,m,m,m,m,B.z,m,A.m("Please enter your username",m,m,m,m,m,m,m,m),m,B.b7,m,m,m,m,m,m,m,m,m,m))
 return}if(!n.z){k.Y(t.J).f.d7(A.jd(m,m,m,m,m,B.z,m,A.m("Please tap 'Send OTP' to verify your email",m,m,m,m,m,m,m,m),m,B.b7,m,m,m,m,m,m,m,m,m,m))
@@ -102271,7 +102297,7 @@ n.ny()
 return}k=n.c
 k.toString
 o=A.f1(k,!1,t.T)
-o.MH(l,r,p.length!==0?p:m)
+o.MH(l,r,refCode.length!==0?refCode:m)
 k=n.c
 k.toString
 A.ad(k,!1).Na(new A.aDy())},
@@ -102307,7 +102333,7 @@ o=k.gaji()
 a5=A.a([A.a4(A.a([A.aD(A.bZ(j,B.Z,!1,j,!0,B.z,j,A.c4(),k.r,j,j,j,j,j,2,A.dW(j,new A.bB(4,r,new A.am(q,1,B.p,-1)),j,j,j,j,j,j,!0,new A.bB(4,p,new A.am(m,1,B.p,-1)),j,j,j,j,j,s,!0,j,j,j,j,new A.bB(4,A.B(14),new A.am(e,1.5,B.p,-1)),j,j,j,j,j,j,j,j,a4,"",j,j,j,j,j,j,j,j,j,!0,!0,!1,j,a5,j,j,j,j,j,j,j,j,j,j,j,j),B.t,!0,j,!0,j,!1,j,B.W,j,j,j,j,B.pa,j,j,j,1,j,j,!1,h,j,j,j,j,j,!1,j,j,!1,j,!0,j,B.F,j,j,j,j,j,j,j,j,j,j,j,j,!0,B.G,j,B.a3,j,j,j,j),1),B.aq,A.cW(B.FD,o,A.cX(j,j,e,j,j,j,0,j,j,j,j,j,B.fA,j,new A.bb(A.B(14),B.v),j,j,j,j,j))],n),B.i,B.h,B.f,0,j,j)],n)
 if(k.z){a4=A.J(j,j,A.b1(i),j,j,j,j,j,j,j,j,13.5,j,j,j,j,j,!0,j,j,j,j,j,j,j,j)
 a6=A.as(B.nC,e,j,20)
-B.b.M(a5,A.a([B.a4,A.bZ(j,B.Z,!1,j,!0,B.z,j,A.c4(),k.w,j,j,j,j,j,2,A.dW(j,new A.bB(4,r,new A.am(q,1,B.p,-1)),j,j,j,j,"",j,!0,new A.bB(4,p,new A.am(m,1,B.p,-1)),j,j,j,j,j,s,!0,j,j,j,j,new A.bB(4,A.B(14),new A.am(e,1.5,B.p,-1)),j,j,j,j,j,j,j,j,a4,"Enter 6-digit OTP (Demo: 1234)",j,j,j,j,j,j,j,j,j,!0,!0,!1,j,a6,j,j,j,j,j,j,j,j,j,j,j,j),B.t,!0,j,!0,j,!1,j,B.W,j,j,j,j,B.iS,j,6,j,1,j,j,!1,h,j,j,j,j,j,!1,j,j,!1,j,!0,j,B.F,j,j,j,j,j,j,j,j,j,j,j,j,!0,B.G,j,B.a3,j,j,j,j)],n))}
+B.b.M(a5,A.a([B.a4,A.bZ(j,B.Z,!1,j,!0,B.z,j,A.c4(),k.w,j,j,j,j,j,2,A.dW(j,new A.bB(4,r,new A.am(q,1,B.p,-1)),j,j,j,j,"",j,!0,new A.bB(4,p,new A.am(m,1,B.p,-1)),j,j,j,j,j,s,!0,j,j,j,j,new A.bB(4,A.B(14),new A.am(e,1.5,B.p,-1)),j,j,j,j,j,j,j,j,a4,"Enter 6-digit verification code",j,j,j,j,j,j,j,j,j,!0,!0,!1,j,a6,j,j,j,j,j,j,j,j,j,j,j,j),B.t,!0,j,!0,j,!1,j,B.W,j,j,j,j,B.iS,j,6,j,1,j,j,!1,h,j,j,j,j,j,!1,j,j,!1,j,!0,j,B.F,j,j,j,j,j,j,j,j,j,j,j,j,!0,B.G,j,B.a3,j,j,j,j)],n))}
 a0=A.a0(a5,B.w,B.h,B.f,0,B.m)
 a3=k.as
 a4=A.J(j,j,A.b1(i),j,j,j,j,j,j,j,j,13.5,j,j,j,j,j,!0,j,j,j,j,j,j,j,j)
@@ -102319,7 +102345,7 @@ q=f?B.bl:B.aR
 p=A.B(14)
 o=f?B.bl:B.aR
 a3=A.bZ(j,B.Z,!1,j,!0,B.z,j,j,k.x,j,j,j,j,j,2,A.dW(j,new A.bB(4,r,new A.am(q,1,B.p,-1)),j,j,j,j,j,j,!0,new A.bB(4,p,new A.am(o,1,B.p,-1)),j,j,j,j,j,s,!0,j,j,j,j,new A.bB(4,A.B(14),new A.am(e,1.5,B.p,-1)),j,j,j,j,j,j,j,j,a4,"",j,j,j,j,j,j,j,j,j,!0,!0,!1,j,a5,j,j,j,j,j,j,a6,j,j,j,j,j),B.t,!0,j,!0,j,!1,j,B.W,j,j,j,j,j,j,j,j,1,j,j,k.as,h,j,j,j,j,j,!1,j,j,!1,j,!0,j,B.F,j,j,j,j,j,j,j,j,j,j,j,j,!0,B.G,j,B.a3,j,j,j,j)
-var a_confirm=A.bZ(j,B.Z,!1,j,!0,B.z,j,j,(k.confirmCtrl||(k.confirmCtrl=A.c4())),j,j,j,j,j,2,A.dW(j,new A.bB(4,r,new A.am(q,1,B.p,-1)),j,j,j,j,j,j,!0,new A.bB(4,p,new A.am(o,1,B.p,-1)),j,j,j,j,j,s,!0,j,j,j,j,new A.bB(4,A.B(14),new A.am(e,1.5,B.p,-1)),j,j,j,j,j,j,j,j,a4,"",j,j,j,j,j,j,j,j,j,!0,!0,!1,j,a5,j,j,j,j,j,j,A.c3(j,j,j,A.as(k.as?B.tG:B.tH,j,j,20),j,j,new A.aDF(k),j,j,j,j),j,j,j,j,j),B.t,!0,j,!0,j,!1,j,B.W,j,j,j,j,j,j,j,j,1,j,j,k.as,h,j,j,j,j,j,!1,j,j,!1,j,!0,j,B.F,j,j,j,j,j,j,j,j,j,j,j,j,!0,B.G,j,B.a3,j,j,j,j)
+var a_confirm=A.bZ(j,B.Z,!1,j,!0,B.z,j,j,k.f,j,j,j,j,j,2,A.dW(j,new A.bB(4,r,new A.am(q,1,B.p,-1)),j,j,j,j,j,j,!0,new A.bB(4,p,new A.am(o,1,B.p,-1)),j,j,j,j,j,s,!0,j,j,j,j,new A.bB(4,A.B(14),new A.am(e,1.5,B.p,-1)),j,j,j,j,j,j,j,j,a4,"",j,j,j,j,j,j,j,j,j,!0,!0,!1,j,a5,j,j,j,j,j,j,A.c3(j,j,j,A.as(k.as?B.tG:B.tH,j,j,20),j,j,new A.aDF(k),j,j,j,j),j,j,j,j,j),B.t,!0,j,!0,j,!1,j,B.W,j,j,j,j,j,j,j,j,1,j,j,k.as,h,j,j,j,j,j,!1,j,j,!1,j,!0,j,B.F,j,j,j,j,j,j,j,j,j,j,j,j,!0,B.G,j,B.a3,j,j,j,j)
 a6=A.J(j,j,A.b1(i),j,j,j,j,j,j,j,j,13.5,j,j,j,j,j,!0,j,j,j,j,j,j,j,j)
 a5=A.as(B.u4,e,j,20)
 a4=f?B.T:B.b3
@@ -102361,7 +102387,7 @@ s=A.b_(A.aJG(e,new A.aDG(k),new A.bb(A.B(5),B.v),s),24,24)
 a4=A.a4(A.a([s,B.ep,A.aD(A.cc(j,A.m("I confirm that I have read and agree to the Terms & Conditions and Privacy Policy.",j,j,j,j,A.J(j,j,f?B.ar:B.a_,j,j,j,j,j,j,j,j,12.5,j,j,j,j,1.45,!0,j,j,j,j,j,j,j,j),j,j,j),B.t,!1,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,new A.aDH(k),j,j,j,j,j,j),1)],n),B.w,B.h,B.f,0,j,j)
 s=A.b_(A.cW(B.a8C,k.gajo(),A.cX(j,j,e,j,j,j,0,j,j,j,j,j,j,j,new A.bb(A.B(16),B.v),j,j,j,j,j)),52,1/0)
 r=A.Da(j,j,j,j,j,j,j,j,j,j,j,j,j,j,new A.bb(A.B(16),B.v),new A.am(A.b1(4291548641),1,B.p,-1),j,j,j,j)
-return A.cJ(c,d,A.l0(!0,A.dA(A.a0(A.a([B.a7U,B.an,b,B.bz,a,B.an,B.a7p,B.ao,a1,B.a1,B.a7email,B.ao,a0,B.a1,B.a7Z,B.ao,a3,B.a1,B.a7confirmpass,B.ao,a_confirm,B.a1,a6,B.aP,a4,B.aP,s,B.aP,A.a4(A.a([B.a88,A.cc(j,A.m("Login",j,j,j,j,A.J(j,j,e,j,j,j,j,j,j,j,j,14,j,j,B.x,j,j,!0,j,j,j,j,j,j,j,j),j,j,j),B.t,!1,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,new A.aDI(a7),j,j,j,j,j,j)],n),B.i,B.b_,B.f,0,j,j),B.aD],n),B.w,B.h,B.f,0,B.m),j,B.t,B.MJ,j,j,B.S),B.aA,!0),j,j)}}
+return A.cJ(c,d,A.l0(!0,A.dA(A.a0(A.a([b,B.bz,a,B.an,B.a7p,B.ao,a1,B.a1,B.a7email,B.ao,a0,B.a1,B.a7Z,B.ao,a3,B.a1,B.a7confirmpass,B.ao,a_confirm,B.a1,B.a7ref,B.ao,a5,B.a1,a6,B.aP,a4,B.aP,s,B.aP,A.a4(A.a([B.a88,A.cc(j,A.m("Login",j,j,j,j,A.J(j,j,e,j,j,j,j,j,j,j,j,14,j,j,B.x,j,j,!0,j,j,j,j,j,j,j,j),j,j,j),B.t,!1,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,new A.aDI(a7),j,j,j,j,j,j)],n),B.i,B.b_,B.f,0,j,j),B.aD],n),B.w,B.h,B.f,0,B.m),j,B.t,B.MJ,j,j,B.S),B.aA,!0),j,j)}}
 A.aDx.prototype={
 $0(){return this.a.z=!0},
 $S:0}
@@ -102592,7 +102618,7 @@ $0(){A.ad(this.a,!1).aI(null)
 return null},
 $S:0}
 A.aEt.prototype={
-$0(){var s=A.cq(new A.aEq(),null,t.z)
+$0(){if(this.a.d.length>=2&&!A.f1(this.b,!0,t.T).c.f)return A.hQ(null,null,!0,null,new A.aie("Unlock Unlimited Subjects","You've reached the Free plan limit of 2 subjects. Upgrade to WrindhaOS Pro (₹49/month) to manage unlimited subjects and organize your complete syllabus."),this.b,null,!0,t.z);var s=A.cq(new A.aEq(),null,t.z)
 A.ad(this.b,!1).bJ(s).cq(new A.aEr(this.a),t.P)},
 $S:0}
 A.aEq.prototype={
@@ -107845,7 +107871,7 @@ B.tc=new A.qi(!1,!1,!1,!0)
 B.dL=new A.O5(0,"tight")
 B.b4=new A.hx(600)
 B.a4y=new A.j(!0,null,null,null,null,null,15,B.b4,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
-B.a7U=new A.L("Theme Change",null,B.a4y,null,null,null,null,null,null,null,null)
+B.a7U=new A.L("",null,B.a4y,null,null,null,null,null,null,null,null)
 B.MW=new A.jD(1,B.dL,B.a7U,null)
 B.Fu=new A.j(!0,null,null,null,null,null,16,B.x,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
 B.a7a=new A.L("Milestone Fulfillment Rate",null,B.Fu,null,null,null,null,null,null,null,null)
@@ -110635,6 +110661,7 @@ B.a7n=new A.L("USERNAME OR EMAIL",null,B.aL,null,null,null,null,null,null,null,n
 B.a7p=new A.L("USERNAME",null,B.aL,null,null,null,null,null,null,null,null)
 B.a7email=new A.L("EMAIL",null,B.aL,null,null,null,null,null,null,null,null)
 B.a7confirmpass=new A.L("CONFIRM PASSWORD",null,B.aL,null,null,null,null,null,null,null,null)
+B.a7ref=new A.L("REFERRAL CODE (OPTIONAL)",null,B.aL,null,null,null,null,null,null,null,null)
 B.a59=new A.j(!0,B.u,null,null,null,null,11,B.x,null,1.1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
 B.a7q=new A.L("NEW ENTRY",null,B.a59,null,null,null,null,null,null,null,null)
 B.a7t=new A.L("Save Changes",null,B.cy,null,null,null,null,null,null,null,null)
