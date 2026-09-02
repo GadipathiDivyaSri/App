@@ -872,36 +872,6 @@
     }
   ],
   "otpStore": {
-    "audit_user_1788312489853@wrindhaos.in": {
-      "code": "680053",
-      "type": "register",
-      "attempts": 0,
-      "maxAttempts": 5,
-      "createdAt": 1788312489890,
-      "expiresAt": 1788313089890,
-      "lastSentAt": 1788312489890,
-      "pendingUser": {
-        "username": "audit_1788312489854",
-        "email": "audit_user_1788312489853@wrindhaos.in",
-        "passwordHash": "c68b37a35958c1d2564c3a587e3a3b25:020ca720d9ed8ba64e86af85e2b7c6cb58cd22d30ce3e3ed62756f3100728708cfb4ac283ccb4926d0eb441de4d35c3429b5f32680dfc6187bcaaa34eaa41721",
-        "referralCode": ""
-      }
-    },
-    "audit_user_1788312787696@wrindhaos.in": {
-      "code": "218282",
-      "type": "register",
-      "attempts": 0,
-      "maxAttempts": 5,
-      "createdAt": 1788312787716,
-      "expiresAt": 1788313387716,
-      "lastSentAt": 1788312787716,
-      "pendingUser": {
-        "username": "audit_1788312787696",
-        "email": "audit_user_1788312787696@wrindhaos.in",
-        "passwordHash": "f21e7298cd4496e29ae66a4a0b0b44c9:3f6fe5efb569b3d5e77346d139195e48ab34e0d2fa2a42cdcc75b6d5d8d2f0a47fa4d3d41865dc7edbbb2e76bf9fa3791db5c17060c70ded1ee5eba7fc06abc1",
-        "referralCode": ""
-      }
-    },
     "audit_user_1788313266921@wrindhaos.in": {
       "code": "172718",
       "type": "register",
