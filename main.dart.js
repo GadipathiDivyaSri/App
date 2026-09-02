@@ -100690,10 +100690,10 @@ A.qD.prototype={
 a5(){return new A.WF(A.a([],t.H7))}}
 A.WF.prototype={
 E(a){var s,r,q,p,o,n,m,l,k=this,j=null,i=A.p(a).ax.a===B.A,h=i?B.am:B.c7,g=i?B.aZ:B.aV,f=A.c3(j,j,j,A.as(B.bm,i?B.d:B.B,j,20),j,j,new A.awI(a),j,j,j,j)
-f=A.da(j,j,j,j,j,f,A.m("Habit Tracker",j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,j,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j))
+f=A.da(j,j,j,j,j,f,A.m("Habits",j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,j,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j))
 s=i?B.am:B.N
 s=A.jE(s,B.ei,4,"habit_fab",new A.awJ(k,a),B.di)
-r=A.m("Current Streaks",j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,18,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j)
+r=A.m("WEEKLY CONSISTENCY",j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,18,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j)
 q=k.d
 p=q.length===0?"0 DAY STREAK":""+new A.aB(q,new A.awK(),A.a1(q).i("aB<1>")).gG(0)+" ACTIVE"
 o=t.p
@@ -100705,10 +100705,10 @@ l=q.length
 if(l===0)l=B.Jj
 else{if(l>3)l=3
 l=A.a4(A.Pc(l,new A.awL(k),!0,t.l7),B.i,B.iu,B.f,0,j,j)}n=A.X(j,l,B.j,j,j,new A.O(r,j,m,n,j,j,B.o),j,j,j,B.MB,j,j,j)
-r=A.m("Rewards earned",j,j,j,j,A.J(j,j,i?B.d:B.af,j,j,j,j,j,j,j,j,18,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j)
+r=A.m("🔥 BEST STREAK",j,j,j,j,A.J(j,j,i?B.d:B.af,j,j,j,j,j,j,j,j,18,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j)
 if(!new A.aB(q,new A.awM(),A.a1(q).i("aB<1>")).gaf(0).B()){m=i?B.T:B.d
 m=A.X(j,B.Jk,B.j,j,j,new A.O(m,j,j,A.B(18),j,j,B.o),j,j,j,B.F,j,j,1/0)}else m=A.b_(A.j0(A.a([k.R_(a,B.rc,B.u3,B.r7,"EARLY BIRD"),B.bx,k.R_(a,B.Kk,B.tP,B.bG,"ON FIRE")],o),j,j,B.ak,!1),110,j)
-return A.cJ(f,g,A.dA(A.a0(A.a([p,B.aP,n,B.an,r,B.aP,m,B.an,A.m("Active Habits",j,j,j,j,A.J(j,j,i?B.d:B.af,j,j,j,j,j,j,j,j,18,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j),B.aP,A.vP(new A.awN(k),q.length,B.f2,!0),B.dx],o),B.w,B.h,B.f,0,B.m),j,B.t,B.bw,j,j,B.S),j,s)},
+return A.cJ(f,g,A.dA(A.a0(A.a([p,B.aP,n,B.an,r,B.aP,m,B.an,A.m("TODAY'S HABITS",j,j,j,j,A.J(j,j,i?B.d:B.af,j,j,j,j,j,j,j,j,18,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j),B.aP,A.vP(new A.awN(k),q.length,B.f2,!0),B.dx],o),B.w,B.h,B.f,0,B.m),j,B.t,B.bw,j,j,B.S),j,s)},
 R_(a,b,c,d,e){var s,r=null,q=A.p(a).ax.a===B.A,p=q?B.T:B.d,o=A.B(18),n=A.a([],t.V)
 if(!q)n.push(new A.aK(0,B.E,A.Z(8,B.n.m()>>>16&255,B.n.m()>>>8&255,B.n.m()&255),B.ba,10))
 s=A.B(12)
