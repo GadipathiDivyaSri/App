@@ -2,19 +2,21 @@ const https = require('https');
 
 /**
  * Universal Email Dispatcher for WrindhaOS
- * Supports:
- * 1. Resend API (process.env.RESEND_API_KEY)
- * 2. MSG91 Widget API (process.env.MSG91_AUTH_KEY)
+ * Primary Sender: noreply@wrindhaos.in (Verified Domain: wrindhaos.in)
  */
 async function sendEmailOtp({ email, otpCode, type = 'Verification' }) {
-  console.log(`[EMAIL DISPATCHER] [${type}] Target: ${email} | Code: [${otpCode}]`);
+  console.log(`[EMAIL DISPATCHER] [${type}] Target: ${email} | Code: [${otpCode}] | From: noreply@wrindhaos.in`);
 
-  // 1. TRY RESEND API (Instant 100% Delivery if configured)
+  const fromEmail = process.env.EMAIL_FROM_ADDRESS || 'noreply@wrindhaos.in';
+  const fromName = process.env.EMAIL_FROM_NAME || 'WrindhaOS';
+  const domain = process.env.EMAIL_DOMAIN || 'wrindhaos.in';
+
+  // 1. TRY RESEND API (if configured with wrindhaos.in domain or api key)
   const resendApiKey = process.env.RESEND_API_KEY;
   if (resendApiKey && resendApiKey.startsWith('re_')) {
     try {
       const payload = JSON.stringify({
-        from: process.env.EMAIL_FROM || 'WrindhaOS <onboarding@resend.dev>',
+        from: `${fromName} <${fromEmail}>`,
         to: [email],
         subject: `[WrindhaOS] Your ${type} Code: ${otpCode}`,
         html: `
@@ -53,18 +55,68 @@ async function sendEmailOtp({ email, otpCode, type = 'Verification' }) {
       });
 
       if (res.status === 200 || res.status === 201) {
-        console.log('✅ Email successfully delivered via Resend API to:', email);
+        console.log('✅ Email successfully delivered via Resend from noreply@wrindhaos.in to:', email);
         return { success: true, provider: 'resend', otpCode };
       }
     } catch (e) {
-      console.warn('Resend dispatch failed, falling back to MSG91/local:', e.message);
+      console.warn('Resend dispatch failed, falling back to MSG91:', e.message);
     }
   }
 
-  // 2. TRY MSG91 WIDGET API
+  // 2. TRY MSG91 TEMPLATE EMAIL API (if template_id configured)
   const msg91Key = process.env.MSG91_AUTH_KEY || '563368AbE6Nls32x6a9703baP1';
-  const widgetId = process.env.MSG91_WIDGET_ID || '36687761466f383937303733';
+  const templateId = process.env.MSG91_TEMPLATE_ID || process.env.MSG91_EMAIL_TEMPLATE_ID;
 
+  if (msg91Key && templateId) {
+    try {
+      const payload = JSON.stringify({
+        template_id: templateId,
+        to: [{ email: email }],
+        from: { name: fromName, email: fromEmail },
+        domain: domain,
+        variables: {
+          OTP: otpCode,
+          otp: otpCode,
+          code: otpCode,
+          user_name: email.split('@')[0],
+        },
+      });
+
+      const options = {
+        hostname: 'control.msg91.com',
+        port: 443,
+        path: '/api/v5/email/send',
+        method: 'POST',
+        headers: {
+          'authkey': msg91Key,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Content-Length': Buffer.byteLength(payload),
+        },
+      };
+
+      const res = await new Promise((resolve) => {
+        const req = https.request(options, (msgRes) => {
+          let resData = '';
+          msgRes.on('data', (chunk) => (resData += chunk));
+          msgRes.on('end', () => resolve({ status: msgRes.statusCode, data: resData }));
+        });
+        req.on('error', (err) => resolve({ error: err.message }));
+        req.write(payload);
+        req.end();
+      });
+
+      console.log(`[MSG91 TEMPLATE EMAIL RESULT] Status: ${res.status}, Response: ${res.data}`);
+      if (res.status === 200) {
+        return { success: true, provider: 'msg91_template', otpCode };
+      }
+    } catch (e) {
+      console.warn('MSG91 template dispatch error:', e.message);
+    }
+  }
+
+  // 3. TRY MSG91 WIDGET OTP API
+  const widgetId = process.env.MSG91_WIDGET_ID || '36687761466f383937303733';
   if (msg91Key && widgetId) {
     try {
       const payload = JSON.stringify({
@@ -100,13 +152,13 @@ async function sendEmailOtp({ email, otpCode, type = 'Verification' }) {
         req.end();
       });
 
-      console.log(`[MSG91 DISPATCH RESULT] Status: ${res.status}, Response: ${res.data}`);
+      console.log(`[MSG91 WIDGET RESULT] Status: ${res.status}, Response: ${res.data}`);
     } catch (e) {
-      console.warn('MSG91 dispatch error:', e.message);
+      console.warn('MSG91 widget dispatch error:', e.message);
     }
   }
 
-  return { success: true, provider: 'msg91_and_screen', otpCode };
+  return { success: true, provider: 'verified_sender_and_screen', otpCode };
 }
 
 module.exports = {
