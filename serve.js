@@ -2,6 +2,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { handleApiRequest } = require('./backend/api_handler');
+require('./backend/supabase_client');
 
 const dir = __dirname;
 
