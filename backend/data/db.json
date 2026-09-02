@@ -679,6 +679,20 @@
       "discountApplied": 24.5,
       "paymentStatus": "success",
       "createdAt": "2026-09-02T01:19:51.100Z"
+    },
+    {
+      "id": "cu_1788312491342",
+      "userId": "u_1788312491305",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-09-02T01:28:11.342Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-09-02T01:28:11.342Z"
     }
   ],
   "referralCodes": [
@@ -816,21 +830,6 @@
     }
   ],
   "otpStore": {
-    "audit_user_1788311490691@wrindhaos.in": {
-      "code": "457683",
-      "type": "register",
-      "attempts": 0,
-      "maxAttempts": 5,
-      "createdAt": 1788311490758,
-      "expiresAt": 1788312090758,
-      "lastSentAt": 1788311490758,
-      "pendingUser": {
-        "username": "audit_1788311490692",
-        "email": "audit_user_1788311490691@wrindhaos.in",
-        "passwordHash": "45e49a8eb03c7de5124d22df935793f4:96484dc3f34012debd17e0dea48a92982bf3d4b8640e233803d74b14a2e15730e261b02698d7f90f169b23a92c1650b2170cf6c6ba66afc4b6cd189d600f689b",
-        "referralCode": ""
-      }
-    },
     "audit_user_1788311970309@wrindhaos.in": {
       "code": "561597",
       "type": "register",
@@ -858,6 +857,21 @@
         "username": "audit_1788311989509",
         "email": "audit_user_1788311989507@wrindhaos.in",
         "passwordHash": "c88c81c1328b1d37b144f8a097c04a8f:819987ccd18eb1419a7cac468d6d3ae4cc98333df2648667f9838e19c280ab2a78b8e30755bfc5b59663ab9a7ce3f12edbba749f4fe86b9be8d3894f2eec0b93",
+        "referralCode": ""
+      }
+    },
+    "audit_user_1788312489853@wrindhaos.in": {
+      "code": "680053",
+      "type": "register",
+      "attempts": 0,
+      "maxAttempts": 5,
+      "createdAt": 1788312489890,
+      "expiresAt": 1788313089890,
+      "lastSentAt": 1788312489890,
+      "pendingUser": {
+        "username": "audit_1788312489854",
+        "email": "audit_user_1788312489853@wrindhaos.in",
+        "passwordHash": "c68b37a35958c1d2564c3a587e3a3b25:020ca720d9ed8ba64e86af85e2b7c6cb58cd22d30ce3e3ed62756f3100728708cfb4ac283ccb4926d0eb441de4d35c3429b5f32680dfc6187bcaaa34eaa41721",
         "referralCode": ""
       }
     }

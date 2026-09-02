@@ -827,10 +827,7 @@ class AppProvider extends ChangeNotifier {
       final List decoded = jsonDecode(habitsJson);
       _habits = decoded.map((item) => Habit.fromJson(item)).toList();
     } else {
-      _habits = [
-        Habit(id: 'h_1', title: 'Morning Focus & Meditation', frequency: 'DAILY', isCompleted: true, streakDay: 5),
-        Habit(id: 'h_2', title: 'Read 20 Pages of Core Topic', frequency: 'DAILY', isCompleted: false, streakDay: 3),
-      ];
+      _habits = [];
     }
 
     // 2. Tasks

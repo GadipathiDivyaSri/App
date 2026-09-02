@@ -100687,13 +100687,7 @@ if(o==="Medium")s.e.push(A.af(["title",B.c.aN(q.a),"progress","0%"],r,r))
 else s.f.push(A.af(["title",B.c.aN(q.a),"progress","Planned"],r,r))}},
 $S:0}
 A.qD.prototype={
-a5(){
-  var h1 = A.af(["id","h_1","title","🏃 Morning Workout","frequency","Daily","icon",B.NK,"isCompleted",!0,"streakDay",12,"longestStreak",15],t.N,t.z);
-  var h2 = A.af(["id","h_2","title","📚 Read 20 Pages","frequency","Daily","icon",B.NK,"isCompleted",!0,"streakDay",7,"longestStreak",10],t.N,t.z);
-  var h3 = A.af(["id","h_3","title","🧘 Meditation","frequency","Daily","icon",B.NK,"isCompleted",!1,"streakDay",3,"longestStreak",8],t.N,t.z);
-  var h4 = A.af(["id","h_4","title","💧 Drink Water","frequency","Daily","icon",B.NK,"isCompleted",!1,"streakDay",15,"longestStreak",20],t.N,t.z);
-  return new A.WF(A.a([h1,h2,h3,h4],t.H7));
-}}
+a5(){return new A.WF(A.a([],t.H7))}}
 A.WF.prototype={
 E(a){var s,r,q,p,o,n,m,l,k=this,j=null,i=A.p(a).ax.a===B.A,h=i?B.am:B.c7,g=i?B.aZ:B.aV,f=A.c3(j,j,j,A.as(B.bm,i?B.d:B.B,j,20),j,j,new A.awI(a),j,j,j,j)
 f=A.da(j,j,j,j,j,f,A.m("Habits",j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,j,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j))
@@ -100701,31 +100695,57 @@ s=i?B.am:B.N
 s=A.jE(s,B.ei,4,"habit_fab",new A.awJ(k,a),B.di)
 q=k.d
 var compCount=0
-for(var ci=0;ci<q.length;ci++){if(J.d(q[ci].h(0,"isCompleted"),!0))compCount++}
-var topTitle=A.m("Today, Sep 2",j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,16,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j)
-var metricTxt=A.m("◉  "+compCount+" / "+q.length,j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,22,j,j,B.K,j,j,!0,j,-0.5,j,j,j,j,j,j),j,j,j)
-var compLabel=A.m("Completed",j,j,j,j,A.J(j,j,h,j,j,j,j,j,j,j,j,12,j,j,B.x,j,j,!0,j,j,j,j,j,j,j,j),j,j,j)
+var bestHabit=null
+var bestStreak=0
+for(var ci=0;ci<q.length;ci++){
+  var hItem=q[ci]
+  var isDone=J.d(hItem.h(0,"isCompleted"),!0)
+  if(isDone)compCount++
+  var st=A.fV(hItem.h(0,"longestStreak"))||A.fV(hItem.h(0,"streakDay"))||0
+  if(st>bestStreak||(st===bestStreak&&!bestHabit)){
+    bestStreak=st
+    bestHabit=hItem
+  }
+}
+var dateMonths=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+var nowD=new Date()
+var todayDateLabel="Today, "+dateMonths[nowD.getMonth()]+" "+nowD.getDate()
+var topTitle=A.m(todayDateLabel,j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,16,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j)
+var metricTxt=A.m("◉  "+compCount+" / "+q.length,j,j,j,j,A.J(j,j,compCount>0&&compCount===q.length?B.u:(i?B.d:B.B),j,j,j,j,j,j,j,j,22,j,j,B.K,j,j,!0,j,-0.5,j,j,j,j,j,j),j,j,j)
+var pctText=q.length>0?("Completed ("+Math.round(compCount/q.length*100)+"%)"):"Completed"
+var compLabel=A.m(pctText,j,j,j,j,A.J(j,j,h,j,j,j,j,j,j,j,j,12,j,j,B.x,j,j,!0,j,j,j,j,j,j,j,j),j,j,j)
 var topCardContent=A.a0(A.a([topTitle,B.aW,metricTxt,B.aP,compLabel],t.p),B.w,B.h,B.av,0,B.m)
-var topCard=A.X(j,topCardContent,B.j,j,j,new A.O(i?B.ah:B.ec,j,i?A.bO(B.ay,B.p,1):j,A.B(20),j,j,B.o),j,j,j,B.MB,j,j,j)
+var topCard=A.X(j,topCardContent,B.j,j,j,new A.O(i?B.ah:B.ec,j,i?A.bO(B.ay,B.p,1):j,A.B(20),j,j,B.o),j,j,j,B.F,j,j,1/0)
+
 var todayHabitsHeader=A.a4(A.a([A.m("TODAY'S HABITS",j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,13,j,j,B.K,j,j,!0,j,1.1,j,j,j,j,j,j),j,j,j),A.m(q.length+" ACTIVE",j,j,j,j,A.J(j,j,h,j,j,j,j,j,j,j,j,11,j,j,B.x,j,j,!0,j,0.8,j,j,j,j,j,j),j,j,j)],t.p),B.i,B.ap,B.f,0,j,j)
-var habitsList=A.vP(new A.awN(k),q.length,B.f2,!0)
+var habitsWidget=q.length===0?A.X(j,A.m("No habits created yet.\nTap (+) below to add your first habit!",j,j,j,j,A.J(j,j,h,j,j,j,j,j,j,j,j,13,j,j,B.x,j,j,!0,j,j,j,j,j,j,j,j),j,j,j),B.j,j,j,new A.O(i?B.T:B.d,j,j,A.B(16),j,j,B.o),j,j,j,B.F,j,j,1/0):A.vP(new A.awN(k),q.length,B.f2,!0)
+
 var weeklyHeader=A.m("WEEKLY CONSISTENCY",j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,13,j,j,B.K,j,j,!0,j,1.1,j,j,j,j,j,j),j,j,j)
 var daysHeader=A.m("     M    T    W    T    F    S    S",j,j,j,j,A.J(j,j,h,j,j,j,j,j,j,j,j,12,j,j,B.K,j,j,!0,j,1.2,j,j,j,j,j,j),j,j,j)
 var consistencyRows=[daysHeader]
-for(var hi=0;hi<q.length;hi++){
-  var hItem=q[hi]
-  var hTitle=A.b3(hItem.h(0,"title"))
-  var hEmoji=hTitle.split(" ")[0]||"●"
-  var hDone=J.d(hItem.h(0,"isCompleted"),!0)
-  var dots=hDone?" ●    ●    ●    ○    ○    ○    ○":" ●    ○    ●    ○    ○    ○    ○"
+if(q.length===0){
   consistencyRows.push(B.aW)
-  consistencyRows.push(A.m(hEmoji+"   "+dots,j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,13,j,j,B.x,j,j,!0,j,1.0,j,j,j,j,j,j),j,j,j))
+  consistencyRows.push(A.m("No habits to track consistency yet",j,j,j,j,A.J(j,j,h,j,j,j,j,j,j,j,j,13,j,j,B.x,j,j,!0,j,j,j,j,j,j,j,j),j,j,j))
+}else{
+  for(var hi=0;hi<q.length;hi++){
+    var hItem=q[hi]
+    var hTitle=A.b3(hItem.h(0,"title"))
+    var hEmoji=hTitle.split(" ")[0]||"🎯"
+    if(hEmoji.length>2)hEmoji="🎯"
+    var hDone=J.d(hItem.h(0,"isCompleted"),!0)
+    var dots=hDone?" ●    ●    ●    ○    ○    ○    ○":" ○    ○    ○    ○    ○    ○    ○"
+    consistencyRows.push(B.aW)
+    consistencyRows.push(A.m(hEmoji+"   "+dots,j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,13,j,j,B.x,j,j,!0,j,1.0,j,j,j,j,j,j),j,j,j))
+  }
 }
 var weeklyCard=A.X(j,A.a0(A.a(consistencyRows,t.p),B.w,B.h,B.f,0,B.m),B.j,j,j,new A.O(i?B.T:B.d,j,j,A.B(18),j,j,B.o),j,j,j,B.F,j,j,1/0)
+
 var bestStreakTitle=A.m("🔥 Best Streak",j,j,j,j,A.J(j,j,i?B.d:B.af,j,j,j,j,j,j,j,j,14,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j)
-var bestStreakDesc=A.m("Morning Workout • 15 Days",j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,16,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j)
+var bestStreakDescTxt=bestHabit&&bestStreak>0?(A.b3(bestHabit.h(0,"title"))+" • "+bestStreak+" Days"):"Start completing habits daily to build your best streak!"
+var bestStreakDesc=A.m(bestStreakDescTxt,j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,15,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j)
 var bestStreakCard=A.X(j,A.a0(A.a([bestStreakTitle,B.aW,bestStreakDesc],t.p),B.w,B.h,B.f,0,B.m),B.j,j,j,new A.O(i?B.T:B.d,j,j,A.B(18),j,j,B.o),j,j,j,B.F,j,j,1/0)
-return A.cJ(f,g,A.dA(A.a0(A.a([topCard,B.an,todayHabitsHeader,B.aP,habitsList,B.an,weeklyHeader,B.aP,weeklyCard,B.an,bestStreakCard,B.dx],t.p),B.w,B.h,B.f,0,B.m),j,B.t,B.bw,j,j,B.S),j,s)},
+
+return A.cJ(f,g,A.dA(A.a0(A.a([topCard,B.an,todayHabitsHeader,B.aP,habitsWidget,B.an,weeklyHeader,B.aP,weeklyCard,B.an,bestStreakCard,B.dx],t.p),B.w,B.h,B.f,0,B.m),j,B.t,B.bw,j,j,B.S),j,s)},
 R_(a,b,c,d,e){var s,r=null,q=A.p(a).ax.a===B.A,p=q?B.T:B.d,o=A.B(18),n=A.a([],t.V)
 if(!q)n.push(new A.aK(0,B.E,A.Z(8,B.n.m()>>>16&255,B.n.m()>>>8&255,B.n.m()&255),B.ba,10))
 s=A.B(12)
@@ -100735,7 +100755,9 @@ i=A.X(o,A.as(t.tk.a(b.h(0,"icon")),B.u,o,22),B.j,o,o,new A.O(j,o,o,i,o,o,B.o),o,
 j=A.b3(b.h(0,"title"))
 s=m?B.dW:o
 r=t.p
-s=A.aD(A.a0(A.a([A.m(j,o,o,o,o,A.J(o,o,n?B.d:B.af,o,s,o,o,o,o,o,o,15,o,o,B.x,o,o,!0,o,o,o,o,o,o,o,o),o,o,o),B.aW,A.m(A.b3(b.h(0,"frequency")),o,o,o,o,B.a4I,o,o,o)],r),B.w,B.h,B.f,0,B.m),1)
+var stVal=A.fV(b.h(0,"streakDay"))||0
+var streakBadge=A.m("🔥 "+stVal,o,o,o,o,A.J(o,o,n?B.d:B.af,o,o,o,o,o,o,o,o,12,o,o,B.K,o,o,!0,o,o,o,o,o,o,o,o),o,o,o)
+s=A.aD(A.a0(A.a([A.m(j,o,o,o,o,A.J(o,o,n?B.d:B.af,o,s,o,o,o,o,o,o,15,o,o,B.x,o,o,!0,o,o,o,o,o,o,o,o),o,o,o),B.aW,A.a4(A.a([A.m(A.b3(b.h(0,"frequency")),o,o,o,o,B.a4I,o,o,o),B.bx,streakBadge],r),B.i,B.h,B.f,0,o,o)],r),B.w,B.h,B.f,0,B.m),1)
 j=m?B.u:B.C
 q=A.bO(B.u,B.p,2)
 p=m?B.u9:o
@@ -100778,12 +100800,23 @@ $0(){var s=this.a
 s.K(new A.awp(s,this.b,this.c))},
 $S:0}
 A.awp.prototype={
-$0(){var s="streakDay",r=this.a.d,q=this.b,p=!this.c
-r[q].p(0,"isCompleted",p)
-if(p){r=r[q]
-q=A.fV(r.h(0,s))
-r.p(0,s,(q==null?0:q)+1)}},
+$0(){
+  var r=this.a.d,q=this.b,item=r[q]
+  var isNowDone=!J.d(item.h(0,"isCompleted"),!0)
+  item.p(0,"isCompleted",isNowDone)
+  var curStreak=A.fV(item.h(0,"streakDay"))||0
+  var longest=A.fV(item.h(0,"longestStreak"))||0
+  if(isNowDone){
+    curStreak=curStreak+1
+    longest=Math.max(longest,curStreak)
+  }else{
+    curStreak=Math.max(0,curStreak-1)
+  }
+  item.p(0,"streakDay",curStreak)
+  item.p(0,"longestStreak",longest)
+},
 $S:0}
+
 A.aws.prototype={
 $1(a){var s,r=this
 if(a==="toggle"){s=r.a
@@ -100873,8 +100906,19 @@ s.K(new A.awt(r.a,s,q,r.d))
 A.ad(r.e,!1).aI(null)}},
 $S:0}
 A.awt.prototype={
-$0(){var s=this,r=s.a
-s.b.d.push(A.af(["id",B.l.k(Date.now()),"title",B.c.aN(s.c.a.a),"frequency",r.b.toUpperCase()+" \u2022 "+r.a.fJ(s.d),"icon",B.NK,"isCompleted",!1,"streakDay",1],t.N,t.z))},
+$0(){
+  var s=this,r=s.a
+  var title=B.c.aN(s.c.a.a)
+  s.b.d.push(A.af([
+    "id",B.l.k(Date.now()),
+    "title",title,
+    "frequency",r.b.toUpperCase()+" • "+r.a.fJ(s.d),
+    "icon",B.NK,
+    "isCompleted",!1,
+    "streakDay",0,
+    "longestStreak",0
+  ],t.N,t.z))
+},
 $S:0}
 
 A.Os.prototype={
