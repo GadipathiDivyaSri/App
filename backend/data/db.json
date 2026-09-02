@@ -819,6 +819,20 @@
       "discountApplied": 24.5,
       "paymentStatus": "success",
       "createdAt": "2026-09-02T04:43:27.829Z"
+    },
+    {
+      "id": "cu_1788326789447",
+      "userId": "u_1788326789384",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-09-02T05:26:29.447Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-09-02T05:26:29.447Z"
     }
   ],
   "referralCodes": [
@@ -955,21 +969,5 @@
       "redeemedForAmount": 44.1
     }
   ],
-  "otpStore": {
-    "audit_user_1788324191164@wrindhaos.in": {
-      "code": "415309",
-      "type": "register",
-      "attempts": 0,
-      "maxAttempts": 5,
-      "createdAt": 1788324191226,
-      "expiresAt": 1788324791226,
-      "lastSentAt": 1788324191226,
-      "pendingUser": {
-        "username": "audit_1788324191164",
-        "email": "audit_user_1788324191164@wrindhaos.in",
-        "passwordHash": "05f9697ef30c8600b1a14bd3de4b7323:1826bc835b631f55ee5d25c9bbcc8da5d5d4af0943c74992ed23ee517dfc32301c4f0c411c7567135fe3ba5f0698907f25bc572d8f2c0bdf3e8062c4c54db433",
-        "referralCode": ""
-      }
-    }
-  }
+  "otpStore": {}
 }

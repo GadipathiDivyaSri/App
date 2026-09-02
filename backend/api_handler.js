@@ -24,6 +24,7 @@ try {
 } catch (e) {}
 
 const { supabase, isConfigured: isSupabaseConfigured } = require('./supabase_client');
+const { sendEmailOtp } = require('./email_service');
 const DB_FILE = path.join(__dirname, 'data', 'db.json');
 const DB_TMP_FILE = path.join(__dirname, 'data', '.db.json.tmp');
 const JWT_SECRET = process.env.JWT_SECRET || 'wrindhaos_prod_secret_key_2026_super_secure';
@@ -609,62 +610,9 @@ function parseBody(req) {
  * Dispatch real live email / OTP via MSG91 API or mock fallback
  */
 async function dispatchEmailOtp(email, otpCode, type = 'Verification') {
-  const authKey = process.env.MSG91_AUTH_KEY || '563368AbE6Nls32x6a9703baP1';
-  const widgetId = process.env.MSG91_WIDGET_ID || '36687761466f383937303733';
-
-  console.log(`[EMAIL OTP DISPATCH] [${type}] Sending 6-digit OTP to: ${email} -> CODE: [${otpCode}]`);
-
-  if (!authKey) {
-    return { success: true, mode: 'local', otpCode };
-  }
-
-  try {
-    const payload = JSON.stringify({
-      widgetId: widgetId,
-      identifier: email,
-      tokenAuth: authKey,
-      otp: otpCode,
-    });
-
-    const options = {
-      hostname: 'control.msg91.com',
-      port: 443,
-      path: '/api/v5/widget/sendOtp',
-      method: 'POST',
-      headers: {
-        'authkey': authKey,
-        'Content-Type': 'application/json',
-        'Origin': 'http://localhost:8080',
-        'Referer': 'http://localhost:8080/',
-        'User-Agent': 'WrindhaOS-Backend/1.0',
-        'Content-Length': Buffer.byteLength(payload),
-      },
-    };
-
-    return new Promise((resolve) => {
-      const req = https.request(options, (msgRes) => {
-        let resData = '';
-        msgRes.on('data', (chunk) => (resData += chunk));
-        msgRes.on('end', () => {
-          console.log(`[MSG91 WIDGET API] Status: ${msgRes.statusCode}, Response: ${resData}`);
-          resolve({ success: true, mode: 'live_widget', response: resData });
-        });
-      });
-      req.on('error', (err) => {
-        console.error('[MSG91 WIDGET API ERROR]:', err.message);
-        resolve({ success: true, mode: 'local_fallback', otpCode });
-      });
-      req.write(payload);
-      req.end();
-    });
-  } catch (e) {
-    return { success: true, mode: 'fallback', otpCode };
-  }
+  return sendEmailOtp({ email, otpCode, type });
 }
 
-/**
- * Verify MSG91 Widget JWT access token via official MSG91 verifyAccessToken API
- */
 async function verifyMsg91AccessToken(accessToken) {
   const authKey = process.env.MSG91_AUTH_KEY || '563368AbE6Nls32x6a9703baP1';
 
