@@ -101399,7 +101399,67 @@ A.ay_.prototype={
 $0(){return this.a.z=this.b!==!1},
 $S:0}
 A.ay6.prototype={
-$0(){},
+$0(){
+  var email = prompt("Enter your registered email address to reset password:");
+  if(!email || !email.includes('@')){
+    if(email) alert("Please enter a valid email address.");
+    return;
+  }
+  email = email.trim().toLowerCase();
+  
+  fetch('/api/auth/forgot-password/initiate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: email })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(initData){
+    var otpMsg = initData.code ? ("Verification code: " + initData.code + " (also sent to your email)") : (initData.message || "OTP sent to your email");
+    var otp = prompt(otpMsg + "\n\nEnter the 6-digit OTP code:");
+    if(!otp) return;
+    otp = otp.trim();
+    
+    fetch('/api/auth/forgot-password/verify-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email, otp: otp })
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(vData){
+      if(!vData || !vData.success || !vData.resetToken){
+        alert(vData.message || "Invalid or expired OTP code.");
+        return;
+      }
+      var newPwd = prompt("Enter your NEW password (minimum 8 characters):");
+      if(!newPwd || newPwd.length < 8){
+        alert("Password must be at least 8 characters.");
+        return;
+      }
+      var confPwd = prompt("Confirm your NEW password:");
+      if(newPwd !== confPwd){
+        alert("Passwords do not match.");
+        return;
+      }
+      
+      fetch('/api/auth/forgot-password/reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email, resetToken: vData.resetToken, newPassword: newPwd, confirmPassword: confPwd })
+      })
+      .then(function(r){ return r.json(); })
+      .then(function(rData){
+        if(rData && rData.success){
+          alert("🎉 Your password has been updated successfully! You can now log in with your new password.");
+        } else {
+          alert(rData.message || "Failed to update password.");
+        }
+      });
+    });
+  })
+  .catch(function(err){
+    alert("Network error: Could not reach server.");
+  });
+},
 $S:0}
 A.ay7.prototype={
 $0(){var s=A.cq(new A.axZ(),null,t.z)
@@ -102569,21 +102629,42 @@ q=r.y
 q.N$=s
 q.I$=0
 r.aa7()},
-ajj(){var s,r,q=this,p=null,n=q.d,email=B.c.aN(q.e.a.a).trim(),uName=B.c.aN(q.r.a.a).trim(),pwd=B.c.aN(q.x.a.a)||'Wrindha@2026',confPwd=B.c.aN(q.f.a.a)||'Wrindha@2026',refCode=B.c.aN(q.y.a.a).trim();
-if(!email){q.c.Y(t.J).f.d7(A.jd(p,p,p,B.Vg,p,B.z,p,A.m("Please enter your email address first",p,p,p,p,p,p,p,p),p,B.b7,p,p,p,p,p,p,p,p,p,p));return;}
-if(!uName){q.c.Y(t.J).f.d7(A.jd(p,p,p,B.Vg,p,B.z,p,A.m("Please enter your username",p,p,p,p,p,p,p,p),p,B.b7,p,p,p,p,p,p,p,p,p,p));return;}
-q.K(new A.aDx(q));
-fetch('/api/auth/register-initiate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:uName,email:email,password:pwd,confirmPassword:confPwd,referralCode:refCode})})
-.then(function(res){return res.json();})
-.then(function(data){
-  if(data&&data.success){
-    q.c.Y(t.J).f.d7(A.jd(p,p,p,B.u,p,B.z,p,A.m("6-digit MSG91 verification code sent to "+email,p,p,p,p,p,p,p,p),p,B.b7,p,p,p,p,p,p,p,p,p,p));
-  } else {
-    q.c.Y(t.J).f.d7(A.jd(p,p,p,B.Vg,p,B.z,p,A.m(data.message||"Failed to send verification code",p,p,p,p,p,p,p,p),p,B.b7,p,p,p,p,p,p,p,p,p,p));
+ajj(){
+  var q=this, p=null;
+  var uName = (q.e && q.e.a && q.e.a.a ? q.e.a.a : '').trim(); // q.e is USERNAME
+  var email = (q.r && q.r.a && q.r.a.a ? q.r.a.a : '').trim(); // q.r is EMAIL
+  var pwd = (q.x && q.x.a && q.x.a.a ? q.x.a.a : '') || 'Wrindha@2026';
+  var confPwd = (q.f && q.f.a && q.f.a.a ? q.f.a.a : '') || 'Wrindha@2026';
+  var refCode = (q.y && q.y.a && q.y.a.a ? q.y.a.a : '').trim();
+
+  if(!email || !email.includes('@') || !email.includes('.')){
+    q.c.Y(t.J).f.d7(A.jd(p,p,p,B.cE,p,B.z,p,A.m("Please enter a valid email address (e.g. name@domain.com)",p,p,p,p,p,p,p,p),p,B.b7,p,p,p,p,p,p,p,p,p,p));
+    return;
   }
-}).catch(function(err){
-  q.c.Y(t.J).f.d7(A.jd(p,p,p,B.u,p,B.z,p,A.m("6-digit MSG91 verification code sent to "+email,p,p,p,p,p,p,p,p),p,B.b7,p,p,p,p,p,p,p,p,p,p));
-});
+  if(!uName){
+    q.c.Y(t.J).f.d7(A.jd(p,p,p,B.cE,p,B.z,p,A.m("Please enter your username first",p,p,p,p,p,p,p,p),p,B.b7,p,p,p,p,p,p,p,p,p,p));
+    return;
+  }
+
+  q.K(new A.aDx(q)); // reveals OTP field
+
+  fetch('/api/auth/register-initiate',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({username:uName,email:email,password:pwd,confirmPassword:confPwd,referralCode:refCode})
+  })
+  .then(function(res){return res.json();})
+  .then(function(data){
+    if(data && data.success){
+      var msg = data.code ? ("6-digit OTP sent to " + email + " (Code: " + data.code + ")") : (data.message || ("6-digit OTP sent to " + email));
+      q.c.Y(t.J).f.d7(A.jd(p,p,p,B.u,p,B.z,p,A.m(msg,p,p,p,p,p,p,p,p),p,B.b7,p,p,p,p,p,p,p,p,p,p));
+    } else {
+      q.c.Y(t.J).f.d7(A.jd(p,p,p,B.cE,p,B.z,p,A.m(data.message || "Failed to send verification code",p,p,p,p,p,p,p,p),p,B.b7,p,p,p,p,p,p,p,p,p,p));
+    }
+  })
+  .catch(function(err){
+    q.c.Y(t.J).f.d7(A.jd(p,p,p,B.cE,p,B.z,p,A.m("Network error sending OTP",p,p,p,p,p,p,p,p),p,B.b7,p,p,p,p,p,p,p,p,p,p));
+  });
 },
 ny(){var s=0,r=A.V(t.H),q=this,p,o
 var $async$ny=A.W(function(a,b){if(a===1)return A.S(b,r)
@@ -102596,10 +102677,17 @@ case 2:if(b===!0&&q.c!=null){q.K(new A.aDA(q))
 q.c.Y(t.J).f.d7(B.a0f)}return A.T(null,r)}})
 return A.U($async$ny,r)},
 ajp(){
-  var n=this, email=B.c.aN(n.e.a.a).trim(), uName=B.c.aN(n.r.a.a).trim(), pwd=B.c.aN(n.x.a.a), confPwd=B.c.aN(n.f.a.a), otp=B.c.aN(n.w.a.a).trim(), refCode=B.c.aN(n.y.a.a).trim(), ctx=n.c;
-  
-  if(!email){ctx.Y(t.J).f.d7(A.jd(null,null,null,B.cE,null,B.z,null,A.m("Please enter your email address",null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null));return;}
+  var n=this, ctx=n.c;
+  var uName = (n.e && n.e.a && n.e.a.a ? n.e.a.a : '').trim(); // n.e is USERNAME
+  var email = (n.r && n.r.a && n.r.a.a ? n.r.a.a : '').trim(); // n.r is EMAIL
+  var otp = (n.w && n.w.a && n.w.a.a ? n.w.a.a : '').trim(); // n.w is OTP
+  var pwd = (n.x && n.x.a && n.x.a.a ? n.x.a.a : ''); // n.x is PASSWORD
+  var confPwd = (n.f && n.f.a && n.f.a.a ? n.f.a.a : ''); // n.f is CONFIRM PASSWORD
+  var refCode = (n.y && n.y.a && n.y.a.a ? n.y.a.a : '').trim(); // n.y is REFERRAL
+
   if(!uName){ctx.Y(t.J).f.d7(A.jd(null,null,null,B.cE,null,B.z,null,A.m("Please enter your username",null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null));return;}
+  if(!email || !email.includes('@')){ctx.Y(t.J).f.d7(A.jd(null,null,null,B.cE,null,B.z,null,A.m("Please enter a valid email address",null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null));return;}
+  if(!n.z){ctx.Y(t.J).f.d7(A.jd(null,null,null,B.cE,null,B.z,null,A.m("Please tap 'Send OTP' first to get your verification code",null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null));return;}
   if(!otp){ctx.Y(t.J).f.d7(A.jd(null,null,null,B.cE,null,B.z,null,A.m("Please enter the 6-digit verification code",null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null));return;}
   if(pwd.length < 6){ctx.Y(t.J).f.d7(A.jd(null,null,null,B.cE,null,B.z,null,A.m("Password must be at least 6 characters",null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null));return;}
   if(pwd !== confPwd){ctx.Y(t.J).f.d7(A.jd(null,null,null,B.cE,null,B.z,null,A.m("Passwords do not match",null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null));return;}
