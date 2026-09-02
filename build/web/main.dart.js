@@ -101398,67 +101398,450 @@ $S:82}
 A.ay_.prototype={
 $0(){return this.a.z=this.b!==!1},
 $S:0}
+
+function openForgotPasswordModal() {
+  var existing = document.getElementById('wos-forgot-pw-modal');
+  if (existing) existing.remove();
+
+  var overlay = document.createElement('div');
+  overlay.id = 'wos-forgot-pw-modal';
+  overlay.style.position = 'fixed';
+  overlay.style.top = '0';
+  overlay.style.left = '0';
+  overlay.style.width = '100vw';
+  overlay.style.height = '100vh';
+  overlay.style.backgroundColor = 'rgba(6, 11, 30, 0.85)';
+  overlay.style.backdropFilter = 'blur(10px)';
+  overlay.style.zIndex = '999999';
+  overlay.style.display = 'flex';
+  overlay.style.justifyContent = 'center';
+  overlay.style.alignItems = 'center';
+  overlay.style.fontFamily = 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+
+  var card = document.createElement('div');
+  card.style.width = '92%';
+  card.style.maxWidth = '460px';
+  card.style.backgroundColor = '#0F172A';
+  card.style.borderRadius = '24px';
+  card.style.border = '1px solid rgba(255, 255, 255, 0.1)';
+  card.style.padding = '36px 32px';
+  card.style.boxShadow = '0 25px 50px -12px rgba(0, 0, 0, 0.7)';
+  card.style.color = '#F8FAFC';
+  card.style.position = 'relative';
+
+  // Close Button
+  var closeBtn = document.createElement('button');
+  closeBtn.innerHTML = '&times;';
+  closeBtn.style.position = 'absolute';
+  closeBtn.style.top = '20px';
+  closeBtn.style.right = '24px';
+  closeBtn.style.background = 'none';
+  closeBtn.style.border = 'none';
+  closeBtn.style.color = '#94A3B8';
+  closeBtn.style.fontSize = '28px';
+  closeBtn.style.cursor = 'pointer';
+  closeBtn.onclick = function() { overlay.remove(); };
+  card.appendChild(closeBtn);
+
+  // State Variables
+  var currentStep = 1;
+  var userEmail = '';
+  var resetToken = '';
+
+  function renderStep() {
+    card.innerHTML = '';
+    card.appendChild(closeBtn);
+
+    if (currentStep === 1) {
+      // --- STEP 1: ENTER EMAIL ---
+      var iconDiv = document.createElement('div');
+      iconDiv.style.width = '52px';
+      iconDiv.style.height = '52px';
+      iconDiv.style.borderRadius = '16px';
+      iconDiv.style.backgroundColor = 'rgba(232, 117, 82, 0.15)';
+      iconDiv.style.display = 'flex';
+      iconDiv.style.justifyContent = 'center';
+      iconDiv.style.alignItems = 'center';
+      iconDiv.style.fontSize = '24px';
+      iconDiv.style.marginBottom = '20px';
+      iconDiv.innerHTML = '🔑';
+      card.appendChild(iconDiv);
+
+      var title = document.createElement('h2');
+      title.innerText = 'Forgot Password';
+      title.style.margin = '0 0 8px 0';
+      title.style.fontSize = '24px';
+      title.style.fontWeight = '700';
+      card.appendChild(title);
+
+      var desc = document.createElement('p');
+      desc.innerText = 'Enter your registered email address. We will send a 6-digit verification code to reset your password.';
+      desc.style.margin = '0 0 24px 0';
+      desc.style.fontSize = '14px';
+      desc.style.color = '#94A3B8';
+      desc.style.lineHeight = '1.5';
+      card.appendChild(desc);
+
+      var errBox = document.createElement('div');
+      errBox.id = 'wos-err-box';
+      errBox.style.display = 'none';
+      errBox.style.padding = '12px 16px';
+      errBox.style.borderRadius = '12px';
+      errBox.style.backgroundColor = 'rgba(239, 68, 68, 0.15)';
+      errBox.style.border = '1px solid rgba(239, 68, 68, 0.3)';
+      errBox.style.color = '#FCA5A5';
+      errBox.style.fontSize = '13px';
+      errBox.style.marginBottom = '18px';
+      card.appendChild(errBox);
+
+      var label = document.createElement('label');
+      label.innerText = 'EMAIL ADDRESS';
+      label.style.display = 'block';
+      label.style.fontSize = '11.5px';
+      label.style.fontWeight = '600';
+      label.style.letterSpacing = '0.05em';
+      label.style.color = '#94A3B8';
+      label.style.marginBottom = '8px';
+      card.appendChild(label);
+
+      var input = document.createElement('input');
+      input.type = 'email';
+      input.placeholder = 'e.g. name@example.com';
+      input.style.width = '100%';
+      input.style.boxSizing = 'border-box';
+      input.style.padding = '14px 16px';
+      input.style.borderRadius = '14px';
+      input.style.border = '1px solid rgba(255, 255, 255, 0.15)';
+      input.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+      input.style.color = '#FFFFFF';
+      input.style.fontSize = '15px';
+      input.style.outline = 'none';
+      input.style.marginBottom = '24px';
+      card.appendChild(input);
+
+      var sendBtn = document.createElement('button');
+      sendBtn.innerText = 'Send Verification OTP';
+      sendBtn.style.width = '100%';
+      sendBtn.style.padding = '14px';
+      sendBtn.style.borderRadius = '14px';
+      sendBtn.style.border = 'none';
+      sendBtn.style.backgroundColor = '#E87552';
+      sendBtn.style.color = '#FFFFFF';
+      sendBtn.style.fontSize = '15px';
+      sendBtn.style.fontWeight = '600';
+      sendBtn.style.cursor = 'pointer';
+      sendBtn.style.transition = 'opacity 0.2s';
+      sendBtn.onclick = function() {
+        var email = input.value.trim().toLowerCase();
+        if (!email || !email.includes('@') || !email.includes('.')) {
+          errBox.innerText = 'Please enter a valid email address.';
+          errBox.style.display = 'block';
+          return;
+        }
+        sendBtn.disabled = true;
+        sendBtn.innerText = 'Sending OTP...';
+        errBox.style.display = 'none';
+
+        fetch('/api/auth/forgot-password/initiate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(res) {
+          sendBtn.disabled = false;
+          sendBtn.innerText = 'Send Verification OTP';
+          if (res && res.success) {
+            userEmail = email;
+            currentStep = 2;
+            renderStep();
+            if (res.code) {
+              setTimeout(function() {
+                alert('🔑 WrindhaOS Verification Code: ' + res.code + '\n\n(Also sent to ' + email + ')');
+              }, 200);
+            }
+          } else {
+            errBox.innerText = res.message || 'Could not send reset code. Please try again.';
+            errBox.style.display = 'block';
+          }
+        })
+        .catch(function(err) {
+          sendBtn.disabled = false;
+          sendBtn.innerText = 'Send Verification OTP';
+          errBox.innerText = 'Network error: Unable to connect to server.';
+          errBox.style.display = 'block';
+        });
+      };
+      card.appendChild(sendBtn);
+
+    } else if (currentStep === 2) {
+      // --- STEP 2: VERIFY OTP & CREATE NEW PASSWORD ---
+      var iconDiv = document.createElement('div');
+      iconDiv.style.width = '52px';
+      iconDiv.style.height = '52px';
+      iconDiv.style.borderRadius = '16px';
+      iconDiv.style.backgroundColor = 'rgba(16, 185, 129, 0.15)';
+      iconDiv.style.display = 'flex';
+      iconDiv.style.justifyContent = 'center';
+      iconDiv.style.alignItems = 'center';
+      iconDiv.style.fontSize = '24px';
+      iconDiv.style.marginBottom = '20px';
+      iconDiv.innerHTML = '🛡️';
+      card.appendChild(iconDiv);
+
+      var title = document.createElement('h2');
+      title.innerText = 'Create New Password';
+      title.style.margin = '0 0 8px 0';
+      title.style.fontSize = '24px';
+      title.style.fontWeight = '700';
+      card.appendChild(title);
+
+      var desc = document.createElement('p');
+      desc.innerText = 'Verification code sent to ' + userEmail + '. Enter the code and choose a new password.';
+      desc.style.margin = '0 0 20px 0';
+      desc.style.fontSize = '13.5px';
+      desc.style.color = '#94A3B8';
+      desc.style.lineHeight = '1.4';
+      card.appendChild(desc);
+
+      var errBox = document.createElement('div');
+      errBox.style.display = 'none';
+      errBox.style.padding = '12px 16px';
+      errBox.style.borderRadius = '12px';
+      errBox.style.backgroundColor = 'rgba(239, 68, 68, 0.15)';
+      errBox.style.border = '1px solid rgba(239, 68, 68, 0.3)';
+      errBox.style.color = '#FCA5A5';
+      errBox.style.fontSize = '13px';
+      errBox.style.marginBottom = '16px';
+      card.appendChild(errBox);
+
+      // OTP Input
+      var otpLabel = document.createElement('label');
+      otpLabel.innerText = '6-DIGIT VERIFICATION CODE';
+      otpLabel.style.display = 'block';
+      otpLabel.style.fontSize = '11px';
+      otpLabel.style.fontWeight = '600';
+      otpLabel.style.color = '#94A3B8';
+      otpLabel.style.marginBottom = '6px';
+      card.appendChild(otpLabel);
+
+      var otpInput = document.createElement('input');
+      otpInput.type = 'text';
+      otpInput.placeholder = 'e.g. 123456';
+      otpInput.maxLength = 6;
+      otpInput.style.width = '100%';
+      otpInput.style.boxSizing = 'border-box';
+      otpInput.style.padding = '12px 16px';
+      otpInput.style.borderRadius = '12px';
+      otpInput.style.border = '1px solid rgba(255, 255, 255, 0.15)';
+      otpInput.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+      otpInput.style.color = '#FFFFFF';
+      otpInput.style.fontSize = '16px';
+      otpInput.style.letterSpacing = '0.15em';
+      otpInput.style.outline = 'none';
+      otpInput.style.marginBottom = '16px';
+      card.appendChild(otpInput);
+
+      // New Password Input
+      var pwdLabel = document.createElement('label');
+      pwdLabel.innerText = 'NEW PASSWORD (MIN 8 CHARACTERS)';
+      pwdLabel.style.display = 'block';
+      pwdLabel.style.fontSize = '11px';
+      pwdLabel.style.fontWeight = '600';
+      pwdLabel.style.color = '#94A3B8';
+      pwdLabel.style.marginBottom = '6px';
+      card.appendChild(pwdLabel);
+
+      var pwdInput = document.createElement('input');
+      pwdInput.type = 'password';
+      pwdInput.placeholder = 'Enter new strong password';
+      pwdInput.style.width = '100%';
+      pwdInput.style.boxSizing = 'border-box';
+      pwdInput.style.padding = '12px 16px';
+      pwdInput.style.borderRadius = '12px';
+      pwdInput.style.border = '1px solid rgba(255, 255, 255, 0.15)';
+      pwdInput.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+      pwdInput.style.color = '#FFFFFF';
+      pwdInput.style.fontSize = '14px';
+      pwdInput.style.outline = 'none';
+      pwdInput.style.marginBottom = '16px';
+      card.appendChild(pwdInput);
+
+      // Confirm Password Input
+      var confLabel = document.createElement('label');
+      confLabel.innerText = 'CONFIRM NEW PASSWORD';
+      confLabel.style.display = 'block';
+      confLabel.style.fontSize = '11px';
+      confLabel.style.fontWeight = '600';
+      confLabel.style.color = '#94A3B8';
+      confLabel.style.marginBottom = '6px';
+      card.appendChild(confLabel);
+
+      var confInput = document.createElement('input');
+      confInput.type = 'password';
+      confInput.placeholder = 'Re-enter your password';
+      confInput.style.width = '100%';
+      confInput.style.boxSizing = 'border-box';
+      confInput.style.padding = '12px 16px';
+      confInput.style.borderRadius = '12px';
+      confInput.style.border = '1px solid rgba(255, 255, 255, 0.15)';
+      confInput.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+      confInput.style.color = '#FFFFFF';
+      confInput.style.fontSize = '14px';
+      confInput.style.outline = 'none';
+      confInput.style.marginBottom = '24px';
+      card.appendChild(confInput);
+
+      var saveBtn = document.createElement('button');
+      saveBtn.innerText = 'Update Password & Save';
+      saveBtn.style.width = '100%';
+      saveBtn.style.padding = '14px';
+      saveBtn.style.borderRadius = '14px';
+      saveBtn.style.border = 'none';
+      saveBtn.style.backgroundColor = '#10B981';
+      saveBtn.style.color = '#FFFFFF';
+      saveBtn.style.fontSize = '15px';
+      saveBtn.style.fontWeight = '600';
+      saveBtn.style.cursor = 'pointer';
+      saveBtn.onclick = function() {
+        var otpVal = otpInput.value.trim();
+        var pVal = pwdInput.value;
+        var cVal = confInput.value;
+
+        if (otpVal.length !== 6) {
+          errBox.innerText = 'Please enter all 6 digits of the verification code.';
+          errBox.style.display = 'block';
+          return;
+        }
+        if (pVal.length < 8) {
+          errBox.innerText = 'Password must be at least 8 characters long.';
+          errBox.style.display = 'block';
+          return;
+        }
+        if (pVal !== cVal) {
+          errBox.innerText = 'Passwords do not match.';
+          errBox.style.display = 'block';
+          return;
+        }
+
+        saveBtn.disabled = true;
+        saveBtn.innerText = 'Verifying code...';
+        errBox.style.display = 'none';
+
+        // Step 2.1: Verify OTP
+        fetch('/api/auth/forgot-password/verify-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: userEmail, otp: otpVal })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(vRes) {
+          if (!vRes || !vRes.success || !vRes.resetToken) {
+            saveBtn.disabled = false;
+            saveBtn.innerText = 'Update Password & Save';
+            errBox.innerText = vRes.message || 'Invalid or expired OTP code.';
+            errBox.style.display = 'block';
+            return;
+          }
+
+          saveBtn.innerText = 'Saving password...';
+          // Step 2.2: Reset Password
+          fetch('/api/auth/forgot-password/reset', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: userEmail,
+              resetToken: vRes.resetToken,
+              newPassword: pVal,
+              confirmPassword: cVal
+            })
+          })
+          .then(function(r) { return r.json(); })
+          .then(function(rRes) {
+            if (rRes && rRes.success) {
+              currentStep = 3;
+              renderStep();
+            } else {
+              saveBtn.disabled = false;
+              saveBtn.innerText = 'Update Password & Save';
+              errBox.innerText = rRes.message || 'Failed to update password.';
+              errBox.style.display = 'block';
+            }
+          })
+          .catch(function(err) {
+            saveBtn.disabled = false;
+            saveBtn.innerText = 'Update Password & Save';
+            errBox.innerText = 'Network error saving password.';
+            errBox.style.display = 'block';
+          });
+        })
+        .catch(function(err) {
+          saveBtn.disabled = false;
+          saveBtn.innerText = 'Update Password & Save';
+          errBox.innerText = 'Network error verifying code.';
+          errBox.style.display = 'block';
+        });
+      };
+      card.appendChild(saveBtn);
+
+    } else if (currentStep === 3) {
+      // --- STEP 3: SUCCESS CELEBRATION ---
+      var iconDiv = document.createElement('div');
+      iconDiv.style.width = '64px';
+      iconDiv.style.height = '64px';
+      iconDiv.style.borderRadius = '20px';
+      iconDiv.style.backgroundColor = 'rgba(16, 185, 129, 0.15)';
+      iconDiv.style.display = 'flex';
+      iconDiv.style.justifyContent = 'center';
+      iconDiv.style.alignItems = 'center';
+      iconDiv.style.fontSize = '32px';
+      iconDiv.style.margin = '10px auto 20px auto';
+      iconDiv.innerHTML = '✅';
+      card.appendChild(iconDiv);
+
+      var title = document.createElement('h2');
+      title.innerText = 'Password Reset Complete!';
+      title.style.textAlign = 'center';
+      title.style.margin = '0 0 8px 0';
+      title.style.fontSize = '22px';
+      title.style.fontWeight = '700';
+      card.appendChild(title);
+
+      var desc = document.createElement('p');
+      desc.innerText = 'Your new password has been saved securely to the database. You can now log in with your updated credentials.';
+      desc.style.textAlign = 'center';
+      desc.style.margin = '0 0 28px 0';
+      desc.style.fontSize = '14px';
+      desc.style.color = '#94A3B8';
+      desc.style.lineHeight = '1.5';
+      card.appendChild(desc);
+
+      var doneBtn = document.createElement('button');
+      doneBtn.innerText = 'Return to Login';
+      doneBtn.style.width = '100%';
+      doneBtn.style.padding = '14px';
+      doneBtn.style.borderRadius = '14px';
+      doneBtn.style.border = 'none';
+      doneBtn.style.backgroundColor = '#E87552';
+      doneBtn.style.color = '#FFFFFF';
+      doneBtn.style.fontSize = '15px';
+      doneBtn.style.fontWeight = '600';
+      doneBtn.style.cursor = 'pointer';
+      doneBtn.onclick = function() { overlay.remove(); };
+      card.appendChild(doneBtn);
+    }
+  }
+
+  renderStep();
+  overlay.appendChild(card);
+  document.body.appendChild(overlay);
+}
+
 A.ay6.prototype={
 $0(){
-  var email = prompt("Enter your registered email address to reset password:");
-  if(!email || !email.includes('@')){
-    if(email) alert("Please enter a valid email address.");
-    return;
+  if (typeof openForgotPasswordModal === 'function') {
+    openForgotPasswordModal();
   }
-  email = email.trim().toLowerCase();
-  
-  fetch('/api/auth/forgot-password/initiate', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: email })
-  })
-  .then(function(r){ return r.json(); })
-  .then(function(initData){
-    var otpMsg = initData.code ? ("Verification code: " + initData.code + " (also sent to your email)") : (initData.message || "OTP sent to your email");
-    var otp = prompt(otpMsg + "\n\nEnter the 6-digit OTP code:");
-    if(!otp) return;
-    otp = otp.trim();
-    
-    fetch('/api/auth/forgot-password/verify-otp', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: email, otp: otp })
-    })
-    .then(function(r){ return r.json(); })
-    .then(function(vData){
-      if(!vData || !vData.success || !vData.resetToken){
-        alert(vData.message || "Invalid or expired OTP code.");
-        return;
-      }
-      var newPwd = prompt("Enter your NEW password (minimum 8 characters):");
-      if(!newPwd || newPwd.length < 8){
-        alert("Password must be at least 8 characters.");
-        return;
-      }
-      var confPwd = prompt("Confirm your NEW password:");
-      if(newPwd !== confPwd){
-        alert("Passwords do not match.");
-        return;
-      }
-      
-      fetch('/api/auth/forgot-password/reset', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email, resetToken: vData.resetToken, newPassword: newPwd, confirmPassword: confPwd })
-      })
-      .then(function(r){ return r.json(); })
-      .then(function(rData){
-        if(rData && rData.success){
-          alert("🎉 Your password has been updated successfully! You can now log in with your new password.");
-        } else {
-          alert(rData.message || "Failed to update password.");
-        }
-      });
-    });
-  })
-  .catch(function(err){
-    alert("Network error: Could not reach server.");
-  });
 },
 $S:0}
 A.ay7.prototype={

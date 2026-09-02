@@ -805,6 +805,20 @@
       "discountApplied": 24.5,
       "paymentStatus": "success",
       "createdAt": "2026-09-02T04:27:55.807Z"
+    },
+    {
+      "id": "cu_1788324207829",
+      "userId": "u_1788324207746",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-09-02T04:43:27.829Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-09-02T04:43:27.829Z"
     }
   ],
   "referralCodes": [
@@ -942,33 +956,18 @@
     }
   ],
   "otpStore": {
-    "audit_user_1788322583954@wrindhaos.in": {
-      "code": "745899",
+    "audit_user_1788324191164@wrindhaos.in": {
+      "code": "415309",
       "type": "register",
       "attempts": 0,
       "maxAttempts": 5,
-      "createdAt": 1788322583977,
-      "expiresAt": 1788323183977,
-      "lastSentAt": 1788322583977,
+      "createdAt": 1788324191226,
+      "expiresAt": 1788324791226,
+      "lastSentAt": 1788324191226,
       "pendingUser": {
-        "username": "audit_1788322583955",
-        "email": "audit_user_1788322583954@wrindhaos.in",
-        "passwordHash": "420eaf2e09726b5af6de755c74e0175a:4c4f5e0b8336d6512b33776c7caff3a8e534995d4c1fffd2de431bf9a0435dddb048ad4b43e6af829ec9360cd0939c28ab70448e2bc56b5e91f465004e2a6e4b",
-        "referralCode": ""
-      }
-    },
-    "audit_user_1788323273966@wrindhaos.in": {
-      "code": "980689",
-      "type": "register",
-      "attempts": 0,
-      "maxAttempts": 5,
-      "createdAt": 1788323274026,
-      "expiresAt": 1788323874026,
-      "lastSentAt": 1788323274026,
-      "pendingUser": {
-        "username": "audit_1788323273967",
-        "email": "audit_user_1788323273966@wrindhaos.in",
-        "passwordHash": "c80bd65a38842999e1d7858a4769769f:18f0ac1f80b9a02c99b08804598cd15241b78c3c904424dbb16ea626b01211169e3c52135272b4e4d0741ca87fbc5aacc3cd838b1dd63774d80fa50f4606351d",
+        "username": "audit_1788324191164",
+        "email": "audit_user_1788324191164@wrindhaos.in",
+        "passwordHash": "05f9697ef30c8600b1a14bd3de4b7323:1826bc835b631f55ee5d25c9bbcc8da5d5d4af0943c74992ed23ee517dfc32301c4f0c411c7567135fe3ba5f0698907f25bc572d8f2c0bdf3e8062c4c54db433",
         "referralCode": ""
       }
     }
