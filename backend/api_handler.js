@@ -23,6 +23,8 @@ try {
   }
 } catch (e) {}
 
+const { supabase, isConfigured: isSupabaseConfigured } = require('./supabase_client');
+const { sendEmailOtp } = require('./email_service');
 const DB_FILE = path.join(__dirname, 'data', 'db.json');
 const DB_TMP_FILE = path.join(__dirname, 'data', '.db.json.tmp');
 const JWT_SECRET = process.env.JWT_SECRET || 'wrindhaos_prod_secret_key_2026_super_secure';
@@ -253,6 +255,105 @@ setInterval(() => {
     console.log(`[GC WORKER] Pruned ${keysRemoved} expired OTP entries from memory.`);
   }
 }, 5 * 60 * 1000); // Runs every 5 minutes
+
+
+// -----------------------------------------------------------------------------
+// SUPABASE REALTIME CLOUD DATABASE SYNCHRONIZER
+// -----------------------------------------------------------------------------
+async function syncUserToSupabase(user) {
+  if (!isSupabaseConfigured() || !supabase || !user) return;
+  try {
+    const { error } = await supabase.from('user_profiles').upsert({
+      user_id: user.id,
+      username: user.username || user.email.split('@')[0],
+      email: user.email,
+      display_name: user.name || user.username || 'Student User',
+      subscription_plan: (user.subscriptionPlan || 'FREE').toUpperCase(),
+      focus_score: user.focusScore || 85,
+      active_streak: user.activeStreak || 1,
+      referral_code: user.referralCode || ('WOS' + Math.floor(1000 + Math.random() * 9000)),
+      is_premium: !!user.isPremium,
+    });
+    if (error) console.warn('[SUPABASE SYNC USER ERROR]:', error.message);
+    else console.log('[SUPABASE CLOUD SYNC] User Profile synced:', user.email);
+  } catch (err) {
+    console.warn('[SUPABASE SYNC USER EXCEPTION]:', err.message);
+  }
+}
+
+async function syncHabitToSupabase(habit) {
+  if (!isSupabaseConfigured() || !supabase || !habit) return;
+  try {
+    const { error } = await supabase.from('habits').upsert({
+      id: habit.id,
+      user_id: habit.userId,
+      title: habit.title,
+      category: habit.category || 'General',
+      frequency: habit.frequency || 'DAILY',
+      streak_day: habit.streakDay || 0,
+      status: habit.status || 'active',
+    });
+    if (error) console.warn('[SUPABASE SYNC HABIT ERROR]:', error.message);
+    else console.log('[SUPABASE CLOUD SYNC] Habit synced:', habit.title);
+  } catch (err) {
+    console.warn('[SUPABASE SYNC HABIT EXCEPTION]:', err.message);
+  }
+}
+
+async function syncTaskToSupabase(task) {
+  if (!isSupabaseConfigured() || !supabase || !task) return;
+  try {
+    const { error } = await supabase.from('tasks').upsert({
+      id: task.id,
+      user_id: task.userId,
+      title: task.title,
+      category: task.category || 'Studies',
+      due_date: task.dueDate || new Date().toISOString(),
+      is_completed: !!task.isCompleted,
+    });
+    if (error) console.warn('[SUPABASE SYNC TASK ERROR]:', error.message);
+    else console.log('[SUPABASE CLOUD SYNC] Task synced:', task.title);
+  } catch (err) {
+    console.warn('[SUPABASE SYNC TASK EXCEPTION]:', err.message);
+  }
+}
+
+async function syncExpenseToSupabase(expense) {
+  if (!isSupabaseConfigured() || !supabase || !expense) return;
+  try {
+    const { error } = await supabase.from('expenses').upsert({
+      id: expense.id,
+      user_id: expense.userId,
+      title: expense.title,
+      category: expense.category || 'General',
+      amount: Number(expense.amount) || 0,
+      is_income: !!expense.isIncome,
+      date: expense.date || new Date().toISOString(),
+    });
+    if (error) console.warn('[SUPABASE SYNC EXPENSE ERROR]:', error.message);
+    else console.log('[SUPABASE CLOUD SYNC] Expense synced:', expense.title);
+  } catch (err) {
+    console.warn('[SUPABASE SYNC EXPENSE EXCEPTION]:', err.message);
+  }
+}
+
+async function syncGoalToSupabase(goal) {
+  if (!isSupabaseConfigured() || !supabase || !goal) return;
+  try {
+    const { error } = await supabase.from('career_roadmap').upsert({
+      id: goal.id,
+      user_id: goal.userId,
+      section: goal.section || 'GOAL',
+      title: goal.title,
+      status: goal.status || 'PLANNED',
+      is_completed: !!goal.isCompleted,
+    });
+    if (error) console.warn('[SUPABASE SYNC GOAL ERROR]:', error.message);
+    else console.log('[SUPABASE CLOUD SYNC] Goal synced:', goal.title);
+  } catch (err) {
+    console.warn('[SUPABASE SYNC GOAL EXCEPTION]:', err.message);
+  }
+}
 
 // Rate limiting in-memory store
 const rateLimitStore = new Map();
@@ -509,57 +610,53 @@ function parseBody(req) {
  * Dispatch real live email / OTP via MSG91 API or mock fallback
  */
 async function dispatchEmailOtp(email, otpCode, type = 'Verification') {
-  const authKey = process.env.MSG91_AUTH_KEY;
-  const widgetId = process.env.MSG91_WIDGET_ID || '36687761466f383937303733';
+  return sendEmailOtp({ email, otpCode, type });
+}
 
-  console.log(`[EMAIL OTP DISPATCH] [${type}] Sending 6-digit OTP to: ${email} -> CODE: [${otpCode}]`);
+async function verifyMsg91AccessToken(accessToken) {
+  const authKey = process.env.MSG91_AUTH_KEY || '563368AbE6Nls32x6a9703baP1';
 
-  if (!authKey) {
-    return { success: true, mode: 'local', otpCode };
-  }
+  const payload = JSON.stringify({
+    authkey: authKey,
+    'access-token': (accessToken || '').trim(),
+  });
 
-  try {
-    const payload = JSON.stringify({
-      widgetId: widgetId,
-      identifier: email,
-      tokenAuth: authKey,
-      otp: otpCode,
+  const options = {
+    hostname: 'control.msg91.com',
+    port: 443,
+    path: '/api/v5/widget/verifyAccessToken',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Content-Length': Buffer.byteLength(payload),
+    },
+  };
+
+  return new Promise((resolve) => {
+    const req = https.request(options, (msgRes) => {
+      let resData = '';
+      msgRes.on('data', (chunk) => (resData += chunk));
+      msgRes.on('end', () => {
+        try {
+          const parsed = JSON.parse(resData);
+          console.log(`[MSG91 VERIFY ACCESS TOKEN] Status: ${msgRes.statusCode}, Response:`, parsed);
+          resolve({ statusCode: msgRes.statusCode, data: parsed });
+        } catch (e) {
+          console.log(`[MSG91 VERIFY ACCESS TOKEN] Raw text: ${resData}`);
+          resolve({ statusCode: msgRes.statusCode, data: { message: resData } });
+        }
+      });
     });
 
-    const options = {
-      hostname: 'control.msg91.com',
-      port: 443,
-      path: '/api/v5/widget/sendOtp',
-      method: 'POST',
-      headers: {
-        'authkey': authKey,
-        'Content-Type': 'application/json',
-        'Origin': 'http://localhost:8080',
-        'Referer': 'http://localhost:8080/',
-        'User-Agent': 'WrindhaOS-Backend/1.0',
-        'Content-Length': Buffer.byteLength(payload),
-      },
-    };
-
-    return new Promise((resolve) => {
-      const req = https.request(options, (msgRes) => {
-        let resData = '';
-        msgRes.on('data', (chunk) => (resData += chunk));
-        msgRes.on('end', () => {
-          console.log(`[MSG91 WIDGET API] Status: ${msgRes.statusCode}, Response: ${resData}`);
-          resolve({ success: true, mode: 'live_widget', response: resData });
-        });
-      });
-      req.on('error', (err) => {
-        console.error('[MSG91 WIDGET API ERROR]:', err.message);
-        resolve({ success: true, mode: 'local_fallback', otpCode });
-      });
-      req.write(payload);
-      req.end();
+    req.on('error', (err) => {
+      console.error('[MSG91 VERIFY ACCESS TOKEN ERROR]:', err.message);
+      resolve({ statusCode: 500, data: { type: 'error', message: err.message } });
     });
-  } catch (e) {
-    return { success: true, mode: 'fallback', otpCode };
-  }
+
+    req.write(payload);
+    req.end();
+  });
 }
 
 /**
@@ -747,7 +844,12 @@ async function handleApiRequest(req, res) {
         createdAt: now,
         expiresAt: now + 10 * 60 * 1000,
         lastSentAt: now,
-        pendingUser: { username: cleanUser, email: cleanEmail, passwordHash: hashPassword(password) },
+        pendingUser: {
+          username: cleanUser,
+          email: cleanEmail,
+          passwordHash: hashPassword(password),
+          referralCode: (body.referralCode || '').trim().toUpperCase(),
+        },
       };
       saveDB(db);
 
@@ -810,6 +912,7 @@ async function handleApiRequest(req, res) {
       };
 
       db.users.push(newUser);
+      syncUserToSupabase(newUser);
       delete db.otpStore[cleanEmail];
 
       getUserSubscription(newUserId);
@@ -823,14 +926,15 @@ async function handleApiRequest(req, res) {
         createdAt: new Date().toISOString(),
       });
 
-      if (referralCode) {
-        const referrer = db.users.find((u) => u.referralCode === referralCode.trim());
+      const activeReferralCode = (referralCode || pending?.referralCode || '').trim().toUpperCase();
+      if (activeReferralCode) {
+        const referrer = db.users.find((u) => (u.referralCode || '').toUpperCase() === activeReferralCode);
         if (referrer && referrer.id !== newUserId) {
           db.referralTrackings.push({
             id: 'rt_' + Date.now(),
             referrerUserId: referrer.id,
             referredUserId: newUserId,
-            referralCode: referralCode.trim(),
+            referralCode: activeReferralCode,
             signupDate: new Date().toISOString(),
             eligibilityStatus: 'eligible',
             conversionStatus: 'signed_up',
@@ -863,6 +967,114 @@ async function handleApiRequest(req, res) {
           subscriptionPlan: sub.plan.toUpperCase(),
         },
         subscription: sub,
+      });
+    }
+
+    // 1.2.1 MSG91 Widget Access Token Verification Endpoint
+    if ((pathname === '/api/auth/msg91/verify-access-token' || pathname === '/api/auth/msg91/verify' || pathname === '/api/auth/verify-msg91-token') && method === 'POST') {
+      const accessToken = (body.accessToken || body['access-token'] || body.jwtToken || body.token || '').trim();
+      if (!accessToken) {
+        return sendJSON(res, 400, { success: false, message: 'access-token is required' });
+      }
+
+      const verifyRes = await verifyMsg91AccessToken(accessToken);
+      if (verifyRes.statusCode !== 200 || verifyRes.data?.type === 'error' || verifyRes.data?.code === 701) {
+        return sendJSON(res, 400, {
+          success: false,
+          message: verifyRes.data?.message || 'Invalid or expired access token.',
+          msg91Response: verifyRes.data,
+        });
+      }
+
+      const msg91Data = verifyRes.data || {};
+      const verifiedIdentifier = (msg91Data.email || msg91Data.mobile || msg91Data.identifier || body.email || '').trim().toLowerCase();
+      const cleanUser = (body.username || verifiedIdentifier.split('@')[0] || ('user_' + Date.now().toString().slice(-4))).trim().toLowerCase();
+
+      let user = db.users.find(
+        (u) =>
+          (verifiedIdentifier && u.email && u.email.toLowerCase() === verifiedIdentifier) ||
+          (verifiedIdentifier && u.mobile && u.mobile === verifiedIdentifier) ||
+          (cleanUser && u.username && u.username.toLowerCase() === cleanUser)
+      );
+
+      let isNewUser = false;
+      let newUserId = user ? user.id : 'u_' + Date.now();
+      let userRefCode = user ? user.referralCode : ('WOS' + Math.floor(1000 + Math.random() * 9000));
+
+      if (!user) {
+        isNewUser = true;
+        user = {
+          id: newUserId,
+          username: cleanUser,
+          name: cleanUser[0].toUpperCase() + cleanUser.slice(1),
+          email: verifiedIdentifier.includes('@') ? verifiedIdentifier : (cleanUser + '@wrindhaos.in'),
+          mobile: !verifiedIdentifier.includes('@') ? verifiedIdentifier : null,
+          password: hashPassword('MSG91_OAUTH_' + Date.now()),
+          isEmailVerified: true,
+          focusScore: 85,
+          activeStreak: 1,
+          isPremium: false,
+          referralCode: userRefCode,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          onboardingCompleted: false,
+        };
+        db.users.push(user);
+        getUserSubscription(newUserId);
+
+        db.referralCodes.push({
+          id: 'ref_' + newUserId,
+          userId: newUserId,
+          referralCode: userRefCode,
+          status: 'active',
+          totalCount: 0,
+          createdAt: new Date().toISOString(),
+        });
+
+        const activeReferralCode = (body.referralCode || '').trim().toUpperCase();
+        if (activeReferralCode) {
+          const referrer = db.users.find((u) => (u.referralCode || '').toUpperCase() === activeReferralCode);
+          if (referrer && referrer.id !== newUserId) {
+            db.referralTrackings.push({
+              id: 'rt_' + Date.now(),
+              referrerUserId: referrer.id,
+              referredUserId: newUserId,
+              referralCode: activeReferralCode,
+              signupDate: new Date().toISOString(),
+              eligibilityStatus: 'eligible',
+              conversionStatus: 'signed_up',
+              firstPurchaseStatus: 'pending',
+              rewardStatus: 'issued',
+              rewardIssuedDate: new Date().toISOString(),
+            });
+            const refRecord = db.referralCodes.find((r) => r.userId === referrer.id);
+            if (refRecord) refRecord.totalCount = (refRecord.totalCount || 0) + 1;
+          }
+        }
+        saveDB(db);
+      }
+
+      const token = generateJwtToken(user.id);
+      const sub = getUserSubscription(user.id);
+
+      return sendJSON(res, 200, {
+        success: true,
+        isNewUser,
+        message: 'MSG91 OTP token verified successfully!',
+        token,
+        user: {
+          id: user.id,
+          username: user.username,
+          name: user.name,
+          email: user.email,
+          focusScore: user.focusScore || 85,
+          activeStreak: user.activeStreak || 1,
+          isPremium: sub.plan === 'pro' && sub.status === 'active',
+          subscriptionPlan: sub.plan.toUpperCase(),
+          referralCode: user.referralCode,
+        },
+        subscription: sub,
+        msg91Response: msg91Data,
       });
     }
 
@@ -1084,6 +1296,7 @@ async function handleApiRequest(req, res) {
         updatedAt: new Date().toISOString(),
       };
       db.tasks.push(newTask);
+      syncTaskToSupabase(newTask);
       saveDB(db);
       return sendJSON(res, 201, newTask);
     }
@@ -1116,6 +1329,167 @@ async function handleApiRequest(req, res) {
     }
 
     // 2.3 Habits System (Full Production CRUD, Custom Frequencies, Daily Completions, Streaks & Analytics)
+    if (pathname === '/api/habits/overview' && method === 'GET') {
+      const targetDate = query.date || new Date().toISOString().split('T')[0];
+      const userHabits = (db.habits || []).filter((h) => h.userId === userId && h.status !== 'archived');
+      const userCompletions = (db.habitCompletions || []).filter((hc) => hc.userId === userId && hc.status === 'completed');
+
+      const scheduledHabits = userHabits.filter((h) => isHabitScheduledForDate(h, targetDate));
+      const compSet = new Set(userCompletions.map((c) => c.completionDate));
+      const completedToday = scheduledHabits.filter((h) => {
+        const hComps = userCompletions.filter((c) => c.habitId === h.id).map((c) => c.completionDate);
+        return hComps.includes(targetDate);
+      });
+
+      // Weekly Consistency Calculation (Current Mon - Sun)
+      const curDate = new Date(targetDate);
+      let dayOfWeek = curDate.getUTCDay();
+      if (dayOfWeek === 0) dayOfWeek = 7;
+      const monday = new Date(curDate);
+      monday.setUTCDate(monday.getUTCDate() - (dayOfWeek - 1));
+
+      const weekDayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+      const weekDates = [];
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(monday);
+        d.setUTCDate(d.getUTCDate() + i);
+        weekDates.push(d.toISOString().split('T')[0]);
+      }
+
+      const weeklyConsistency = userHabits.map((h) => {
+        const hComps = userCompletions.filter((c) => c.habitId === h.id).map((c) => c.completionDate);
+        const hCompSet = new Set(hComps);
+        const days = weekDates.map((dStr, idx) => ({
+          date: dStr,
+          dayLabel: weekDayLabels[idx],
+          isScheduled: isHabitScheduledForDate(h, dStr),
+          isCompleted: hCompSet.has(dStr),
+        }));
+
+        const streaks = calculateHabitStreaks(h, hComps, targetDate);
+        return {
+          id: h.id,
+          title: h.title,
+          category: h.category || 'General',
+          currentStreak: streaks.currentStreak,
+          longestStreak: streaks.longestStreak,
+          days,
+        };
+      });
+
+      // Top / Best Streak
+      let topHabit = null;
+      let bestStreak = 0;
+      userHabits.forEach((h) => {
+        const hComps = userCompletions.filter((c) => c.habitId === h.id).map((c) => c.completionDate);
+        const streaks = calculateHabitStreaks(h, hComps, targetDate);
+        if (streaks.longestStreak > bestStreak || (streaks.longestStreak === bestStreak && !topHabit)) {
+          bestStreak = streaks.longestStreak;
+          topHabit = {
+            id: h.id,
+            title: h.title,
+            category: h.category,
+            longestStreak: streaks.longestStreak,
+            currentStreak: streaks.currentStreak,
+          };
+        }
+      });
+
+      return sendJSON(res, 200, {
+        success: true,
+        date: targetDate,
+        completedCount: completedToday.length,
+        totalScheduled: scheduledHabits.length,
+        progress: scheduledHabits.length > 0 ? completedToday.length / scheduledHabits.length : 0,
+        habits: userHabits.map((h) => {
+          const hComps = userCompletions.filter((c) => c.habitId === h.id).map((c) => c.completionDate);
+          const streaks = calculateHabitStreaks(h, hComps, targetDate);
+          return {
+            id: h.id,
+            title: h.title,
+            category: h.category || 'General',
+            frequency: h.frequency || 'DAILY',
+            isScheduled: isHabitScheduledForDate(h, targetDate),
+            isCompleted: hComps.includes(targetDate),
+            currentStreak: streaks.currentStreak,
+            longestStreak: streaks.longestStreak,
+          };
+        }),
+        weeklyConsistency,
+        bestStreak: {
+          habitTitle: topHabit?.title || 'Daily Consistency',
+          days: bestStreak,
+          topHabit,
+        },
+      });
+    }
+
+    if (pathname === '/api/habits/weekly-consistency' && method === 'GET') {
+      const targetDate = query.date || new Date().toISOString().split('T')[0];
+      const userHabits = (db.habits || []).filter((h) => h.userId === userId && h.status !== 'archived');
+      const userCompletions = (db.habitCompletions || []).filter((hc) => hc.userId === userId && hc.status === 'completed');
+
+      const curDate = new Date(targetDate);
+      let dayOfWeek = curDate.getUTCDay();
+      if (dayOfWeek === 0) dayOfWeek = 7;
+      const monday = new Date(curDate);
+      monday.setUTCDate(monday.getUTCDate() - (dayOfWeek - 1));
+
+      const weekDayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+      const weekDates = [];
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(monday);
+        d.setUTCDate(d.getUTCDate() + i);
+        weekDates.push(d.toISOString().split('T')[0]);
+      }
+
+      const matrix = userHabits.map((h) => {
+        const hComps = userCompletions.filter((c) => c.habitId === h.id).map((c) => c.completionDate);
+        const hCompSet = new Set(hComps);
+        return {
+          id: h.id,
+          title: h.title,
+          category: h.category,
+          days: weekDates.map((dStr, idx) => ({
+            date: dStr,
+            dayLabel: weekDayLabels[idx],
+            isScheduled: isHabitScheduledForDate(h, dStr),
+            isCompleted: hCompSet.has(dStr),
+          })),
+        };
+      });
+
+      return sendJSON(res, 200, { success: true, weekDates, weekDayLabels, matrix });
+    }
+
+    if (pathname === '/api/habits/best-streak' && method === 'GET') {
+      const targetDate = query.date || new Date().toISOString().split('T')[0];
+      const userHabits = (db.habits || []).filter((h) => h.userId === userId && h.status !== 'archived');
+      const userCompletions = (db.habitCompletions || []).filter((hc) => hc.userId === userId && hc.status === 'completed');
+
+      let topHabit = null;
+      let bestStreak = 0;
+      userHabits.forEach((h) => {
+        const hComps = userCompletions.filter((c) => c.habitId === h.id).map((c) => c.completionDate);
+        const streaks = calculateHabitStreaks(h, hComps, targetDate);
+        if (streaks.longestStreak > bestStreak || (streaks.longestStreak === bestStreak && !topHabit)) {
+          bestStreak = streaks.longestStreak;
+          topHabit = {
+            id: h.id,
+            title: h.title,
+            category: h.category,
+            longestStreak: streaks.longestStreak,
+            currentStreak: streaks.currentStreak,
+          };
+        }
+      });
+
+      return sendJSON(res, 200, {
+        success: true,
+        bestStreak: topHabit ? { habitTitle: topHabit.title, days: bestStreak, topHabit } : null,
+      });
+    }
+
     if (pathname === '/api/habits/analytics' && method === 'GET') {
       const queryDate = query.date || new Date().toISOString().split('T')[0];
       const analytics = calculateHabitAnalytics(userId, db, queryDate);
@@ -1315,6 +1689,7 @@ async function handleApiRequest(req, res) {
 
       db.habits = db.habits || [];
       db.habits.push(newHabit);
+      syncHabitToSupabase(newHabit);
       saveDB(db);
 
       return sendJSON(res, 201, {
@@ -1395,6 +1770,7 @@ async function handleApiRequest(req, res) {
         createdAt: new Date().toISOString(),
       };
       db.goals.push(newGoal);
+      syncGoalToSupabase(newGoal);
       saveDB(db);
       return sendJSON(res, 201, newGoal);
     }
@@ -1418,6 +1794,7 @@ async function handleApiRequest(req, res) {
         createdAt: new Date().toISOString(),
       };
       db.expenses.push(newExpense);
+      syncExpenseToSupabase(newExpense);
       saveDB(db);
       return sendJSON(res, 201, newExpense);
     }
@@ -1484,8 +1861,119 @@ async function handleApiRequest(req, res) {
       return sendJSON(res, 201, newMilestone);
     }
 
-    
     // 2.8 Dynamic Real Analytics Calculations
+    if (pathname === '/api/analytics/overview' && method === 'GET') {
+      const userTasks = (db.tasks || []).filter((t) => t.userId === userId);
+      const userHabits = (db.habits || []).filter((h) => h.userId === userId && h.status !== 'archived');
+      const userExpenses = (db.expenses || []).filter((e) => e.userId === userId && !e.isIncome);
+      const userGoals = (db.goals || []).filter((g) => g.userId === userId);
+      const userMilestones = (db.milestones || []).filter((m) => m.userId === userId);
+
+      const completedTasks = userTasks.filter((t) => t.isCompleted).length;
+      const taskRate = userTasks.length > 0 ? (completedTasks / userTasks.length) : 0;
+
+      const completedGoals = userGoals.filter((g) => g.isCompleted).length;
+      const goalRate = userGoals.length > 0 ? (completedGoals / userGoals.length) : 0;
+
+      const totalSpent = userExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+      const score = Math.round((taskRate * 0.4 + goalRate * 0.4 + (userHabits.length > 0 ? 0.2 : 0)) * 100);
+
+      return sendJSON(res, 200, {
+        success: true,
+        data: {
+          overallProgressScore: score,
+          habitCount: userHabits.length,
+          totalTasks: userTasks.length,
+          completedTasks,
+          totalExpenses: totalSpent,
+          goalProgress: Math.round(goalRate * 100),
+          milestonesAchieved: userMilestones.filter((m) => m.isCompleted).length,
+          totalMilestones: userMilestones.length,
+        },
+      });
+    }
+
+    if (pathname === '/api/analytics/habits' && method === 'GET') {
+      const userHabits = (db.habits || []).filter((h) => h.userId === userId && h.status !== 'archived');
+      const userCompletions = (db.habitCompletions || []).filter((c) => c.userId === userId);
+      
+      let bestStreak = 0;
+      userHabits.forEach((h) => {
+        if ((h.longestStreak || 0) > bestStreak) bestStreak = h.longestStreak;
+        if ((h.streakDay || 0) > bestStreak) bestStreak = h.streakDay;
+      });
+
+      return sendJSON(res, 200, {
+        success: true,
+        data: {
+          totalHabits: userHabits.length,
+          totalCompletions: userCompletions.length,
+          bestStreak,
+          habits: userHabits.map((h) => ({ id: h.id, title: h.title, streakDay: h.streakDay || 0 })),
+        },
+      });
+    }
+
+    if (pathname === '/api/analytics/studies' && method === 'GET') {
+      const userSubjects = (db.subjects || []).filter((s) => s.userId === userId);
+      const userTasks = (db.tasks || []).filter((t) => t.userId === userId && t.category === 'Studies');
+
+      return sendJSON(res, 200, {
+        success: true,
+        data: {
+          totalSubjects: userSubjects.length,
+          studyTasks: userTasks.length,
+          completedStudyTasks: userTasks.filter((t) => t.isCompleted).length,
+          subjects: userSubjects.map((s) => ({ id: s.id, name: s.name, code: s.code })),
+        },
+      });
+    }
+
+    if (pathname === '/api/analytics/expenses' && method === 'GET') {
+      const userExpenses = (db.expenses || []).filter((e) => e.userId === userId);
+      const spend = userExpenses.filter((e) => !e.isIncome);
+      const totalSpent = spend.reduce((sum, e) => sum + (e.amount || 0), 0);
+      const totalIncome = userExpenses.filter((e) => e.isIncome).reduce((sum, e) => sum + (e.amount || 0), 0);
+
+      const catMap = {};
+      spend.forEach((e) => {
+        catMap[e.category] = (catMap[e.category] || 0) + (e.amount || 0);
+      });
+
+      return sendJSON(res, 200, {
+        success: true,
+        data: {
+          totalSpent,
+          totalIncome,
+          categoryBreakdown: Object.keys(catMap).map((k) => ({ category: k, amount: catMap[k] })),
+        },
+      });
+    }
+
+    if (pathname === '/api/analytics/goals' && method === 'GET') {
+      const userGoals = (db.goals || []).filter((g) => g.userId === userId);
+      return sendJSON(res, 200, {
+        success: true,
+        data: {
+          totalGoals: userGoals.length,
+          completedGoals: userGoals.filter((g) => g.isCompleted).length,
+          goals: userGoals,
+        },
+      });
+    }
+
+    if (pathname === '/api/analytics/milestones' && method === 'GET') {
+      const userMilestones = (db.milestones || []).filter((m) => m.userId === userId);
+      return sendJSON(res, 200, {
+        success: true,
+        data: {
+          totalMilestones: userMilestones.length,
+          completedMilestones: userMilestones.filter((m) => m.isCompleted).length,
+          milestones: userMilestones,
+        },
+      });
+    }
+
     if (pathname === '/api/analytics/summary' && method === 'GET') {
       const userTasks = db.tasks.filter((t) => t.userId === userId);
       const userHabits = db.habits.filter((h) => h.userId === userId);

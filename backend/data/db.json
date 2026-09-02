@@ -104,6 +104,21 @@
       "createdAt": "2026-09-01T14:17:07.943Z",
       "updatedAt": "2026-09-01T14:17:07.943Z",
       "onboardingCompleted": false
+    },
+    {
+      "id": "u_1788311971903",
+      "username": "audit_user_1788311970309",
+      "name": "Audit User",
+      "email": "audit_user_1788311970309@wrindhaos.in",
+      "googleId": "g_123456789",
+      "photoUrl": null,
+      "isEmailVerified": true,
+      "focusScore": 85,
+      "activeStreak": 1,
+      "isPremium": true,
+      "referralCode": "WOS3105",
+      "createdAt": "2026-09-02T01:19:31.903Z",
+      "updatedAt": "2026-09-02T01:19:31.903Z"
     }
   ],
   "subscriptions": [
@@ -190,8 +205,22 @@
       "transaction_id": "tx_1788272227998",
       "created_at": "2026-09-01T14:17:07.943Z",
       "updated_at": "2026-09-01T14:17:07.998Z"
+    },
+    {
+      "id": "sub_free_u_1788311971903",
+      "user_id": "u_1788311971903",
+      "plan": "pro",
+      "status": "active",
+      "started_at": "2026-09-02T01:19:31.931Z",
+      "expires_at": null,
+      "payment_provider": "PLAY_STORE",
+      "transaction_id": "tx_1788311971931",
+      "created_at": "2026-09-02T01:19:31.903Z",
+      "updated_at": "2026-09-02T01:19:31.931Z",
+      "last_billing_amount": 49
     }
   ],
+  "paymentHistory": [],
   "tasks": [],
   "calendarEvents": [],
   "habits": [
@@ -327,17 +356,81 @@
       "longestStreak": 0,
       "createdAt": "2026-08-30T12:36:07.644Z",
       "updatedAt": "2026-08-30T12:36:07.656Z"
+    },
+    {
+      "id": "h_1788311971915",
+      "userId": "u_1788311971903",
+      "title": "Habit 1",
+      "category": "General",
+      "frequency": "DAILY",
+      "selectedDays": [],
+      "startDate": "2026-09-02",
+      "status": "active",
+      "description": "",
+      "colorHex": "0xFF10B981",
+      "iconName": "repeat",
+      "currentStreak": 0,
+      "longestStreak": 0,
+      "createdAt": "2026-09-02T01:19:31.915Z",
+      "updatedAt": "2026-09-02T01:19:31.915Z"
+    },
+    {
+      "id": "h_1788311971918",
+      "userId": "u_1788311971903",
+      "title": "Habit 2",
+      "category": "General",
+      "frequency": "DAILY",
+      "selectedDays": [],
+      "startDate": "2026-09-02",
+      "status": "active",
+      "description": "",
+      "colorHex": "0xFF10B981",
+      "iconName": "repeat",
+      "currentStreak": 0,
+      "longestStreak": 0,
+      "createdAt": "2026-09-02T01:19:31.918Z",
+      "updatedAt": "2026-09-02T01:19:31.918Z"
     }
   ],
-  "subjects": [],
+  "habitCompletions": [],
+  "habitPausePeriods": [],
+  "habitScheduleHistory": [],
+  "subjects": [
+    {
+      "id": "sub_1788311971922",
+      "userId": "u_1788311971903",
+      "name": "Subject 1",
+      "code": "",
+      "instructor": "",
+      "createdAt": "2026-09-02T01:19:31.922Z"
+    },
+    {
+      "id": "sub_1788311971925",
+      "userId": "u_1788311971903",
+      "name": "Subject 2",
+      "code": "",
+      "instructor": "",
+      "createdAt": "2026-09-02T01:19:31.925Z"
+    }
+  ],
   "studyItems": [],
   "timetable": [],
   "careerNodes": [],
-  "goals": [],
+  "goals": [
+    {
+      "id": "g_1788311971933",
+      "userId": "u_1788311971903",
+      "title": "Pro Goal Hierarchy",
+      "tier": "short",
+      "isCompleted": false,
+      "createdAt": "2026-09-02T01:19:31.933Z"
+    }
+  ],
   "expenses": [],
   "journalEntries": [],
+  "notes": [],
+  "focusSessions": [],
   "milestones": [],
-  "notifications": [],
   "coupons": [
     {
       "id": "c_welcome50",
@@ -488,6 +581,300 @@
       "discountApplied": 24.5,
       "paymentStatus": "success",
       "createdAt": "2026-09-01T14:19:14.694Z"
+    },
+    {
+      "id": "cu_1788273574557",
+      "userId": "u_1788273574482",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-09-01T14:39:34.558Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-09-01T14:39:34.558Z"
+    },
+    {
+      "id": "cu_1788274509170",
+      "userId": "u_1788274509116",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-09-01T14:55:09.170Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-09-01T14:55:09.170Z"
+    },
+    {
+      "id": "cu_1788278885180",
+      "userId": "u_1788278885134",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-09-01T16:08:05.180Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-09-01T16:08:05.180Z"
+    },
+    {
+      "id": "cu_1788279520261",
+      "userId": "u_1788279520221",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-09-01T16:18:40.261Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-09-01T16:18:40.261Z"
+    },
+    {
+      "id": "cu_1788282689148",
+      "userId": "u_1788282689101",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-09-01T17:11:29.148Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-09-01T17:11:29.148Z"
+    },
+    {
+      "id": "cu_1788311493180",
+      "userId": "u_1788311493123",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-09-02T01:11:33.180Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-09-02T01:11:33.180Z"
+    },
+    {
+      "id": "cu_1788311991100",
+      "userId": "u_1788311991055",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-09-02T01:19:51.100Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-09-02T01:19:51.100Z"
+    },
+    {
+      "id": "cu_1788312491342",
+      "userId": "u_1788312491305",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-09-02T01:28:11.342Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-09-02T01:28:11.342Z"
+    },
+    {
+      "id": "cu_1788312789083",
+      "userId": "u_1788312789044",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-09-02T01:33:09.083Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-09-02T01:33:09.083Z"
+    },
+    {
+      "id": "cu_1788313268554",
+      "userId": "u_1788313268514",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-09-02T01:41:08.554Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-09-02T01:41:08.554Z"
+    },
+    {
+      "id": "cu_1788313418750",
+      "userId": "u_1788313418699",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-09-02T01:43:38.750Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-09-02T01:43:38.750Z"
+    },
+    {
+      "id": "cu_1788321323777",
+      "userId": "u_1788321323705",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-09-02T03:55:23.777Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-09-02T03:55:23.777Z"
+    },
+    {
+      "id": "cu_1788321658740",
+      "userId": "u_1788321658676",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-09-02T04:00:58.740Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-09-02T04:00:58.740Z"
+    },
+    {
+      "id": "cu_1788322409606",
+      "userId": "u_1788322409556",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-09-02T04:13:29.606Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-09-02T04:13:29.606Z"
+    },
+    {
+      "id": "cu_1788322584894",
+      "userId": "u_1788322584842",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-09-02T04:16:24.894Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-09-02T04:16:24.894Z"
+    },
+    {
+      "id": "cu_1788323275807",
+      "userId": "u_1788323275740",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-09-02T04:27:55.807Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-09-02T04:27:55.807Z"
+    },
+    {
+      "id": "cu_1788324207829",
+      "userId": "u_1788324207746",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-09-02T04:43:27.829Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-09-02T04:43:27.829Z"
+    },
+    {
+      "id": "cu_1788326789447",
+      "userId": "u_1788326789384",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-09-02T05:26:29.447Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-09-02T05:26:29.447Z"
+    },
+    {
+      "id": "cu_1788328535011",
+      "userId": "u_1788328534903",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-09-02T05:55:35.011Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-09-02T05:55:35.011Z"
+    },
+    {
+      "id": "cu_1788328811936",
+      "userId": "u_1788328811886",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-09-02T06:00:11.936Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-09-02T06:00:11.936Z"
+    },
+    {
+      "id": "cu_1788330173075",
+      "userId": "u_1788330172999",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-09-02T06:22:53.075Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-09-02T06:22:53.075Z"
     }
   ],
   "referralCodes": [
@@ -546,6 +933,14 @@
       "status": "active",
       "totalCount": 0,
       "createdAt": "2026-09-01T14:17:07.944Z"
+    },
+    {
+      "id": "ref_u_1788311971903",
+      "userId": "u_1788311971903",
+      "referralCode": "WOS3105",
+      "status": "active",
+      "totalCount": 0,
+      "createdAt": "2026-09-02T01:19:31.904Z"
     }
   ],
   "referralTrackings": [
@@ -575,6 +970,21 @@
       "firstPurchaseDate": "2026-09-01T14:19:03.885Z",
       "purchaseAmount": 49,
       "referrerRewardStatus": "issued"
+    },
+    {
+      "id": "rt_1788273584923",
+      "referrerUserId": "u_1788273584083",
+      "referredUserId": "u_1788273584922",
+      "referralCode": "WOS5050",
+      "signupDate": "2026-09-01T14:39:44.923Z",
+      "eligibilityStatus": "eligible",
+      "conversionStatus": "signed_up",
+      "firstPurchaseStatus": "completed",
+      "rewardStatus": "issued",
+      "rewardIssuedDate": "2026-09-01T14:39:44.923Z",
+      "firstPurchaseDate": "2026-09-01T14:39:44.962Z",
+      "purchaseAmount": 49,
+      "referrerRewardStatus": "issued"
     }
   ],
   "referralRewards": [
@@ -588,7 +998,34 @@
       "createdAt": "2026-09-01T14:19:03.885Z",
       "redeemedAt": "2026-09-01T14:19:03.889Z",
       "redeemedForAmount": 44.1
+    },
+    {
+      "id": "rr_1788273584962_923",
+      "userId": "u_1788273584083",
+      "earnedFromUserId": "u_1788273584922",
+      "discountPercentage": 10,
+      "oneTimeNextBillingOnly": true,
+      "status": "REDEEMED",
+      "createdAt": "2026-09-01T14:39:44.962Z",
+      "redeemedAt": "2026-09-01T14:39:44.966Z",
+      "redeemedForAmount": 44.1
     }
   ],
-  "otpStore": {}
+  "otpStore": {
+    "audit_user_1788330172111@wrindhaos.in": {
+      "code": "529172",
+      "type": "register",
+      "attempts": 0,
+      "maxAttempts": 5,
+      "createdAt": 1788330172184,
+      "expiresAt": 1788330772184,
+      "lastSentAt": 1788330172184,
+      "pendingUser": {
+        "username": "audit_1788330172111",
+        "email": "audit_user_1788330172111@wrindhaos.in",
+        "passwordHash": "cfb1feb2baf9124d8ad031dc2fda0d91:b5803396a9f242e45bb8be5ec8404f31f0b471b4db28e41de6ca82c9baa9ee43622d78d341aa89daed9d2abbefc6c13802d6ce866233e65f387c7fb947b5511b",
+        "referralCode": ""
+      }
+    }
+  }
 }

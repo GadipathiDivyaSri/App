@@ -28,6 +28,7 @@ class ApiService {
     required String email,
     required String password,
     required String confirmPassword,
+    String? referralCode,
   }) async {
     try {
       final response = await http.post(
@@ -38,11 +39,28 @@ class ApiService {
           'email': email.trim().toLowerCase(),
           'password': password,
           'confirmPassword': confirmPassword,
+          if (referralCode != null && referralCode.trim().isNotEmpty)
+            'referralCode': referralCode.trim().toUpperCase(),
         }),
       );
       return jsonDecode(response.body);
     } catch (e) {
       return {'success': false, 'message': 'Network error: Unable to connect to server.'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> validateReferralCode(String code) async {
+    try {
+      final clean = code.trim().toUpperCase();
+      if (clean.isEmpty) {
+        return {'valid': false, 'message': 'Please enter a referral code.'};
+      }
+      final response = await http.get(
+        Uri.parse('$baseUrl/auth/validate-referral?code=${Uri.encodeComponent(clean)}'),
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {'valid': false, 'message': 'Error validating referral code.'};
     }
   }
 
@@ -91,6 +109,34 @@ class ApiService {
       return data;
     } catch (e) {
       return {'success': false, 'message': 'Verification failed: $e'};
+    }
+  }
+
+  /// Verify MSG91 Widget JWT Access Token with backend
+  static Future<Map<String, dynamic>> verifyMsg91AccessToken({
+    required String accessToken,
+    String? referralCode,
+    String? username,
+    String? email,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/auth/msg91/verify-access-token'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'access-token': accessToken.trim(),
+          if (referralCode != null) 'referralCode': referralCode.trim(),
+          if (username != null) 'username': username.trim(),
+          if (email != null) 'email': email.trim(),
+        }),
+      );
+      final data = jsonDecode(response.body);
+      if (data['success'] == true && data['token'] != null) {
+        await saveSession(data['token'], data['user']);
+      }
+      return data;
+    } catch (e) {
+      return {'success': false, 'message': 'MSG91 Token Verification error: $e'};
     }
   }
 

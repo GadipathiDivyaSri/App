@@ -107,6 +107,19 @@ async function runAuditTests() {
     console.log(`[3.2] Pro User Goal Creation (Expect 201): ${goalPro.status} - Goal ID: ${goalPro.data.id}`);
 
     // -------------------------------------------------------------------------
+    // 3.5 HABIT TRACKER BACKEND SUITE (CRUD, Overview, Weekly Matrix, Best Streak)
+    // -------------------------------------------------------------------------
+    console.log('\n--- 3.5 HABIT TRACKER PRODUCTION SUITE ---');
+    const hOverview = await request('GET', '/api/habits/overview', null, authHeaders);
+    console.log(`[3.5.1] Habit Overview: ${hOverview.status} - Scheduled: ${hOverview.data.totalScheduled}, Completed: ${hOverview.data.completedCount}`);
+
+    const hMatrix = await request('GET', '/api/habits/weekly-consistency', null, authHeaders);
+    console.log(`[3.5.2] Weekly Consistency Matrix: ${hMatrix.status} - Habits Tracked: ${hMatrix.data.matrix.length}, Weekdays: ${hMatrix.data.weekDayLabels.join(' ')}`);
+
+    const hBest = await request('GET', '/api/habits/best-streak', null, authHeaders);
+    console.log(`[3.5.3] Best Streak Status: ${hBest.status} - Top Streak: ${hBest.data.bestStreak?.days || 0} Days`);
+
+    // -------------------------------------------------------------------------
     // 4. COUPON & PROMOTIONAL CODE SYSTEM
     // -------------------------------------------------------------------------
     console.log('\n--- 4. COUPON & PROMOTIONAL CODE SYSTEM ---');
@@ -141,11 +154,29 @@ async function runAuditTests() {
     console.log(`[5.2] Self Referral Check (Expect 400): ${selfRef.status} - ${selfRef.data.message}`);
 
     // -------------------------------------------------------------------------
-    // 6. DYNAMIC REAL ANALYTICS CALCULATIONS
+    // 6. DYNAMIC REAL ANALYTICS CALCULATIONS (6 SUITES)
     // -------------------------------------------------------------------------
-    console.log('\n--- 6. DYNAMIC REAL ANALYTICS CALCULATIONS ---');
+    console.log('\n--- 6. DYNAMIC REAL ANALYTICS CALCULATIONS (6 SUITES) ---');
+    const anOverview = await request('GET', '/api/analytics/overview', null, authHeaders);
+    console.log(`[6.1] Analytics Overview: ${anOverview.status} - Score: ${anOverview.data.data.overallProgressScore}/100`);
+
+    const anHabits = await request('GET', '/api/analytics/habits', null, authHeaders);
+    console.log(`[6.2] Analytics Habits: ${anHabits.status} - Tracked: ${anHabits.data.data.totalHabits}, Best Streak: ${anHabits.data.data.bestStreak}d`);
+
+    const anStudies = await request('GET', '/api/analytics/studies', null, authHeaders);
+    console.log(`[6.3] Analytics Studies: ${anStudies.status} - Enrolled: ${anStudies.data.data.totalSubjects} subjects`);
+
+    const anExpenses = await request('GET', '/api/analytics/expenses', null, authHeaders);
+    console.log(`[6.4] Analytics Expenses: ${anExpenses.status} - Spent: ₹${anExpenses.data.data.totalSpent}`);
+
+    const anGoals = await request('GET', '/api/analytics/goals', null, authHeaders);
+    console.log(`[6.5] Analytics Goals: ${anGoals.status} - Total: ${anGoals.data.data.totalGoals}`);
+
+    const anMilestones = await request('GET', '/api/analytics/milestones', null, authHeaders);
+    console.log(`[6.6] Analytics Milestones: ${anMilestones.status} - Achieved: ${anMilestones.data.data.completedMilestones}`);
+
     const analytics = await request('GET', '/api/analytics/summary', null, authHeaders);
-    console.log(`[6.1] Analytics Task Completion Rate: ${analytics.data.analytics.taskCompletionRate}% | Active Habits: ${analytics.data.analytics.activeHabitsCount}`);
+    console.log(`[6.7] Analytics Summary Rate: ${analytics.data.analytics.taskCompletionRate}% | Active Habits: ${analytics.data.analytics.activeHabitsCount}`);
 
     // -------------------------------------------------------------------------
     // 7. USER DATA PURGE & ACCOUNT DELETION

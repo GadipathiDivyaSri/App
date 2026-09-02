@@ -1,5 +1,7 @@
+require('dotenv').config();
 const http = require('http');
 const { handleApiRequest } = require('./api_handler');
+require('./supabase_client');
 
 const PORT = process.env.PORT || 3000;
 

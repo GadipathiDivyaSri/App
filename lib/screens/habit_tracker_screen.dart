@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../models/models.dart';
 import '../providers/app_provider.dart';
@@ -8,10 +9,12 @@ import '../theme/app_theme.dart';
 /// Habit Tracker Screen for WrindhaOS
 /// 
 /// Features:
-/// - Daily, Weekdays, Weekends, and Custom Weekday frequency schedules
-/// - Date Carousel / Navigator with history tracking
-/// - Real-time Streak Engine (Current Streak 🔥, Longest Streak, Consistency Score)
-/// - Pause, Resume, Edit, and Delete (with confirmation dialog)
+/// - Zero predefined data initially
+/// - Today's Hero Circular/Radial Metric (◉ 4 / 6 Completed)
+/// - Interactive Today's Habits list with status checkbox, emoji, and 🔥 streak badges
+/// - Weekly Activity Heat Map (Mon to Sun with dates, today indicator, and per-habit heat cells)
+/// - 🔥 Best Streak Highlight Card
+/// - Add, Edit, Pause, Resume, and Delete dialogs
 /// - Dynamic Plan Limit enforcement (Free: Max 2 Habits, Pro: Unlimited)
 class HabitTrackerScreen extends StatefulWidget {
   const HabitTrackerScreen({super.key});
@@ -23,13 +26,54 @@ class HabitTrackerScreen extends StatefulWidget {
 class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
   DateTime _weekStartDate = DateTime.now().subtract(Duration(days: (DateTime.now().weekday - 1)));
 
+  String _getHabitEmoji(Habit habit) {
+    final titleLower = habit.title.toLowerCase();
+    final catLower = habit.category.toLowerCase();
+
+    if (habit.title.isNotEmpty) {
+      final runes = habit.title.runes.toList();
+      if (runes.isNotEmpty) {
+        final firstChar = String.fromCharCode(runes.first);
+        if (RegExp(r'[🌀-🧿]|[☀-⛿]|[✀-➿]', unicode: true).hasMatch(firstChar)) {
+          return firstChar;
+        }
+      }
+    }
+
+    if (titleLower.contains('workout') || titleLower.contains('gym') || titleLower.contains('run') || titleLower.contains('exercise')) return '🏃';
+    if (titleLower.contains('read') || titleLower.contains('book') || titleLower.contains('study') || titleLower.contains('pages')) return '📚';
+    if (titleLower.contains('meditat') || titleLower.contains('yoga') || titleLower.contains('mindful') || titleLower.contains('breathe')) return '🧘';
+    if (titleLower.contains('water') || titleLower.contains('drink') || titleLower.contains('hydrate')) return '💧';
+    if (titleLower.contains('sleep') || titleLower.contains('wake') || titleLower.contains('bed')) return '🌙';
+    if (titleLower.contains('code') || titleLower.contains('program') || titleLower.contains('dev')) return '💻';
+    if (titleLower.contains('walk') || titleLower.contains('step')) return '🚶';
+    if (titleLower.contains('eat') || titleLower.contains('diet') || titleLower.contains('meal') || titleLower.contains('food')) return '🥗';
+    if (titleLower.contains('journal') || titleLower.contains('write') || titleLower.contains('diary')) return '✍️';
+    if (titleLower.contains('math') || titleLower.contains('exam') || titleLower.contains('course')) return '📖';
+    if (catLower.contains('fitness') || catLower.contains('health')) return '⚡';
+    if (catLower.contains('mindfulness') || catLower.contains('mental')) return '🧘';
+    if (catLower.contains('study') || catLower.contains('learning')) return '📚';
+
+    return '🎯';
+  }
+
+  String _cleanHabitTitle(Habit habit) {
+    final emoji = _getHabitEmoji(habit);
+    String title = habit.title.trim();
+    if (title.startsWith(emoji)) {
+      title = title.substring(emoji.length).trim();
+    }
+    return title;
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final provider = Provider.of<AppProvider>(context);
     final selectedDate = provider.selectedHabitDate;
     final selectedDateStr = provider.selectedHabitDateStr;
-    final todayStr = DateTime.now().toIso8601String().split('T')[0];
+    final today = DateTime.now();
+    final todayStr = '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
     final isViewingToday = selectedDateStr == todayStr;
 
     final habits = provider.habits.where((h) => h.status != 'archived').toList();
@@ -41,10 +85,18 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
     final textPrimary = isDark ? AppTheme.darkTextPrimary : AppTheme.textPrimary;
     final textSecondary = isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary;
     final cardBg = isDark ? AppTheme.darkCardBg : AppTheme.cardSurface;
+    final cardBorder = isDark ? AppTheme.darkCardBorder : AppTheme.borderLight;
 
-    // Calculate active streaks across user habits
-    final totalStreaks = habits.where((h) => h.streakDay > 0).length;
-    final bestStreak = habits.fold<int>(0, (max, h) => h.longestStreak > max ? h.longestStreak : max);
+    // Determine top streak habit
+    Habit? topHabit;
+    int bestStreak = 0;
+    for (final h in habits) {
+      final st = h.longestStreak > 0 ? h.longestStreak : h.streakDay;
+      if (st > bestStreak || (st == bestStreak && topHabit == null)) {
+        bestStreak = st;
+        topHabit = h;
+      }
+    }
 
     return Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.background,
@@ -60,372 +112,108 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Habit Tracker',
+          'Habits',
           style: TextStyle(
             color: textPrimary,
             fontWeight: FontWeight.w800,
+            fontSize: 22,
+            letterSpacing: -0.5,
           ),
         ),
         actions: [
-          if (!isViewingToday)
-            TextButton.icon(
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: primaryColor,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              icon: const Icon(Icons.add_rounded, size: 18),
+              label: const Text(
+                'Add',
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+              ),
               onPressed: () {
-                provider.setSelectedHabitDate(DateTime.now());
-                setState(() {
-                  _weekStartDate = DateTime.now().subtract(Duration(days: (DateTime.now().weekday - 1)));
-                });
+                if (!provider.canAddHabit) {
+                  ProUpgradeDialog.showHabitLimitDialog(context);
+                } else {
+                  _showAddHabitDialog(context);
+                }
               },
-              icon: const Icon(Icons.today_rounded, size: 18),
-              label: const Text('Today', style: TextStyle(fontWeight: FontWeight.bold)),
             ),
+          ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'habit_fab',
-        backgroundColor: isDark ? AppTheme.darkPrimary : AppTheme.primaryAccent,
-        shape: const CircleBorder(),
-        elevation: 4,
-        child: const Icon(Icons.add, color: Colors.white, size: 28),
-        onPressed: () {
-          if (!provider.canAddHabit) {
-            ProUpgradeDialog.showHabitLimitDialog(context);
-          } else {
-            _showAddHabitDialog(context);
-          }
-        },
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. Date Strip / Week Navigator
-            _buildDateNavigator(context, isDark, provider),
-            const SizedBox(height: 16),
-
-            // 2. Progress & Metrics Summary Card
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: isDark ? AppTheme.darkCardBg : AppTheme.personalGrowth,
-                borderRadius: BorderRadius.circular(22),
-                border: isDark ? Border.all(color: AppTheme.darkCardBorder, width: 1) : null,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            isViewingToday
-                                ? "Today's Habit Progress"
-                                : "Progress for ${_formatDisplayDate(selectedDate)}",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w800,
-                              color: textPrimary,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            scheduledHabits.isEmpty
-                                ? 'No habits scheduled for this day'
-                                : '$completedCount of ${scheduledHabits.length} completed',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: textSecondary,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: primaryColor.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          '${(progress * 100).round()}%',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w800,
-                            color: primaryColor,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: LinearProgressIndicator(
-                      value: progress,
-                      minHeight: 8,
-                      backgroundColor: isDark ? Colors.white10 : Colors.black12,
-                      valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  // Streaks & Stats Row
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _buildMiniStat(
-                        icon: Icons.local_fire_department_rounded,
-                        iconColor: const Color(0xFFF59E0B),
-                        label: 'Active Streaks',
-                        value: '$totalStreaks 🔥',
-                        textPrimary: textPrimary,
-                        textSecondary: textSecondary,
-                      ),
-                      _buildMiniStat(
-                        icon: Icons.emoji_events_rounded,
-                        iconColor: const Color(0xFF3B82F6),
-                        label: 'Best Streak',
-                        value: '$bestStreak Days',
-                        textPrimary: textPrimary,
-                        textSecondary: textSecondary,
-                      ),
-                      _buildMiniStat(
-                        icon: Icons.repeat_rounded,
-                        iconColor: const Color(0xFF10B981),
-                        label: 'Total Habits',
-                        value: '${habits.length}',
-                        textPrimary: textPrimary,
-                        textSecondary: textSecondary,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+            // 1. HERO DATE & CIRCULAR PROGRESS CARD
+            _buildHeroProgressCard(
+              context: context,
+              isDark: isDark,
+              provider: provider,
+              selectedDate: selectedDate,
+              isViewingToday: isViewingToday,
+              completedCount: completedCount,
+              totalScheduled: scheduledHabits.length,
+              progress: progress,
+              primaryColor: primaryColor,
+              textPrimary: textPrimary,
+              textSecondary: textSecondary,
+              cardBg: cardBg,
+              cardBorder: cardBorder,
             ),
             const SizedBox(height: 24),
 
-            // 3. Habits Section Header
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  isViewingToday ? "Today's Schedule" : "Scheduled Habits",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    color: textPrimary,
-                  ),
-                ),
-                Text(
-                  '${scheduledHabits.length} SCHEDULED',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.1,
-                    color: primaryColor,
-                  ),
-                ),
-              ],
+            // 2. TODAY'S HABITS SECTION
+            _buildTodayHabitsSection(
+              context: context,
+              isDark: isDark,
+              provider: provider,
+              habits: habits,
+              scheduledHabits: scheduledHabits,
+              selectedDateStr: selectedDateStr,
+              selectedDate: selectedDate,
+              isViewingToday: isViewingToday,
+              primaryColor: primaryColor,
+              textPrimary: textPrimary,
+              textSecondary: textSecondary,
+              cardBg: cardBg,
+              cardBorder: cardBorder,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 24),
 
-            // 4. Habits List
-            if (habits.isEmpty)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(28),
-                decoration: BoxDecoration(
-                  color: cardBg,
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: isDark ? AppTheme.darkCardBorder : AppTheme.borderLight),
-                ),
-                child: Center(
-                  child: Column(
-                    children: [
-                      Icon(Icons.spa_outlined, size: 48, color: primaryColor.withOpacity(0.5)),
-                      const SizedBox(height: 12),
-                      Text(
-                        'No habits created yet.\nTap (+) below to start building your first habit!',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: textSecondary, height: 1.4, fontSize: 14),
-                      ),
-                    ],
-                  ),
-                ),
-              )
-            else if (scheduledHabits.isEmpty)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: cardBg,
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: isDark ? AppTheme.darkCardBorder : AppTheme.borderLight),
-                ),
-                child: Center(
-                  child: Text(
-                    'No habits scheduled for this day.\nEnjoy your rest or select another date!',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: textSecondary, height: 1.4),
-                  ),
-                ),
-              )
-            else
-              Column(
-                children: scheduledHabits.map((habit) {
-                  final isDone = habit.isCompletedOnDate(selectedDateStr);
-                  final isPaused = habit.status == 'paused';
+            // 3. WEEKLY CONSISTENCY HEAT MAP
+            _buildWeeklyHeatmapSection(
+              context: context,
+              isDark: isDark,
+              provider: provider,
+              habits: habits,
+              primaryColor: primaryColor,
+              textPrimary: textPrimary,
+              textSecondary: textSecondary,
+              cardBg: cardBg,
+              cardBorder: cardBorder,
+            ),
+            const SizedBox(height: 24),
 
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                    decoration: BoxDecoration(
-                      color: cardBg,
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(
-                        color: isDone
-                            ? const Color(0xFF10B981).withOpacity(0.5)
-                            : (isPaused
-                                ? Colors.amber.withOpacity(0.3)
-                                : (isDark ? AppTheme.darkCardBorder : AppTheme.borderLight)),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        GestureDetector(
-                          onTap: isPaused
-                              ? () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Resume this habit to mark it completed.')),
-                                  );
-                                }
-                              : () => provider.toggleHabit(habit.id, targetDate: selectedDate),
-                          child: Container(
-                            width: 32,
-                            height: 32,
-                            decoration: BoxDecoration(
-                              color: isDone
-                                  ? const Color(0xFF10B981)
-                                  : (isPaused ? Colors.amber.withOpacity(0.1) : Colors.transparent),
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(
-                                color: isDone
-                                    ? const Color(0xFF10B981)
-                                    : (isPaused ? Colors.amber : textSecondary.withOpacity(0.6)),
-                                width: 2,
-                              ),
-                            ),
-                            child: isDone
-                                ? const Icon(Icons.check, size: 20, color: Colors.white)
-                                : (isPaused ? const Icon(Icons.pause, size: 16, color: Colors.amber) : null),
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      habit.title,
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w700,
-                                        color: isPaused ? textSecondary : textPrimary,
-                                        decoration: isDone ? TextDecoration.lineThrough : null,
-                                      ),
-                                    ),
-                                  ),
-                                  if (isPaused)
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                      decoration: BoxDecoration(
-                                        color: Colors.amber.withOpacity(0.2),
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: const Text(
-                                        'PAUSED',
-                                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.amber),
-                                      ),
-                                    ),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  const Icon(Icons.local_fire_department_rounded, size: 14, color: Color(0xFFF59E0B)),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    '${habit.streakDay} day streak • ${_formatFrequencyLabel(habit)}',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w500,
-                                      color: textSecondary,
-                                    ),
-                                  ),
-                                  if (habit.category.isNotEmpty && habit.category != 'General') ...[
-                                    const SizedBox(width: 8),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                      decoration: BoxDecoration(
-                                        color: primaryColor.withOpacity(0.1),
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: Text(
-                                        habit.category,
-                                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: primaryColor),
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                        PopupMenuButton<String>(
-                          icon: Icon(Icons.more_vert_rounded, size: 20, color: textSecondary),
-                          onSelected: (action) {
-                            if (action == 'edit') {
-                              _showEditHabitDialog(context, habit);
-                            } else if (action == 'pause') {
-                              provider.pauseHabit(habit.id);
-                            } else if (action == 'resume') {
-                              provider.resumeHabit(habit.id);
-                            } else if (action == 'delete') {
-                              _showDeleteConfirmationDialog(context, habit);
-                            }
-                          },
-                          itemBuilder: (ctx) => [
-                            const PopupMenuItem(
-                              value: 'edit',
-                              child: Row(children: [Icon(Icons.edit_outlined, size: 18), SizedBox(width: 8), Text('Edit')]),
-                            ),
-                            if (!isPaused)
-                              const PopupMenuItem(
-                                value: 'pause',
-                                child: Row(children: [Icon(Icons.pause_circle_outline, size: 18), SizedBox(width: 8), Text('Pause')]),
-                              )
-                            else
-                              const PopupMenuItem(
-                                value: 'resume',
-                                child: Row(children: [Icon(Icons.play_circle_outline, size: 18, color: Colors.green), SizedBox(width: 8), Text('Resume', style: TextStyle(color: Colors.green))]),
-                              ),
-                            const PopupMenuItem(
-                              value: 'delete',
-                              child: Row(children: [Icon(Icons.delete_outline, color: Colors.redAccent, size: 18), SizedBox(width: 8), Text('Delete', style: TextStyle(color: Colors.redAccent))]),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  );
-                }).toList(),
-              ),
+            // 4. 🔥 BEST STREAK HIGHLIGHT CARD
+            _buildBestStreakCard(
+              isDark: isDark,
+              topHabit: topHabit,
+              bestStreak: bestStreak,
+              textPrimary: textPrimary,
+              textSecondary: textSecondary,
+              cardBg: cardBg,
+              cardBorder: cardBorder,
+            ),
             const SizedBox(height: 40),
           ],
         ),
@@ -433,155 +221,703 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
     );
   }
 
-  Widget _buildDateNavigator(BuildContext context, bool isDark, AppProvider provider) {
-    final textPrimary = isDark ? AppTheme.darkTextPrimary : AppTheme.textPrimary;
-    final textSecondary = isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary;
-    final primaryColor = isDark ? AppTheme.darkPrimary : AppTheme.personalGrowthIcon;
-    final selectedDate = provider.selectedHabitDate;
+  // ---------------------------------------------------------------------------
+  // 1. HERO PROGRESS CARD
+  // ---------------------------------------------------------------------------
+  Widget _buildHeroProgressCard({
+    required BuildContext context,
+    required bool isDark,
+    required AppProvider provider,
+    required DateTime selectedDate,
+    required bool isViewingToday,
+    required int completedCount,
+    required int totalScheduled,
+    required double progress,
+    required Color primaryColor,
+    required Color textPrimary,
+    required Color textSecondary,
+    required Color cardBg,
+    required Color cardBorder,
+  }) {
+    final dateLabel = isViewingToday
+        ? 'Today, ${DateFormat('MMM d').format(selectedDate)}'
+        : DateFormat('EEEE, MMM d').format(selectedDate);
 
-    final weekDays = List.generate(7, (i) => _weekStartDate.add(Duration(days: i)));
-    final dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    final pctStr = totalScheduled > 0 ? '${(progress * 100).round()}%' : '0%';
 
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            IconButton(
-              icon: Icon(Icons.chevron_left, color: textPrimary),
-              onPressed: () {
-                setState(() {
-                  _weekStartDate = _weekStartDate.subtract(const Duration(days: 7));
-                });
-              },
-            ),
-            Text(
-              '${_formatMonthHeader(_weekStartDate)} - ${_formatMonthHeader(_weekStartDate.add(const Duration(days: 6)))}',
-              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: textPrimary),
-            ),
-            IconButton(
-              icon: Icon(Icons.chevron_right, color: textPrimary),
-              onPressed: () {
-                setState(() {
-                  _weekStartDate = _weekStartDate.add(const Duration(days: 7));
-                });
-              },
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: List.generate(7, (idx) {
-            final dayDate = weekDays[idx];
-            final isSelected = dayDate.year == selectedDate.year &&
-                dayDate.month == selectedDate.month &&
-                dayDate.day == selectedDate.day;
-            final isToday = dayDate.year == DateTime.now().year &&
-                dayDate.month == DateTime.now().month &&
-                dayDate.day == DateTime.now().day;
-
-            return Expanded(
-              child: GestureDetector(
-                onTap: () => provider.setSelectedHabitDate(dayDate),
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 3),
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? primaryColor
-                        : (isDark ? AppTheme.darkCardBg : Colors.white),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: isSelected
-                          ? primaryColor
-                          : (isToday ? primaryColor.withOpacity(0.5) : (isDark ? AppTheme.darkCardBorder : AppTheme.borderLight)),
-                      width: isToday ? 1.5 : 1,
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: cardBorder, width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(isDark ? 0.25 : 0.04),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                dateLabel,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: textPrimary,
+                  letterSpacing: -0.3,
+                ),
+              ),
+              if (!isViewingToday)
+                GestureDetector(
+                  onTap: () {
+                    provider.setSelectedHabitDate(DateTime.now());
+                    setState(() {
+                      _weekStartDate = DateTime.now().subtract(Duration(days: (DateTime.now().weekday - 1)));
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: primaryColor.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      'Back to Today',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: primaryColor,
+                      ),
                     ),
                   ),
-                  child: Column(
+                ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // Center Radial Indicator & Count
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              SizedBox(
+                width: 100,
+                height: 100,
+                child: CircularProgressIndicator(
+                  value: totalScheduled == 0 ? 0 : progress,
+                  strokeWidth: 7,
+                  strokeCap: StrokeCap.round,
+                  backgroundColor: isDark ? Colors.white10 : const Color(0xFFE2E8F0),
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    progress >= 1.0 && totalScheduled > 0 ? const Color(0xFF10B981) : primaryColor,
+                  ),
+                ),
+              ),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
-                        dayNames[idx],
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: isSelected ? Colors.white : textSecondary,
-                        ),
+                      Icon(
+                        Icons.lens_rounded,
+                        size: 11,
+                        color: progress >= 1.0 && totalScheduled > 0 ? const Color(0xFF10B981) : primaryColor,
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(width: 4),
                       Text(
-                        '${dayDate.day}',
+                        '$completedCount / $totalScheduled',
                         style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w800,
-                          color: isSelected ? Colors.white : textPrimary,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: -0.5,
+                          color: textPrimary,
                         ),
                       ),
                     ],
                   ),
-                ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Completed ($pctStr)',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: textSecondary,
+                    ),
+                  ),
+                ],
               ),
-            );
-          }),
-        ),
-      ],
+            ],
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildMiniStat({
-    required IconData icon,
-    required Color iconColor,
-    required String label,
-    required String value,
+  // ---------------------------------------------------------------------------
+  // 2. TODAY'S HABITS SECTION
+  // ---------------------------------------------------------------------------
+  Widget _buildTodayHabitsSection({
+    required BuildContext context,
+    required bool isDark,
+    required AppProvider provider,
+    required List<Habit> habits,
+    required List<Habit> scheduledHabits,
+    required String selectedDateStr,
+    required DateTime selectedDate,
+    required bool isViewingToday,
+    required Color primaryColor,
     required Color textPrimary,
     required Color textSecondary,
+    required Color cardBg,
+    required Color cardBorder,
   }) {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 16, color: iconColor),
-        const SizedBox(width: 6),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              value,
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: textPrimary),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "TODAY'S HABITS",
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1.1,
+                  color: textSecondary,
+                ),
+              ),
+              Text(
+                '${scheduledHabits.length} ACTIVE',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.8,
+                  color: primaryColor,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        if (habits.isEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(28),
+            decoration: BoxDecoration(
+              color: cardBg,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: cardBorder),
             ),
-            Text(
-              label,
-              style: TextStyle(fontSize: 10, color: textSecondary, fontWeight: FontWeight.w500),
+            child: Center(
+              child: Column(
+                children: [
+                  Icon(Icons.spa_outlined, size: 44, color: primaryColor.withOpacity(0.6)),
+                  const SizedBox(height: 10),
+                  Text(
+                    'No habits created yet.\nTap (+ Add) above to get started!',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: textSecondary, height: 1.4, fontSize: 13.5),
+                  ),
+                ],
+              ),
             ),
-          ],
+          )
+        else if (scheduledHabits.isEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: cardBg,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: cardBorder),
+            ),
+            child: Center(
+              child: Text(
+                'No habits scheduled for this day.\nEnjoy your rest or pick another date!',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: textSecondary, height: 1.4, fontSize: 13.5),
+              ),
+            ),
+          )
+        else
+          Column(
+            children: scheduledHabits.map((habit) {
+              final isDone = habit.isCompletedOnDate(selectedDateStr);
+              final isPaused = habit.status == 'paused';
+              final emoji = _getHabitEmoji(habit);
+              final cleanTitle = _cleanHabitTitle(habit);
+
+              return Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                decoration: BoxDecoration(
+                  color: cardBg,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isDone
+                        ? const Color(0xFF10B981).withOpacity(0.4)
+                        : (isPaused ? Colors.amber.withOpacity(0.3) : cardBorder),
+                    width: isDone ? 1.5 : 1,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(isDark ? 0.2 : 0.02),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: isPaused
+                        ? () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Resume this habit to mark it complete.')),
+                            );
+                          }
+                        : () => provider.toggleHabit(habit.id, targetDate: selectedDate),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      child: Row(
+                        children: [
+                          // Interactive Checkbox (✓ / ○)
+                          Container(
+                            width: 28,
+                            height: 28,
+                            decoration: BoxDecoration(
+                              color: isDone
+                                  ? const Color(0xFF10B981)
+                                  : (isPaused ? Colors.amber.withOpacity(0.12) : Colors.transparent),
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: isDone
+                                    ? const Color(0xFF10B981)
+                                    : (isPaused ? Colors.amber : (isDark ? Colors.white38 : const Color(0xFF94A3B8))),
+                                width: isDone ? 2 : 1.8,
+                              ),
+                            ),
+                            child: isDone
+                                ? const Icon(Icons.check_rounded, size: 18, color: Colors.white)
+                                : (isPaused ? const Icon(Icons.pause_rounded, size: 14, color: Colors.amber) : null),
+                          ),
+                          const SizedBox(width: 12),
+
+                          // Emoji
+                          Text(emoji, style: const TextStyle(fontSize: 20)),
+                          const SizedBox(width: 10),
+
+                          // Title
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  cleanTitle,
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w700,
+                                    color: isPaused
+                                        ? textSecondary
+                                        : (isDone ? textSecondary : textPrimary),
+                                    decoration: isDone ? TextDecoration.lineThrough : null,
+                                  ),
+                                ),
+                                if (isPaused)
+                                  const Padding(
+                                    padding: EdgeInsets.only(top: 2.0),
+                                    child: Text(
+                                      'PAUSED',
+                                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.amber),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+
+                          // Streak Badge: 🔥 X
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF59E0B).withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: const Color(0xFFF59E0B).withOpacity(0.3),
+                                width: 1,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Text('🔥', style: TextStyle(fontSize: 12)),
+                                const SizedBox(width: 3),
+                                Text(
+                                  '${habit.streakDay}',
+                                  style: const TextStyle(
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w800,
+                                    color: Color(0xFFD97706),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+
+                          PopupMenuButton<String>(
+                            icon: Icon(Icons.more_vert_rounded, size: 18, color: textSecondary),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            onSelected: (action) {
+                              if (action == 'edit') {
+                                _showEditHabitDialog(context, habit);
+                              } else if (action == 'pause') {
+                                provider.pauseHabit(habit.id);
+                              } else if (action == 'resume') {
+                                provider.resumeHabit(habit.id);
+                              } else if (action == 'delete') {
+                                _showDeleteConfirmationDialog(context, habit);
+                              }
+                            },
+                            itemBuilder: (ctx) => [
+                              const PopupMenuItem(
+                                value: 'edit',
+                                child: Row(children: [Icon(Icons.edit_outlined, size: 18), SizedBox(width: 8), Text('Edit')]),
+                              ),
+                              if (!isPaused)
+                                const PopupMenuItem(
+                                  value: 'pause',
+                                  child: Row(children: [Icon(Icons.pause_circle_outline, size: 18), SizedBox(width: 8), Text('Pause')]),
+                                )
+                              else
+                                const PopupMenuItem(
+                                  value: 'resume',
+                                  child: Row(children: [Icon(Icons.play_circle_outline, size: 18, color: Colors.green), SizedBox(width: 8), Text('Resume', style: TextStyle(color: Colors.green))]),
+                                ),
+                              const PopupMenuItem(
+                                value: 'delete',
+                                child: Row(children: [Icon(Icons.delete_outline, color: Colors.redAccent, size: 18), SizedBox(width: 8), Text('Delete', style: TextStyle(color: Colors.redAccent))]),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+      ],
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // 3. WEEKLY CONSISTENCY HEAT MAP SECTION
+  // ---------------------------------------------------------------------------
+  Widget _buildWeeklyHeatmapSection({
+    required BuildContext context,
+    required bool isDark,
+    required AppProvider provider,
+    required List<Habit> habits,
+    required Color primaryColor,
+    required Color textPrimary,
+    required Color textSecondary,
+    required Color cardBg,
+    required Color cardBorder,
+  }) {
+    final now = DateTime.now();
+    // Monday is 1, Sunday is 7 in Dart. Calculate current week's Monday:
+    final monday = DateTime(now.year, now.month, now.day).subtract(Duration(days: now.weekday - 1));
+    final weekDays = List.generate(7, (i) => monday.add(Duration(days: i)));
+    final dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'WEEKLY CONSISTENCY HEAT MAP',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1.1,
+                  color: textSecondary,
+                ),
+              ),
+              Text(
+                'MON - SUN',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  color: primaryColor,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: cardBg,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: cardBorder),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(isDark ? 0.2 : 0.02),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Heatmap Day Columns Header (Mon to Sun with Date numbers)
+              Row(
+                children: [
+                  const SizedBox(width: 80, child: Text('Habit', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.grey))),
+                  Expanded(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: List.generate(7, (idx) {
+                        final d = weekDays[idx];
+                        final isToday = d.day == now.day && d.month == now.month && d.year == now.year;
+                        return Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: isToday ? primaryColor.withOpacity(0.15) : Colors.transparent,
+                            borderRadius: BorderRadius.circular(8),
+                            border: isToday ? Border.all(color: primaryColor, width: 1.2) : null,
+                          ),
+                          child: Column(
+                            children: [
+                              Text(
+                                dayNames[idx],
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: isToday ? FontWeight.w900 : FontWeight.w700,
+                                  color: isToday ? primaryColor : textSecondary,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                '${d.day}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: isToday ? FontWeight.w900 : FontWeight.w600,
+                                  color: isToday ? primaryColor : textPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Divider(height: 1, color: isDark ? Colors.white12 : const Color(0xFFE2E8F0)),
+              const SizedBox(height: 10),
+
+              // Heatmap Rows for Habits
+              if (habits.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16.0),
+                  child: Center(
+                    child: Text(
+                      'No habits to track consistency yet',
+                      style: TextStyle(fontSize: 13, color: textSecondary),
+                    ),
+                  ),
+                )
+              else
+                Column(
+                  children: habits.map((habit) {
+                    final emoji = _getHabitEmoji(habit);
+                    final cleanTitle = _cleanHabitTitle(habit);
+
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Row(
+                        children: [
+                          // Habit Emoji & Title
+                          SizedBox(
+                            width: 80,
+                            child: Row(
+                              children: [
+                                Text(emoji, style: const TextStyle(fontSize: 16)),
+                                const SizedBox(width: 4),
+                                Expanded(
+                                  child: Text(
+                                    cleanTitle,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: textPrimary),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          // 7 Heatmap Tiles
+                          Expanded(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: List.generate(7, (idx) {
+                                final d = weekDays[idx];
+                                final dStr = '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+                                final isScheduled = habit.isScheduledForDate(d);
+                                final isCompleted = habit.isCompletedOnDate(dStr);
+                                final isToday = d.day == now.day && d.month == now.month && d.year == now.year;
+
+                                return GestureDetector(
+                                  onTap: () {
+                                    if (isScheduled && habit.status != 'paused') {
+                                      provider.toggleHabit(habit.id, targetDate: d);
+                                    }
+                                  },
+                                  child: Container(
+                                    width: 28,
+                                    height: 28,
+                                    decoration: BoxDecoration(
+                                      color: isCompleted
+                                          ? const Color(0xFF10B981)
+                                          : (isScheduled
+                                              ? (isDark ? const Color(0xFF1E2235) : const Color(0xFFF1F5F9))
+                                              : Colors.transparent),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: isCompleted
+                                            ? const Color(0xFF10B981)
+                                            : (isToday ? primaryColor : (isDark ? Colors.white12 : const Color(0xFFE2E8F0))),
+                                        width: isToday ? 1.5 : 1,
+                                      ),
+                                    ),
+                                    child: Center(
+                                      child: isCompleted
+                                          ? const Icon(Icons.check_rounded, size: 16, color: Colors.white)
+                                          : (isScheduled
+                                              ? null
+                                              : Text('-', style: TextStyle(color: textSecondary.withOpacity(0.4), fontSize: 13, fontWeight: FontWeight.bold))),
+                                    ),
+                                  ),
+                                );
+                              }),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
+            ],
+          ),
         ),
       ],
     );
   }
 
-  String _formatFrequencyLabel(Habit habit) {
-    final freq = habit.frequency.toUpperCase();
-    if (freq == 'DAILY') return 'Daily';
-    if (freq == 'WEEKDAYS') return 'Weekdays';
-    if (freq == 'WEEKENDS') return 'Weekends';
-    if (freq == 'WEEKLY') return 'Weekly';
-    if (freq == 'CUSTOM') {
-      final names = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-      final days = habit.selectedDays.map((d) => (d >= 1 && d <= 7) ? names[d - 1] : '').join(', ');
-      return 'Custom ($days)';
-    }
-    return habit.frequency;
+  // ---------------------------------------------------------------------------
+  // 4. 🔥 BEST STREAK HIGHLIGHT CARD
+  // ---------------------------------------------------------------------------
+  Widget _buildBestStreakCard({
+    required bool isDark,
+    required Habit? topHabit,
+    required int bestStreak,
+    required Color textPrimary,
+    required Color textSecondary,
+    required Color cardBg,
+    required Color cardBorder,
+  }) {
+    final habitTitle = topHabit != null ? _cleanHabitTitle(topHabit) : '';
+    final emoji = topHabit != null ? _getHabitEmoji(topHabit) : '🔥';
+    final descText = (topHabit != null && bestStreak > 0)
+        ? '$emoji $habitTitle • $bestStreak Days'
+        : 'Start completing habits daily to build your best streak!';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: const Color(0xFFF59E0B).withOpacity(0.4),
+          width: 1.2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFF59E0B).withOpacity(isDark ? 0.15 : 0.06),
+            blurRadius: 14,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF59E0B).withOpacity(0.15),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Center(
+              child: Text('🔥', style: TextStyle(fontSize: 24)),
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Best Streak',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.8,
+                    color: Color(0xFFD97706),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  descText,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    color: textPrimary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
-  String _formatDisplayDate(DateTime date) {
-    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return '${months[date.month - 1]} ${date.day}';
-  }
-
-  String _formatMonthHeader(DateTime date) {
-    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return '${months[date.month - 1]} ${date.day}';
-  }
-
+  // ---------------------------------------------------------------------------
+  // DIALOGS: ADD / EDIT / DELETE
+  // ---------------------------------------------------------------------------
   void _showAddHabitDialog(BuildContext context) {
     final titleController = TextEditingController();
     final descController = TextEditingController();
@@ -609,7 +945,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                     controller: titleController,
                     autofocus: true,
                     decoration: const InputDecoration(
-                      hintText: 'e.g. Read 20 pages',
+                      hintText: 'e.g. 🏃 Morning Workout',
                       labelText: 'Habit Title *',
                     ),
                   ),
@@ -664,7 +1000,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                     controller: descController,
                     maxLines: 2,
                     decoration: const InputDecoration(
-                      hintText: 'Optional notes or motivation...',
+                      hintText: 'Optional notes or goal target...',
                       labelText: 'Description (Optional)',
                     ),
                   ),

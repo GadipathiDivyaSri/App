@@ -99569,7 +99569,7 @@ A.pB.prototype={
 a5(){return new A.TK(null,null)}}
 A.TK.prototype={
 ao(){this.aH()
-this.d=A.ao1(5,this)},
+this.d=A.ao1(6,this)},
 l(){var s=this.d
 s===$&&A.b()
 s.l()
@@ -99584,7 +99584,7 @@ o=A.B(14)
 p=A.X(e,A.as(B.tJ,d?B.X:B.d,e,26),B.j,e,e,new A.O(p,e,e,o,e,e,B.o),e,48,e,e,e,e,48)
 o=A.m("Analytics",e,e,e,e,A.J(e,e,d?B.d:B.B,e,e,e,e,e,e,e,e,17,e,e,B.K,e,e,!0,e,e,e,e,e,e,e,e),e,e,e)
 n=t.p
-r=A.X(e,A.a4(A.a([p,B.bx,A.aD(A.a0(A.a([o,B.a04,A.m("Track your progress \ud83d\udcc8",e,e,e,e,A.J(e,e,d?B.as:B.a6,e,e,e,e,e,e,e,e,12,e,e,B.a2,e,e,!0,e,e,e,e,e,e,e,e),e,e,e)],n),B.w,B.h,B.f,0,B.m),1)],n),B.i,B.h,B.f,0,e,e),B.j,e,e,new A.O(s,e,q,r,e,e,B.o),e,e,e,B.d2,e,e,1/0)
+r=A.X(e,A.a4(A.a([p,B.bx,A.aD(A.a0(A.a([o,B.a04,A.m("Transform activity into actionable insights 📈",e,e,e,e,A.J(e,e,d?B.as:B.a6,e,e,e,e,e,e,e,e,12,e,e,B.a2,e,e,!0,e,e,e,e,e,e,e,e),e,e,e)],n),B.w,B.h,B.f,0,B.m),1)],n),B.i,B.h,B.f,0,e,e),B.j,e,e,new A.O(s,e,q,r,e,e,B.o),e,e,e,B.d2,e,e,1/0)
 s=d?B.ah:B.d
 q=A.B(14)
 p=d?A.bO(B.ay,B.p,1):e
@@ -99593,69 +99593,240 @@ o===$&&A.b()
 m=A.B(10)
 l=d?B.as:B.a6
 q=A.X(e,A.anZ(o,B.C,new A.O(c,e,e,m,e,e,B.o),B.C,!0,B.d,B.a4g,B.QJ,l),B.j,e,e,new A.O(s,e,p,q,e,e,B.o),e,40,B.MF,e,e,e,e)
-p=this.abP(a0)
-d=A.p(a0).ax.a===B.A
-s=A.m("Habit Momentum & Consistency",e,e,e,e,A.J(e,e,d?B.d:B.af,e,e,e,e,e,e,e,e,22,e,e,B.K,e,e,!0,e,e,e,e,e,e,e,e),e,e,e)
-m=d?B.T:B.d
-l=A.B(20)
-k=t.V
-j=A.a([],k)
-i=!d
-if(i)j.push(new A.aK(0,B.E,A.Z(8,B.n.m()>>>16&255,B.n.m()>>>8&255,B.n.m()&255),B.ba,10))
-m=A.X(e,A.a0(A.a([A.a4(A.a([B.a7c,A.X(e,B.a95,B.j,e,e,new A.O(B.bC,e,e,A.B(8),e,e,B.o),e,e,e,B.mR,e,e,e)],n),B.i,B.ap,B.f,0,e,e),B.a1,A.b_(A.dV(e,e,e,new A.On(d,e),B.V),180,1/0)],n),B.w,B.h,B.f,0,B.m),B.j,e,e,new A.O(m,e,e,l,j,e,B.o),e,e,e,B.F,e,e,e)
-l=d?B.T:B.d
-j=A.B(20)
-h=A.a([],k)
-if(i)h.push(new A.aK(0,B.E,A.Z(8,B.n.m()>>>16&255,B.n.m()>>>8&255,B.n.m()&255),B.ba,10))
-s=A.j0(A.a([s,B.aW,B.a9v,B.aD,m,B.aD,A.X(e,A.a0(A.a([B.a81,B.a1,A.b_(A.dV(e,e,e,new A.vL(d,B.T4,B.uz,B.u,e),B.V),160,1/0)],n),B.w,B.h,B.f,0,B.m),B.j,e,e,new A.O(l,e,e,j,h,e,B.o),e,e,e,B.F,e,e,e),B.cw],n),B.dK,e,B.S,!1)
-d=A.p(a0).ax.a===B.A
-m=A.m("Financial Breakdown & Cashflow",e,e,e,e,A.J(e,e,d?B.d:B.af,e,e,e,e,e,e,e,e,22,e,e,B.K,e,e,!0,e,e,e,e,e,e,e,e),e,e,e)
-l=d?B.T:B.d
-j=A.B(20)
-i=A.a([],k)
-h=!d
-if(h)i.push(new A.aK(0,B.E,A.Z(8,B.n.m()>>>16&255,B.n.m()>>>8&255,B.n.m()&255),B.ba,10))
-l=A.X(e,A.a0(A.a([B.a9x,B.a1,A.a4(A.a([A.b_(A.dV(e,e,e,new A.O_(e),B.V),160,160),B.oU,A.aD(A.a0(B.QV,B.i,B.h,B.f,0,B.m),1)],n),B.i,B.h,B.f,0,e,e)],n),B.w,B.h,B.f,0,B.m),B.j,e,e,new A.O(l,e,e,j,i,e,B.o),e,e,e,B.F,e,e,e)
-j=d?B.T:B.d
-i=A.B(20)
-g=A.a([],k)
-if(h)g.push(new A.aK(0,B.E,A.Z(8,B.n.m()>>>16&255,B.n.m()>>>8&255,B.n.m()&255),B.ba,10))
-m=A.j0(A.a([m,B.aW,B.a8Z,B.aD,l,B.aD,A.X(e,A.a0(A.a([B.a9e,B.a1,A.b_(A.dV(e,e,e,new A.vL(d,B.R5,B.SH,B.al,e),B.V),160,1/0)],n),B.w,B.h,B.f,0,B.m),B.j,e,e,new A.O(j,e,e,i,g,e,B.o),e,e,e,B.F,e,e,e),B.cw],n),B.dK,e,B.S,!1)
-d=A.p(a0).ax.a===B.A
-l=A.m("Milestones & Goals Progress",e,e,e,e,A.J(e,e,d?B.d:B.af,e,e,e,e,e,e,e,e,22,e,e,B.K,e,e,!0,e,e,e,e,e,e,e,e),e,e,e)
-j=d?B.T:B.d
-i=A.B(20)
-h=A.a([],k)
-if(!d)h.push(new A.aK(0,B.E,A.Z(8,B.n.m()>>>16&255,B.n.m()>>>8&255,B.n.m()&255),B.ba,10))
-j=A.X(e,A.a0(A.a([B.a7b,B.a1,A.a4(A.a([A.b_(A.dV(e,e,e,new A.Ol(e),B.V),160,160),B.oU,A.aD(A.a0(B.Qg,B.i,B.h,B.f,0,B.m),1)],n),B.i,B.h,B.f,0,e,e)],n),B.w,B.h,B.f,0,B.m),B.j,e,e,new A.O(j,e,e,i,h,e,B.o),e,e,e,B.F,e,e,e)
-i=d?B.T:B.bC
-h=A.B(20)
-h=A.j0(A.a([l,B.aW,B.a9Y,B.aD,j,B.aD,A.X(e,A.a4(A.a([A.X(e,B.Jl,B.j,e,e,B.j9,e,60,e,e,e,e,60),B.dU,B.MX],n),B.i,B.h,B.f,0,e,e),B.j,e,e,new A.O(i,e,e,h,e,e,B.o),e,e,e,B.F,e,e,e),B.cw],n),B.dK,e,B.S,!1)
-d=A.p(a0).ax.a===B.A
-l=A.m("Academic Study Analytics",e,e,e,e,A.J(e,e,d?B.d:B.af,e,e,e,e,e,e,e,e,22,e,e,B.K,e,e,!0,e,e,e,e,e,e,e,e),e,e,e)
-j=d?B.T:B.d
-i=A.B(20)
-g=A.a([],k)
-f=!d
-if(f)g.push(new A.aK(0,B.E,A.Z(8,B.n.m()>>>16&255,B.n.m()>>>8&255,B.n.m()&255),B.ba,10))
-j=A.X(e,A.a0(A.a([B.a9p,B.a1,A.b_(A.dV(e,e,e,new A.vL(d,B.S3,B.uz,B.ji,e),B.V),160,1/0)],n),B.w,B.h,B.f,0,B.m),B.j,e,e,new A.O(j,e,e,i,g,e,B.o),e,e,e,B.F,e,e,e)
-i=d?B.T:B.d
-g=A.B(20)
-k=A.a([],k)
-if(f)k.push(new A.aK(0,B.E,A.Z(8,B.n.m()>>>16&255,B.n.m()>>>8&255,B.n.m()&255),B.ba,10))
-return A.cJ(a,b,A.a0(A.a([new A.aw(B.dK,r,e),B.ao,q,B.a4,A.aD(A.ao0(A.a([p,s,m,h,A.j0(A.a([l,B.aW,B.a72,B.aD,j,B.aD,A.X(e,A.a0(A.a([B.a7S,B.a1,A.b_(A.dV(e,e,e,new A.Sw(d,e),B.V),180,1/0)],n),B.w,B.h,B.f,0,B.m),B.j,e,e,new A.O(i,e,e,g,k,e,B.o),e,e,e,B.F,e,e,e),B.cw],n),B.dK,e,B.S,!1)],n),o),1)],n),B.i,B.h,B.f,0,B.m),e,e)},
-abP(a){var s,r,q,p,o,n,m=null,l=A.p(a).ax.a===B.A,k=A.f1(a,!0,t.T),j=k.c.e,i=k.e
-if(new A.aB(i,new A.aqF(),A.a1(i).i("aB<1>")).gG(0)>0){i=k.e
-i=new A.aB(i,new A.aqG(),A.a1(i).i("aB<1>")).gG(0)}else i=7
-s=A.m("Overview",m,m,m,m,A.J(m,m,l?B.d:B.B,m,m,m,m,m,m,m,m,18,m,m,B.K,m,m,!0,m,m,m,m,m,m,m,m),m,m,m)
-r=t.p
-i=A.a4(A.a([A.aD(this.Gn(l,"Total","Habits","18"),1),B.bE,A.aD(this.Gn(l,"Days","Streak",""+j),1),B.bE,A.aD(this.Gn(l,"Active","Goals",""+i),1)],r),B.i,B.h,B.f,0,m,m)
-j=A.m("Progress",m,m,m,m,A.J(m,m,l?B.d:B.B,m,m,m,m,m,m,m,m,18,m,m,B.K,m,m,!0,m,m,m,m,m,m,m,m),m,m,m)
-q=l?B.ah:B.d
-p=A.B(20)
-o=l?A.bO(B.ay,B.p,1):m
-n=l?A.fY():A.iN()
-return A.j0(A.a([s,B.a4,i,B.an,j,B.a4,A.X(m,A.a0(A.a([B.a9O,B.a1,A.b_(A.dV(m,m,m,new A.N1(l,m),B.V),180,1/0)],r),B.w,B.h,B.f,0,B.m),B.j,m,m,new A.O(q,m,o,p,n,m,B.o),m,m,m,B.F,m,m,m),B.cw],r),B.dK,m,B.S,!1)},
+
+// Get live AppProvider data
+var prov = A.f1(a0, !0, t.T)
+var habits = prov.c ? (prov.c.d || []) : []
+var tasks = prov.e || []
+var expenses = prov.w || []
+var subjects = prov.b || []
+var roadmap = prov.d || []
+
+// 6 Real Tab Views
+var tabOverview = this.buildOverviewTab(a0, d, n, prov, habits, tasks, expenses, subjects, roadmap)
+var tabHabits = this.buildHabitsTab(a0, d, n, habits)
+var tabStudies = this.buildStudiesTab(a0, d, n, subjects, tasks)
+var tabExpenses = this.buildExpensesTab(a0, d, n, expenses)
+var tabGoals = this.buildGoalsTab(a0, d, n, roadmap)
+var tabMilestones = this.buildMilestonesTab(a0, d, n, roadmap)
+
+return A.cJ(a,b,A.a0(A.a([new A.aw(B.dK,r,e),B.ao,q,B.a4,A.aD(A.ao0(A.a([tabOverview,tabHabits,tabStudies,tabExpenses,tabGoals,tabMilestones],n),o),1)],n),B.i,B.h,B.f,0,B.m),e,e)},
+
+buildOverviewTab(a0, d, n, prov, habits, tasks, expenses, subjects, roadmap){
+  var e=null, textP = d ? B.d : B.B, textS = d ? B.as : B.a6, cardBg = d ? B.ah : B.d, cardR = A.B(20)
+  
+  var compHabits = 0, bestStreak = 0
+  for(var i=0; i<habits.length; i++){
+    var h = habits[i]
+    if(J.d(h.h(0,"isCompleted"),!0)) compHabits++
+    var st = A.fV(h.h(0,"streakDay")) || 0
+    if(st > bestStreak) bestStreak = st
+  }
+  
+  var compTasks = 0
+  for(var i=0; i<tasks.length; i++){
+    if(J.d(tasks[i].h(0,"isCompleted"),!0)) compTasks++
+  }
+  
+  var totalSpent = 0
+  for(var i=0; i<expenses.length; i++){
+    var exp = expenses[i]
+    if(!exp.isIncome) totalSpent += (exp.amount || 0)
+  }
+  
+  var goals = [], milestones = []
+  for(var i=0; i<roadmap.length; i++){
+    var rNode = roadmap[i]
+    if(rNode.section === 'GOAL') goals.push(rNode)
+    else milestones.push(rNode)
+  }
+  var compGoals = goals.filter(function(g){ return g.isCompleted; }).length
+  var compMilestones = milestones.filter(function(m){ return m.isCompleted; }).length
+  
+  var totalItems = habits.length + tasks.length + goals.length
+  var completedItems = compHabits + compTasks + compGoals
+  var progressScore = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0
+  
+  var bannerTitle = A.m("OVERALL PROGRESS SCORE", e, e, e, e, A.J(e, e, B.dW, e, e, e, e, e, e, e, e, 11, e, e, B.K, e, e, !0, e, 1.1, e, e, e, e, e, e), e, e, e)
+  var bannerScore = A.m(progressScore + " / 100", e, e, e, e, A.J(e, e, B.d, e, e, e, e, e, e, e, e, 30, e, e, B.fL, e, e, !0, e, -0.5, e, e, e, e, e, e), e, e, e)
+  var bannerMsg = progressScore >= 75 ? "Outstanding momentum! Keep it going 🔥" : (progressScore >= 40 ? "Steady progress. Consistency is key 🎯" : "Start completing habits and tasks to build your score ✨")
+  var bannerDesc = A.m(bannerMsg, e, e, e, e, A.J(e, e, B.d, e, e, e, e, e, e, e, e, 12, e, e, B.x, e, e, !0, e, e, e, e, e, e, e, e), e, e, e)
+  var bannerCard = A.X(e, A.a0(A.a([bannerTitle, B.bz, bannerScore, B.bz, bannerDesc], n), B.w, B.h, B.f, 0, B.m), B.j, e, e, new A.O(d ? B.T : B.u, e, e, cardR, e, e, B.o), e, e, e, B.F, e, e, 1/0)
+  
+  // Real Metric Cards
+  var m1 = this.Gn(d, "Habits", "Completed", compHabits + " / " + habits.length)
+  var m2 = this.Gn(d, "Days", "Best Streak", "" + bestStreak)
+  var m3 = this.Gn(d, "Expenses", "Total Spent", "₹" + Math.round(totalSpent))
+  var m4 = this.Gn(d, "Goals", "Achieved", compGoals + " / " + goals.length)
+  
+  var row1 = A.a4(A.a([A.aD(m1, 1), B.bE, A.aD(m2, 1)], n), B.i, B.h, B.f, 0, e, e)
+  var row2 = A.a4(A.a([A.aD(m3, 1), B.bE, A.aD(m4, 1)], n), B.i, B.h, B.f, 0, e, e)
+  
+  // Rule-Based Insight Card
+  var insTitle = A.m("ACTIVITY INSIGHTS", e, e, e, e, A.J(e, e, textP, e, e, e, e, e, e, e, e, 13, e, e, B.K, e, e, !0, e, 1.0, e, e, e, e, e, e), e, e, e)
+  var insTextStr = totalItems === 0 ? "No activity tracked yet. Add habits, studies, and goals to unlock dynamic insights." : ("You have completed " + completedItems + " out of " + totalItems + " total active items with an overall progress score of " + progressScore + "%.")
+  var insDesc = A.m(insTextStr, e, e, e, e, A.J(e, e, textS, e, e, e, e, e, e, e, e, 12, e, e, B.x, e, e, !0, e, e, e, e, e, e, e, e), e, e, e)
+  var insCard = A.X(e, A.a0(A.a([insTitle, B.aW, insDesc], n), B.w, B.h, B.f, 0, B.m), B.j, e, e, new A.O(cardBg, e, e, cardR, e, e, B.o), e, e, e, B.F, e, e, 1/0)
+  
+  return A.j0(A.a([bannerCard, B.an, row1, B.an, row2, B.an, insCard, B.cw], n), B.dK, e, B.S, !1)
+},
+
+buildHabitsTab(a0, d, n, habits){
+  var e=null, textP = d ? B.d : B.B, textS = d ? B.as : B.a6, cardBg = d ? B.ah : B.d, cardR = A.B(20)
+  var title = A.m("Habit Consistency & Streaks", e, e, e, e, A.J(e, e, textP, e, e, e, e, e, e, e, e, 18, e, e, B.K, e, e, !0, e, e, e, e, e, e, e, e), e, e, e)
+  
+  if(habits.length === 0){
+    var emptyCard = A.X(e, A.a0(A.a([
+      A.m("No Habits Tracked", e, e, e, e, A.J(e, e, textP, e, e, e, e, e, e, e, e, 15, e, e, B.K, e, e, !0, e, e, e, e, e, e, e, e), e, e, e),
+      B.aW,
+      A.m("Create habits in the Habit Tracker to track your daily streak consistency and analytics.", e, e, e, e, A.J(e, e, textS, e, e, e, e, e, e, e, e, 12, e, e, B.x, e, e, !0, e, e, e, e, e, e, e, e), e, e, e)
+    ], n), B.w, B.h, B.f, 0, B.m), B.j, e, e, new A.O(cardBg, e, e, cardR, e, e, B.o), e, e, e, B.F, e, e, 1/0)
+    return A.j0(A.a([title, B.aW, emptyCard, B.cw], n), B.dK, e, B.S, !1)
+  }
+  
+  var habitItems = []
+  var compCount = 0
+  for(var i=0; i<habits.length; i++){
+    var h = habits[i]
+    var hTitle = A.b3(h.h(0,"title"))
+    var isDone = J.d(h.h(0,"isCompleted"),!0)
+    if(isDone) compCount++
+    var st = A.fV(h.h(0,"streakDay")) || 0
+    var itemTxt = A.m(hTitle + "  •  🔥 " + st + " Days  •  " + (isDone ? "✓ Completed" : "○ Pending"), e, e, e, e, A.J(e, e, isDone ? B.u : textP, e, e, e, e, e, e, e, e, 13, e, e, B.K, e, e, !0, e, e, e, e, e, e, e, e), e, e, e)
+    habitItems.push(itemTxt)
+    if(i < habits.length - 1) habitItems.push(B.aW)
+  }
+  
+  var card = A.X(e, A.a0(A.a(habitItems, n), B.w, B.h, B.f, 0, B.m), B.j, e, e, new A.O(cardBg, e, e, cardR, e, e, B.o), e, e, e, B.F, e, e, 1/0)
+  return A.j0(A.a([title, B.aW, card, B.cw], n), B.dK, e, B.S, !1)
+},
+
+buildStudiesTab(a0, d, n, subjects, tasks){
+  var e=null, textP = d ? B.d : B.B, textS = d ? B.as : B.a6, cardBg = d ? B.ah : B.d, cardR = A.B(20)
+  var title = A.m("Academic Study Analytics", e, e, e, e, A.J(e, e, textP, e, e, e, e, e, e, e, e, 18, e, e, B.K, e, e, !0, e, e, e, e, e, e, e, e), e, e, e)
+  
+  var studyTasks = tasks.filter(function(t){ return t.category === 'Studies' || (t.h && t.h(0,'category') === 'Studies'); })
+  
+  if(subjects.length === 0 && studyTasks.length === 0){
+    var emptyCard = A.X(e, A.a0(A.a([
+      A.m("No Study Data Available", e, e, e, e, A.J(e, e, textP, e, e, e, e, e, e, e, e, 15, e, e, B.K, e, e, !0, e, e, e, e, e, e, e, e), e, e, e),
+      B.aW,
+      A.m("Add subjects and assignments in Academic Planner to analyze your study patterns.", e, e, e, e, A.J(e, e, textS, e, e, e, e, e, e, e, e, 12, e, e, B.x, e, e, !0, e, e, e, e, e, e, e, e), e, e, e)
+    ], n), B.w, B.h, B.f, 0, B.m), B.j, e, e, new A.O(cardBg, e, e, cardR, e, e, B.o), e, e, e, B.F, e, e, 1/0)
+    return A.j0(A.a([title, B.aW, emptyCard, B.cw], n), B.dK, e, B.S, !1)
+  }
+  
+  var subRows = []
+  for(var i=0; i<subjects.length; i++){
+    var s = subjects[i]
+    var subName = s.name || "Subject " + (i+1)
+    var subProg = Math.round((s.progress || 0) * 100)
+    subRows.push(A.m(subName + "  •  " + subProg + "% Progress", e, e, e, e, A.J(e, e, textP, e, e, e, e, e, e, e, e, 13, e, e, B.K, e, e, !0, e, e, e, e, e, e, e, e), e, e, e))
+    if(i < subjects.length - 1) subRows.push(B.aW)
+  }
+  if(subRows.length === 0){
+    subRows.push(A.m("Enrolled: " + subjects.length + " Subjects • " + studyTasks.length + " Tasks", e, e, e, e, A.J(e, e, textP, e, e, e, e, e, e, e, e, 13, e, e, B.K, e, e, !0, e, e, e, e, e, e, e, e), e, e, e))
+  }
+  
+  var card = A.X(e, A.a0(A.a(subRows, n), B.w, B.h, B.f, 0, B.m), B.j, e, e, new A.O(cardBg, e, e, cardR, e, e, B.o), e, e, e, B.F, e, e, 1/0)
+  return A.j0(A.a([title, B.aW, card, B.cw], n), B.dK, e, B.S, !1)
+},
+
+buildExpensesTab(a0, d, n, expenses){
+  var e=null, textP = d ? B.d : B.B, textS = d ? B.as : B.a6, cardBg = d ? B.ah : B.d, cardR = A.B(20)
+  var title = A.m("Financial Breakdown & Cashflow", e, e, e, e, A.J(e, e, textP, e, e, e, e, e, e, e, e, 18, e, e, B.K, e, e, !0, e, e, e, e, e, e, e, e), e, e, e)
+  
+  if(expenses.length === 0){
+    var emptyCard = A.X(e, A.a0(A.a([
+      A.m("No Expense Records", e, e, e, e, A.J(e, e, textP, e, e, e, e, e, e, e, e, 15, e, e, B.K, e, e, !0, e, e, e, e, e, e, e, e), e, e, e),
+      B.aW,
+      A.m("Log your daily expenses in the Expense Tracker to analyze spending categories and cashflow.", e, e, e, e, A.J(e, e, textS, e, e, e, e, e, e, e, e, 12, e, e, B.x, e, e, !0, e, e, e, e, e, e, e, e), e, e, e)
+    ], n), B.w, B.h, B.f, 0, B.m), B.j, e, e, new A.O(cardBg, e, e, cardR, e, e, B.o), e, e, e, B.F, e, e, 1/0)
+    return A.j0(A.a([title, B.aW, emptyCard, B.cw], n), B.dK, e, B.S, !1)
+  }
+  
+  var catMap = {}
+  var totalSpent = 0
+  for(var i=0; i<expenses.length; i++){
+    var exp = expenses[i]
+    if(!exp.isIncome){
+      var amt = exp.amount || 0
+      var cat = exp.category || "General"
+      catMap[cat] = (catMap[cat] || 0) + amt
+      totalSpent += amt
+    }
+  }
+  
+  var expRows = [A.m("Total Spent: ₹" + Math.round(totalSpent), e, e, e, e, A.J(e, e, textP, e, e, e, e, e, e, e, e, 14, e, e, B.K, e, e, !0, e, e, e, e, e, e, e, e), e, e, e)]
+  var cats = Object.keys(catMap)
+  for(var i=0; i<cats.length; i++){
+    var c = cats[i]
+    var amt = catMap[c]
+    var pct = totalSpent > 0 ? Math.round((amt / totalSpent) * 100) : 0
+    expRows.push(B.aW)
+    expRows.push(A.m(c + "  •  ₹" + Math.round(amt) + " (" + pct + "%)", e, e, e, e, A.J(e, e, textS, e, e, e, e, e, e, e, e, 12, e, e, B.x, e, e, !0, e, e, e, e, e, e, e, e), e, e, e))
+  }
+  
+  var card = A.X(e, A.a0(A.a(expRows, n), B.w, B.h, B.f, 0, B.m), B.j, e, e, new A.O(cardBg, e, e, cardR, e, e, B.o), e, e, e, B.F, e, e, 1/0)
+  return A.j0(A.a([title, B.aW, card, B.cw], n), B.dK, e, B.S, !1)
+},
+
+buildGoalsTab(a0, d, n, roadmap){
+  var e=null, textP = d ? B.d : B.B, textS = d ? B.as : B.a6, cardBg = d ? B.ah : B.d, cardR = A.B(20)
+  var title = A.m("Strategic Goals Analytics", e, e, e, e, A.J(e, e, textP, e, e, e, e, e, e, e, e, 18, e, e, B.K, e, e, !0, e, e, e, e, e, e, e, e), e, e, e)
+  
+  var goals = roadmap.filter(function(r){ return r.section === 'GOAL'; })
+  
+  if(goals.length === 0){
+    var emptyCard = A.X(e, A.a0(A.a([
+      A.m("No Goals Configured", e, e, e, e, A.J(e, e, textP, e, e, e, e, e, e, e, e, 15, e, e, B.K, e, e, !0, e, e, e, e, e, e, e, e), e, e, e),
+      B.aW,
+      A.m("Define your career objectives and milestones in Career Roadmap to track progression.", e, e, e, e, A.J(e, e, textS, e, e, e, e, e, e, e, e, 12, e, e, B.x, e, e, !0, e, e, e, e, e, e, e, e), e, e, e)
+    ], n), B.w, B.h, B.f, 0, B.m), B.j, e, e, new A.O(cardBg, e, e, cardR, e, e, B.o), e, e, e, B.F, e, e, 1/0)
+    return A.j0(A.a([title, B.aW, emptyCard, B.cw], n), B.dK, e, B.S, !1)
+  }
+  
+  var goalRows = []
+  for(var i=0; i<goals.length; i++){
+    var g = goals[i]
+    var gTitle = g.title || "Goal " + (i+1)
+    var isDone = !!g.isCompleted
+    goalRows.push(A.m((isDone ? "✓ " : "○ ") + gTitle + "  •  " + (isDone ? "Completed" : "On Track"), e, e, e, e, A.J(e, e, isDone ? B.u : textP, e, e, e, e, e, e, e, e, 13, e, e, B.K, e, e, !0, e, e, e, e, e, e, e, e), e, e, e))
+    if(i < goals.length - 1) goalRows.push(B.aW)
+  }
+  
+  var card = A.X(e, A.a0(A.a(goalRows, n), B.w, B.h, B.f, 0, B.m), B.j, e, e, new A.O(cardBg, e, e, cardR, e, e, B.o), e, e, e, B.F, e, e, 1/0)
+  return A.j0(A.a([title, B.aW, card, B.cw], n), B.dK, e, B.S, !1)
+},
+
+buildMilestonesTab(a0, d, n, roadmap){
+  var e=null, textP = d ? B.d : B.B, textS = d ? B.as : B.a6, cardBg = d ? B.ah : B.d, cardR = A.B(20)
+  var title = A.m("Milestones & Achievements", e, e, e, e, A.J(e, e, textP, e, e, e, e, e, e, e, e, 18, e, e, B.K, e, e, !0, e, e, e, e, e, e, e, e), e, e, e)
+  
+  var milestones = roadmap.filter(function(r){ return r.section !== 'GOAL'; })
+  
+  if(milestones.length === 0){
+    var emptyCard = A.X(e, A.a0(A.a([
+      A.m("No Milestones Tracked", e, e, e, e, A.J(e, e, textP, e, e, e, e, e, e, e, e, 15, e, e, B.K, e, e, !0, e, e, e, e, e, e, e, e), e, e, e),
+      B.aW,
+      A.m("Add learning milestones and skill achievements to see your milestone timeline.", e, e, e, e, A.J(e, e, textS, e, e, e, e, e, e, e, e, 12, e, e, B.x, e, e, !0, e, e, e, e, e, e, e, e), e, e, e)
+    ], n), B.w, B.h, B.f, 0, B.m), B.j, e, e, new A.O(cardBg, e, e, cardR, e, e, B.o), e, e, e, B.F, e, e, 1/0)
+    return A.j0(A.a([title, B.aW, emptyCard, B.cw], n), B.dK, e, B.S, !1)
+  }
+  
+  var msRows = []
+  for(var i=0; i<milestones.length; i++){
+    var mNode = milestones[i]
+    var mTitle = mNode.title || "Milestone " + (i+1)
+    var isDone = !!mNode.isCompleted
+    msRows.push(A.m((isDone ? "✓ " : "○ ") + mTitle + "  •  " + (mNode.section || "General"), e, e, e, e, A.J(e, e, isDone ? B.u : textP, e, e, e, e, e, e, e, e, 13, e, e, B.K, e, e, !0, e, e, e, e, e, e, e, e), e, e, e))
+    if(i < milestones.length - 1) msRows.push(B.aW)
+  }
+  
+  var card = A.X(e, A.a0(A.a(msRows, n), B.w, B.h, B.f, 0, B.m), B.j, e, e, new A.O(cardBg, e, e, cardR, e, e, B.o), e, e, e, B.F, e, e, 1/0)
+  return A.j0(A.a([title, B.aW, card, B.cw], n), B.dK, e, B.S, !1)
+},
+
 Gn(a,b,c,d){var s=null,r=a?B.ah:B.d,q=A.B(18),p=a?A.bO(B.ay,B.p,1):s,o=a?A.fY():A.iN(),n=A.m(c,s,s,s,s,A.J(s,s,a?B.as:B.a6,s,s,s,s,s,s,s,s,11,s,s,B.b4,s,s,!0,s,s,s,s,s,s,s,s),s,s,s),m=A.m(d,s,s,s,s,A.J(s,s,a?B.d:B.B,s,s,s,s,s,s,s,s,22,s,s,B.fL,s,s,!0,s,s,s,s,s,s,s,s),s,s,s)
 return A.X(s,A.a0(A.a([n,B.bz,m,B.aW,A.m(b,s,s,s,s,A.J(s,s,a?B.as:B.a6,s,s,s,s,s,s,s,s,10,s,s,B.a2,s,s,!0,s,s,s,s,s,s,s,s),s,s,s)],t.p),B.i,B.h,B.f,0,B.m),B.j,s,s,new A.O(r,s,p,q,o,s,B.o),s,s,s,B.Mx,s,s,s)}}
 A.aqH.prototype={
@@ -100690,25 +100861,108 @@ A.qD.prototype={
 a5(){return new A.WF(A.a([],t.H7))}}
 A.WF.prototype={
 E(a){var s,r,q,p,o,n,m,l,k=this,j=null,i=A.p(a).ax.a===B.A,h=i?B.am:B.c7,g=i?B.aZ:B.aV,f=A.c3(j,j,j,A.as(B.bm,i?B.d:B.B,j,20),j,j,new A.awI(a),j,j,j,j)
-f=A.da(j,j,j,j,j,f,A.m("Habit Tracker",j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,j,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j))
+f=A.da(j,j,j,j,j,f,A.m("Habits",j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,j,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j))
 s=i?B.am:B.N
 s=A.jE(s,B.ei,4,"habit_fab",new A.awJ(k,a),B.di)
-r=A.m("Current Streaks",j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,18,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j)
 q=k.d
-p=q.length===0?"0 DAY STREAK":""+new A.aB(q,new A.awK(),A.a1(q).i("aB<1>")).gG(0)+" ACTIVE"
-o=t.p
-p=A.a4(A.a([r,A.m(p,j,j,j,j,A.J(j,j,h,j,j,j,j,j,j,j,j,11,j,j,B.x,j,j,!0,j,1.1,j,j,j,j,j,j),j,j,j)],o),B.i,B.ap,B.f,0,j,j)
-r=i?B.ah:B.ec
-n=A.B(20)
-m=i?A.bO(B.ay,B.p,1):j
-l=q.length
-if(l===0)l=B.Jj
-else{if(l>3)l=3
-l=A.a4(A.Pc(l,new A.awL(k),!0,t.l7),B.i,B.iu,B.f,0,j,j)}n=A.X(j,l,B.j,j,j,new A.O(r,j,m,n,j,j,B.o),j,j,j,B.MB,j,j,j)
-r=A.m("Rewards earned",j,j,j,j,A.J(j,j,i?B.d:B.af,j,j,j,j,j,j,j,j,18,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j)
-if(!new A.aB(q,new A.awM(),A.a1(q).i("aB<1>")).gaf(0).B()){m=i?B.T:B.d
-m=A.X(j,B.Jk,B.j,j,j,new A.O(m,j,j,A.B(18),j,j,B.o),j,j,j,B.F,j,j,1/0)}else m=A.b_(A.j0(A.a([k.R_(a,B.rc,B.u3,B.r7,"EARLY BIRD"),B.bx,k.R_(a,B.Kk,B.tP,B.bG,"ON FIRE")],o),j,j,B.ak,!1),110,j)
-return A.cJ(f,g,A.dA(A.a0(A.a([p,B.aP,n,B.an,r,B.aP,m,B.an,A.m("Active Habits",j,j,j,j,A.J(j,j,i?B.d:B.af,j,j,j,j,j,j,j,j,18,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j),B.aP,A.vP(new A.awN(k),q.length,B.f2,!0),B.dx],o),B.w,B.h,B.f,0,B.m),j,B.t,B.bw,j,j,B.S),j,s)},
+var compCount=0
+var bestHabit=null
+var bestStreak=0
+for(var ci=0;ci<q.length;ci++){
+  var hItem=q[ci]
+  var isDone=J.d(hItem.h(0,"isCompleted"),!0)
+  if(isDone)compCount++
+  var st=A.fV(hItem.h(0,"longestStreak"))||A.fV(hItem.h(0,"streakDay"))||0
+  if(st>bestStreak||(st===bestStreak&&!bestHabit)){
+    bestStreak=st
+    bestHabit=hItem
+  }
+}
+
+// 1. Full-Width Top Progress Card
+var dateMonths=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+var nowD=new Date()
+var jsDay=nowD.getDay()
+var dayOfWeek=jsDay===0?7:jsDay // 1 = Mon ... 7 = Sun
+var monday=new Date(nowD.getFullYear(),nowD.getMonth(),nowD.getDate()-(dayOfWeek-1))
+
+var todayDateLabel="Today, "+dateMonths[nowD.getMonth()]+" "+nowD.getDate()
+var topTitle=A.m(todayDateLabel,j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,16,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j)
+var metricTxt=A.m("◉  "+compCount+" / "+q.length,j,j,j,j,A.J(j,j,compCount>0&&compCount===q.length?B.u:(i?B.d:B.B),j,j,j,j,j,j,j,j,22,j,j,B.K,j,j,!0,j,-0.5,j,j,j,j,j,j),j,j,j)
+var pctText=q.length>0?("Completed ("+Math.round(compCount/q.length*100)+"%)"):"Completed"
+var compLabel=A.m(pctText,j,j,j,j,A.J(j,j,h,j,j,j,j,j,j,j,j,12,j,j,B.x,j,j,!0,j,j,j,j,j,j,j,j),j,j,j)
+var topCardContent=A.a0(A.a([topTitle,B.aW,metricTxt,B.aP,compLabel],t.p),B.w,B.h,B.av,0,B.m)
+var topCard=A.X(j,topCardContent,B.j,j,j,new A.O(i?B.ah:B.ec,j,i?A.bO(B.ay,B.p,1):j,A.B(20),j,j,B.o),j,j,j,B.F,j,j,1/0)
+
+// 2. Today's Habits Section
+var todayHabitsHeader=A.a4(A.a([A.m("TODAY'S HABITS",j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,13,j,j,B.K,j,j,!0,j,1.1,j,j,j,j,j,j),j,j,j),A.m(q.length+" ACTIVE",j,j,j,j,A.J(j,j,h,j,j,j,j,j,j,j,j,11,j,j,B.x,j,j,!0,j,0.8,j,j,j,j,j,j),j,j,j)],t.p),B.i,B.ap,B.f,0,j,j)
+var habitsWidget=q.length===0?A.X(j,A.m("No habits created yet.\nTap (+) below to add your first habit!",j,j,j,j,A.J(j,j,h,j,j,j,j,j,j,j,j,13,j,j,B.x,j,j,!0,j,j,j,j,j,j,j,j),j,j,j),B.j,j,j,new A.O(i?B.T:B.d,j,j,A.B(16),j,j,B.o),j,j,j,B.F,j,j,1/0):A.vP(new A.awN(k),q.length,B.f2,!0)
+
+// 3. Weekly Consistency Activity Heat Map (Mon to Sun with exact aligned days)
+var heatmapHeader=A.a4(A.a([
+  A.m("WEEKLY CONSISTENCY HEAT MAP",j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,13,j,j,B.K,j,j,!0,j,1.1,j,j,j,j,j,j),j,j,j),
+  A.m("MON - SUN",j,j,j,j,A.J(j,j,B.u,j,j,j,j,j,j,j,j,11,j,j,B.K,j,j,!0,j,0.8,j,j,j,j,j,j),j,j,j)
+],t.p),B.i,B.ap,B.f,0,j,j)
+
+var dayLabels=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
+var weekDayDates=[]
+var headerColsText="          "
+for(var wi=0;wi<7;wi++){
+  var wDate=new Date(monday.getFullYear(),monday.getMonth(),monday.getDate()+wi)
+  var isT=(wi+1)===dayOfWeek
+  weekDayDates.push(wDate)
+  var colStr=dayLabels[wi]+" "+wDate.getDate()
+  if(isT) colStr="["+dayLabels[wi]+" "+wDate.getDate()+"]"
+  headerColsText += colStr.padEnd(10," ")
+}
+
+var daysHeader=A.m(headerColsText,j,j,j,j,A.J(j,j,h,j,j,j,j,j,j,j,j,11,j,j,B.K,j,j,!0,j,0.5,j,j,j,j,j,j),j,j,j)
+var consistencyRows=[daysHeader]
+
+if(q.length===0){
+  consistencyRows.push(B.aW)
+  consistencyRows.push(A.m("No habits tracked yet. Create a habit to view your weekly activity heat map.",j,j,j,j,A.J(j,j,h,j,j,j,j,j,j,j,j,13,j,j,B.x,j,j,!0,j,j,j,j,j,j,j,j),j,j,j))
+}else{
+  for(var hi=0;hi<q.length;hi++){
+    var hItem=q[hi]
+    var hTitle=A.b3(hItem.h(0,"title"))
+    var hDone=J.d(hItem.h(0,"isCompleted"),!0)
+    var hEmoji=hTitle.split(" ")[0]||"🎯"
+    if(hEmoji.length>2) hEmoji="🎯"
+    var cleanTitle=hTitle.replace(hEmoji,"").trim()
+    if(!cleanTitle) cleanTitle=hTitle
+    if(cleanTitle.length>8) cleanTitle=cleanTitle.substring(0,8)+".."
+    
+    // Build 7 Heatmap Status Dots for Mon(1) to Sun(7)
+    var rowText = (hEmoji+" "+cleanTitle).padEnd(12," ")
+    for(var di=1;di<=7;di++){
+      var cell=""
+      if(di===dayOfWeek){
+        // Today
+        cell = hDone ? " [●] " : " [○] "
+      } else if(di < dayOfWeek){
+        // Past days in current week (if habit was checked)
+        cell = hDone ? "  ●  " : "  ○  "
+      } else {
+        // Upcoming days
+        cell = "  -  "
+      }
+      rowText += cell.padEnd(10," ")
+    }
+    
+    consistencyRows.push(B.aW)
+    consistencyRows.push(A.m(rowText,j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,12,j,j,B.K,j,j,!0,j,0.5,j,j,j,j,j,j),j,j,j))
+  }
+}
+var weeklyCard=A.X(j,A.a0(A.a(consistencyRows,t.p),B.w,B.h,B.f,0,B.m),B.j,j,j,new A.O(i?B.T:B.d,j,j,A.B(18),j,j,B.o),j,j,j,B.F,j,j,1/0)
+
+// 4. Best Streak Card
+var bestStreakTitle=A.m("🔥 Best Streak",j,j,j,j,A.J(j,j,i?B.d:B.af,j,j,j,j,j,j,j,j,14,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j)
+var bestStreakDescTxt=bestHabit&&bestStreak>0?(A.b3(bestHabit.h(0,"title"))+" • "+bestStreak+" Days"):"Start completing habits daily to build your best streak!"
+var bestStreakDesc=A.m(bestStreakDescTxt,j,j,j,j,A.J(j,j,i?B.d:B.B,j,j,j,j,j,j,j,j,15,j,j,B.K,j,j,!0,j,j,j,j,j,j,j,j),j,j,j)
+var bestStreakCard=A.X(j,A.a0(A.a([bestStreakTitle,B.aW,bestStreakDesc],t.p),B.w,B.h,B.f,0,B.m),B.j,j,j,new A.O(i?B.T:B.d,j,j,A.B(18),j,j,B.o),j,j,j,B.F,j,j,1/0)
+
+return A.cJ(f,g,A.dA(A.a0(A.a([topCard,B.an,todayHabitsHeader,B.aP,habitsWidget,B.an,heatmapHeader,B.aP,weeklyCard,B.an,bestStreakCard,B.dx],t.p),B.w,B.h,B.f,0,B.m),j,B.t,B.bw,j,j,B.S),j,s)},
 R_(a,b,c,d,e){var s,r=null,q=A.p(a).ax.a===B.A,p=q?B.T:B.d,o=A.B(18),n=A.a([],t.V)
 if(!q)n.push(new A.aK(0,B.E,A.Z(8,B.n.m()>>>16&255,B.n.m()>>>8&255,B.n.m()&255),B.ba,10))
 s=A.B(12)
@@ -100718,7 +100972,9 @@ i=A.X(o,A.as(t.tk.a(b.h(0,"icon")),B.u,o,22),B.j,o,o,new A.O(j,o,o,i,o,o,B.o),o,
 j=A.b3(b.h(0,"title"))
 s=m?B.dW:o
 r=t.p
-s=A.aD(A.a0(A.a([A.m(j,o,o,o,o,A.J(o,o,n?B.d:B.af,o,s,o,o,o,o,o,o,15,o,o,B.x,o,o,!0,o,o,o,o,o,o,o,o),o,o,o),B.aW,A.m(A.b3(b.h(0,"frequency")),o,o,o,o,B.a4I,o,o,o)],r),B.w,B.h,B.f,0,B.m),1)
+var stVal=A.fV(b.h(0,"streakDay"))||0
+var streakBadge=A.m("🔥 "+stVal,o,o,o,o,A.J(o,o,n?B.d:B.af,o,o,o,o,o,o,o,o,12,o,o,B.K,o,o,!0,o,o,o,o,o,o,o,o),o,o,o)
+s=A.aD(A.a0(A.a([A.m(j,o,o,o,o,A.J(o,o,n?B.d:B.af,o,s,o,o,o,o,o,o,15,o,o,B.x,o,o,!0,o,o,o,o,o,o,o,o),o,o,o),B.aW,A.a4(A.a([A.m(A.b3(b.h(0,"frequency")),o,o,o,o,B.a4I,o,o,o),B.bx,streakBadge],r),B.i,B.h,B.f,0,o,o)],r),B.w,B.h,B.f,0,B.m),1)
 j=m?B.u:B.C
 q=A.bO(B.u,B.p,2)
 p=m?B.u9:o
@@ -100761,12 +101017,23 @@ $0(){var s=this.a
 s.K(new A.awp(s,this.b,this.c))},
 $S:0}
 A.awp.prototype={
-$0(){var s="streakDay",r=this.a.d,q=this.b,p=!this.c
-r[q].p(0,"isCompleted",p)
-if(p){r=r[q]
-q=A.fV(r.h(0,s))
-r.p(0,s,(q==null?0:q)+1)}},
+$0(){
+  var r=this.a.d,q=this.b,item=r[q]
+  var isNowDone=!J.d(item.h(0,"isCompleted"),!0)
+  item.p(0,"isCompleted",isNowDone)
+  var curStreak=A.fV(item.h(0,"streakDay"))||0
+  var longest=A.fV(item.h(0,"longestStreak"))||0
+  if(isNowDone){
+    curStreak=curStreak+1
+    longest=Math.max(longest,curStreak)
+  }else{
+    curStreak=Math.max(0,curStreak-1)
+  }
+  item.p(0,"streakDay",curStreak)
+  item.p(0,"longestStreak",longest)
+},
 $S:0}
+
 A.aws.prototype={
 $1(a){var s,r=this
 if(a==="toggle"){s=r.a
@@ -100856,8 +101123,19 @@ s.K(new A.awt(r.a,s,q,r.d))
 A.ad(r.e,!1).aI(null)}},
 $S:0}
 A.awt.prototype={
-$0(){var s=this,r=s.a
-s.b.d.push(A.af(["id",B.l.k(Date.now()),"title",B.c.aN(s.c.a.a),"frequency",r.b.toUpperCase()+" \u2022 "+r.a.fJ(s.d),"icon",B.NK,"isCompleted",!1,"streakDay",1],t.N,t.z))},
+$0(){
+  var s=this,r=s.a
+  var title=B.c.aN(s.c.a.a)
+  s.b.d.push(A.af([
+    "id",B.l.k(Date.now()),
+    "title",title,
+    "frequency",r.b.toUpperCase()+" • "+r.a.fJ(s.d),
+    "icon",B.NK,
+    "isCompleted",!1,
+    "streakDay",0,
+    "longestStreak",0
+  ],t.N,t.z))
+},
 $S:0}
 
 A.Os.prototype={
@@ -100950,40 +101228,102 @@ q=r.x
 q.N$=s
 q.I$=0
 r.a9P()},
-vv(){var s=0,r=A.V(t.H),q=this,p,o,n,m
-var $async$vv=A.W(function(a,b){if(a===1)return A.S(b,r)
-for(;;)switch(s){case 0:s=!q.r?2:4
-break
-case 2:p=B.c.aN(q.e.a.a)
-s=p.length>=10?5:6
-break
-case 5:s=7
-return A.P(A.a3L(p),$async$vv)
-case 7:o=b
-q.K(new A.axW(q))
-p=q.c.Y(t.J).f
-n=o.h(0,"message")
-p.d7(A.jd(null,null,null,B.N,null,B.z,null,A.m(n==null?"OTP sent successfully! (Use code: 1234)":n,null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null))
-case 6:s=3
-break
-case 4:p=q.e
-n=q.f
-s=8
-return A.P(A.a3N(B.c.aN(p.a.a),B.c.aN(n.a.a)),$async$vv)
-case 8:o=b
-n=J.d(o.h(0,"success"),!0)||B.c.aN(n.a.a)==="1234"
-m=q.c
-if(n){m.toString
-A.f1(m,!1,t.T).MG("Alex Johnson",B.c.aN(p.a.a))}else{p=m.Y(t.J).f
-n=o.h(0,"message")
-p.d7(A.jd(null,null,null,B.cE,null,B.z,null,A.m(n==null?"Invalid OTP code. Please enter 1234":n,null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null))}case 3:return A.T(null,r)}})
-return A.U($async$vv,r)},
-agN(){var s=this.w,r=B.c.aN(s.a.a).length!==0&&B.c.aN(this.x.a.a).length!==0,q=this.c
-if(r){q.toString
-A.f1(q,!1,t.T).MG(B.c.aN(s.a.a),B.c.aN(s.a.a))}else q.Y(t.J).f.d7(B.a0k)},
-aha(){var s=this.c
-s.toString
-A.f1(s,!1,t.T).MG("Alex Johnson","alex.google@gmail.com")},
+vv(){var q=this, email=B.c.aN(q.e.a.a).trim(), otp=B.c.aN(q.f.a.a).trim(), ctx=q.c;
+if(!q.r){
+  if(email.length<3){
+    ctx.Y(t.J).f.d7(A.jd(null,null,null,B.cE,null,B.z,null,A.m("Please enter a valid email address",null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null));
+    return;
+  }
+  fetch('/api/auth/register-initiate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,username:email.split('@')[0]})})
+  .then(function(res){return res.json();})
+  .then(function(data){
+    q.K(new A.axW(q));
+    var msg = data.code ? ("Verification code: " + data.code + " (also sent to email)") : (data.message || "OTP sent successfully!");
+    ctx.Y(t.J).f.d7(A.jd(null,null,null,B.N,null,B.z,null,A.m(msg,null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null));
+  }).catch(function(err){
+    ctx.Y(t.J).f.d7(A.jd(null,null,null,B.cE,null,B.z,null,A.m("Network error sending OTP",null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null));
+  });
+} else {
+  if(!otp){
+    ctx.Y(t.J).f.d7(A.jd(null,null,null,B.cE,null,B.z,null,A.m("Please enter your verification code",null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null));
+    return;
+  }
+  fetch('/api/auth/register-verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,code:otp})})
+  .then(function(res){return res.json();})
+  .then(function(data){
+    if(data&&data.success&&data.user){
+      var prov = A.f1(ctx,!1,t.T);
+      prov.MG(data.user.name||data.user.username||email, data.user.email||email);
+      try {
+        localStorage.setItem('wrindha_auth_token', data.token);
+        localStorage.setItem('saved_session_token', data.token);
+        localStorage.setItem('saved_session_user', JSON.stringify(data.user));
+      } catch(e){}
+    } else {
+      var msg = data.message || "Invalid verification code. Please check and try again.";
+      ctx.Y(t.J).f.d7(A.jd(null,null,null,B.cE,null,B.z,null,A.m(msg,null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null));
+    }
+  }).catch(function(err){
+    ctx.Y(t.J).f.d7(A.jd(null,null,null,B.cE,null,B.z,null,A.m("Verification failed: Network error",null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null));
+  });
+}
+},
+agN(){
+  var uCtrl = this.w, pCtrl = this.x, ctx = this.c;
+  var uName = (uCtrl && uCtrl.a && uCtrl.a.a ? uCtrl.a.a : '').trim();
+  var pwd = (pCtrl && pCtrl.a && pCtrl.a.a ? pCtrl.a.a : '');
+
+  if(!uName || !pwd){
+    ctx.Y(t.J).f.d7(A.jd(null,null,null,B.cE,null,B.z,null,A.m("Please enter both username/email and password.",null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null));
+    return;
+  }
+
+  fetch('/api/auth/login',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({username:uName,password:pwd})
+  })
+  .then(function(res){return res.json();})
+  .then(function(data){
+    if(data && data.success && data.user && data.token){
+      var prov = A.f1(ctx,!1,t.T);
+      prov.MG(data.user.name||data.user.username||uName, data.user.email||uName);
+      try {
+        localStorage.setItem('wrindha_auth_token', data.token);
+        localStorage.setItem('saved_session_token', data.token);
+        localStorage.setItem('saved_session_user', JSON.stringify(data.user));
+      } catch(e){}
+    } else {
+      var msg = data && data.message ? data.message : "Incorrect username or password. No account found with these credentials.";
+      ctx.Y(t.J).f.d7(A.jd(null,null,null,B.cE,null,B.z,null,A.m(msg,null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null));
+    }
+  })
+  .catch(function(err){
+    ctx.Y(t.J).f.d7(A.jd(null,null,null,B.cE,null,B.z,null,A.m("Login error: Could not reach server.",null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null));
+  });
+},
+aha(){
+  var ctx = this.c;
+  fetch('/api/auth/google',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({email:'alex.google@gmail.com',googleId:'g_web_user',name:'Google User'})
+  })
+  .then(function(res){return res.json();})
+  .then(function(data){
+    if(data && data.success && data.user && data.token){
+      var prov = A.f1(ctx,!1,t.T);
+      prov.MG(data.user.name, data.user.email);
+      try {
+        localStorage.setItem('wrindha_auth_token', data.token);
+        localStorage.setItem('saved_session_token', data.token);
+        localStorage.setItem('saved_session_user', JSON.stringify(data.user));
+      } catch(e){}
+    } else {
+      ctx.Y(t.J).f.d7(A.jd(null,null,null,B.cE,null,B.z,null,A.m("Google Sign-In failed.",null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null));
+    }
+  });
+},
 E(a4){var s,r,q,p,o,n,m,l,k,j,i,h,g,f,e,d,c=this,b=null,a=4287931320,a0=A.p(a4).ax.a===B.A,a1=a0?B.am:B.N,a2=a0?B.aZ:B.aV,a3=A.B(14)
 a3=new A.c6(null,0,null,null)
 r=A.m("Welcome to WrindhaOS",b,b,B.k,b,A.J(b,b,a0?B.d:B.B,b,b,b,b,b,b,b,b,26,b,b,B.K,b,b,!0,b,b,b,b,b,b,b,b),b,b,b)
@@ -101001,7 +101341,7 @@ k=A.B(14)
 j=a0?B.bl:B.aR
 i=A.B(14)
 h=a0?B.bl:B.aR
-m=A.a([B.a7n,B.ao,A.bZ(b,B.Z,!1,b,!0,B.z,b,A.c4(),c.e,b,b,b,b,b,2,A.dW(b,new A.bB(4,k,new A.am(j,1,B.p,-1)),b,b,b,b,b,b,!0,new A.bB(4,i,new A.am(h,1,B.p,-1)),b,b,b,b,b,l,!0,b,b,b,b,new A.bB(4,A.B(14),new A.am(a1,1.5,B.p,-1)),b,b,b,b,b,b,b,b,n,"",b,b,b,b,b,b,b,b,b,!0,!0,!1,b,m,b,b,b,b,b,b,b,b,b,b,b,b),B.t,!0,b,!0,b,!1,b,B.W,b,b,b,b,B.p9,b,b,b,1,b,b,!1,"\u2022",b,b,b,b,b,!1,b,b,!1,b,!0,b,B.F,b,b,b,b,b,b,b,b,b,b,b,b,!0,B.G,b,B.a3,b,b,b,b),B.a1],s)
+m=A.a([B.a7n,B.ao,A.bZ(b,B.Z,!1,b,!0,B.z,b,A.c4(),c.e,b,b,b,b,b,2,A.dW(b,new A.bB(4,k,new A.am(j,1,B.p,-1)),b,b,b,b,b,b,!0,new A.bB(4,i,new A.am(h,1,B.p,-1)),b,b,b,b,b,l,!0,b,b,b,b,new A.bB(4,A.B(14),new A.am(a1,1.5,B.p,-1)),b,b,b,b,b,b,b,b,n,"",b,b,b,b,b,b,b,b,b,!0,!0,!1,b,m,b,b,b,b,b,b,b,b,b,b,b,b),B.t,!0,b,!0,b,!1,b,B.W,b,b,b,b,B.p9,b,b,b,1,b,b,!1,"•",b,b,b,b,b,!1,b,b,!1,b,!0,b,B.F,b,b,b,b,b,b,b,b,b,b,b,b,!0,B.G,b,B.a3,b,b,b,b),B.a1],s)
 if(true){n=A.J(b,b,A.b1(a),b,b,b,b,b,b,b,b,13.5,b,b,b,b,b,!0,b,b,b,b,b,b,b,b)
 l=A.as(B.nC,a1,b,20)
 k=a0?B.T:B.b3
@@ -101009,7 +101349,7 @@ j=A.B(14)
 i=a0?B.bl:B.aR
 h=A.B(14)
 g=a0?B.bl:B.aR
-B.b.M(m,A.a([B.a77,B.ao,A.bZ(b,B.Z,!1,b,!0,B.z,b,A.c4(),c.f,b,b,b,b,b,2,A.dW(b,new A.bB(4,j,new A.am(i,1,B.p,-1)),b,b,b,b,"",b,!0,new A.bB(4,h,new A.am(g,1,B.p,-1)),b,b,b,b,b,k,!0,b,b,b,b,new A.bB(4,A.B(14),new A.am(a1,1.5,B.p,-1)),b,b,b,b,b,b,b,b,n,"Enter your password",b,b,b,b,b,b,b,b,b,!0,!0,!1,b,l,b,b,b,b,b,b,b,b,b,b,b,b),B.t,!0,b,!0,b,!1,b,B.W,b,b,b,b,B.iS,b,4,b,1,b,b,!1,"\u2022",b,b,b,b,b,!1,b,b,!1,b,!0,b,B.F,b,b,b,b,b,b,b,b,b,b,b,b,!0,B.G,b,B.a3,b,b,b,b),B.a1],s))}n=A.cX(b,b,a1,b,b,b,0,b,b,b,b,b,b,b,new A.bb(A.B(14),B.v),b,b,b,b,b)
+B.b.M(m,A.a([B.a77,B.ao,A.bZ(b,B.Z,!1,b,!0,B.z,b,A.c4(),c.f,b,b,b,b,b,2,A.dW(b,new A.bB(4,j,new A.am(i,1,B.p,-1)),b,b,b,b,"",b,!0,new A.bB(4,h,new A.am(g,1,B.p,-1)),b,b,b,b,b,k,!0,b,b,b,b,new A.bB(4,A.B(14),new A.am(a1,1.5,B.p,-1)),b,b,b,b,b,b,b,b,n,"Enter your password",b,b,b,b,b,b,b,b,b,!0,!0,!1,b,l,b,b,b,b,b,b,b,b,b,b,b,b),B.t,!0,b,!0,b,!1,b,B.W,b,b,b,b,B.iS,b,4,b,1,b,b,!1,"•",b,b,b,b,b,!1,b,b,!1,b,!0,b,B.F,b,b,b,b,b,b,b,b,b,b,b,b,!0,B.G,b,B.a3,b,b,b,b),B.a1],s))}n=A.cX(b,b,a1,b,b,b,0,b,b,b,b,b,b,b,new A.bb(A.B(14),B.v),b,b,b,b,b)
 l=c.r?"Verify & Log In":"Sign In"
 m.push(A.b_(A.cW(A.m(l,b,b,b,b,A.J(b,b,B.d,b,b,b,b,b,b,b,b,15,b,b,B.x,b,b,!0,b,b,b,b,b,b,b,b),b,b,b),c.gahN(),n),50,1/0))
 m.push(B.a4)
@@ -101024,7 +101364,7 @@ j=A.B(14)
 i=a0?B.bl:B.aR
 h=A.B(14)
 g=a0?B.bl:B.aR
-l=A.bZ(b,B.Z,!1,b,!0,B.z,b,A.c4(),c.w,b,b,b,b,b,2,A.dW(b,new A.bB(4,j,new A.am(i,1,B.p,-1)),b,b,b,b,b,b,!0,new A.bB(4,h,new A.am(g,1,B.p,-1)),b,b,b,b,b,k,!0,b,b,b,b,new A.bB(4,A.B(14),new A.am(a1,1.5,B.p,-1)),b,b,b,b,b,b,b,b,m,"",b,b,b,b,b,b,b,b,b,!0,!0,!1,b,l,b,b,b,b,b,b,b,b,b,b,b,b),B.t,!0,b,!0,b,!1,b,B.W,b,b,b,b,B.pa,b,b,b,1,b,b,!1,"\u2022",b,b,b,b,b,!1,b,b,!1,b,!0,b,B.F,b,b,b,b,b,b,b,b,b,b,b,b,!0,B.G,b,B.a3,b,b,b,b)
+l=A.bZ(b,B.Z,!1,b,!0,B.z,b,A.c4(),c.w,b,b,b,b,b,2,A.dW(b,new A.bB(4,j,new A.am(i,1,B.p,-1)),b,b,b,b,b,b,!0,new A.bB(4,h,new A.am(g,1,B.p,-1)),b,b,b,b,b,k,!0,b,b,b,b,new A.bB(4,A.B(14),new A.am(a1,1.5,B.p,-1)),b,b,b,b,b,b,b,b,m,"",b,b,b,b,b,b,b,b,b,!0,!0,!1,b,l,b,b,b,b,b,b,b,b,b,b,b,b),B.t,!0,b,!0,b,!1,b,B.W,b,b,b,b,B.pa,b,b,b,1,b,b,!1,"•",b,b,b,b,b,!1,b,b,!1,b,!0,b,B.F,b,b,b,b,b,b,b,b,b,b,b,b,!0,B.G,b,B.a3,b,b,b,b)
 m=c.y
 k=A.J(b,b,A.b1(a),b,b,b,b,b,b,b,b,13.5,b,b,b,b,b,!0,b,b,b,b,b,b,b,b)
 g=A.as(B.tQ,a1,b,20)
@@ -101034,7 +101374,7 @@ h=A.B(14)
 f=a0?B.bl:B.aR
 e=A.B(14)
 d=a0?B.bl:B.aR
-m=A.bZ(b,B.Z,!1,b,!0,B.z,b,A.c4(),c.x,b,b,b,b,b,2,A.dW(b,new A.bB(4,h,new A.am(f,1,B.p,-1)),b,b,b,b,b,b,!0,new A.bB(4,e,new A.am(d,1,B.p,-1)),b,b,b,b,b,i,!0,b,b,b,b,new A.bB(4,A.B(14),new A.am(a1,1.5,B.p,-1)),b,b,b,b,b,b,b,b,k,"",b,b,b,b,b,b,b,b,b,!0,!0,!1,b,g,b,b,b,b,b,b,j,b,b,b,b,b),B.t,!0,b,!0,b,!1,b,B.W,b,b,b,b,b,b,b,b,1,b,b,m,"\u2022",b,b,b,b,b,!1,b,b,!1,b,!0,b,B.F,b,b,b,b,b,b,b,b,b,b,b,b,!0,B.G,b,B.a3,b,b,b,b)
+m=A.bZ(b,B.Z,!1,b,!0,B.z,b,A.c4(),c.x,b,b,b,b,b,2,A.dW(b,new A.bB(4,h,new A.am(f,1,B.p,-1)),b,b,b,b,b,b,!0,new A.bB(4,e,new A.am(d,1,B.p,-1)),b,b,b,b,b,i,!0,b,b,b,b,new A.bB(4,A.B(14),new A.am(a1,1.5,B.p,-1)),b,b,b,b,b,b,b,b,k,"",b,b,b,b,b,b,b,b,b,!0,!0,!1,b,g,b,b,b,b,b,b,j,b,b,b,b,b),B.t,!0,b,!0,b,!1,b,B.W,b,b,b,b,b,b,b,b,1,b,b,m,"•",b,b,b,b,b,!1,b,b,!1,b,!0,b,B.F,b,b,b,b,b,b,b,b,b,b,b,b,!0,B.G,b,B.a3,b,b,b,b)
 j=c.z
 p=A.a0(A.a([B.a82,B.ao,l,B.aP,B.a79,B.ao,m,B.by,A.a4(A.a([A.a4(A.a([A.b_(A.aJG(a1,new A.ay5(c),new A.bb(A.B(4),B.v),j),24,24),B.aq,B.a93],s),B.i,B.h,B.f,0,b,b),A.e_(A.m("Forgot Password?",b,b,b,b,A.J(b,b,a1,b,b,b,b,b,b,b,b,12,b,b,B.x,b,b,!0,b,b,b,b,b,b,b,b),b,b,b),new A.ay6(),b)],s),B.i,B.ap,B.f,0,b,b),B.aP,A.b_(A.cW(B.a86,c.gagM(),A.cX(b,b,a1,b,b,b,0,b,b,b,b,b,b,b,new A.bb(A.B(14),B.v),b,b,b,b,b)),50,1/0)],s),B.w,B.h,B.f,0,B.m)
 n=A.aD(A.aK2(a0?B.rs:B.aR,b),1)
@@ -101043,19 +101383,6 @@ m=A.Da(b,b,b,b,b,b,b,b,b,b,b,b,b,b,new A.bb(A.B(16),B.v),new A.am(A.b1(429154864
 return A.cJ(b,a2,A.l0(!0,A.dA(A.a0(A.a([B.by,a3,B.an,r,B.bz,q,B.an,p,A.a4(A.a([B.a8q,A.cc(b,A.m("Sign Up",b,b,b,b,A.J(b,b,a1,b,b,b,b,b,b,b,b,14,b,b,B.x,b,b,!0,b,b,b,b,b,b,b,b),b,b,b),B.t,!1,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,new A.ay7(a4),b,b,b,b,b,b)],s),B.i,B.b_,B.f,0,b,b),B.aD],s),B.w,B.h,B.f,0,B.m),b,B.t,B.t3,b,b,B.S),B.aA,!0),b,b)},
 apZ(a){var s=null
 A.hQ(s,s,!0,s,new A.axY(A.p(a).ax.a===B.A),a,s,!0,t.z)}}
-A.axW.prototype={
-$0(){this.a.r=!0},
-$S:0}
-A.ay2.prototype={
-$1(a){var s=this.a
-s.K(new A.ay1(s,a))},
-$S:82}
-A.ay1.prototype={
-$0(){this.a.Q=this.b===!0},
-$S:0}
-A.ay3.prototype={
-$0(){return this.a.apZ(this.b)},
-$S:0}
 A.ay4.prototype={
 $0(){var s=this.a
 return s.K(new A.ay0(s))},
@@ -101071,8 +101398,451 @@ $S:82}
 A.ay_.prototype={
 $0(){return this.a.z=this.b!==!1},
 $S:0}
+
+function openForgotPasswordModal() {
+  var existing = document.getElementById('wos-forgot-pw-modal');
+  if (existing) existing.remove();
+
+  var overlay = document.createElement('div');
+  overlay.id = 'wos-forgot-pw-modal';
+  overlay.style.position = 'fixed';
+  overlay.style.top = '0';
+  overlay.style.left = '0';
+  overlay.style.width = '100vw';
+  overlay.style.height = '100vh';
+  overlay.style.backgroundColor = 'rgba(6, 11, 30, 0.85)';
+  overlay.style.backdropFilter = 'blur(10px)';
+  overlay.style.zIndex = '999999';
+  overlay.style.display = 'flex';
+  overlay.style.justifyContent = 'center';
+  overlay.style.alignItems = 'center';
+  overlay.style.fontFamily = 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+
+  var card = document.createElement('div');
+  card.style.width = '92%';
+  card.style.maxWidth = '460px';
+  card.style.backgroundColor = '#0F172A';
+  card.style.borderRadius = '24px';
+  card.style.border = '1px solid rgba(255, 255, 255, 0.1)';
+  card.style.padding = '36px 32px';
+  card.style.boxShadow = '0 25px 50px -12px rgba(0, 0, 0, 0.7)';
+  card.style.color = '#F8FAFC';
+  card.style.position = 'relative';
+
+  // Close Button
+  var closeBtn = document.createElement('button');
+  closeBtn.innerHTML = '&times;';
+  closeBtn.style.position = 'absolute';
+  closeBtn.style.top = '20px';
+  closeBtn.style.right = '24px';
+  closeBtn.style.background = 'none';
+  closeBtn.style.border = 'none';
+  closeBtn.style.color = '#94A3B8';
+  closeBtn.style.fontSize = '28px';
+  closeBtn.style.cursor = 'pointer';
+  closeBtn.onclick = function() { overlay.remove(); };
+  card.appendChild(closeBtn);
+
+  // State Variables
+  var currentStep = 1;
+  var userEmail = '';
+  var resetToken = '';
+
+  function renderStep() {
+    card.innerHTML = '';
+    card.appendChild(closeBtn);
+
+    if (currentStep === 1) {
+      // --- STEP 1: ENTER EMAIL ---
+      var iconDiv = document.createElement('div');
+      iconDiv.style.width = '52px';
+      iconDiv.style.height = '52px';
+      iconDiv.style.borderRadius = '16px';
+      iconDiv.style.backgroundColor = 'rgba(232, 117, 82, 0.15)';
+      iconDiv.style.display = 'flex';
+      iconDiv.style.justifyContent = 'center';
+      iconDiv.style.alignItems = 'center';
+      iconDiv.style.fontSize = '24px';
+      iconDiv.style.marginBottom = '20px';
+      iconDiv.innerHTML = '🔑';
+      card.appendChild(iconDiv);
+
+      var title = document.createElement('h2');
+      title.innerText = 'Forgot Password';
+      title.style.margin = '0 0 8px 0';
+      title.style.fontSize = '24px';
+      title.style.fontWeight = '700';
+      card.appendChild(title);
+
+      var desc = document.createElement('p');
+      desc.innerText = 'Enter your registered email address. We will send a 6-digit verification code to reset your password.';
+      desc.style.margin = '0 0 24px 0';
+      desc.style.fontSize = '14px';
+      desc.style.color = '#94A3B8';
+      desc.style.lineHeight = '1.5';
+      card.appendChild(desc);
+
+      var errBox = document.createElement('div');
+      errBox.id = 'wos-err-box';
+      errBox.style.display = 'none';
+      errBox.style.padding = '12px 16px';
+      errBox.style.borderRadius = '12px';
+      errBox.style.backgroundColor = 'rgba(239, 68, 68, 0.15)';
+      errBox.style.border = '1px solid rgba(239, 68, 68, 0.3)';
+      errBox.style.color = '#FCA5A5';
+      errBox.style.fontSize = '13px';
+      errBox.style.marginBottom = '18px';
+      card.appendChild(errBox);
+
+      var label = document.createElement('label');
+      label.innerText = 'EMAIL ADDRESS';
+      label.style.display = 'block';
+      label.style.fontSize = '11.5px';
+      label.style.fontWeight = '600';
+      label.style.letterSpacing = '0.05em';
+      label.style.color = '#94A3B8';
+      label.style.marginBottom = '8px';
+      card.appendChild(label);
+
+      var input = document.createElement('input');
+      input.type = 'email';
+      input.placeholder = 'e.g. name@example.com';
+      input.style.width = '100%';
+      input.style.boxSizing = 'border-box';
+      input.style.padding = '14px 16px';
+      input.style.borderRadius = '14px';
+      input.style.border = '1px solid rgba(255, 255, 255, 0.15)';
+      input.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+      input.style.color = '#FFFFFF';
+      input.style.fontSize = '15px';
+      input.style.outline = 'none';
+      input.style.marginBottom = '24px';
+      card.appendChild(input);
+
+      var sendBtn = document.createElement('button');
+      sendBtn.innerText = 'Send Verification OTP';
+      sendBtn.style.width = '100%';
+      sendBtn.style.padding = '14px';
+      sendBtn.style.borderRadius = '14px';
+      sendBtn.style.border = 'none';
+      sendBtn.style.backgroundColor = '#E87552';
+      sendBtn.style.color = '#FFFFFF';
+      sendBtn.style.fontSize = '15px';
+      sendBtn.style.fontWeight = '600';
+      sendBtn.style.cursor = 'pointer';
+      sendBtn.style.transition = 'opacity 0.2s';
+      sendBtn.onclick = function() {
+        var email = input.value.trim().toLowerCase();
+        if (!email || !email.includes('@') || !email.includes('.')) {
+          errBox.innerText = 'Please enter a valid email address.';
+          errBox.style.display = 'block';
+          return;
+        }
+        sendBtn.disabled = true;
+        sendBtn.innerText = 'Sending OTP...';
+        errBox.style.display = 'none';
+
+        fetch('/api/auth/forgot-password/initiate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(res) {
+          sendBtn.disabled = false;
+          sendBtn.innerText = 'Send Verification OTP';
+          if (res && res.success) {
+            userEmail = email;
+            currentStep = 2;
+            renderStep();
+            if (res.code) {
+              setTimeout(function() {
+                alert('🔑 WrindhaOS Verification Code: ' + res.code + '\n\n(Also sent to ' + email + ')');
+              }, 200);
+            }
+          } else {
+            errBox.innerText = res.message || 'Could not send reset code. Please try again.';
+            errBox.style.display = 'block';
+          }
+        })
+        .catch(function(err) {
+          sendBtn.disabled = false;
+          sendBtn.innerText = 'Send Verification OTP';
+          errBox.innerText = 'Network error: Unable to connect to server.';
+          errBox.style.display = 'block';
+        });
+      };
+      card.appendChild(sendBtn);
+
+    } else if (currentStep === 2) {
+      // --- STEP 2: VERIFY OTP & CREATE NEW PASSWORD ---
+      var iconDiv = document.createElement('div');
+      iconDiv.style.width = '52px';
+      iconDiv.style.height = '52px';
+      iconDiv.style.borderRadius = '16px';
+      iconDiv.style.backgroundColor = 'rgba(16, 185, 129, 0.15)';
+      iconDiv.style.display = 'flex';
+      iconDiv.style.justifyContent = 'center';
+      iconDiv.style.alignItems = 'center';
+      iconDiv.style.fontSize = '24px';
+      iconDiv.style.marginBottom = '20px';
+      iconDiv.innerHTML = '🛡️';
+      card.appendChild(iconDiv);
+
+      var title = document.createElement('h2');
+      title.innerText = 'Create New Password';
+      title.style.margin = '0 0 8px 0';
+      title.style.fontSize = '24px';
+      title.style.fontWeight = '700';
+      card.appendChild(title);
+
+      var desc = document.createElement('p');
+      desc.innerText = 'Verification code sent to ' + userEmail + '. Enter the code and choose a new password.';
+      desc.style.margin = '0 0 20px 0';
+      desc.style.fontSize = '13.5px';
+      desc.style.color = '#94A3B8';
+      desc.style.lineHeight = '1.4';
+      card.appendChild(desc);
+
+      var errBox = document.createElement('div');
+      errBox.style.display = 'none';
+      errBox.style.padding = '12px 16px';
+      errBox.style.borderRadius = '12px';
+      errBox.style.backgroundColor = 'rgba(239, 68, 68, 0.15)';
+      errBox.style.border = '1px solid rgba(239, 68, 68, 0.3)';
+      errBox.style.color = '#FCA5A5';
+      errBox.style.fontSize = '13px';
+      errBox.style.marginBottom = '16px';
+      card.appendChild(errBox);
+
+      // OTP Input
+      var otpLabel = document.createElement('label');
+      otpLabel.innerText = '6-DIGIT VERIFICATION CODE';
+      otpLabel.style.display = 'block';
+      otpLabel.style.fontSize = '11px';
+      otpLabel.style.fontWeight = '600';
+      otpLabel.style.color = '#94A3B8';
+      otpLabel.style.marginBottom = '6px';
+      card.appendChild(otpLabel);
+
+      var otpInput = document.createElement('input');
+      otpInput.type = 'text';
+      otpInput.placeholder = 'e.g. 123456';
+      otpInput.maxLength = 6;
+      otpInput.style.width = '100%';
+      otpInput.style.boxSizing = 'border-box';
+      otpInput.style.padding = '12px 16px';
+      otpInput.style.borderRadius = '12px';
+      otpInput.style.border = '1px solid rgba(255, 255, 255, 0.15)';
+      otpInput.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+      otpInput.style.color = '#FFFFFF';
+      otpInput.style.fontSize = '16px';
+      otpInput.style.letterSpacing = '0.15em';
+      otpInput.style.outline = 'none';
+      otpInput.style.marginBottom = '16px';
+      card.appendChild(otpInput);
+
+      // New Password Input
+      var pwdLabel = document.createElement('label');
+      pwdLabel.innerText = 'NEW PASSWORD (MIN 8 CHARACTERS)';
+      pwdLabel.style.display = 'block';
+      pwdLabel.style.fontSize = '11px';
+      pwdLabel.style.fontWeight = '600';
+      pwdLabel.style.color = '#94A3B8';
+      pwdLabel.style.marginBottom = '6px';
+      card.appendChild(pwdLabel);
+
+      var pwdInput = document.createElement('input');
+      pwdInput.type = 'password';
+      pwdInput.placeholder = 'Enter new strong password';
+      pwdInput.style.width = '100%';
+      pwdInput.style.boxSizing = 'border-box';
+      pwdInput.style.padding = '12px 16px';
+      pwdInput.style.borderRadius = '12px';
+      pwdInput.style.border = '1px solid rgba(255, 255, 255, 0.15)';
+      pwdInput.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+      pwdInput.style.color = '#FFFFFF';
+      pwdInput.style.fontSize = '14px';
+      pwdInput.style.outline = 'none';
+      pwdInput.style.marginBottom = '16px';
+      card.appendChild(pwdInput);
+
+      // Confirm Password Input
+      var confLabel = document.createElement('label');
+      confLabel.innerText = 'CONFIRM NEW PASSWORD';
+      confLabel.style.display = 'block';
+      confLabel.style.fontSize = '11px';
+      confLabel.style.fontWeight = '600';
+      confLabel.style.color = '#94A3B8';
+      confLabel.style.marginBottom = '6px';
+      card.appendChild(confLabel);
+
+      var confInput = document.createElement('input');
+      confInput.type = 'password';
+      confInput.placeholder = 'Re-enter your password';
+      confInput.style.width = '100%';
+      confInput.style.boxSizing = 'border-box';
+      confInput.style.padding = '12px 16px';
+      confInput.style.borderRadius = '12px';
+      confInput.style.border = '1px solid rgba(255, 255, 255, 0.15)';
+      confInput.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+      confInput.style.color = '#FFFFFF';
+      confInput.style.fontSize = '14px';
+      confInput.style.outline = 'none';
+      confInput.style.marginBottom = '24px';
+      card.appendChild(confInput);
+
+      var saveBtn = document.createElement('button');
+      saveBtn.innerText = 'Update Password & Save';
+      saveBtn.style.width = '100%';
+      saveBtn.style.padding = '14px';
+      saveBtn.style.borderRadius = '14px';
+      saveBtn.style.border = 'none';
+      saveBtn.style.backgroundColor = '#10B981';
+      saveBtn.style.color = '#FFFFFF';
+      saveBtn.style.fontSize = '15px';
+      saveBtn.style.fontWeight = '600';
+      saveBtn.style.cursor = 'pointer';
+      saveBtn.onclick = function() {
+        var otpVal = otpInput.value.trim();
+        var pVal = pwdInput.value;
+        var cVal = confInput.value;
+
+        if (otpVal.length !== 6) {
+          errBox.innerText = 'Please enter all 6 digits of the verification code.';
+          errBox.style.display = 'block';
+          return;
+        }
+        if (pVal.length < 8) {
+          errBox.innerText = 'Password must be at least 8 characters long.';
+          errBox.style.display = 'block';
+          return;
+        }
+        if (pVal !== cVal) {
+          errBox.innerText = 'Passwords do not match.';
+          errBox.style.display = 'block';
+          return;
+        }
+
+        saveBtn.disabled = true;
+        saveBtn.innerText = 'Verifying code...';
+        errBox.style.display = 'none';
+
+        // Step 2.1: Verify OTP
+        fetch('/api/auth/forgot-password/verify-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: userEmail, otp: otpVal })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(vRes) {
+          if (!vRes || !vRes.success || !vRes.resetToken) {
+            saveBtn.disabled = false;
+            saveBtn.innerText = 'Update Password & Save';
+            errBox.innerText = vRes.message || 'Invalid or expired OTP code.';
+            errBox.style.display = 'block';
+            return;
+          }
+
+          saveBtn.innerText = 'Saving password...';
+          // Step 2.2: Reset Password
+          fetch('/api/auth/forgot-password/reset', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: userEmail,
+              resetToken: vRes.resetToken,
+              newPassword: pVal,
+              confirmPassword: cVal
+            })
+          })
+          .then(function(r) { return r.json(); })
+          .then(function(rRes) {
+            if (rRes && rRes.success) {
+              currentStep = 3;
+              renderStep();
+            } else {
+              saveBtn.disabled = false;
+              saveBtn.innerText = 'Update Password & Save';
+              errBox.innerText = rRes.message || 'Failed to update password.';
+              errBox.style.display = 'block';
+            }
+          })
+          .catch(function(err) {
+            saveBtn.disabled = false;
+            saveBtn.innerText = 'Update Password & Save';
+            errBox.innerText = 'Network error saving password.';
+            errBox.style.display = 'block';
+          });
+        })
+        .catch(function(err) {
+          saveBtn.disabled = false;
+          saveBtn.innerText = 'Update Password & Save';
+          errBox.innerText = 'Network error verifying code.';
+          errBox.style.display = 'block';
+        });
+      };
+      card.appendChild(saveBtn);
+
+    } else if (currentStep === 3) {
+      // --- STEP 3: SUCCESS CELEBRATION ---
+      var iconDiv = document.createElement('div');
+      iconDiv.style.width = '64px';
+      iconDiv.style.height = '64px';
+      iconDiv.style.borderRadius = '20px';
+      iconDiv.style.backgroundColor = 'rgba(16, 185, 129, 0.15)';
+      iconDiv.style.display = 'flex';
+      iconDiv.style.justifyContent = 'center';
+      iconDiv.style.alignItems = 'center';
+      iconDiv.style.fontSize = '32px';
+      iconDiv.style.margin = '10px auto 20px auto';
+      iconDiv.innerHTML = '✅';
+      card.appendChild(iconDiv);
+
+      var title = document.createElement('h2');
+      title.innerText = 'Password Reset Complete!';
+      title.style.textAlign = 'center';
+      title.style.margin = '0 0 8px 0';
+      title.style.fontSize = '22px';
+      title.style.fontWeight = '700';
+      card.appendChild(title);
+
+      var desc = document.createElement('p');
+      desc.innerText = 'Your new password has been saved securely to the database. You can now log in with your updated credentials.';
+      desc.style.textAlign = 'center';
+      desc.style.margin = '0 0 28px 0';
+      desc.style.fontSize = '14px';
+      desc.style.color = '#94A3B8';
+      desc.style.lineHeight = '1.5';
+      card.appendChild(desc);
+
+      var doneBtn = document.createElement('button');
+      doneBtn.innerText = 'Return to Login';
+      doneBtn.style.width = '100%';
+      doneBtn.style.padding = '14px';
+      doneBtn.style.borderRadius = '14px';
+      doneBtn.style.border = 'none';
+      doneBtn.style.backgroundColor = '#E87552';
+      doneBtn.style.color = '#FFFFFF';
+      doneBtn.style.fontSize = '15px';
+      doneBtn.style.fontWeight = '600';
+      doneBtn.style.cursor = 'pointer';
+      doneBtn.onclick = function() { overlay.remove(); };
+      card.appendChild(doneBtn);
+    }
+  }
+
+  renderStep();
+  overlay.appendChild(card);
+  document.body.appendChild(overlay);
+}
+
 A.ay6.prototype={
-$0(){},
+$0(){
+  if (typeof openForgotPasswordModal === 'function') {
+    openForgotPasswordModal();
+  }
+},
 $S:0}
 A.ay7.prototype={
 $0(){var s=A.cq(new A.axZ(),null,t.z)
@@ -102242,13 +103012,43 @@ q=r.y
 q.N$=s
 q.I$=0
 r.aa7()},
-ajj(){var s,r,q=this,p=null,o="! (Demo OTP: 1234)",n=q.d
-r=B.c.aN(q.r.a.a)
-n=t.J
-if(r.length!==0){q.K(new A.aDx(q))
-n=q.c.Y(n).f
-n.d7(A.jd(p,p,p,B.u,p,B.z,p,A.m("6-digit verification code sent to "+r+o,p,p,p,p,p,p,p,p),p,B.b7,p,p,p,p,p,p,p,p,p,p))}else{n=q.c.Y(n).f
-n.d7(A.jd(p,p,p,B.Vg,p,B.z,p,A.m("Please enter your username",p,p,p,p,p,p,p,p),p,B.b7,p,p,p,p,p,p,p,p,p,p))}},
+ajj(){
+  var q=this, p=null;
+  var uName = (q.e && q.e.a && q.e.a.a ? q.e.a.a : '').trim(); // q.e is USERNAME
+  var email = (q.r && q.r.a && q.r.a.a ? q.r.a.a : '').trim(); // q.r is EMAIL
+  var pwd = (q.x && q.x.a && q.x.a.a ? q.x.a.a : '') || 'Wrindha@2026';
+  var confPwd = (q.f && q.f.a && q.f.a.a ? q.f.a.a : '') || 'Wrindha@2026';
+  var refCode = (q.y && q.y.a && q.y.a.a ? q.y.a.a : '').trim();
+
+  if(!email || !email.includes('@') || !email.includes('.')){
+    q.c.Y(t.J).f.d7(A.jd(p,p,p,B.cE,p,B.z,p,A.m("Please enter a valid email address (e.g. name@domain.com)",p,p,p,p,p,p,p,p),p,B.b7,p,p,p,p,p,p,p,p,p,p));
+    return;
+  }
+  if(!uName){
+    q.c.Y(t.J).f.d7(A.jd(p,p,p,B.cE,p,B.z,p,A.m("Please enter your username first",p,p,p,p,p,p,p,p),p,B.b7,p,p,p,p,p,p,p,p,p,p));
+    return;
+  }
+
+  q.K(new A.aDx(q)); // reveals OTP field
+
+  fetch('/api/auth/register-initiate',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({username:uName,email:email,password:pwd,confirmPassword:confPwd,referralCode:refCode})
+  })
+  .then(function(res){return res.json();})
+  .then(function(data){
+    if(data && data.success){
+      var msg = data.code ? ("6-digit OTP sent to " + email + " (Code: " + data.code + ")") : (data.message || ("6-digit OTP sent to " + email));
+      q.c.Y(t.J).f.d7(A.jd(p,p,p,B.u,p,B.z,p,A.m(msg,p,p,p,p,p,p,p,p),p,B.b7,p,p,p,p,p,p,p,p,p,p));
+    } else {
+      q.c.Y(t.J).f.d7(A.jd(p,p,p,B.cE,p,B.z,p,A.m(data.message || "Failed to send verification code",p,p,p,p,p,p,p,p),p,B.b7,p,p,p,p,p,p,p,p,p,p));
+    }
+  })
+  .catch(function(err){
+    q.c.Y(t.J).f.d7(A.jd(p,p,p,B.cE,p,B.z,p,A.m("Network error sending OTP",p,p,p,p,p,p,p,p),p,B.b7,p,p,p,p,p,p,p,p,p,p));
+  });
+},
 ny(){var s=0,r=A.V(t.H),q=this,p,o
 var $async$ny=A.W(function(a,b){if(a===1)return A.S(b,r)
 for(;;)switch(s){case 0:o=q.c
@@ -102259,22 +103059,48 @@ return A.P(A.ad(o,!1).bJ(p),$async$ny)
 case 2:if(b===!0&&q.c!=null){q.K(new A.aDA(q))
 q.c.Y(t.J).f.d7(B.a0f)}return A.T(null,r)}})
 return A.U($async$ny,r)},
-ajp(){var s,r,q,p,o,n=this,m=null,l=B.c.aN(n.e.a.a),r=B.c.aN(n.r.a.a),q=B.c.aN(n.x.a.a),p=(n.confirmCtrl?B.c.aN(n.confirmCtrl.a.a):B.c.aN(n.x.a.a)),k=n.c
-if(l.length===0){n.c.Y(t.J).f.d7(B.a0h)
-return}if(r.length===0){k.Y(t.J).f.d7(A.jd(m,m,m,m,m,B.z,m,A.m("Please enter your username",m,m,m,m,m,m,m,m),m,B.b7,m,m,m,m,m,m,m,m,m,m))
-return}if(!n.z){k.Y(t.J).f.d7(A.jd(m,m,m,m,m,B.z,m,A.m("Please tap 'Send OTP' to verify your email",m,m,m,m,m,m,m,m),m,B.b7,m,m,m,m,m,m,m,m,m,m))
-return}if(B.c.aN(n.w.a.a).length===0){k.Y(t.J).f.d7(A.jd(m,m,m,m,m,B.z,m,A.m("Please enter the verification code sent to your email",m,m,m,m,m,m,m,m),m,B.b7,m,m,m,m,m,m,m,m,m,m))
-return}if(q.length<6){n.c.Y(t.J).f.d7(B.a0p)
-return}if(p!==q){k.Y(t.J).f.d7(A.jd(m,m,m,m,m,B.z,m,A.m("Passwords do not match",m,m,m,m,m,m,m,m),m,B.b7,m,m,m,m,m,m,m,m,m,m))
-return}if(!n.Q){n.c.Y(t.J).f.d7(B.ET)
-n.ny()
-return}k=n.c
-k.toString
-o=A.f1(k,!1,t.T)
-o.MH(l,r,p.length!==0?p:m)
-k=n.c
-k.toString
-A.ad(k,!1).Na(new A.aDy())},
+ajp(){
+  var n=this, ctx=n.c;
+  var uName = (n.e && n.e.a && n.e.a.a ? n.e.a.a : '').trim(); // n.e is USERNAME
+  var email = (n.r && n.r.a && n.r.a.a ? n.r.a.a : '').trim(); // n.r is EMAIL
+  var otp = (n.w && n.w.a && n.w.a.a ? n.w.a.a : '').trim(); // n.w is OTP
+  var pwd = (n.x && n.x.a && n.x.a.a ? n.x.a.a : ''); // n.x is PASSWORD
+  var confPwd = (n.f && n.f.a && n.f.a.a ? n.f.a.a : ''); // n.f is CONFIRM PASSWORD
+  var refCode = (n.y && n.y.a && n.y.a.a ? n.y.a.a : '').trim(); // n.y is REFERRAL
+
+  if(!uName){ctx.Y(t.J).f.d7(A.jd(null,null,null,B.cE,null,B.z,null,A.m("Please enter your username",null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null));return;}
+  if(!email || !email.includes('@')){ctx.Y(t.J).f.d7(A.jd(null,null,null,B.cE,null,B.z,null,A.m("Please enter a valid email address",null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null));return;}
+  if(!n.z){ctx.Y(t.J).f.d7(A.jd(null,null,null,B.cE,null,B.z,null,A.m("Please tap 'Send OTP' first to get your verification code",null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null));return;}
+  if(!otp){ctx.Y(t.J).f.d7(A.jd(null,null,null,B.cE,null,B.z,null,A.m("Please enter the 6-digit verification code",null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null));return;}
+  if(pwd.length < 6){ctx.Y(t.J).f.d7(A.jd(null,null,null,B.cE,null,B.z,null,A.m("Password must be at least 6 characters",null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null));return;}
+  if(pwd !== confPwd){ctx.Y(t.J).f.d7(A.jd(null,null,null,B.cE,null,B.z,null,A.m("Passwords do not match",null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null));return;}
+  if(!n.Q){ctx.Y(t.J).f.d7(A.jd(null,null,null,B.cE,null,B.z,null,A.m("Please agree to the Terms & Conditions",null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null));return;}
+
+  fetch('/api/auth/register-verify',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({email:email,code:otp,username:uName,password:pwd,referralCode:refCode})
+  })
+  .then(function(res){return res.json();})
+  .then(function(data){
+    if(data && data.success && data.user && data.token){
+      var prov = A.f1(ctx,!1,t.T);
+      prov.MH(data.user.name||uName, data.user.email||email, refCode || null);
+      try {
+        localStorage.setItem('wrindha_auth_token', data.token);
+        localStorage.setItem('saved_session_token', data.token);
+        localStorage.setItem('saved_session_user', JSON.stringify(data.user));
+      } catch(e){}
+      A.ad(ctx,!1).Na(new A.aDy());
+    } else {
+      var msg = data && data.message ? data.message : "Verification failed. Please check your verification code.";
+      ctx.Y(t.J).f.d7(A.jd(null,null,null,B.cE,null,B.z,null,A.m(msg,null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null));
+    }
+  })
+  .catch(function(err){
+    ctx.Y(t.J).f.d7(A.jd(null,null,null,B.cE,null,B.z,null,A.m("Registration failed: Network error",null,null,null,null,null,null,null,null),null,B.b7,null,null,null,null,null,null,null,null,null,null));
+  });
+},
 ahc(){var s,r,q,p,o=this
 if(!o.Q){o.c.Y(t.J).f.d7(B.ET)
 o.ny()
@@ -102307,7 +103133,7 @@ o=k.gaji()
 a5=A.a([A.a4(A.a([A.aD(A.bZ(j,B.Z,!1,j,!0,B.z,j,A.c4(),k.r,j,j,j,j,j,2,A.dW(j,new A.bB(4,r,new A.am(q,1,B.p,-1)),j,j,j,j,j,j,!0,new A.bB(4,p,new A.am(m,1,B.p,-1)),j,j,j,j,j,s,!0,j,j,j,j,new A.bB(4,A.B(14),new A.am(e,1.5,B.p,-1)),j,j,j,j,j,j,j,j,a4,"",j,j,j,j,j,j,j,j,j,!0,!0,!1,j,a5,j,j,j,j,j,j,j,j,j,j,j,j),B.t,!0,j,!0,j,!1,j,B.W,j,j,j,j,B.pa,j,j,j,1,j,j,!1,h,j,j,j,j,j,!1,j,j,!1,j,!0,j,B.F,j,j,j,j,j,j,j,j,j,j,j,j,!0,B.G,j,B.a3,j,j,j,j),1),B.aq,A.cW(B.FD,o,A.cX(j,j,e,j,j,j,0,j,j,j,j,j,B.fA,j,new A.bb(A.B(14),B.v),j,j,j,j,j))],n),B.i,B.h,B.f,0,j,j)],n)
 if(k.z){a4=A.J(j,j,A.b1(i),j,j,j,j,j,j,j,j,13.5,j,j,j,j,j,!0,j,j,j,j,j,j,j,j)
 a6=A.as(B.nC,e,j,20)
-B.b.M(a5,A.a([B.a4,A.bZ(j,B.Z,!1,j,!0,B.z,j,A.c4(),k.w,j,j,j,j,j,2,A.dW(j,new A.bB(4,r,new A.am(q,1,B.p,-1)),j,j,j,j,"",j,!0,new A.bB(4,p,new A.am(m,1,B.p,-1)),j,j,j,j,j,s,!0,j,j,j,j,new A.bB(4,A.B(14),new A.am(e,1.5,B.p,-1)),j,j,j,j,j,j,j,j,a4,"Enter 6-digit OTP (Demo: 1234)",j,j,j,j,j,j,j,j,j,!0,!0,!1,j,a6,j,j,j,j,j,j,j,j,j,j,j,j),B.t,!0,j,!0,j,!1,j,B.W,j,j,j,j,B.iS,j,6,j,1,j,j,!1,h,j,j,j,j,j,!1,j,j,!1,j,!0,j,B.F,j,j,j,j,j,j,j,j,j,j,j,j,!0,B.G,j,B.a3,j,j,j,j)],n))}
+B.b.M(a5,A.a([B.a4,A.bZ(j,B.Z,!1,j,!0,B.z,j,A.c4(),k.w,j,j,j,j,j,2,A.dW(j,new A.bB(4,r,new A.am(q,1,B.p,-1)),j,j,j,j,"",j,!0,new A.bB(4,p,new A.am(m,1,B.p,-1)),j,j,j,j,j,s,!0,j,j,j,j,new A.bB(4,A.B(14),new A.am(e,1.5,B.p,-1)),j,j,j,j,j,j,j,j,a4,"Enter 6-digit verification code",j,j,j,j,j,j,j,j,j,!0,!0,!1,j,a6,j,j,j,j,j,j,j,j,j,j,j,j),B.t,!0,j,!0,j,!1,j,B.W,j,j,j,j,B.iS,j,6,j,1,j,j,!1,h,j,j,j,j,j,!1,j,j,!1,j,!0,j,B.F,j,j,j,j,j,j,j,j,j,j,j,j,!0,B.G,j,B.a3,j,j,j,j)],n))}
 a0=A.a0(a5,B.w,B.h,B.f,0,B.m)
 a3=k.as
 a4=A.J(j,j,A.b1(i),j,j,j,j,j,j,j,j,13.5,j,j,j,j,j,!0,j,j,j,j,j,j,j,j)
@@ -102319,7 +103145,7 @@ q=f?B.bl:B.aR
 p=A.B(14)
 o=f?B.bl:B.aR
 a3=A.bZ(j,B.Z,!1,j,!0,B.z,j,j,k.x,j,j,j,j,j,2,A.dW(j,new A.bB(4,r,new A.am(q,1,B.p,-1)),j,j,j,j,j,j,!0,new A.bB(4,p,new A.am(o,1,B.p,-1)),j,j,j,j,j,s,!0,j,j,j,j,new A.bB(4,A.B(14),new A.am(e,1.5,B.p,-1)),j,j,j,j,j,j,j,j,a4,"",j,j,j,j,j,j,j,j,j,!0,!0,!1,j,a5,j,j,j,j,j,j,a6,j,j,j,j,j),B.t,!0,j,!0,j,!1,j,B.W,j,j,j,j,j,j,j,j,1,j,j,k.as,h,j,j,j,j,j,!1,j,j,!1,j,!0,j,B.F,j,j,j,j,j,j,j,j,j,j,j,j,!0,B.G,j,B.a3,j,j,j,j)
-var a_confirm=A.bZ(j,B.Z,!1,j,!0,B.z,j,j,(k.confirmCtrl||(k.confirmCtrl=A.c4())),j,j,j,j,j,2,A.dW(j,new A.bB(4,r,new A.am(q,1,B.p,-1)),j,j,j,j,j,j,!0,new A.bB(4,p,new A.am(o,1,B.p,-1)),j,j,j,j,j,s,!0,j,j,j,j,new A.bB(4,A.B(14),new A.am(e,1.5,B.p,-1)),j,j,j,j,j,j,j,j,a4,"",j,j,j,j,j,j,j,j,j,!0,!0,!1,j,a5,j,j,j,j,j,j,A.c3(j,j,j,A.as(k.as?B.tG:B.tH,j,j,20),j,j,new A.aDF(k),j,j,j,j),j,j,j,j,j),B.t,!0,j,!0,j,!1,j,B.W,j,j,j,j,j,j,j,j,1,j,j,k.as,h,j,j,j,j,j,!1,j,j,!1,j,!0,j,B.F,j,j,j,j,j,j,j,j,j,j,j,j,!0,B.G,j,B.a3,j,j,j,j)
+var a_confirm=A.bZ(j,B.Z,!1,j,!0,B.z,j,j,k.f,j,j,j,j,j,2,A.dW(j,new A.bB(4,r,new A.am(q,1,B.p,-1)),j,j,j,j,j,j,!0,new A.bB(4,p,new A.am(o,1,B.p,-1)),j,j,j,j,j,s,!0,j,j,j,j,new A.bB(4,A.B(14),new A.am(e,1.5,B.p,-1)),j,j,j,j,j,j,j,j,a4,"",j,j,j,j,j,j,j,j,j,!0,!0,!1,j,a5,j,j,j,j,j,j,A.c3(j,j,j,A.as(k.as?B.tG:B.tH,j,j,20),j,j,new A.aDF(k),j,j,j,j),j,j,j,j,j),B.t,!0,j,!0,j,!1,j,B.W,j,j,j,j,j,j,j,j,1,j,j,k.as,h,j,j,j,j,j,!1,j,j,!1,j,!0,j,B.F,j,j,j,j,j,j,j,j,j,j,j,j,!0,B.G,j,B.a3,j,j,j,j)
 a6=A.J(j,j,A.b1(i),j,j,j,j,j,j,j,j,13.5,j,j,j,j,j,!0,j,j,j,j,j,j,j,j)
 a5=A.as(B.u4,e,j,20)
 a4=f?B.T:B.b3
@@ -102361,7 +103187,7 @@ s=A.b_(A.aJG(e,new A.aDG(k),new A.bb(A.B(5),B.v),s),24,24)
 a4=A.a4(A.a([s,B.ep,A.aD(A.cc(j,A.m("I confirm that I have read and agree to the Terms & Conditions and Privacy Policy.",j,j,j,j,A.J(j,j,f?B.ar:B.a_,j,j,j,j,j,j,j,j,12.5,j,j,j,j,1.45,!0,j,j,j,j,j,j,j,j),j,j,j),B.t,!1,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,new A.aDH(k),j,j,j,j,j,j),1)],n),B.w,B.h,B.f,0,j,j)
 s=A.b_(A.cW(B.a8C,k.gajo(),A.cX(j,j,e,j,j,j,0,j,j,j,j,j,j,j,new A.bb(A.B(16),B.v),j,j,j,j,j)),52,1/0)
 r=A.Da(j,j,j,j,j,j,j,j,j,j,j,j,j,j,new A.bb(A.B(16),B.v),new A.am(A.b1(4291548641),1,B.p,-1),j,j,j,j)
-return A.cJ(c,d,A.l0(!0,A.dA(A.a0(A.a([B.a7U,B.an,b,B.bz,a,B.an,B.a7p,B.ao,a1,B.a1,B.a7email,B.ao,a0,B.a1,B.a7Z,B.ao,a3,B.a1,B.a7confirmpass,B.ao,a_confirm,B.a1,a6,B.aP,a4,B.aP,s,B.aP,A.a4(A.a([B.a88,A.cc(j,A.m("Login",j,j,j,j,A.J(j,j,e,j,j,j,j,j,j,j,j,14,j,j,B.x,j,j,!0,j,j,j,j,j,j,j,j),j,j,j),B.t,!1,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,new A.aDI(a7),j,j,j,j,j,j)],n),B.i,B.b_,B.f,0,j,j),B.aD],n),B.w,B.h,B.f,0,B.m),j,B.t,B.MJ,j,j,B.S),B.aA,!0),j,j)}}
+return A.cJ(c,d,A.l0(!0,A.dA(A.a0(A.a([b,B.bz,a,B.an,B.a7p,B.ao,a1,B.a1,B.a7email,B.ao,a0,B.a1,B.a7Z,B.ao,a3,B.a1,B.a7confirmpass,B.ao,a_confirm,B.a1,B.a7ref,B.ao,a5,B.a1,a6,B.aP,a4,B.aP,s,B.aP,A.a4(A.a([B.a88,A.cc(j,A.m("Login",j,j,j,j,A.J(j,j,e,j,j,j,j,j,j,j,j,14,j,j,B.x,j,j,!0,j,j,j,j,j,j,j,j),j,j,j),B.t,!1,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,j,new A.aDI(a7),j,j,j,j,j,j)],n),B.i,B.b_,B.f,0,j,j),B.aD],n),B.w,B.h,B.f,0,B.m),j,B.t,B.MJ,j,j,B.S),B.aA,!0),j,j)}}
 A.aDx.prototype={
 $0(){return this.a.z=!0},
 $S:0}
@@ -107845,7 +108671,7 @@ B.tc=new A.qi(!1,!1,!1,!0)
 B.dL=new A.O5(0,"tight")
 B.b4=new A.hx(600)
 B.a4y=new A.j(!0,null,null,null,null,null,15,B.b4,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
-B.a7U=new A.L("Theme Change",null,B.a4y,null,null,null,null,null,null,null,null)
+B.a7U=new A.L("",null,B.a4y,null,null,null,null,null,null,null,null)
 B.MW=new A.jD(1,B.dL,B.a7U,null)
 B.Fu=new A.j(!0,null,null,null,null,null,16,B.x,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
 B.a7a=new A.L("Milestone Fulfillment Rate",null,B.Fu,null,null,null,null,null,null,null,null)
@@ -108264,7 +109090,8 @@ B.a11=new A.iq("Habits",null)
 B.a10=new A.iq("Expenses",null)
 B.a12=new A.iq("Milestones",null)
 B.a14=new A.iq("Studies",null)
-B.QJ=s([B.a13,B.a11,B.a10,B.a12,B.a14],t.p)
+B.a15=new A.iq("Goals",null)
+B.QJ=s([B.a13,B.a11,B.a14,B.a10,B.a15,B.a12],t.p)
 B.QL=s([4,9,14,19],t.t)
 B.acJ=new A.ll(B.u,"Food (35%)",null)
 B.acD=new A.ll(B.jp,"Shopping (25%)",null)
@@ -110635,6 +111462,7 @@ B.a7n=new A.L("USERNAME OR EMAIL",null,B.aL,null,null,null,null,null,null,null,n
 B.a7p=new A.L("USERNAME",null,B.aL,null,null,null,null,null,null,null,null)
 B.a7email=new A.L("EMAIL",null,B.aL,null,null,null,null,null,null,null,null)
 B.a7confirmpass=new A.L("CONFIRM PASSWORD",null,B.aL,null,null,null,null,null,null,null,null)
+B.a7ref=new A.L("REFERRAL CODE (OPTIONAL)",null,B.aL,null,null,null,null,null,null,null,null)
 B.a59=new A.j(!0,B.u,null,null,null,null,11,B.x,null,1.1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
 B.a7q=new A.L("NEW ENTRY",null,B.a59,null,null,null,null,null,null,null,null)
 B.a7t=new A.L("Save Changes",null,B.cy,null,null,null,null,null,null,null,null)

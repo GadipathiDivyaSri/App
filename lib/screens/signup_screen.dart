@@ -19,6 +19,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   final _confirmPasswordCtrl = TextEditingController();
+  final _referralCodeCtrl = TextEditingController();
 
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
@@ -29,15 +30,24 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool? _isUsernameAvailable;
   bool _isCheckingUsername = false;
   String? _usernameFeedback;
+
+  // Real-time referral validation
+  bool? _isReferralValid;
+  bool _isCheckingReferral = false;
+  String? _referralFeedback;
+
   Timer? _debounceTimer;
+  Timer? _referralDebounceTimer;
 
   @override
   void dispose() {
     _debounceTimer?.cancel();
+    _referralDebounceTimer?.cancel();
     _usernameCtrl.dispose();
     _emailCtrl.dispose();
     _passwordCtrl.dispose();
     _confirmPasswordCtrl.dispose();
+    _referralCodeCtrl.dispose();
     super.dispose();
   }
 
@@ -102,11 +112,47 @@ class _SignUpScreenState extends State<SignUpScreen> {
     });
   }
 
+  void _onReferralChanged(String value) {
+    _referralDebounceTimer?.cancel();
+    final clean = value.trim().toUpperCase();
+
+    if (clean.isEmpty) {
+      setState(() {
+        _isReferralValid = null;
+        _referralFeedback = null;
+        _isCheckingReferral = false;
+      });
+      return;
+    }
+
+    setState(() {
+      _isCheckingReferral = true;
+      _referralFeedback = null;
+    });
+
+    _referralDebounceTimer = Timer(const Duration(milliseconds: 400), () async {
+      final res = await ApiService.validateReferralCode(clean);
+      if (!mounted) return;
+      setState(() {
+        _isCheckingReferral = false;
+        if (res['valid'] == true) {
+          _isReferralValid = true;
+          final refName = res['referrerName'] ?? 'Friend';
+          _referralFeedback = '✓ Valid code from $refName! 10% discount on next billing.';
+        } else {
+          _isReferralValid = false;
+          _referralFeedback = res['message'] ?? 'Invalid referral code.';
+        }
+      });
+    });
+  }
+
   Future<void> _handleSignUp() async {
     final username = _usernameCtrl.text.trim().toLowerCase();
     final email = _emailCtrl.text.trim().toLowerCase();
     final password = _passwordCtrl.text;
     final confirmPassword = _confirmPasswordCtrl.text;
+    final referralCode = _referralCodeCtrl.text.trim().toUpperCase();
 
     // Validation checks
     if (username.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
@@ -144,6 +190,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       email: email,
       password: password,
       confirmPassword: confirmPassword,
+      referralCode: referralCode.isNotEmpty ? referralCode : null,
     );
 
     if (!mounted) return;
@@ -347,8 +394,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 TextFormField(
                   controller: _confirmPasswordCtrl,
                   obscureText: _obscureConfirmPassword,
-                  textInputAction: TextInputAction.done,
-                  onFieldSubmitted: (_) => _handleSignUp(),
+                  textInputAction: TextInputAction.next,
                   style: TextStyle(
                     fontSize: 15,
                     color: isDark ? Colors.white : AppTheme.lightTextPrimary,
@@ -367,6 +413,62 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                   ),
                 ),
+                const SizedBox(height: 18),
+
+                // 5. Referral Code Field (Optional)
+                _buildFieldLabel('Referral Code (Optional)', isDark),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: _referralCodeCtrl,
+                  textCapitalization: TextCapitalization.characters,
+                  textInputAction: TextInputAction.done,
+                  onChanged: _onReferralChanged,
+                  onFieldSubmitted: (_) => _handleSignUp(),
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 1.0,
+                    color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+                  ),
+                  decoration: _buildInputDecoration(
+                    hintText: 'Enter a friend\'s referral code',
+                    prefixIcon: Icons.card_giftcard_rounded,
+                    isDark: isDark,
+                    suffixIcon: _isCheckingReferral
+                        ? const Padding(
+                            padding: EdgeInsets.all(14.0),
+                            child: SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          )
+                        : (_isReferralValid != null
+                            ? Icon(
+                                _isReferralValid!
+                                    ? Icons.check_circle_rounded
+                                    : Icons.cancel_rounded,
+                                color: _isReferralValid!
+                                    ? const Color(0xFF10B981)
+                                    : Colors.redAccent,
+                                size: 20,
+                              )
+                            : null),
+                  ),
+                ),
+                if (_referralFeedback != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    _referralFeedback!,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: _isReferralValid == true
+                          ? const Color(0xFF10B981)
+                          : Colors.redAccent,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 28),
 
                 // Primary Button: Continue
