@@ -119,6 +119,21 @@
       "referralCode": "WOS3105",
       "createdAt": "2026-09-02T01:19:31.903Z",
       "updatedAt": "2026-09-02T01:19:31.903Z"
+    },
+    {
+      "id": "u_1788447926284",
+      "username": "dfghj",
+      "name": "Dfghj",
+      "email": "divyachowdhary0707@gmail.com",
+      "password": "0969673a60cd85de7a1cc1c9cffd5bd3:f699f88e3a77d7440ceca9887c434c29d880c359742388513df493bb2897a4d05b0261bc64b6050d226a41ece2ab2ec296195bdb23ac3b4c152a6daa1489230e",
+      "isEmailVerified": true,
+      "focusScore": 85,
+      "activeStreak": 1,
+      "isPremium": false,
+      "referralCode": "WOS3222",
+      "createdAt": "2026-09-03T15:05:26.284Z",
+      "updatedAt": "2026-09-03T15:05:26.284Z",
+      "onboardingCompleted": false
     }
   ],
   "subscriptions": [
@@ -218,6 +233,18 @@
       "created_at": "2026-09-02T01:19:31.903Z",
       "updated_at": "2026-09-02T01:19:31.931Z",
       "last_billing_amount": 49
+    },
+    {
+      "id": "sub_free_u_1788447926284",
+      "user_id": "u_1788447926284",
+      "plan": "free",
+      "status": "active",
+      "started_at": "2026-09-03T15:05:26.314Z",
+      "expires_at": null,
+      "payment_provider": "NONE",
+      "transaction_id": null,
+      "created_at": "2026-09-03T15:05:26.314Z",
+      "updated_at": "2026-09-03T15:05:26.314Z"
     }
   ],
   "paymentHistory": [],
@@ -941,6 +968,14 @@
       "status": "active",
       "totalCount": 0,
       "createdAt": "2026-09-02T01:19:31.904Z"
+    },
+    {
+      "id": "ref_u_1788447926284",
+      "userId": "u_1788447926284",
+      "referralCode": "WOS3222",
+      "status": "active",
+      "totalCount": 0,
+      "createdAt": "2026-09-03T15:05:26.318Z"
     }
   ],
   "referralTrackings": [
