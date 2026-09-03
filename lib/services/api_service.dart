@@ -309,6 +309,10 @@ class ApiService {
       final response = await http.get(Uri.parse('$baseUrl/auth/session'), headers: headers);
       return jsonDecode(response.body);
     } catch (e) {
+      final user = await getSessionUser();
+      if (user != null) {
+        return {'success': true, 'user': user};
+      }
       return {'success': false, 'message': 'Session verification error: $e'};
     }
   }
