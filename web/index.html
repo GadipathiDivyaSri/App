@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <!-- Dynamic Base Detection for GitHub Pages /WRINDHA_OS_APP/ or root ./ -->
+  <base href="$FLUTTER_BASE_HREF">
+  <!-- Dynamic Base override: adjusts base for localhost vs GitHub Pages -->
   <script>
     (function() {
       var path = window.location.pathname;
-      var baseHref = (path.indexOf('/WRINDHA_OS_APP') !== -1) ? '/WRINDHA_OS_APP/' : ((path.indexOf('/App') !== -1) ? '/App/' : './');
-      var baseEl = document.createElement('base');
-      baseEl.href = baseHref;
-      document.head.appendChild(baseEl);
-      
+      if (path.indexOf('/WRINDHA_OS_APP') === -1) {
+        var baseEl = document.querySelector('base');
+        if (baseEl) baseEl.href = './';
+      }
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations().then(function(registrations) {
           for (var i = 0; i < registrations.length; i++) {
