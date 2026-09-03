@@ -1,7 +1,23 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <base href="/WRINDHA_OS_APP/">
+  <!-- Dynamic Base Detection for GitHub Pages /WRINDHA_OS_APP/ or root ./ -->
+  <script>
+    (function() {
+      var path = window.location.pathname;
+      var baseHref = (path.indexOf('/WRINDHA_OS_APP') !== -1) ? '/WRINDHA_OS_APP/' : ((path.indexOf('/App') !== -1) ? '/App/' : './');
+      var baseEl = document.createElement('base');
+      baseEl.href = baseHref;
+      document.head.appendChild(baseEl);
+      
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for (var i = 0; i < registrations.length; i++) {
+            registrations[i].unregister();
+          }
+        });
+      }
+    })();
+  </script>
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">

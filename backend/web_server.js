@@ -41,7 +41,9 @@ const server = http.createServer((req, res) => {
 
   // 2. Static Web App Files
   let cleanUrl = req.url.split('?')[0];
-  if (cleanUrl.startsWith('/App')) {
+  if (cleanUrl.startsWith('/WRINDHA_OS_APP')) {
+    cleanUrl = cleanUrl.replace(/^\/WRINDHA_OS_APP/, '') || '/';
+  } else if (cleanUrl.startsWith('/App')) {
     cleanUrl = cleanUrl.replace(/^\/App/, '') || '/';
   }
   if (cleanUrl === '/' || cleanUrl === '') cleanUrl = '/index.html';
