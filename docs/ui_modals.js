@@ -1,4 +1,4 @@
-// WrindhaOS Interactive Tools & Modals Runtime v2.0
+// WrindhaOS Interactive Tools & Modals Runtime v3.0 (Zero-Error Architecture)
 (function() {
   function getIsDark(ctx) {
     try {
@@ -116,78 +116,85 @@
 
       document.body.appendChild(overlay);
 
-      document.getElementById('close_focus_modal').onclick = function() {
-        clearInterval(timerId);
-        clearInterval(swTimerId);
-        overlay.remove();
-      };
+      var closeBtn = overlay.querySelector('#close_focus_modal');
+      if (closeBtn) {
+        closeBtn.onclick = function() {
+          clearInterval(timerId);
+          clearInterval(swTimerId);
+          overlay.remove();
+        };
+      }
 
-      var modePomo = document.getElementById('mode_pomodoro');
-      var modeSw = document.getElementById('mode_stopwatch');
-      var pomoSec = document.getElementById('pomodoro_section');
-      var swSec = document.getElementById('stopwatch_section');
+      var modePomo = overlay.querySelector('#mode_pomodoro');
+      var modeSw = overlay.querySelector('#mode_stopwatch');
+      var pomoSec = overlay.querySelector('#pomodoro_section');
+      var swSec = overlay.querySelector('#stopwatch_section');
 
-      modePomo.onclick = function() {
-        isStopwatch = false;
-        modePomo.style.background = '#0D5CE5';
-        modePomo.style.color = '#FFF';
-        modeSw.style.background = 'transparent';
-        modeSw.style.color = '#64748B';
-        pomoSec.style.display = 'block';
-        swSec.style.display = 'none';
-      };
+      if (modePomo && modeSw && pomoSec && swSec) {
+        modePomo.onclick = function() {
+          isStopwatch = false;
+          modePomo.style.background = '#0D5CE5';
+          modePomo.style.color = '#FFF';
+          modeSw.style.background = 'transparent';
+          modeSw.style.color = '#64748B';
+          pomoSec.style.display = 'block';
+          swSec.style.display = 'none';
+        };
 
-      modeSw.onclick = function() {
-        isStopwatch = true;
-        modeSw.style.background = '#0D5CE5';
-        modeSw.style.color = '#FFF';
-        modePomo.style.background = 'transparent';
-        modePomo.style.color = '#64748B';
-        swSec.style.display = 'block';
-        pomoSec.style.display = 'none';
-      };
+        modeSw.onclick = function() {
+          isStopwatch = true;
+          modeSw.style.background = '#0D5CE5';
+          modeSw.style.color = '#FFF';
+          modePomo.style.background = 'transparent';
+          modePomo.style.color = '#64748B';
+          swSec.style.display = 'block';
+          pomoSec.style.display = 'none';
+        };
+      }
 
-      var btnPomoStart = document.getElementById('btn_pomo_start');
-      var btnPomoReset = document.getElementById('btn_pomo_reset');
-      var pomoDisplay = document.getElementById('pomo_timer_display');
+      var btnPomoStart = overlay.querySelector('#btn_pomo_start');
+      var btnPomoReset = overlay.querySelector('#btn_pomo_reset');
+      var pomoDisplay = overlay.querySelector('#pomo_timer_display');
 
-      btnPomoStart.onclick = function() {
-        if (!isRunning) {
-          isRunning = true;
-          btnPomoStart.innerText = 'Pause';
-          btnPomoStart.style.background = '#EF4444';
-          timerId = setInterval(function() {
-            if (remainingSec > 0) {
-              remainingSec--;
-              pomoDisplay.innerText = formatTime(remainingSec);
-            } else {
-              clearInterval(timerId);
-              isRunning = false;
-              btnPomoStart.innerText = 'Start';
-              btnPomoStart.style.background = '#0D5CE5';
-              alert('🎉 Focus Session Completed! Take a well-deserved break.');
-            }
-          }, 1000);
-        } else {
+      if (btnPomoStart && btnPomoReset && pomoDisplay) {
+        btnPomoStart.onclick = function() {
+          if (!isRunning) {
+            isRunning = true;
+            btnPomoStart.innerText = 'Pause';
+            btnPomoStart.style.background = '#EF4444';
+            timerId = setInterval(function() {
+              if (remainingSec > 0) {
+                remainingSec--;
+                pomoDisplay.innerText = formatTime(remainingSec);
+              } else {
+                clearInterval(timerId);
+                isRunning = false;
+                btnPomoStart.innerText = 'Start';
+                btnPomoStart.style.background = '#0D5CE5';
+                alert('🎉 Focus Session Completed! Take a well-deserved break.');
+              }
+            }, 1000);
+          } else {
+            clearInterval(timerId);
+            isRunning = false;
+            btnPomoStart.innerText = 'Resume';
+            btnPomoStart.style.background = '#0D5CE5';
+          }
+        };
+
+        btnPomoReset.onclick = function() {
           clearInterval(timerId);
           isRunning = false;
-          btnPomoStart.innerText = 'Resume';
+          remainingSec = totalSec;
+          pomoDisplay.innerText = formatTime(remainingSec);
+          btnPomoStart.innerText = 'Start';
           btnPomoStart.style.background = '#0D5CE5';
-        }
-      };
+        };
+      }
 
-      btnPomoReset.onclick = function() {
-        clearInterval(timerId);
-        isRunning = false;
-        remainingSec = totalSec;
-        pomoDisplay.innerText = formatTime(remainingSec);
-        btnPomoStart.innerText = 'Start';
-        btnPomoStart.style.background = '#0D5CE5';
-      };
-
-      document.querySelectorAll('.pomo_preset').forEach(function(btn) {
+      overlay.querySelectorAll('.pomo_preset').forEach(function(btn) {
         btn.onclick = function() {
-          document.querySelectorAll('.pomo_preset').forEach(function(b) {
+          overlay.querySelectorAll('.pomo_preset').forEach(function(b) {
             b.style.background = 'transparent';
             b.style.color = 'inherit';
           });
@@ -196,60 +203,64 @@
           var m = parseInt(btn.getAttribute('data-min'));
           totalSec = m * 60;
           remainingSec = totalSec;
-          pomoDisplay.innerText = formatTime(remainingSec);
+          if (pomoDisplay) pomoDisplay.innerText = formatTime(remainingSec);
           if (isRunning) {
             clearInterval(timerId);
             isRunning = false;
-            btnPomoStart.innerText = 'Start';
-            btnPomoStart.style.background = '#0D5CE5';
+            if (btnPomoStart) {
+              btnPomoStart.innerText = 'Start';
+              btnPomoStart.style.background = '#0D5CE5';
+            }
           }
         };
       });
 
-      var btnSwStart = document.getElementById('btn_sw_start');
-      var btnSwLap = document.getElementById('btn_sw_lap');
-      var btnSwReset = document.getElementById('btn_sw_reset');
-      var swDisplay = document.getElementById('sw_timer_display');
-      var swLapsContainer = document.getElementById('sw_laps_container');
+      var btnSwStart = overlay.querySelector('#btn_sw_start');
+      var btnSwLap = overlay.querySelector('#btn_sw_lap');
+      var btnSwReset = overlay.querySelector('#btn_sw_reset');
+      var swDisplay = overlay.querySelector('#sw_timer_display');
+      var swLapsContainer = overlay.querySelector('#sw_laps_container');
 
-      btnSwStart.onclick = function() {
-        if (!swRunning) {
-          swRunning = true;
-          btnSwStart.innerText = 'Pause';
-          btnSwStart.style.background = '#EF4444';
-          var startTime = Date.now() - swElapsed;
-          swTimerId = setInterval(function() {
-            swElapsed = Date.now() - startTime;
-            swDisplay.innerText = formatStopwatch(Math.floor(swElapsed / 10));
-          }, 10);
-        } else {
+      if (btnSwStart && btnSwLap && btnSwReset && swDisplay && swLapsContainer) {
+        btnSwStart.onclick = function() {
+          if (!swRunning) {
+            swRunning = true;
+            btnSwStart.innerText = 'Pause';
+            btnSwStart.style.background = '#EF4444';
+            var startTime = Date.now() - swElapsed;
+            swTimerId = setInterval(function() {
+              swElapsed = Date.now() - startTime;
+              swDisplay.innerText = formatStopwatch(Math.floor(swElapsed / 10));
+            }, 10);
+          } else {
+            clearInterval(swTimerId);
+            swRunning = false;
+            btnSwStart.innerText = 'Resume';
+            btnSwStart.style.background = '#0D5CE5';
+          }
+        };
+
+        btnSwLap.onclick = function() {
+          if (swRunning) {
+            var lapTime = formatStopwatch(Math.floor(swElapsed / 10));
+            swLaps.unshift({ num: swLaps.length + 1, time: lapTime });
+            swLapsContainer.innerHTML = swLaps.map(function(l) {
+              return '<div style="display:flex; justify-content:space-between; padding:4px 8px; border-bottom:1px solid #CBD5E1; font-size:12px;"><span>Lap ' + l.num + '</span><strong>' + l.time + '</strong></div>';
+            }).join('');
+          }
+        };
+
+        btnSwReset.onclick = function() {
           clearInterval(swTimerId);
           swRunning = false;
-          btnSwStart.innerText = 'Resume';
+          swElapsed = 0;
+          swLaps = [];
+          swDisplay.innerText = '00:00.00';
+          btnSwStart.innerText = 'Start';
           btnSwStart.style.background = '#0D5CE5';
-        }
-      };
-
-      btnSwLap.onclick = function() {
-        if (swRunning) {
-          var lapTime = formatStopwatch(Math.floor(swElapsed / 10));
-          swLaps.unshift({ num: swLaps.length + 1, time: lapTime });
-          swLapsContainer.innerHTML = swLaps.map(function(l) {
-            return '<div style="display:flex; justify-content:space-between; padding:4px 8px; border-bottom:1px solid #CBD5E1; font-size:12px;"><span>Lap ' + l.num + '</span><strong>' + l.time + '</strong></div>';
-          }).join('');
-        }
-      };
-
-      btnSwReset.onclick = function() {
-        clearInterval(swTimerId);
-        swRunning = false;
-        swElapsed = 0;
-        swLaps = [];
-        swDisplay.innerText = '00:00.00';
-        btnSwStart.innerText = 'Start';
-        btnSwStart.style.background = '#0D5CE5';
-        swLapsContainer.innerHTML = '<div style="font-size: 12px; color: #94A3B8; text-align: center;">No laps recorded yet</div>';
-      };
+          swLapsContainer.innerHTML = '<div style="font-size: 12px; color: #94A3B8; text-align: center;">No laps recorded yet</div>';
+        };
+      }
     } catch(err) {
       console.error('[FOCUS MODAL ERROR]:', err);
     }
@@ -315,6 +326,8 @@
       overlay.style.justifyContent = 'center';
       overlay.style.alignItems = 'center';
       overlay.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+
+      document.body.appendChild(overlay);
 
       var activeTab = 'short';
 
@@ -385,13 +398,20 @@
           </div>
         `;
 
-        document.getElementById('close_goal_modal').onclick = function() { overlay.remove(); };
-        document.getElementById('tab_short').onclick = function() { activeTab = 'short'; renderModal(); };
-        document.getElementById('tab_medium').onclick = function() { activeTab = 'medium'; renderModal(); };
-        document.getElementById('tab_long').onclick = function() { activeTab = 'long'; renderModal(); };
+        var closeBtn = overlay.querySelector('#close_goal_modal');
+        if (closeBtn) closeBtn.onclick = function() { overlay.remove(); };
+
+        var tShort = overlay.querySelector('#tab_short');
+        if (tShort) tShort.onclick = function() { activeTab = 'short'; renderModal(); };
+
+        var tMed = overlay.querySelector('#tab_medium');
+        if (tMed) tMed.onclick = function() { activeTab = 'medium'; renderModal(); };
+
+        var tLong = overlay.querySelector('#tab_long');
+        if (tLong) tLong.onclick = function() { activeTab = 'long'; renderModal(); };
 
         function submitNewGoal() {
-          var input = document.getElementById('input_goal_title');
+          var input = overlay.querySelector('#input_goal_title');
           var val = input ? input.value.trim() : '';
           if (val) {
             defaultGoals[activeTab].push({
@@ -405,24 +425,28 @@
           }
         }
 
-        document.getElementById('btn_add_goal').onclick = submitNewGoal;
-        var goalInp = document.getElementById('input_goal_title');
+        var addBtn = overlay.querySelector('#btn_add_goal');
+        if (addBtn) addBtn.onclick = submitNewGoal;
+
+        var goalInp = overlay.querySelector('#input_goal_title');
         if (goalInp) {
           goalInp.onkeydown = function(e) {
             if (e.key === 'Enter') submitNewGoal();
           };
         }
 
-        document.querySelectorAll('.goal_checkbox').forEach(function(cb) {
+        overlay.querySelectorAll('.goal_checkbox').forEach(function(cb) {
           cb.onchange = function() {
             var idx = parseInt(cb.getAttribute('data-idx'));
-            defaultGoals[activeTab][idx].isDone = cb.checked;
-            saveGoals();
-            renderModal();
+            if (defaultGoals[activeTab][idx]) {
+              defaultGoals[activeTab][idx].isDone = cb.checked;
+              saveGoals();
+              renderModal();
+            }
           };
         });
 
-        document.querySelectorAll('.goal_delete').forEach(function(btn) {
+        overlay.querySelectorAll('.goal_delete').forEach(function(btn) {
           btn.onclick = function(e) {
             e.stopPropagation();
             var idx = parseInt(btn.getAttribute('data-idx'));
@@ -434,7 +458,6 @@
       }
 
       renderModal();
-      document.body.appendChild(overlay);
     } catch(err) {
       console.error('[GOALS MODAL ERROR]:', err);
     }
@@ -454,10 +477,10 @@
       if (typeof subject === 'string' && subject.trim()) {
         subjName = subject.trim();
       } else if (subject && typeof subject === 'object') {
-        subjName = subject.b || subject.name || subject.title || '';
+        subjName = subject.b || subject.a || subject.name || subject.title || '';
       }
 
-      if (!subjName) subjName = 'Academic Subject';
+      if (!subjName || typeof subjName !== 'string') subjName = 'Academic Subject';
 
       var storageKey = 'wrindha_units_' + subjName.toLowerCase().replace(/[^a-z0-9]/g, '_');
 
@@ -543,6 +566,8 @@
       overlay.style.justifyContent = 'center';
       overlay.style.alignItems = 'center';
       overlay.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+
+      document.body.appendChild(overlay);
 
       function renderSubjectModal() {
         var stats = calculateStats();
@@ -638,10 +663,11 @@
           </div>
         `;
 
-        document.getElementById('close_subject_modal').onclick = function() { overlay.remove(); };
+        var closeBtn = overlay.querySelector('#close_subject_modal');
+        if (closeBtn) closeBtn.onclick = function() { overlay.remove(); };
 
         function submitNewUnit() {
-          var input = document.getElementById('input_unit_title');
+          var input = overlay.querySelector('#input_unit_title');
           var val = input ? input.value.trim() : '';
           if (val) {
             unitsList.push({
@@ -653,8 +679,10 @@
           }
         }
 
-        document.getElementById('btn_add_unit').onclick = submitNewUnit;
-        var unitInp = document.getElementById('input_unit_title');
+        var addUnitBtn = overlay.querySelector('#btn_add_unit');
+        if (addUnitBtn) addUnitBtn.onclick = submitNewUnit;
+
+        var unitInp = overlay.querySelector('#input_unit_title');
         if (unitInp) {
           unitInp.onkeydown = function(e) {
             if (e.key === 'Enter') submitNewUnit();
@@ -662,13 +690,13 @@
         }
 
         // Show/hide inline topic creator
-        document.querySelectorAll('.btn_add_topic_to_unit').forEach(function(btn) {
+        overlay.querySelectorAll('.btn_add_topic_to_unit').forEach(function(btn) {
           btn.onclick = function() {
             var uIdx = btn.getAttribute('data-uidx');
-            var creator = document.getElementById('topic_creator_' + uIdx);
+            var creator = overlay.querySelector('#topic_creator_' + uIdx);
             if (creator) {
               creator.style.display = creator.style.display === 'none' ? 'flex' : 'none';
-              var inp = document.getElementById('input_topic_' + uIdx);
+              var inp = overlay.querySelector('#input_topic_' + uIdx);
               if (inp) {
                 inp.focus();
                 inp.onkeydown = function(e) {
@@ -688,10 +716,10 @@
         });
 
         // Save new topic
-        document.querySelectorAll('.btn_confirm_topic').forEach(function(btn) {
+        overlay.querySelectorAll('.btn_confirm_topic').forEach(function(btn) {
           btn.onclick = function() {
             var uIdx = parseInt(btn.getAttribute('data-uidx'));
-            var inp = document.getElementById('input_topic_' + uIdx);
+            var inp = overlay.querySelector('#input_topic_' + uIdx);
             var val = inp ? inp.value.trim() : '';
             if (val) {
               unitsList[uIdx].topics = unitsList[uIdx].topics || [];
@@ -703,7 +731,7 @@
         });
 
         // Delete Topic
-        document.querySelectorAll('.btn_delete_topic').forEach(function(btn) {
+        overlay.querySelectorAll('.btn_delete_topic').forEach(function(btn) {
           btn.onclick = function(e) {
             e.stopPropagation();
             var uIdx = parseInt(btn.getAttribute('data-uidx'));
@@ -715,7 +743,7 @@
         });
 
         // Delete Unit
-        document.querySelectorAll('.btn_delete_unit').forEach(function(btn) {
+        overlay.querySelectorAll('.btn_delete_unit').forEach(function(btn) {
           btn.onclick = function(e) {
             e.stopPropagation();
             var uIdx = parseInt(btn.getAttribute('data-uidx'));
@@ -726,7 +754,7 @@
         });
 
         // Toggle Individual Topic Checkbox
-        document.querySelectorAll('.topic_cb').forEach(function(cb) {
+        overlay.querySelectorAll('.topic_cb').forEach(function(cb) {
           cb.onchange = function() {
             var uIdx = parseInt(cb.getAttribute('data-uidx'));
             var tIdx = parseInt(cb.getAttribute('data-tidx'));
@@ -737,7 +765,7 @@
         });
 
         // Toggle Entire Unit Checkbox
-        document.querySelectorAll('.unit_cb').forEach(function(cb) {
+        overlay.querySelectorAll('.unit_cb').forEach(function(cb) {
           cb.onchange = function() {
             var uIdx = parseInt(cb.getAttribute('data-uidx'));
             var targetState = cb.checked;
@@ -751,7 +779,6 @@
       }
 
       renderSubjectModal();
-      document.body.appendChild(overlay);
     } catch(err) {
       console.error('[SUBJECT UNITS MODAL ERROR]:', err);
     }
