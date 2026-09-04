@@ -1904,8 +1904,7 @@ async function handleApiRequest(req, res) {
       return sendJSON(res, 200, goals);
     }
     if (pathname === '/api/goals' && method === 'POST') {
-      const entitlement = checkFeatureEntitlement(userId, 'goals');
-      if (!entitlement.allowed) return sendJSON(res, 403, entitlement);
+      // Goals available across all tiers
 
       const newGoal = {
         id: 'g_' + Date.now(),
