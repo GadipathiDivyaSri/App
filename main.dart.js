@@ -106700,15 +106700,10 @@ return A.co(s,A.a0(s,A.l(b,s,s,s,A.A(s,s,c?B.h:B.bu,s,s,s,s,s,s,s,s,12,s,s,o,s,s
 D(a){var s,r,q,p,o=this,n=null,m=A.r(a).ax.a===B.F,l=A.d9(a,!0,t.C),k=m?B.ar:B.h,j=l.r,i=l.w,h=A.U(i).h("a5<1>"),g=new A.a5(i,new A.aIZ(),h).gG(0),f=new A.a5(i,new A.aJ_(),h).gG(0),e=new A.aI(Date.now(),0,!1),d=new A.a5(i,new A.aJ0(e),h).gG(0),c=A.Y(new A.a5(i,new A.aJ1(o),h),h.h("C.E"))
 h=A.dS(n,n,B.E,n,n,0,n,A.bK(n,n,n,A.aH(B.bt,B.t,n,20),n,n,new A.aJ2(a),n,n,n,n),n,A.l("Academic Studies",n,n,n,A.A(n,n,B.t,n,n,n,n,n,n,n,n,n,n,n,B.y,n,n,!0,n,n,n,n,n,n,n,n),n,n,n))
 s=t.p
-var _toolBanner = A.a1(A.a([
-  A.aC(A.aqY(A.aH(B.it, B.x, n, 18), A.l("⏱️ Focus Timer", n, n, n, B.cR, n, n, n), new A.aFTC(a), A.ne(n, n, n, n, n, n, n, n, n, B.x, n, n, n, n, n, n, n, n, n, n)), 1),
-  B.bh,
-  A.aC(A.aqY(A.aH(B.ug, B.x, n, 18), A.l("🎯 Goals", n, n, n, B.cR, n, n, n), new A.aGPC(a), A.ne(n, n, n, n, n, n, n, n, n, B.x, n, n, n, n, n, n, n, n, n, n)), 1)
-], s), B.j, B.f, B.e, 0, n, n);
 r=A.a1(A.a([A.aC(o.GX("Completed",""+g,B.D,B.is,m,k),1),B.bh,A.aC(o.GX("Pending",""+f,B.cv,B.Pv,m,k),1),B.bh,A.aC(o.GX("Attention",""+d,B.ak,B.om,m,k),1)],s),B.j,B.f,B.e,0,n,n)
 q=A.l("Your Subjects",n,n,n,A.A(n,n,B.t,n,n,n,n,n,n,n,n,18,n,n,B.y,n,n,!0,n,n,n,n,n,n,n,n),n,n,n)
 p=A.aH(!A.aci(j.length,l.gjT())?B.ks:B.ir,n,n,18)
-r=A.a([_toolBanner,B.bp,r,B.am,A.a1(A.a([q,A.aqY(p,A.l(!A.aci(j.length,l.gjT())?"Add (Pro)":"Add Subject",n,n,n,B.cR,n,n,n),new A.aJ3(o,l,a),A.ne(n,n,n,n,n,n,n,n,n,B.x,n,n,n,n,n,n,n,n,n,n))],s),B.j,B.a_,B.e,0,n,n),B.aj],s)
+r=A.a([r,B.am,A.a1(A.a([q,A.aqY(p,A.l(!A.aci(j.length,l.gjT())?"Add (Pro)":"Add Subject",n,n,n,B.cR,n,n,n),new A.aJ3(o,l,a),A.ne(n,n,n,n,n,n,n,n,n,B.x,n,n,n,n,n,n,n,n,n,n))],s),B.j,B.a_,B.e,0,n,n),B.aj],s)
 if(j.length===0){q=A.Q(16)
 p=A.b2(m?B.a8:B.aX,B.p,1)
 r.push(A.a0(n,A.c4(A.l("No subjects added yet. Tap (+ Add Subject) to start!",n,n,n,A.A(n,n,B.G,n,n,n,n,n,n,n,n,n,n,n,n,n,n,!0,n,n,n,n,n,n,n,n),n,n,n),n,n),B.l,n,n,new A.X(k,n,p,q,n,n,B.o),n,n,n,B.a0,n,n,1/0))}else{q=A.U(j).h("Z<1,cl>")
