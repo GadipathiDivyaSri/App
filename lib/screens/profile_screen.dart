@@ -7,6 +7,7 @@ import 'payment_history_screen.dart';
 import 'referral_screen.dart';
 import 'about_us_screen.dart';
 import 'terms_conditions_screen.dart';
+import 'auth_entry_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   final VoidCallback? onNavigateToHome;
@@ -218,6 +219,7 @@ class ProfileScreen extends StatelessWidget {
                   ],
                 ],
               ),
+            ),
             const SizedBox(height: 20),
 
             // Account Section

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../config/subscription_config.dart';
 import '../providers/app_provider.dart';
 import '../widgets/pro_feature_guard.dart';
+import '../widgets/pro_upgrade_dialog.dart';
 import '../theme/app_theme.dart';
 
 class FocusTimerScreen extends StatefulWidget {
