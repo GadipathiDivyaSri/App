@@ -1080,13 +1080,13 @@ async function handleApiRequest(req, res) {
 
     // 1.3 Login (Email / Username) with PBKDF2 Password Verification
     if (pathname === '/api/auth/login' && method === 'POST') {
-      const { username, password } = body;
-      const cleanUser = (username || '').trim().toLowerCase();
+      const identifier = (body.username || body.email || body.identifier || '').trim().toLowerCase();
+      const password = body.password || '';
 
       const user = db.users.find(
         (u) =>
-          (u.username || '').toLowerCase() === cleanUser ||
-          (u.email || '').toLowerCase() === cleanUser
+          (u.username || '').toLowerCase() === identifier ||
+          (u.email || '').toLowerCase() === identifier
       );
 
       if (!user || !verifyPassword(password, user.password)) {
