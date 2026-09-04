@@ -7,6 +7,10 @@ import '../widgets/pro_upgrade_dialog.dart';
 import '../widgets/premium_lock_banner.dart';
 import '../widgets/upgrade_pro_modal.dart';
 import '../theme/app_theme.dart';
+import 'subject_details_screen.dart';
+import 'focus_timer_screen.dart';
+import 'goal_pyramid_screen.dart';
+import 'subject_planner_screen.dart';
 
 /// Studies Screen for WrindhaOS
 /// 
@@ -195,15 +199,160 @@ class _StudiesScreenState extends State<StudiesScreen> {
                 ),
               ],
             ),
+            const SizedBox(height: 20),
+
+            // 1.5 Study Accelerators (Focus Timer, Stopwatch, Goals Hierarchy)
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E2235) : const Color(0xFFFFF7ED),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isDark ? const Color(0x332A85FF) : const Color(0xFFFFD4A8),
+                  width: 1.2,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.bolt_rounded, size: 18, color: isDark ? AppTheme.darkPrimary : const Color(0xFFE87552)),
+                      const SizedBox(width: 6),
+                      Text(
+                        'STUDY & PRODUCTIVITY POWER TOOLS',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.1,
+                          color: isDark ? AppTheme.darkPrimary : const Color(0xFFE87552),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      // Focus Timer & Stopwatch
+                      Expanded(
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(14),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const FocusTimerScreen()),
+                            );
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+                            decoration: BoxDecoration(
+                              color: isDark ? const Color(0xFF141724) : Colors.white,
+                              borderRadius: BorderRadius.circular(14),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.04),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF10B981).withOpacity(0.15),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: const Icon(Icons.timer_outlined, size: 20, color: Color(0xFF10B981)),
+                                ),
+                                const SizedBox(width: 10),
+                                const Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text('Focus Timer', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                                      Text('Pomodoro & Stopwatch', style: TextStyle(fontSize: 10, color: Colors.grey)),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      // Goal Management
+                      Expanded(
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(14),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const GoalPyramidScreen()),
+                            );
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+                            decoration: BoxDecoration(
+                              color: isDark ? const Color(0xFF141724) : Colors.white,
+                              borderRadius: BorderRadius.circular(14),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.04),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF6366F1).withOpacity(0.15),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: const Icon(Icons.flag_outlined, size: 20, color: Color(0xFF6366F1)),
+                                ),
+                                const SizedBox(width: 10),
+                                const Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text('Goals Hierarchy', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                                      Text('Short, Med, Long-Term', style: TextStyle(fontSize: 10, color: Colors.grey)),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
             const SizedBox(height: 24),
 
             // 2. Subjects Section
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Your Subjects',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: textPrimary),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Your Subjects',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: textPrimary),
+                    ),
+                    Text(
+                      'Tap any subject to view & add Units & Topics',
+                      style: TextStyle(fontSize: 11, color: textSecondary),
+                    ),
+                  ],
                 ),
                 TextButton.icon(
                   onPressed: () {
@@ -237,72 +386,85 @@ class _StudiesScreenState extends State<StudiesScreen> {
             else
               Column(
                 children: subjects.map((sub) {
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: cardBg,
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: isDark ? AppTheme.darkCardBorder : AppTheme.borderLight),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                Container(
-                                  width: 12,
-                                  height: 12,
-                                  decoration: BoxDecoration(
-                                    color: Color(sub.colorValue),
-                                    shape: BoxShape.circle,
+                  return InkWell(
+                    borderRadius: BorderRadius.circular(18),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => SubjectDetailsScreen(subjectName: sub.name),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: cardBg,
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: isDark ? AppTheme.darkCardBorder : AppTheme.borderLight),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    width: 12,
+                                    height: 12,
+                                    decoration: BoxDecoration(
+                                      color: Color(sub.colorValue),
+                                      shape: BoxShape.circle,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(width: 10),
-                                Text(
-                                  sub.name,
-                                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: textPrimary),
-                                ),
-                              ],
-                            ),
-                            PopupMenuButton<String>(
-                              icon: Icon(Icons.more_vert_rounded, size: 18, color: textSecondary),
-                              onSelected: (val) {
-                                if (val == 'delete') {
-                                  provider.deleteSubject(sub.id);
-                                }
-                              },
-                              itemBuilder: (ctx) => [
-                                const PopupMenuItem(
-                                  value: 'delete',
-                                  child: Row(children: [Icon(Icons.delete_outline, color: Colors.redAccent, size: 16), SizedBox(width: 8), Text('Delete')]),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text('Progress', style: TextStyle(fontSize: 12, color: textSecondary, fontWeight: FontWeight.w500)),
-                            Text('${(sub.progress * 100).round()}%', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: textPrimary)),
-                          ],
-                        ),
-                        const SizedBox(height: 6),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
-                          child: LinearProgressIndicator(
-                            value: sub.progress,
-                            minHeight: 6,
-                            backgroundColor: isDark ? Colors.white10 : Colors.black12,
-                            valueColor: AlwaysStoppedAnimation<Color>(Color(sub.colorValue)),
+                                  const SizedBox(width: 10),
+                                  Text(
+                                    sub.name,
+                                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: textPrimary),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Colors.grey),
+                                ],
+                              ),
+                              PopupMenuButton<String>(
+                                icon: Icon(Icons.more_vert_rounded, size: 18, color: textSecondary),
+                                onSelected: (val) {
+                                  if (val == 'delete') {
+                                    provider.deleteSubject(sub.id);
+                                  }
+                                },
+                                itemBuilder: (ctx) => [
+                                  const PopupMenuItem(
+                                    value: 'delete',
+                                    child: Row(children: [Icon(Icons.delete_outline, color: Colors.redAccent, size: 16), SizedBox(width: 8), Text('Delete')]),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('Progress (Tap to open Units)', style: TextStyle(fontSize: 12, color: textSecondary, fontWeight: FontWeight.w500)),
+                              Text('${(sub.progress * 100).round()}%', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: textPrimary)),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: LinearProgressIndicator(
+                              value: sub.progress,
+                              minHeight: 6,
+                              backgroundColor: isDark ? Colors.white10 : Colors.black12,
+                              valueColor: AlwaysStoppedAnimation<Color>(Color(sub.colorValue)),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   );
                 }).toList(),
