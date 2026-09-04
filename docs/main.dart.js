@@ -103917,10 +103917,11 @@ A.ar(p.e,!1).aU(null)}},
 $S:0}
 A.va.prototype={
 D(a){var s,r,q=null,p=A.dS(q,q,B.aH,q,q,0,q,A.bK(q,q,q,B.Q2,q,q,new A.a8b(a),q,q,q,q),q,B.a8y),o=A.aTl(B.x,6,"career_screen_fab",B.Qg,B.a92,new A.a8c(a)),n=A.Q(22),m=t.p
-n=A.a0(q,A.a1(A.a([A.a0(q,B.QO,B.l,q,q,new A.X(B.x,q,q,A.Q(16),q,q,B.o),q,52,q,q,q,q,52),B.hl,B.Op],m),B.j,B.f,B.e,0,q,q),B.l,q,q,new A.X(B.L_,q,q,n,q,q,B.o),q,q,q,B.a0,q,q,1/0)
+n=A.co(q,A.a0(q,A.a1(A.a([A.a0(q,B.QO,B.l,q,q,new A.X(B.x,q,q,A.Q(16),q,q,B.o),q,52,q,q,q,q,52),B.hl,B.Op],m),B.j,B.f,B.e,0,q,q),B.l,q,q,new A.X(B.L_,q,q,n,q,q,B.o),q,q,q,B.a0,q,q,1/0),B.C,!1,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,new A.aGPC(a),q,q,q,q,q,q)
 s=A.Q(20)
 r=A.b2(B.x,B.p,1.5)
-var _careerGoalCard = A.co(q, A.a0(q, A.a1(A.a([A.a0(q, B.ug, B.l, q, q, B.I7, q, q, q, B.nl, q, q, q), B.dz, A.a3(A.a([A.l("🎯 Goals", q, q, q, A.A(q, q, B.t, q, q, q, q, q, q, q, q, 15, q, q, B.y, q, q, !0, q, q, q, q, q, q, q, q), q, q, q), A.l("Short-Term, Medium-Term & Long-Term", q, q, q, A.A(q, q, B.G, q, q, q, q, q, q, q, q, 12, q, q, B.a9, q, q, !0, q, q, q, q, q, q, q, q), q, q, q)], m), B.w, B.f, B.e, 0, B.m), B.PU], m), B.j, B.f, B.e, 0, q, q), B.l, q, q, new A.X(B.h, q, A.b2(B.aX, B.p, 1.5), s, q, q, B.o), q, q, q, B.d0, q, q, 1/0), B.C, !1, q, q, q, q, q, q, q, q, q, q, q, q, q, q, q, q, new A.aGPC(a), q, q, q, q, q, q);
+var _btnCareerGoals = A.aqY(A.aH(B.ug, B.x, q, 14), A.l("🎯 Open Goals", q, q, q, B.cR, q, q, q), new A.aGPC(a), A.ne(q, q, q, q, q, q, q, q, q, B.x, q, q, q, q, q, q, q, q, q, q));
+var _careerGoalCard = A.co(q, A.a0(q, A.a3(A.a([A.a1(A.a([A.a0(q, B.ug, B.l, q, q, B.I7, q, q, q, B.nl, q, q, q), B.dz, A.a3(A.a([A.l("🎯 Goals", q, q, q, A.A(q, q, B.t, q, q, q, q, q, q, q, q, 15, q, q, B.y, q, q, !0, q, q, q, q, q, q, q, q), q, q, q), A.l("Short-Term, Medium-Term & Long-Term", q, q, q, A.A(q, q, B.G, q, q, q, q, q, q, q, q, 12, q, q, B.a9, q, q, !0, q, q, q, q, q, q, q, q), q, q, q)], m), B.w, B.f, B.e, 0, B.m), B.PU], m), B.j, B.f, B.e, 0, q, q), B.bp, _btnCareerGoals], m), B.w, B.f, B.e, 0, B.m), B.l, q, q, new A.X(B.h, q, A.b2(B.aX, B.p, 1.5), s, q, q, B.o), q, q, q, B.d0, q, q, 1/0), B.C, !1, q, q, q, q, q, q, q, q, q, q, q, q, q, q, q, q, new A.aGPC(a), q, q, q, q, q, q);
 return A.dp(p,B.aH,A.cX(A.a3(A.a([n,B.aC,A.co(q,A.a0(q,A.a1(A.a([A.a0(q,B.QE,B.l,q,q,B.I7,q,q,q,B.nl,q,q,q),B.dz,B.Oo,B.PU],m),B.j,B.f,B.e,0,q,q),B.l,q,q,new A.X(B.LH,q,r,s,q,q,B.o),q,q,q,B.d0,q,q,1/0),B.C,!1,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,new A.a8d(a),q,q,q,q,q,q),B.am,_careerGoalCard,B.Fw],m),B.w,B.f,B.e,0,B.m),q,B.a0,q,q,B.U),q,o)}}
 A.a8b.prototype={
 $0(){A.ar(this.a,!1).aU(null)
