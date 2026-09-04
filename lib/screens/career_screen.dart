@@ -230,7 +230,7 @@ class CareerScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '3-Tier Goal Management',
+                            'Goals',
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w800,

@@ -320,7 +320,7 @@ class _StudiesScreenState extends State<StudiesScreen> {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text('Goals Hierarchy', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                                      Text('Goals', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
                                       Text('Short, Med, Long-Term', style: TextStyle(fontSize: 10, color: Colors.grey)),
                                     ],
                                   ),

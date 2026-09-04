@@ -69,7 +69,7 @@ class _GoalPyramidScreenState extends State<GoalPyramidScreen> {
             ),
             const SizedBox(height: 12),
             Text(
-              'Goal Hierarchy',
+              'Goals',
               style: TextStyle(
                 fontSize: 26,
                 fontWeight: FontWeight.w800,
