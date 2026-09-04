@@ -102476,8 +102476,8 @@ r.rE()
 return r},
 $S:603}
 A.RX.prototype={
-D(a){var s=A.d9(a,!0,t.C),r=$.aZA()
-return new A.Dr(s.b?B.kP:B.Hy,"Wrindha OS",r,r,B.jf,!1,null)}}
+D(a){var s=A.d9(a,!0,t.C),r=$.aZA(),dk=($.aZDark?$.aZDark():r),tm=(s&&s.a)?s.a:B.jf;
+return new A.Dr(s.b?B.kP:B.Hy,"Wrindha OS",r,dk,tm,!1,null)}}
 A.m_.prototype={
 L(){return"AnalyticsDateRangeType."+this.b}}
 A.CQ.prototype={
@@ -102580,6 +102580,7 @@ return A.a6(["id",s.a,"user_id",s.b,"plan",s.c,"status",s.d,"started_at",r,"expi
 A.m2.prototype={
 a4M(){var s=this
 s.a=s.a===B.ht?B.jf:B.ht
+try{if(typeof window!=="undefined"){window._isDarkMode=(s.a===B.ht);if(typeof document!=="undefined"&&document.body){document.body.style.backgroundColor=(s.a===B.ht)?"#0A1128":"#FFF9F0";}}}catch(e){}
 s.wu()
 s.V()},
 wu(){var s=0,r=A.K(t.H),q=1,p=[],o=this,n,m,l
@@ -102610,6 +102611,7 @@ return A.B(A.er(),$async$Ee)
 case 6:n=b
 m=A.jG(n.a.i(0,"is_dark_mode"))
 if(m!=null){o.a=m?B.ht:B.jf
+try{if(typeof window!=="undefined"){window._isDarkMode=(o.a===B.ht);if(typeof document!=="undefined"&&document.body){document.body.style.backgroundColor=(o.a===B.ht)?"#0A1128":"#FFF9F0";}}}catch(e){}
 o.V()}q=1
 s=5
 break
@@ -116339,7 +116341,7 @@ s($,"bgv","a4A",()=>new A.asR(A.cp("[/\\\\]",!1),A.cp("[^/\\\\]$",!1),A.cp("^(\\
 s($,"bgu","N3",()=>new A.aso(A.cp("/",!1),A.cp("(^[a-zA-Z][-+.a-zA-Z\\d]*://|[^/])$",!1),A.cp("[a-zA-Z][-+.a-zA-Z\\d]*://[^/]*",!1),A.cp("^/",!1)))
 s($,"bgs","aRh",()=>A.b7I())
 s($,"bfY","aNs",()=>A.aTj())
-r($,"ben","aZA",()=>{var q=null,p=A.aSy(B.b0,q,B.t,B.x,B.x,B.x,B.aH)
+$.aZDark=function(){try{var q=null,navyBg=new A.n(1,10/255,17/255,40/255,B.i),navyCard=new A.n(1,16/255,27/255,59/255,B.i),p=A.aSy(navyCard,q,B.h,B.x,B.x,B.x,navyBg);return A.y2(B.Hq,navyBg,A.b2t(q,navyCard,0,q,q,A.aVn(A.Q(20),B.u),q),p,A.b4a(A.dB(q,q,B.x,q,q,q,0,q,q,B.h,q,q,q,q,A.aVn(A.Q(16),B.u),q,q,q,B.pR,q)),B.x,navyBg,!0)}catch(e){return $.aZA()}};r($,"ben","aZA",()=>{var q=null,p=A.aSy(B.b0,q,B.t,B.x,B.x,B.x,B.aH)
 return A.y2(B.Hq,B.b0,A.b2t(q,B.h,0,q,q,A.aVn(A.Q(20),B.u),q),p,A.b4a(A.dB(q,q,B.x,q,q,q,0,q,q,B.h,q,q,q,q,A.aVn(A.Q(16),B.u),q,q,q,B.pR,q)),B.x,B.aH,!0)})
 s($,"bhQ","b0w",()=>!A.aP("ac<p>").b(A.a([],t.Z)))
 s($,"bgm","aRg",()=>new A.V())

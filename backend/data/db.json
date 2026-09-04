@@ -931,6 +931,14 @@
       "code": "",
       "instructor": "",
       "createdAt": "2026-09-04T12:54:48.669Z"
+    },
+    {
+      "id": "sub_1788527085864",
+      "userId": "u_test_pro",
+      "name": "hi",
+      "code": "",
+      "instructor": "",
+      "createdAt": "2026-09-04T13:04:45.865Z"
     }
   ],
   "studyItems": [],
@@ -1894,6 +1902,20 @@
       "discountApplied": 24.5,
       "paymentStatus": "success",
       "createdAt": "2026-09-04T13:01:53.650Z"
+    },
+    {
+      "id": "cu_1788527522705",
+      "userId": "u_1788527520754",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-09-04T13:12:02.705Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-09-04T13:12:02.705Z"
     }
   ],
   "referralCodes": [
