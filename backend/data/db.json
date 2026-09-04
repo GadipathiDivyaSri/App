@@ -891,6 +891,30 @@
       "instructor": "Prof. Drucker",
       "userId": "u_test_admin",
       "createdAt": "2026-09-04T11:47:44.979Z"
+    },
+    {
+      "id": "sub_1788523166224",
+      "userId": "u_test_pro",
+      "name": "hi",
+      "code": "",
+      "instructor": "",
+      "createdAt": "2026-09-04T11:59:26.224Z"
+    },
+    {
+      "id": "sub_1788524088109",
+      "userId": "u_test_pro",
+      "name": "maaths",
+      "code": "",
+      "instructor": "",
+      "createdAt": "2026-09-04T12:14:48.109Z"
+    },
+    {
+      "id": "sub_1788524467275",
+      "userId": "u_test_pro",
+      "name": "hlo",
+      "code": "",
+      "instructor": "",
+      "createdAt": "2026-09-04T12:21:07.275Z"
     }
   ],
   "studyItems": [],
@@ -1002,7 +1026,18 @@
       "createdAt": "2026-09-04T11:47:44.979Z"
     }
   ],
-  "expenses": [],
+  "expenses": [
+    {
+      "id": "e_1788523138004",
+      "userId": "u_test_pro",
+      "title": "Food & Drinks",
+      "category": "Food & Drinks",
+      "amount": 10,
+      "isIncome": false,
+      "date": "2026-09-04T11:58:58.006Z",
+      "createdAt": "2026-09-04T11:58:58.006Z"
+    }
+  ],
   "journalEntries": [],
   "notes": [],
   "focusSessions": [],
@@ -1759,6 +1794,48 @@
       "discountApplied": 24.5,
       "paymentStatus": "success",
       "createdAt": "2026-09-04T11:55:36.065Z"
+    },
+    {
+      "id": "cu_1788523851678",
+      "userId": "u_1788523851169",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-09-04T12:10:51.678Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-09-04T12:10:51.678Z"
+    },
+    {
+      "id": "cu_1788524386142",
+      "userId": "u_1788524385267",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-09-04T12:19:46.142Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-09-04T12:19:46.142Z"
+    },
+    {
+      "id": "cu_1788524712920",
+      "userId": "u_1788524712145",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-09-04T12:25:12.920Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-09-04T12:25:12.920Z"
     }
   ],
   "referralCodes": [
