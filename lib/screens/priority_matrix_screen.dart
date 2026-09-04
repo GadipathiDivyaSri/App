@@ -15,54 +15,9 @@ class PriorityMatrixScreen extends StatefulWidget {
 }
 
 class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
-  final List<Map<String, dynamic>> _p1Tasks = [
-    {
-      'id': 't_p1_1',
-      'title': 'Complete Physics Thermodynamics Assignment',
-      'tag': 'STUDY',
-      'dueDate': DateTime.now(),
-      'dueTime': const TimeOfDay(hour: 18, minute: 30),
-      'priority': 1,
-    },
-    {
-      'id': 't_p1_2',
-      'title': 'Submit Mock Exam Test Series 04',
-      'tag': 'EXAM',
-      'dueDate': DateTime.now(),
-      'dueTime': const TimeOfDay(hour: 21, minute: 0),
-      'priority': 1,
-    },
-  ];
-
-  final List<Map<String, dynamic>> _p2Tasks = [
-    {
-      'id': 't_p2_1',
-      'title': 'Prepare Chemistry Organic Synthesis Notes',
-      'tag': 'STUDY',
-      'dueDate': DateTime.now().add(const Duration(days: 1)),
-      'dueTime': const TimeOfDay(hour: 11, minute: 0),
-      'priority': 2,
-    },
-    {
-      'id': 't_p2_2',
-      'title': 'Review Mathematics Calculus Formulas',
-      'tag': 'PLANNING',
-      'dueDate': DateTime.now().add(const Duration(days: 2)),
-      'dueTime': const TimeOfDay(hour: 16, minute: 0),
-      'priority': 2,
-    },
-  ];
-
-  final List<Map<String, dynamic>> _p3Tasks = [
-    {
-      'id': 't_p3_1',
-      'title': 'Organize Digital Workspace & Archive Question Banks',
-      'tag': 'PERSONAL',
-      'dueDate': DateTime.now().add(const Duration(days: 6)),
-      'dueTime': const TimeOfDay(hour: 20, minute: 0),
-      'priority': 3,
-    },
-  ];
+  final List<Map<String, dynamic>> _p1Tasks = [];
+  final List<Map<String, dynamic>> _p2Tasks = [];
+  final List<Map<String, dynamic>> _p3Tasks = [];
 
   final List<Map<String, dynamic>> _completedTasks = [];
   bool _sortByUrgentTime = false;
