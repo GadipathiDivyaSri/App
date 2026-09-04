@@ -106779,7 +106779,8 @@ l=A.a1(A.a([A.l("Progress",q,q,q,A.A(q,q,j,q,q,q,q,q,q,q,q,12,q,q,B.a9,q,q,!0,q,
 j=A.Q(4)
 s=a.e
 o=o?B.di:B.cj
-var _subjCard = A.a0(q,A.a3(A.a([i,B.aj,l,B.bH,A.ma(j,A.wr(o,6,s,new A.i8(A.bw(m),t.ZU)),B.bn)],k),B.w,B.f,B.e,0,B.m),B.l,q,q,new A.X(r.a,q,n,p,q,q,B.o),q,q,B.eU,B.bY,q,q,q);
+var _btnUnits = A.aqY(A.aH(B.ks, B.x, q, 14), A.l("📚 Units & Topics", q, q, q, B.cR, q, q, q), new A.aSCC(r.c, a), A.ne(q, q, q, q, q, q, q, q, q, B.x, q, q, q, q, q, q, q, q, q, q));
+var _subjCard = A.a0(q,A.a3(A.a([i,B.aj,l,B.bH,A.ma(j,A.wr(o,6,s,new A.i8(A.bw(m),t.ZU)),B.bn),B.bp,_btnUnits],k),B.w,B.f,B.e,0,B.m),B.l,q,q,new A.X(r.a,q,n,p,q,q,B.o),q,q,B.eU,B.bY,q,q,q);
 return A.co(q, _subjCard, B.C, !1, q, q, q, q, q, q, q, q, q, q, q, q, q, q, q, q, new A.aSCC(r.c, a), q, q, q, q, q, q);},
 $S:680}
 A.aIY.prototype={
