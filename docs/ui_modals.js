@@ -1,4 +1,4 @@
-// WrindhaOS Dynamic Interactive Tools & Modals Runtime
+// WrindhaOS Interactive Tools & Modals Runtime
 (function() {
   function getIsDark(ctx) {
     try {
@@ -11,19 +11,6 @@
     } catch(e) {
       return false;
     }
-  }
-
-  function getAuthToken() {
-    try {
-      var token = localStorage.getItem('wrindha_token') || sessionStorage.getItem('wrindha_token');
-      if (token) return token;
-      var authUser = localStorage.getItem('wrindha_auth_user');
-      if (authUser) {
-        var u = JSON.parse(authUser);
-        if (u.token) return u.token;
-      }
-    } catch(e) {}
-    return null;
   }
 
   // --- FOCUS TIMER & STOPWATCH MODAL ---
@@ -264,7 +251,7 @@
     }
   };
 
-  // --- GOALS MANAGEMENT MODAL (Clean, User-Driven, No dummy tasks) ---
+  // --- GOALS MANAGEMENT MODAL (Short-Term, Medium-Term, Long-Term) ---
   window._openGoalsModal = window._openGoalPyramidModal = function(ctx) {
     try {
       var isDark = getIsDark(ctx);
@@ -278,8 +265,7 @@
         if (str) saved = JSON.parse(str);
       } catch(e) {}
 
-      if (!saved) {
-        // Start clean without dummy mock tasks
+      if (!saved || typeof saved !== 'object') {
         saved = { short: [], medium: [], long: [] };
       }
 
@@ -331,13 +317,13 @@
 
             <!-- Add Goal Input -->
             <div style="display: flex; gap: 8px; margin-bottom: 18px;">
-              <input id="input_goal_title" type="text" placeholder="Add your goal (e.g. Complete Chapter 1)..." style="flex: 1; padding: 12px 14px; border-radius: 12px; border: 1px solid ${isDark ? '#3E4155' : '#CBD5E1'}; background: ${isDark ? '#14151F' : '#FFF'}; color: inherit; font-size: 14px; outline: none;" />
+              <input id="input_goal_title" type="text" placeholder="Add a new ${activeTab}-term goal..." style="flex: 1; padding: 12px 14px; border-radius: 12px; border: 1px solid ${isDark ? '#3E4155' : '#CBD5E1'}; background: ${isDark ? '#14151F' : '#FFF'}; color: inherit; font-size: 14px; outline: none;" />
               <button id="btn_add_goal" style="background: #E87552; color: white; border: none; padding: 12px 18px; border-radius: 12px; font-weight: 800; cursor: pointer;">+ Add Goal</button>
             </div>
 
             <!-- Goals List -->
             <div id="goals_list_container">
-              ${goals.length === 0 ? '<div style="text-align:center; padding:28px 16px; color:#94A3B8; font-size:13px; background:' + (isDark ? '#14151F' : '#F8FAFC') + '; border-radius:16px;">No goals added yet in this tier.<br/><span style="font-size:11px; opacity:0.8;">Type a goal above and tap (+ Add Goal) to start tracking!</span></div>' : ''}
+              ${goals.length === 0 ? '<div style="text-align:center; padding:28px 16px; color:#94A3B8; font-size:13px; background:' + (isDark ? '#14151F' : '#F8FAFC') + '; border-radius:16px;">No goals added yet in this tier.<br/><span style="font-size:11px; opacity:0.8;">Type your goal above and tap (+ Add Goal) to start!</span></div>' : ''}
               ${goals.map(function(g, idx) {
                 return `
                   <div style="display: flex; align-items: center; justify-content: space-between; background: ${isDark ? '#14151F' : '#FFFFFF'}; padding: 14px 16px; border-radius: 16px; margin-bottom: 10px; border: 1px solid ${isDark ? '#2A2C3E' : '#E2E8F0'};">
@@ -410,76 +396,35 @@
       if (existingOverlay) existingOverlay.remove();
 
       // Resolve clicked subject name
-      var clickedName = '';
+      var subjName = '';
       if (typeof subject === 'string' && subject.trim()) {
-        clickedName = subject.trim();
+        subjName = subject.trim();
       } else if (subject && typeof subject === 'object') {
-        clickedName = subject.b || subject.name || subject.title || '';
+        subjName = subject.b || subject.name || subject.title || '';
       }
 
-      // Load user subjects from backend or localStorage
-      var allSubjectsKey = 'wrindha_user_subjects_list';
-      var allSubjects = [];
-      try {
-        var subStr = localStorage.getItem(allSubjectsKey);
-        if (subStr) allSubjects = JSON.parse(subStr);
-      } catch(e) {}
+      if (!subjName) subjName = 'Subject';
 
-      if (!Array.isArray(allSubjects)) allSubjects = [];
+      var storageKey = 'wrindha_units_' + subjName.toLowerCase().replace(/[^a-z0-9]/g, '_');
 
-      // Fetch from API asynchronously or add clicked subject
-      if (clickedName && !allSubjects.includes(clickedName)) {
-        allSubjects.unshift(clickedName);
-        try { localStorage.setItem(allSubjectsKey, JSON.stringify(allSubjects)); } catch(e) {}
-      }
-
-      // Asynchronously fetch from /api/subjects
-      var token = getAuthToken();
-      if (token) {
-        fetch('/api/subjects', {
-          headers: { 'Authorization': 'Bearer ' + token }
-        }).then(function(r) { return r.json(); }).then(function(data) {
-          if (Array.isArray(data)) {
-            var names = data.map(function(s) { return s.name; }).filter(Boolean);
-            if (names.length > 0) {
-              names.forEach(function(n) {
-                if (!allSubjects.includes(n)) allSubjects.push(n);
-              });
-              try { localStorage.setItem(allSubjectsKey, JSON.stringify(allSubjects)); } catch(e) {}
-              var selectEl = document.getElementById('select_subject');
-              if (selectEl) {
-                selectEl.innerHTML = allSubjects.map(function(s) {
-                  return '<option value="' + s + '" ' + (s === selectedSubj ? 'selected' : '') + '>' + s + '</option>';
-                }).join('');
-              }
-            }
-          }
-        }).catch(function() {});
-      }
-
-      var selectedSubj = clickedName || (allSubjects.length > 0 ? allSubjects[0] : 'My Subject');
-
-      function loadUnitsForSubject(sName) {
-        var key = 'wrindha_units_' + sName.toLowerCase().replace(/[^a-z0-9]/g, '_');
+      function loadUnitsForSubject() {
         var savedUnits = null;
         try {
-          var str = localStorage.getItem(key);
+          var str = localStorage.getItem(storageKey);
           if (str) savedUnits = JSON.parse(str);
         } catch(e) {}
 
         if (!savedUnits || !Array.isArray(savedUnits)) {
-          // Start clean: 0 predefined dummy calculus tasks
           savedUnits = [];
         }
         return savedUnits;
       }
 
-      var unitsList = loadUnitsForSubject(selectedSubj);
+      var unitsList = loadUnitsForSubject();
 
       function saveSubjectUnits() {
         try {
-          var key = 'wrindha_units_' + selectedSubj.toLowerCase().replace(/[^a-z0-9]/g, '_');
-          localStorage.setItem(key, JSON.stringify(unitsList));
+          localStorage.setItem(storageKey, JSON.stringify(unitsList));
         } catch(e) {}
       }
 
@@ -519,28 +464,11 @@
               <div style="display: flex; align-items: center; gap: 12px;">
                 <div style="background: #0D5CE5; color: white; width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px;">📚</div>
                 <div>
-                  <h2 style="margin: 0; font-size: 19px; font-weight: 800;">${selectedSubj}</h2>
-                  <p style="margin: 0; font-size: 12px; color: #64748B;">Curriculum Units & Topics Manager</p>
+                  <h2 style="margin: 0; font-size: 19px; font-weight: 800;">${subjName}</h2>
+                  <p style="margin: 0; font-size: 12px; color: #64748B;">Curriculum Units & Topics</p>
                 </div>
               </div>
               <button id="close_subject_modal" style="background: transparent; border: none; font-size: 24px; cursor: pointer; color: #94A3B8;">&times;</button>
-            </div>
-
-            <!-- Subject Switcher / Creator -->
-            <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 16px; overflow-x: auto; padding-bottom: 4px;">
-              <span style="font-size: 11px; font-weight: 700; color: #64748B; text-transform: uppercase;">Subject:</span>
-              <select id="select_subject" style="background: ${isDark ? '#14151F' : '#FFF'}; color: inherit; border: 1px solid ${isDark ? '#3E4155' : '#CBD5E1'}; border-radius: 10px; padding: 6px 12px; font-size: 13px; font-weight: 700; outline: none; cursor: pointer;">
-                ${allSubjects.length === 0 ? '<option value="' + selectedSubj + '">' + selectedSubj + '</option>' : allSubjects.map(function(s) {
-                  return '<option value="' + s + '" ' + (s === selectedSubj ? 'selected' : '') + '>' + s + '</option>';
-                }).join('')}
-              </select>
-              <button id="btn_new_subject" style="background: #EEF2FF; color: #0D5CE5; border: 1px solid #C7D2FE; border-radius: 10px; padding: 6px 10px; font-size: 12px; font-weight: 700; cursor: pointer;">+ New Subject</button>
-            </div>
-
-            <!-- Inline New Subject Form -->
-            <div id="new_subject_box" style="display: none; gap: 8px; margin-bottom: 16px; background: ${isDark ? '#14151F' : '#F1F5F9'}; padding: 10px; border-radius: 12px;">
-              <input id="input_new_subject_name" type="text" placeholder="Enter subject name (e.g. Hindi, Mathematics)..." style="flex: 1; padding: 8px 12px; border-radius: 8px; border: 1px solid #CBD5E1; background: ${isDark ? '#1E1F2B' : '#FFF'}; color: inherit; font-size: 13px;" />
-              <button id="btn_save_new_subject" style="background: #0D5CE5; color: white; border: none; padding: 8px 14px; border-radius: 8px; font-weight: 700; cursor: pointer;">Create</button>
             </div>
 
             <!-- Mastery Progress Card -->
@@ -557,13 +485,13 @@
 
             <!-- Add Unit Form -->
             <div style="display: flex; gap: 8px; margin-bottom: 18px;">
-              <input id="input_unit_title" type="text" placeholder="Add unit (e.g. Unit 1: Prose & Poetry)..." style="flex: 1; padding: 11px 14px; border-radius: 12px; border: 1px solid ${isDark ? '#3E4155' : '#CBD5E1'}; background: ${isDark ? '#14151F' : '#FFF'}; color: inherit; font-size: 13px; outline: none;" />
+              <input id="input_unit_title" type="text" placeholder="Add unit (e.g. Unit 1: Introduction)..." style="flex: 1; padding: 11px 14px; border-radius: 12px; border: 1px solid ${isDark ? '#3E4155' : '#CBD5E1'}; background: ${isDark ? '#14151F' : '#FFF'}; color: inherit; font-size: 13px; outline: none;" />
               <button id="btn_add_unit" style="background: #0D5CE5; color: white; border: none; padding: 11px 16px; border-radius: 12px; font-weight: 800; cursor: pointer;">+ Add Unit</button>
             </div>
 
             <!-- Units & Topics List -->
             <div id="units_container">
-              ${unitsList.length === 0 ? '<div style="text-align:center; padding:28px 16px; color:#94A3B8; font-size:13px; background:' + (isDark ? '#14151F' : '#F8FAFC') + '; border-radius:16px;">No units added yet for ' + selectedSubj + '.<br/><span style="font-size:11px; opacity:0.8;">Use (+ Add Unit) above to add your first curriculum unit!</span></div>' : ''}
+              ${unitsList.length === 0 ? '<div style="text-align:center; padding:28px 16px; color:#94A3B8; font-size:13px; background:' + (isDark ? '#14151F' : '#F8FAFC') + '; border-radius:16px;">No units added yet for ' + subjName + '.<br/><span style="font-size:11px; opacity:0.8;">Use the input above and tap (+ Add Unit) to add your first unit!</span></div>' : ''}
               ${unitsList.map(function(u, uIdx) {
                 return `
                   <div style="background: ${isDark ? '#14151F' : '#FFFFFF'}; border-radius: 16px; padding: 16px; margin-bottom: 14px; border: 1px solid ${isDark ? '#2A2C3E' : '#E2E8F0'};">
@@ -606,36 +534,6 @@
         document.getElementById('btn_modal_focus').onclick = function() {
           overlay.remove();
           window._openFocusTimerModal(ctx);
-        };
-
-        // Switch subject dropdown
-        document.getElementById('select_subject').onchange = function(e) {
-          selectedSubj = e.target.value;
-          unitsList = loadUnitsForSubject(selectedSubj);
-          renderSubjectModal();
-        };
-
-        // New subject button
-        document.getElementById('btn_new_subject').onclick = function() {
-          var box = document.getElementById('new_subject_box');
-          box.style.display = box.style.display === 'none' ? 'flex' : 'none';
-          var inp = document.getElementById('input_new_subject_name');
-          if (inp) inp.focus();
-        };
-
-        // Save new subject
-        document.getElementById('btn_save_new_subject').onclick = function() {
-          var inp = document.getElementById('input_new_subject_name');
-          var sName = inp ? inp.value.trim() : '';
-          if (sName) {
-            if (!allSubjects.includes(sName)) {
-              allSubjects.push(sName);
-              try { localStorage.setItem(allSubjectsKey, JSON.stringify(allSubjects)); } catch(e) {}
-            }
-            selectedSubj = sName;
-            unitsList = loadUnitsForSubject(selectedSubj);
-            renderSubjectModal();
-          }
         };
 
         document.getElementById('btn_add_unit').onclick = function() {
@@ -720,51 +618,4 @@
       console.error('[SUBJECT UNITS MODAL ERROR]:', err);
     }
   };
-
-  // --- FLOATING QUICK ACCESS DOCK (Always visible across all screens) ---
-  function injectQuickDock() {
-    if (document.getElementById('wrindha_quick_dock')) return;
-
-    var dock = document.createElement('div');
-    dock.id = 'wrindha_quick_dock';
-    dock.style.position = 'fixed';
-    dock.style.bottom = '20px';
-    dock.style.right = '20px';
-    dock.style.zIndex = '99999';
-    dock.style.display = 'flex';
-    dock.style.alignItems = 'center';
-    dock.style.gap = '8px';
-    dock.style.backgroundColor = 'rgba(15, 23, 42, 0.85)';
-    dock.style.backdropFilter = 'blur(12px)';
-    dock.style.padding = '8px 14px';
-    dock.style.borderRadius = '30px';
-    dock.style.boxShadow = '0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1)';
-    dock.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-
-    dock.innerHTML = `
-      <button id="dock_focus_btn" title="Focus Timer & Stopwatch" style="background: rgba(13, 92, 229, 0.2); color: #60A5FA; border: 1px solid rgba(13, 92, 229, 0.4); border-radius: 20px; padding: 6px 12px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: all 0.2s ease;">
-        <span>⏱️</span> <span>Focus</span>
-      </button>
-      <button id="dock_goals_btn" title="Goals (Short, Medium, Long-Term)" style="background: rgba(232, 117, 82, 0.2); color: #F87171; border: 1px solid rgba(232, 117, 82, 0.4); border-radius: 20px; padding: 6px 12px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: all 0.2s ease;">
-        <span>🎯</span> <span>Goals</span>
-      </button>
-      <button id="dock_units_btn" title="Curriculum Units & Topics" style="background: rgba(16, 185, 129, 0.2); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 20px; padding: 6px 12px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: all 0.2s ease;">
-        <span>📚</span> <span>Units & Topics</span>
-      </button>
-    `;
-
-    document.body.appendChild(dock);
-
-    document.getElementById('dock_focus_btn').onclick = function() { window._openFocusTimerModal(); };
-    document.getElementById('dock_goals_btn').onclick = function() { window._openGoalsModal(); };
-    document.getElementById('dock_units_btn').onclick = function() { window._openSubjectUnitsModal(); };
-  }
-
-  if (document.readyState === 'complete' || document.readyState === 'interactive') {
-    setTimeout(injectQuickDock, 500);
-  } else {
-    window.addEventListener('DOMContentLoaded', function() {
-      setTimeout(injectQuickDock, 500);
-    });
-  }
 })();
