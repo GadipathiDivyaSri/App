@@ -200,28 +200,30 @@
       "username": "freetester",
       "name": "Free Tier Tester",
       "email": "free@wrindha.com",
-      "password": "46b00df400db809db46ce0e12ece219d:00ebb166a777a30b3250090f02ccc99665ff5625c708a0eb0eaee9a65b02af01f50bdaebf868bc71c429151f449c8f26e1b652bd13a34cffcdf87a0f6ce05958",
+      "password": "fc8c99faba4d736c584971ab493baef5:55990162e9e9f4a485d08f99a6abb9d5be758cfbd007fafb58424328e27e0456884f37c714d65074bf3676555499a0af05de2d5f666fa2876ec9c8f9edf475c9",
       "isEmailVerified": true,
       "focusScore": 78,
       "activeStreak": 3,
       "isPremium": false,
       "referralCode": "WOS_FREETESTER",
       "createdAt": "2026-09-04T11:47:44.979Z",
-      "updatedAt": "2026-09-04T11:47:44.979Z"
+      "updatedAt": "2026-09-04T11:47:44.979Z",
+      "subscriptionPlan": "FREE"
     },
     {
       "id": "u_test_pro",
       "username": "protester",
       "name": "Pro Tier Tester",
       "email": "pro@wrindha.com",
-      "password": "46b00df400db809db46ce0e12ece219d:00ebb166a777a30b3250090f02ccc99665ff5625c708a0eb0eaee9a65b02af01f50bdaebf868bc71c429151f449c8f26e1b652bd13a34cffcdf87a0f6ce05958",
+      "password": "1e4ac62fd384bebf1685b8ea3bd14dd7:e9a7adbbb3dfb751b13def4a0d0640378fa9d1b2fcc2c297f5039da21d4a0346ac1f657b78d7fedb3c6760fc162d67842d3481227e2ca2d271e2943cce52fcd5",
       "isEmailVerified": true,
       "focusScore": 92,
       "activeStreak": 15,
       "isPremium": true,
       "referralCode": "WOS_PROTESTER",
       "createdAt": "2026-09-04T11:47:44.979Z",
-      "updatedAt": "2026-09-04T11:47:44.979Z"
+      "updatedAt": "2026-09-04T11:47:44.979Z",
+      "subscriptionPlan": "PRO"
     },
     {
       "id": "u_test_admin",
@@ -470,6 +472,14 @@
       "transaction_id": null,
       "created_at": "2026-09-04T16:22:42.149Z",
       "updated_at": "2026-09-04T16:22:42.149Z"
+    },
+    {
+      "id": "sub_pro_test",
+      "userId": "u_pro_test",
+      "plan": "pro",
+      "status": "active",
+      "startedAt": "2026-09-04T16:39:18.301Z",
+      "expiresAt": "2027-09-04T16:39:18.302Z"
     }
   ],
   "paymentHistory": [],
