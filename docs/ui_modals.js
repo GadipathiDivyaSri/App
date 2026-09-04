@@ -258,8 +258,15 @@
       var existingOverlay = document.getElementById('wrindha_goal_modal');
       if (existingOverlay) existingOverlay.remove();
 
-      if (!window._wrindhaGoals) {
-        window._wrindhaGoals = {
+      var storageKey = 'wrindha_goals_data';
+      var saved = null;
+      try {
+        var str = localStorage.getItem(storageKey);
+        if (str) saved = JSON.parse(str);
+      } catch(e) {}
+
+      if (!saved) {
+        saved = {
           short: [
             { id: 'g_s1', title: 'Complete Calculus Assignment #4', targetDate: 'This Friday', isDone: false },
             { id: 'g_s2', title: 'Read Chapter 5: Organic Chemistry', targetDate: 'Tomorrow', isDone: true }
@@ -275,7 +282,13 @@
         };
       }
 
-      var defaultGoals = window._wrindhaGoals;
+      var defaultGoals = saved;
+      function saveGoals() {
+        try {
+          localStorage.setItem(storageKey, JSON.stringify(defaultGoals));
+        } catch(e) {}
+      }
+
       var overlay = document.createElement('div');
       overlay.id = 'wrindha_goal_modal';
       overlay.style.position = 'fixed';
@@ -357,6 +370,7 @@
               targetDate: activeTab === 'short' ? 'This Week' : activeTab === 'medium' ? 'This Quarter' : 'Vision Target',
               isDone: false
             });
+            saveGoals();
             renderModal();
           }
         };
@@ -365,6 +379,7 @@
           cb.onchange = function() {
             var idx = parseInt(cb.getAttribute('data-idx'));
             defaultGoals[activeTab][idx].isDone = cb.checked;
+            saveGoals();
             renderModal();
           };
         });
@@ -373,6 +388,7 @@
           btn.onclick = function() {
             var idx = parseInt(btn.getAttribute('data-idx'));
             defaultGoals[activeTab].splice(idx, 1);
+            saveGoals();
             renderModal();
           };
         });
@@ -393,32 +409,47 @@
       if (existingOverlay) existingOverlay.remove();
 
       var subjName = (subject && subject.b) ? subject.b : 'Academic Subject';
+      var storageKey = 'wrindha_units_' + subjName.toLowerCase().replace(/[^a-z0-9]/g, '_');
 
-      if (!subject.unitsList) {
-        subject.unitsList = [
+      var savedUnits = null;
+      try {
+        var str = localStorage.getItem(storageKey);
+        if (str) savedUnits = JSON.parse(str);
+      } catch(e) {}
+
+      if (!savedUnits) {
+        savedUnits = [
           {
-            title: 'Unit 1: Fundamentals & Concepts',
+            title: 'Unit 1: Fundamentals & Key Concepts',
             topics: [
               { title: 'Core Principles & Theory', isDone: true },
-              { title: 'Problem Solving & Exercises', isDone: true },
-              { title: 'Practice Problems & Review', isDone: false }
+              { title: 'Formulas & Definitions', isDone: true },
+              { title: 'Practice Problems & Exercises', isDone: false }
             ]
           },
           {
             title: 'Unit 2: Advanced Topics & Applications',
             topics: [
               { title: 'Case Studies & Analysis', isDone: false },
-              { title: 'Exam Preparation & Mastery', isDone: false }
+              { title: 'Past Exam Question Mastery', isDone: false }
             ]
           }
         ];
+      }
+
+      subject.unitsList = savedUnits;
+
+      function saveSubjectUnits() {
+        try {
+          localStorage.setItem(storageKey, JSON.stringify(subject.unitsList));
+        } catch(e) {}
       }
 
       function calculateMastery() {
         var totalTopics = 0;
         var completedTopics = 0;
         subject.unitsList.forEach(function(u) {
-          u.topics.forEach(function(t) {
+          (u.topics || []).forEach(function(t) {
             totalTopics++;
             if (t.isDone) completedTopics++;
           });
@@ -478,20 +509,35 @@
 
             <!-- Units & Topics List -->
             <div id="units_container">
+              ${subject.unitsList.length === 0 ? '<div style="text-align:center; padding:24px; color:#94A3B8; font-size:13px;">No units added yet. Use the form above to add your first unit!</div>' : ''}
               ${subject.unitsList.map(function(u, uIdx) {
                 return `
                   <div style="background: ${isDark ? '#14151F' : '#FFFFFF'}; border-radius: 16px; padding: 16px; margin-bottom: 14px; border: 1px solid ${isDark ? '#2A2C3E' : '#E2E8F0'};">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                       <h4 style="margin: 0; font-size: 15px; font-weight: 800;">${u.title}</h4>
-                      <button class="btn_add_topic_to_unit" data-uidx="${uIdx}" style="background: #EEF2FF; color: #0D5CE5; border: 1px solid #C7D2FE; border-radius: 8px; padding: 4px 8px; font-size: 11px; font-weight: 700; cursor: pointer;">+ Topic</button>
+                      <div style="display: flex; gap: 6px; align-items: center;">
+                        <button class="btn_add_topic_to_unit" data-uidx="${uIdx}" style="background: #EEF2FF; color: #0D5CE5; border: 1px solid #C7D2FE; border-radius: 8px; padding: 4px 8px; font-size: 11px; font-weight: 700; cursor: pointer;">+ Topic</button>
+                        <button class="btn_delete_unit" data-uidx="${uIdx}" style="background: transparent; border: none; color: #EF4444; font-size: 16px; cursor: pointer; padding: 0 4px;">&times;</button>
+                      </div>
                     </div>
+
+                    <!-- Inline Topic Creator (hidden by default) -->
+                    <div id="topic_creator_${uIdx}" style="display: none; gap: 6px; margin-bottom: 10px;">
+                      <input id="input_topic_${uIdx}" type="text" placeholder="Topic name (e.g. Newton Laws)..." style="flex: 1; padding: 6px 10px; font-size: 12px; border-radius: 8px; border: 1px solid #CBD5E1; background: ${isDark ? '#1E1F2B' : '#FFF'}; color: inherit;" />
+                      <button class="btn_confirm_topic" data-uidx="${uIdx}" style="background: #0D5CE5; color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer;">Save</button>
+                    </div>
+
+                    <!-- Topics List -->
                     <div style="display: flex; flex-direction: column; gap: 8px;">
-                      ${u.topics.map(function(t, tIdx) {
+                      ${(u.topics || []).map(function(t, tIdx) {
                         return `
-                          <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 6px 8px; border-radius: 8px; background: ${isDark ? '#1E1F2B' : '#F8FAFC'};">
-                            <input type="checkbox" class="topic_cb" data-uidx="${uIdx}" data-tidx="${tIdx}" ${t.isDone ? 'checked' : ''} style="width: 16px; height: 16px; accent-color: #0D5CE5; cursor: pointer;" />
-                            <span style="font-size: 13px; font-weight: 600; text-decoration: ${t.isDone ? 'line-through' : 'none'}; color: ${t.isDone ? '#94A3B8' : 'inherit'};">${t.title}</span>
-                          </label>
+                          <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 8px; border-radius: 8px; background: ${isDark ? '#1E1F2B' : '#F8FAFC'};">
+                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; flex: 1;">
+                              <input type="checkbox" class="topic_cb" data-uidx="${uIdx}" data-tidx="${tIdx}" ${t.isDone ? 'checked' : ''} style="width: 16px; height: 16px; accent-color: #0D5CE5; cursor: pointer;" />
+                              <span style="font-size: 13px; font-weight: 600; text-decoration: ${t.isDone ? 'line-through' : 'none'}; color: ${t.isDone ? '#94A3B8' : 'inherit'};">${t.title}</span>
+                            </label>
+                            <button class="btn_delete_topic" data-uidx="${uIdx}" data-tidx="${tIdx}" style="background: transparent; border: none; color: #EF4444; font-size: 14px; cursor: pointer;">&times;</button>
+                          </div>
                         `;
                       }).join('')}
                     </div>
@@ -519,26 +565,68 @@
                 { title: 'Exercises & Practice', isDone: false }
               ]
             });
+            saveSubjectUnits();
             renderSubjectModal();
           }
         };
 
+        // Show inline topic creator
         document.querySelectorAll('.btn_add_topic_to_unit').forEach(function(btn) {
           btn.onclick = function() {
+            var uIdx = btn.getAttribute('data-uidx');
+            var creator = document.getElementById('topic_creator_' + uIdx);
+            if (creator) {
+              creator.style.display = creator.style.display === 'none' ? 'flex' : 'none';
+              var inp = document.getElementById('input_topic_' + uIdx);
+              if (inp) inp.focus();
+            }
+          };
+        });
+
+        // Save new topic
+        document.querySelectorAll('.btn_confirm_topic').forEach(function(btn) {
+          btn.onclick = function() {
             var uIdx = parseInt(btn.getAttribute('data-uidx'));
-            var title = prompt('Enter topic title:');
-            if (title && title.trim()) {
-              subject.unitsList[uIdx].topics.push({ title: title.trim(), isDone: false });
+            var inp = document.getElementById('input_topic_' + uIdx);
+            var val = inp ? inp.value.trim() : '';
+            if (val) {
+              subject.unitsList[uIdx].topics.push({ title: val, isDone: false });
+              saveSubjectUnits();
               renderSubjectModal();
             }
           };
         });
 
+        // Delete Topic
+        document.querySelectorAll('.btn_delete_topic').forEach(function(btn) {
+          btn.onclick = function(e) {
+            e.stopPropagation();
+            var uIdx = parseInt(btn.getAttribute('data-uidx'));
+            var tIdx = parseInt(btn.getAttribute('data-tidx'));
+            subject.unitsList[uIdx].topics.splice(tIdx, 1);
+            saveSubjectUnits();
+            renderSubjectModal();
+          };
+        });
+
+        // Delete Unit
+        document.querySelectorAll('.btn_delete_unit').forEach(function(btn) {
+          btn.onclick = function(e) {
+            e.stopPropagation();
+            var uIdx = parseInt(btn.getAttribute('data-uidx'));
+            subject.unitsList.splice(uIdx, 1);
+            saveSubjectUnits();
+            renderSubjectModal();
+          };
+        });
+
+        // Toggle Topic checkbox
         document.querySelectorAll('.topic_cb').forEach(function(cb) {
           cb.onchange = function() {
             var uIdx = parseInt(cb.getAttribute('data-uidx'));
             var tIdx = parseInt(cb.getAttribute('data-tidx'));
             subject.unitsList[uIdx].topics[tIdx].isDone = cb.checked;
+            saveSubjectUnits();
             renderSubjectModal();
           };
         });
