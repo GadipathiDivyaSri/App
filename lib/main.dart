@@ -39,8 +39,7 @@ class ProductivityApp extends StatelessWidget {
       title: 'Wrindha OS',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: provider.themeMode,
+      themeMode: ThemeMode.light,
       home: provider.isLoggedIn
           ? const MainNavigationScreen()
           : const AuthEntryScreen(),

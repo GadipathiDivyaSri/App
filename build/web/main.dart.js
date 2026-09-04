@@ -102476,8 +102476,8 @@ r.rE()
 return r},
 $S:603}
 A.RX.prototype={
-D(a){var s=A.d9(a,!0,t.C),r=$.aZA(),dk=($.aZDark?$.aZDark():r),tm=(s&&s.a)?s.a:B.jf;
-return new A.Dr(s.b?B.kP:B.Hy,"Wrindha OS",r,dk,tm,!1,null)}}
+D(a){var s=A.d9(a,!0,t.C),r=$.aZA();
+return new A.Dr(s.b?B.kP:B.Hy,"Wrindha OS",r,r,B.jf,!1,null)}}
 A.m_.prototype={
 L(){return"AnalyticsDateRangeType."+this.b}}
 A.CQ.prototype={
@@ -102578,11 +102578,7 @@ d1(){var s=this,r=s.e.js(),q=s.f
 q=q==null?null:q.js()
 return A.a6(["id",s.a,"user_id",s.b,"plan",s.c,"status",s.d,"started_at",r,"expires_at",q,"payment_provider",s.r,"transaction_id",s.w,"created_at",s.x.js(),"updated_at",s.y.js()],t.N,t.z)}}
 A.m2.prototype={
-a4M(){var s=this
-s.a=s.a===B.ht?B.jf:B.ht
-try{if(typeof window!=="undefined"){window._isDarkMode=(s.a===B.ht);if(typeof document!=="undefined"&&document.body){document.body.style.backgroundColor=(s.a===B.ht)?"#0A1128":"#FFF9F0";if(s.a===B.ht){document.body.classList.add("dark-theme");}else{document.body.classList.remove("dark-theme");}}}}catch(e){}
-s.wu()
-s.V()},
+a4M(){var s=this; s.a=B.jf; try{if(typeof window!=="undefined"){window._isDarkMode=!1;if(typeof document!=="undefined"&&document.body){document.body.style.backgroundColor="#FFF9F0";document.body.classList.remove("dark-theme");}}}catch(e){} s.V()},
 wu(){var s=0,r=A.K(t.H),q=1,p=[],o=this,n,m,l
 var $async$wu=A.L(function(a,b){if(a===1){p.push(b)
 s=q}for(;;)switch(s){case 0:q=3
@@ -102610,9 +102606,7 @@ s=6
 return A.B(A.er(),$async$Ee)
 case 6:n=b
 m=A.jG(n.a.i(0,"is_dark_mode"))
-if(m!=null){o.a=m?B.ht:B.jf
-try{if(typeof window!=="undefined"){window._isDarkMode=(o.a===B.ht);if(typeof document!=="undefined"&&document.body){document.body.style.backgroundColor=(o.a===B.ht)?"#0A1128":"#FFF9F0";if(o.a===B.ht){document.body.classList.add("dark-theme");}else{document.body.classList.remove("dark-theme");}}}}catch(e){}
-o.V()}q=1
+if(m!=null){o.a=B.jf; try{if(typeof window!=="undefined"){window._isDarkMode=!1;if(typeof document!=="undefined"&&document.body){document.body.style.backgroundColor="#FFF9F0";document.body.classList.remove("dark-theme");}}}catch(e){} o.V()}q=1
 s=5
 break
 case 3:q=2
@@ -106128,20 +106122,20 @@ A.aFL.prototype={
 $0(){return this.a.AU(this.b)},
 $S:0}
 A.RY.prototype={
-D(a0){var s,r,q,p,o,n,m,l,k,j,i,h,g,f=this,e=null,d=A.d9(a0,!0,t.C),c=d.c,b=A.r(a0).ax.a===B.F,a=A.bK(e,e,e,A.aH(B.bt,b?B.h:B.t,e,20),e,e,new A.alj(f,a0),e,e,e,e)
-a=A.dS(e,e,e,e,e,e,e,a,e,A.l("Settings",e,e,e,A.A(e,e,b?B.h:B.t,e,e,e,e,e,e,e,e,e,e,e,B.y,e,e,!0,e,e,e,e,e,e,e,e),e,e,e))
+D(a0){var s,r,q,p,o,n,m,l,k,j,i,h,g,f=this,e=null,d=A.d9(a0,!0,t.C),c=d.c,b=!1,a=A.bK(e,e,e,A.aH(B.bt,B.t,e,20),e,e,new A.alj(f,a0),e,e,e,e)
+a=A.dS(e,e,e,e,e,e,e,a,e,A.l("Settings",e,e,e,A.A(e,e,B.t,e,e,e,e,e,e,e,e,e,e,e,B.y,e,e,!0,e,e,e,e,e,e,e,e),e,e,e))
 s=c.d
-s=A.l(s,e,e,e,A.A(e,e,b?B.h:B.t,e,e,e,e,e,e,e,e,22,e,e,B.y,e,e,!0,e,e,e,e,e,e,e,e),e,e,e)
+s=A.l(s,e,e,e,A.A(e,e,B.t,e,e,e,e,e,e,e,e,22,e,e,B.y,e,e,!0,e,e,e,e,e,e,e,e),e,e,e)
 r=t.p
 s=A.c4(A.a3(A.a([A.a1(A.a([s,A.bK(e,e,e,A.aH(B.ek,B.x,e,18),e,e,new A.alk(f,a0,d),e,e,e,e)],r),B.j,B.cN,B.e,0,e,e)],r),B.j,B.f,B.e,0,B.m),e,e)
 q=c.r
 q=A.aC(f.S1(a0,"FOCUS SCORE",""+q,B.x),1)
 p=c.w
-o=b?B.h:B.t
+o=B.t
 o=A.a1(A.a([q,B.dz,A.aC(f.S1(a0,"ACTIVE STREAK",""+p+" Days",o),1)],r),B.j,B.f,B.e,0,e,e)
 if(c.x)q=B.S4
 else{q=t.t_
-q=new A.k5(B.de,B.jp,B.dC,b?A.a([B.b3,B.eM],q):A.a([B.A,B.mH],q),e,e)}p=A.Q(20)
+q=new A.k5(B.de,B.jp,B.dC,A.a([B.A,B.mH],q),e,e)}p=A.Q(20)
 n=c.x?B.D:B.A
 n=A.a([new A.aT(0,B.J,A.R(64,n.m()>>>16&255,n.m()>>>8&255,n.m()&255),B.fa,16)],t.V)
 m=c.x
@@ -106153,19 +106147,8 @@ m=A.a1(A.a([l,A.a0(e,A.l(c.x?"Active":"\u20b949/month",e,e,e,B.G4,e,e,e),B.l,e,e
 m=A.a([m,B.aj,A.l(c.x?"You have unrestricted access to all WrindhaOS features!":"Unlock Unlimited Habits, Career Roadmap, Priority Matrix & Ad-Free Mode.",e,e,e,B.a64,e,e,e)],r)
 if(!c.x)B.b.N(m,A.a([B.ah,A.bP(A.d8(B.a9w,new A.all(a0),A.dB(e,e,B.h,e,e,e,0,e,e,B.A,e,e,e,e,new A.bv(A.Q(12),B.u),e,e,e,e,e)),44,1/0)],r))
 q=A.a0(e,A.a3(m,B.w,B.f,B.e,0,B.m),B.l,e,e,new A.X(e,e,e,p,n,q,B.o),e,e,e,B.a0,e,e,1/0)
-p=f.GY("APPEARANCE & THEME")
-n=b?B.ar:B.h
-m=A.Q(18)
-l=A.b2(b?B.a8:B.aX,B.p,1)
-k=b?A.AE():A.AE()
-j=b?B.dL:B.i7
-i=A.Q(12)
-h=b?B.ul:B.us
-j=A.a0(e,A.aH(h,B.x,e,20),B.l,e,e,new A.X(j,e,e,i,e,e,B.o),e,e,e,B.nl,e,e,e)
-i=A.l("Dark Mode",e,e,e,A.A(e,e,b?B.h:B.t,e,e,e,e,e,e,e,e,15,e,e,B.z,e,e,!0,e,e,e,e,e,e,e,e),e,e,e)
-h=b?"Deep Navy Midnight Theme":"Warm Pastel Canvas"
 g=t._O
-return A.dp(a,B.aH,A.cX(A.a3(A.a([s,B.am,o,B.am,q,p,A.a0(e,A.a1(A.a([A.a1(A.a([j,B.dz,A.a3(A.a([i,B.bz,A.l(h,e,e,e,A.A(e,e,B.G,e,e,e,e,e,e,e,e,12,e,e,e,e,e,!0,e,e,e,e,e,e,e,e),e,e,e)],r),B.w,B.f,B.e,0,B.m)],r),B.j,B.f,B.e,0,e,e),new A.Ua(b,new A.alo(d),B.x,e)],r),B.j,B.a_,B.e,0,e,e),B.l,e,e,new A.X(n,e,l,m,k,e,B.o),e,e,B.NN,B.ii,e,e,e),f.GY("ACCOUNT"),f.RT(a0,A.a([new A.jz(B.ur,"About Us",new A.alp(a0),e,e),new A.jz(B.up,"Terms & Conditions",new A.alq(a0),e,e),new A.jz(B.OV,"Pricing Plans (\u20b949/month)",new A.alr(a0),e,e),new A.jz(B.Po,"Payment History",new A.als(a0),e,e),new A.jz(B.um,"Delete Account",new A.alt(f,a0,d),B.cG,B.cG)],g)),B.aC,f.GY("SUPPORT & COMMUNITY"),f.RT(a0,A.a([new A.jz(B.Pn,"Support & Care",new A.alu(f,a0),e,e),new A.jz(B.ue,"Referral Page",new A.alv(a0),e,e)],g)),B.am,A.c4(A.a3(A.a([A.aqY(B.Qt,B.a8i,new A.alm(f,a0),e),B.a6,A.aqY(B.PV,B.a8O,new A.aln(f,a0,d),e)],r),B.j,B.f,B.e,0,B.m),e,e),B.a1N],r),B.j,B.f,B.e,0,B.m),e,B.bZ,e,e,B.U),e,e)},
+return A.dp(a,B.aH,A.cX(A.a3(A.a([s,B.am,o,B.am,q,B.am,f.GY("ACCOUNT"),f.RT(a0,A.a([new A.jz(B.ur,"About Us",new A.alp(a0),e,e),new A.jz(B.up,"Terms & Conditions",new A.alq(a0),e,e),new A.jz(B.OV,"Pricing Plans (\u20b949/month)",new A.alr(a0),e,e),new A.jz(B.Po,"Payment History",new A.als(a0),e,e),new A.jz(B.um,"Delete Account",new A.alt(f,a0,d),B.cG,B.cG)],g)),B.aC,f.GY("SUPPORT & COMMUNITY"),f.RT(a0,A.a([new A.jz(B.Pn,"Support & Care",new A.alu(f,a0),e,e),new A.jz(B.ue,"Referral Page",new A.alv(a0),e,e)],g)),B.am,A.c4(A.a3(A.a([A.aqY(B.Qt,B.a8i,new A.alm(f,a0),e),B.a6,A.aqY(B.PV,B.a8O,new A.aln(f,a0,d),e)],r),B.j,B.f,B.e,0,B.m),e,e),B.a1N],r),B.j,B.f,B.e,0,B.m),e,B.bZ,e,e,B.U),e,e)},
 S1(a,b,c,d){var s=null,r=A.r(a).ax.a===B.F?B.bK:B.bL,q=A.Q(18)
 return A.a0(s,A.a3(A.a([A.l(b,s,s,s,A.A(s,s,A.bw(4287931320),s,s,s,s,s,s,s,s,11,s,s,B.z,s,s,!0,s,1.1,s,s,s,s,s,s),s,s,s),B.a6,A.l(c,s,s,s,A.A(s,s,d,s,s,s,s,s,s,s,s,24,s,s,B.y,s,s,!0,s,s,s,s,s,s,s,s),s,s,s)],t.p),B.j,B.f,B.e,0,B.m),B.l,s,s,new A.X(r,s,s,q,s,s,B.o),s,s,s,B.tA,s,s,s)},
 GY(a){var s=null
@@ -116341,7 +116324,7 @@ s($,"bgv","a4A",()=>new A.asR(A.cp("[/\\\\]",!1),A.cp("[^/\\\\]$",!1),A.cp("^(\\
 s($,"bgu","N3",()=>new A.aso(A.cp("/",!1),A.cp("(^[a-zA-Z][-+.a-zA-Z\\d]*://|[^/])$",!1),A.cp("[a-zA-Z][-+.a-zA-Z\\d]*://[^/]*",!1),A.cp("^/",!1)))
 s($,"bgs","aRh",()=>A.b7I())
 s($,"bfY","aNs",()=>A.aTj())
-$.aZDark=function(){try{var q=null,p=A.aSy(B.F,q,B.h,B.x,B.x,B.x,B.eM);return A.y2(B.Hq,B.F,A.b2t(q,B.h,0,q,q,A.aVn(A.Q(20),B.u),q),p,A.b4a(A.dB(q,q,B.x,q,q,q,0,q,q,B.h,q,q,q,q,A.aVn(A.Q(16),B.u),q,q,q,B.pR,q)),B.x,B.eM,!0);}catch(e){return $.aZA();}};r($,"ben","aZA",()=>{var q=null,p=A.aSy(B.b0,q,B.t,B.x,B.x,B.x,B.aH)
+$.aZDark=function(){return $.aZA();};r($,"ben","aZA",()=>{var q=null,p=A.aSy(B.b0,q,B.t,B.x,B.x,B.x,B.aH)
 return A.y2(B.Hq,B.b0,A.b2t(q,B.h,0,q,q,A.aVn(A.Q(20),B.u),q),p,A.b4a(A.dB(q,q,B.x,q,q,q,0,q,q,B.h,q,q,q,q,A.aVn(A.Q(16),B.u),q,q,q,B.pR,q)),B.x,B.aH,!0)})
 s($,"bhQ","b0w",()=>!A.aP("ac<p>").b(A.a([],t.Z)))
 s($,"bgm","aRg",()=>new A.V())
