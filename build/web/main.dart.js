@@ -106698,17 +106698,12 @@ A6(a,b,c,d){var s=null,r=c?d:B.E,q=A.Q(12),p=A.b2(c?d:A.R(B.d.a9(76.5),B.bu.m()>
 return A.co(s,A.a0(s,A.l(b,s,s,s,A.A(s,s,c?B.h:B.bu,s,s,s,s,s,s,s,s,12,s,s,o,s,s,!0,s,s,s,s,s,s,s,s),s,s,s),B.l,s,s,new A.X(r,s,p,q,s,s,B.o),s,s,s,B.tz,s,s,s),B.C,!1,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,new A.aIG(this,a),s,s,s,s,s,s)},
 D(a){var s,r,q,p,o=this,n=null,m=A.r(a).ax.a===B.F,l=A.d9(a,!0,t.C),k=m?B.ar:B.h,j=l.r,i=l.w,h=A.U(i).h("a5<1>"),g=new A.a5(i,new A.aIZ(),h).gG(0),f=new A.a5(i,new A.aJ_(),h).gG(0),e=new A.aI(Date.now(),0,!1),d=new A.a5(i,new A.aJ0(e),h).gG(0),c=A.Y(new A.a5(i,new A.aJ1(o),h),h.h("C.E"))
 h=A.dS(n,n,B.E,n,n,0,n,A.bK(n,n,n,A.aH(B.bt,B.t,n,20),n,n,new A.aJ2(a),n,n,n,n),n,A.l("Academic Studies",n,n,n,A.A(n,n,B.t,n,n,n,n,n,n,n,n,n,n,n,B.y,n,n,!0,n,n,n,n,n,n,n,n),n,n,n))
-var _toolBanner = A.a1(A.a([
-  A.aC(A.aqY(A.aH(B.it, B.x, n, 18), A.l("⏱️ Focus Timer", n, n, n, B.cR, n, n, n), new A.aFTC(a), A.ne(n, n, n, n, n, n, n, n, n, B.x, n, n, n, n, n, n, n, n, n, n)), 1),
-  B.bh,
-  A.aC(A.aqY(A.aH(B.ug, B.x, n, 18), A.l("🎯 Goals", n, n, n, B.cR, n, n, n), new A.aGPC(a), A.ne(n, n, n, n, n, n, n, n, n, B.x, n, n, n, n, n, n, n, n, n, n)), 1)
-], s), B.j, B.f, B.e, 0, n, n);
-var _toolBanner = A.a1(A.a([
-  A.aC(A.aqY(A.aH(B.it, B.x, n, 18), A.l("⏱️ Focus Timer", n, n, n, B.cR, n, n, n), new A.aFTC(a), A.ne(n, n, n, n, n, n, n, n, n, B.x, n, n, n, n, n, n, n, n, n, n)), 1),
-  B.bh,
-  A.aC(A.aqY(A.aH(B.ug, B.x, n, 18), A.l("🎯 Goals", n, n, n, B.cR, n, n, n), new A.aGPC(a), A.ne(n, n, n, n, n, n, n, n, n, B.x, n, n, n, n, n, n, n, n, n, n)), 1)
-], s), B.j, B.f, B.e, 0, n, n);
 s=t.p
+var _toolBanner = A.a1(A.a([
+  A.aC(A.aqY(A.aH(B.it, B.x, n, 18), A.l("⏱️ Focus Timer", n, n, n, B.cR, n, n, n), new A.aFTC(a), A.ne(n, n, n, n, n, n, n, n, n, B.x, n, n, n, n, n, n, n, n, n, n)), 1),
+  B.bh,
+  A.aC(A.aqY(A.aH(B.ug, B.x, n, 18), A.l("🎯 Goals", n, n, n, B.cR, n, n, n), new A.aGPC(a), A.ne(n, n, n, n, n, n, n, n, n, B.x, n, n, n, n, n, n, n, n, n, n)), 1)
+], s), B.j, B.f, B.e, 0, n, n);
 r=A.a1(A.a([A.aC(o.GX("Completed",""+g,B.D,B.is,m,k),1),B.bh,A.aC(o.GX("Pending",""+f,B.cv,B.Pv,m,k),1),B.bh,A.aC(o.GX("Attention",""+d,B.ak,B.om,m,k),1)],s),B.j,B.f,B.e,0,n,n)
 q=A.l("Your Subjects",n,n,n,A.A(n,n,B.t,n,n,n,n,n,n,n,n,18,n,n,B.y,n,n,!0,n,n,n,n,n,n,n,n),n,n,n)
 p=A.aH(!A.aci(j.length,l.gjT())?B.ks:B.ir,n,n,18)

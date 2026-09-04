@@ -65,7 +65,7 @@
               <div style="background: #0D5CE5; color: white; width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px;">⏱️</div>
               <div>
                 <h2 style="margin: 0; font-size: 18px; font-weight: 800;">Focus Tools</h2>
-                <p style="margin: 0; font-size: 12px; color: #64748B;">Deep Work & Stopwatch</p>
+                <p style="margin: 0; font-size: 12px; color: #64748B;">Deep Work Pomodoro & Stopwatch</p>
               </div>
             </div>
             <button id="close_focus_modal" style="background: transparent; border: none; font-size: 24px; cursor: pointer; color: #94A3B8;">&times;</button>
@@ -315,7 +315,7 @@
                 <div style="background: #E87552; color: white; width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px;">🎯</div>
                 <div>
                   <h2 style="margin: 0; font-size: 19px; font-weight: 800;">Goals</h2>
-                  <p style="margin: 0; font-size: 12px; color: #64748B;">Short-Term, Medium-Term & Long-Term</p>
+                  <p style="margin: 0; font-size: 12px; color: #64748B;">Short-Term, Medium-Term & Long-Term Targets</p>
                 </div>
               </div>
               <button id="close_goal_modal" style="background: transparent; border: none; font-size: 24px; cursor: pointer; color: #94A3B8;">&times;</button>
@@ -408,47 +408,73 @@
       var existingOverlay = document.getElementById('wrindha_subject_modal');
       if (existingOverlay) existingOverlay.remove();
 
-      var subjName = (subject && subject.b) ? subject.b : 'Academic Subject';
-      var storageKey = 'wrindha_units_' + subjName.toLowerCase().replace(/[^a-z0-9]/g, '_');
-
-      var savedUnits = null;
-      try {
-        var str = localStorage.getItem(storageKey);
-        if (str) savedUnits = JSON.parse(str);
-      } catch(e) {}
-
-      if (!savedUnits) {
-        savedUnits = [
-          {
-            title: 'Unit 1: Fundamentals & Key Concepts',
-            topics: [
-              { title: 'Core Principles & Theory', isDone: true },
-              { title: 'Formulas & Definitions', isDone: true },
-              { title: 'Practice Problems & Exercises', isDone: false }
-            ]
-          },
-          {
-            title: 'Unit 2: Advanced Topics & Applications',
-            topics: [
-              { title: 'Case Studies & Analysis', isDone: false },
-              { title: 'Past Exam Question Mastery', isDone: false }
-            ]
-          }
-        ];
+      // Resolve subject name safely
+      var subjName = 'Mathematics';
+      if (typeof subject === 'string' && subject.trim()) {
+        subjName = subject.trim();
+      } else if (subject && typeof subject === 'object') {
+        subjName = subject.b || subject.name || subject.title || 'Mathematics';
       }
 
-      subject.unitsList = savedUnits;
+      // Load all available subjects
+      var allSubjectsKey = 'wrindha_all_subjects';
+      var allSubjects = ['Mathematics', 'Physics', 'Chemistry', 'Computer Science'];
+      try {
+        var subStr = localStorage.getItem(allSubjectsKey);
+        if (subStr) allSubjects = JSON.parse(subStr);
+      } catch(e) {}
+      if (!allSubjects.includes(subjName)) {
+        allSubjects.unshift(subjName);
+        try { localStorage.setItem(allSubjectsKey, JSON.stringify(allSubjects)); } catch(e) {}
+      }
+
+      var selectedSubj = subjName;
+      var storageKey = 'wrindha_units_' + selectedSubj.toLowerCase().replace(/[^a-z0-9]/g, '_');
+
+      function loadUnitsForSubject(sName) {
+        var key = 'wrindha_units_' + sName.toLowerCase().replace(/[^a-z0-9]/g, '_');
+        var savedUnits = null;
+        try {
+          var str = localStorage.getItem(key);
+          if (str) savedUnits = JSON.parse(str);
+        } catch(e) {}
+
+        if (!savedUnits || !Array.isArray(savedUnits) || savedUnits.length === 0) {
+          savedUnits = [
+            {
+              title: 'Unit 1: Fundamentals & Core Principles',
+              topics: [
+                { title: 'Chapter 1: Definitions & Formula Foundations', isDone: true },
+                { title: 'Chapter 2: Essential Theorems & Proofs', isDone: true },
+                { title: 'Chapter 3: Interactive Practice Problems', isDone: false }
+              ]
+            },
+            {
+              title: 'Unit 2: Advanced Concepts & Applied Studies',
+              topics: [
+                { title: 'Chapter 4: Complex Problem Solving', isDone: false },
+                { title: 'Chapter 5: Past Examination Papers & Review', isDone: false }
+              ]
+            }
+          ];
+          try { localStorage.setItem(key, JSON.stringify(savedUnits)); } catch(e) {}
+        }
+        return savedUnits;
+      }
+
+      var unitsList = loadUnitsForSubject(selectedSubj);
 
       function saveSubjectUnits() {
         try {
-          localStorage.setItem(storageKey, JSON.stringify(subject.unitsList));
+          var key = 'wrindha_units_' + selectedSubj.toLowerCase().replace(/[^a-z0-9]/g, '_');
+          localStorage.setItem(key, JSON.stringify(unitsList));
         } catch(e) {}
       }
 
       function calculateMastery() {
         var totalTopics = 0;
         var completedTopics = 0;
-        subject.unitsList.forEach(function(u) {
+        unitsList.forEach(function(u) {
           (u.topics || []).forEach(function(t) {
             totalTopics++;
             if (t.isDone) completedTopics++;
@@ -474,23 +500,39 @@
 
       function renderSubjectModal() {
         var pct = calculateMastery();
-        if (subject) subject.e = pct / 100;
 
         overlay.innerHTML = `
-          <div style="background: ${isDark ? '#1E1F2B' : '#FFF9F0'}; color: ${isDark ? '#FFF' : '#1E293B'}; width: 90%; max-width: 520px; border-radius: 28px; padding: 28px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.35); border: 1px solid ${isDark ? '#2D2F3F' : '#E2E8F0'}; max-height: 90vh; overflow-y: auto;">
+          <div style="background: ${isDark ? '#1E1F2B' : '#FFF9F0'}; color: ${isDark ? '#FFF' : '#1E293B'}; width: 90%; max-width: 540px; border-radius: 28px; padding: 26px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.35); border: 1px solid ${isDark ? '#2D2F3F' : '#E2E8F0'}; max-height: 90vh; overflow-y: auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
               <div style="display: flex; align-items: center; gap: 12px;">
                 <div style="background: #0D5CE5; color: white; width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px;">📚</div>
                 <div>
-                  <h2 style="margin: 0; font-size: 19px; font-weight: 800;">${subjName}</h2>
-                  <p style="margin: 0; font-size: 12px; color: #64748B;">Curriculum Units & Topics</p>
+                  <h2 style="margin: 0; font-size: 19px; font-weight: 800;">${selectedSubj}</h2>
+                  <p style="margin: 0; font-size: 12px; color: #64748B;">Curriculum Units & Topics Manager</p>
                 </div>
               </div>
               <button id="close_subject_modal" style="background: transparent; border: none; font-size: 24px; cursor: pointer; color: #94A3B8;">&times;</button>
             </div>
 
-            <!-- Mastery Card -->
-            <div style="background: ${isDark ? '#14151F' : '#EEF2FF'}; padding: 18px; border-radius: 18px; margin-bottom: 20px; border: 1px solid ${isDark ? '#242638' : '#C7D2FE'};">
+            <!-- Subject Switcher / Creator -->
+            <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 16px; overflow-x: auto; padding-bottom: 4px;">
+              <span style="font-size: 11px; font-weight: 700; color: #64748B; text-transform: uppercase;">Subject:</span>
+              <select id="select_subject" style="background: ${isDark ? '#14151F' : '#FFF'}; color: inherit; border: 1px solid ${isDark ? '#3E4155' : '#CBD5E1'}; border-radius: 10px; padding: 6px 12px; font-size: 13px; font-weight: 700; outline: none; cursor: pointer;">
+                ${allSubjects.map(function(s) {
+                  return '<option value="' + s + '" ' + (s === selectedSubj ? 'selected' : '') + '>' + s + '</option>';
+                }).join('')}
+              </select>
+              <button id="btn_new_subject" style="background: #EEF2FF; color: #0D5CE5; border: 1px solid #C7D2FE; border-radius: 10px; padding: 6px 10px; font-size: 12px; font-weight: 700; cursor: pointer;">+ New Subject</button>
+            </div>
+
+            <!-- Inline New Subject Form (Hidden by default) -->
+            <div id="new_subject_box" style="display: none; gap: 8px; margin-bottom: 16px; background: ${isDark ? '#14151F' : '#F1F5F9'}; padding: 10px; border-radius: 12px;">
+              <input id="input_new_subject_name" type="text" placeholder="Enter subject name (e.g. Biology)..." style="flex: 1; padding: 8px 12px; border-radius: 8px; border: 1px solid #CBD5E1; background: ${isDark ? '#1E1F2B' : '#FFF'}; color: inherit; font-size: 13px;" />
+              <button id="btn_save_new_subject" style="background: #0D5CE5; color: white; border: none; padding: 8px 14px; border-radius: 8px; font-weight: 700; cursor: pointer;">Create</button>
+            </div>
+
+            <!-- Mastery Progress Card -->
+            <div style="background: ${isDark ? '#14151F' : '#EEF2FF'}; padding: 16px; border-radius: 18px; margin-bottom: 20px; border: 1px solid ${isDark ? '#242638' : '#C7D2FE'};">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                 <span style="font-size: 11px; font-weight: 800; letter-spacing: 1px; color: #64748B; text-transform: uppercase;">MASTERY PROGRESS</span>
                 <span style="font-size: 20px; font-weight: 900; color: #0D5CE5;">${pct}%</span>
@@ -498,7 +540,7 @@
               <div style="background: ${isDark ? '#2A2C3E' : '#E0E7FF'}; height: 8px; border-radius: 4px; overflow: hidden;">
                 <div style="background: #0D5CE5; height: 100%; width: ${pct}%; border-radius: 4px; transition: width 0.3s ease;"></div>
               </div>
-              <button id="btn_modal_focus" style="width: 100%; margin-top: 14px; background: #0D5CE5; color: white; border: none; padding: 10px; border-radius: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">⏱️ Start Deep Focus Session</button>
+              <button id="btn_modal_focus" style="width: 100%; margin-top: 12px; background: #0D5CE5; color: white; border: none; padding: 10px; border-radius: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">⏱️ Start Deep Focus Session</button>
             </div>
 
             <!-- Add Unit Form -->
@@ -509,8 +551,8 @@
 
             <!-- Units & Topics List -->
             <div id="units_container">
-              ${subject.unitsList.length === 0 ? '<div style="text-align:center; padding:24px; color:#94A3B8; font-size:13px;">No units added yet. Use the form above to add your first unit!</div>' : ''}
-              ${subject.unitsList.map(function(u, uIdx) {
+              ${unitsList.length === 0 ? '<div style="text-align:center; padding:24px; color:#94A3B8; font-size:13px;">No units added yet. Use the form above to add your first unit!</div>' : ''}
+              ${unitsList.map(function(u, uIdx) {
                 return `
                   <div style="background: ${isDark ? '#14151F' : '#FFFFFF'}; border-radius: 16px; padding: 16px; margin-bottom: 14px; border: 1px solid ${isDark ? '#2A2C3E' : '#E2E8F0'};">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
@@ -554,11 +596,41 @@
           window._openFocusTimerModal(ctx);
         };
 
+        // Switch subject dropdown
+        document.getElementById('select_subject').onchange = function(e) {
+          selectedSubj = e.target.value;
+          unitsList = loadUnitsForSubject(selectedSubj);
+          renderSubjectModal();
+        };
+
+        // New subject button
+        document.getElementById('btn_new_subject').onclick = function() {
+          var box = document.getElementById('new_subject_box');
+          box.style.display = box.style.display === 'none' ? 'flex' : 'none';
+          var inp = document.getElementById('input_new_subject_name');
+          if (inp) inp.focus();
+        };
+
+        // Save new subject
+        document.getElementById('btn_save_new_subject').onclick = function() {
+          var inp = document.getElementById('input_new_subject_name');
+          var sName = inp ? inp.value.trim() : '';
+          if (sName) {
+            if (!allSubjects.includes(sName)) {
+              allSubjects.push(sName);
+              try { localStorage.setItem(allSubjectsKey, JSON.stringify(allSubjects)); } catch(e) {}
+            }
+            selectedSubj = sName;
+            unitsList = loadUnitsForSubject(selectedSubj);
+            renderSubjectModal();
+          }
+        };
+
         document.getElementById('btn_add_unit').onclick = function() {
           var input = document.getElementById('input_unit_title');
           var val = input.value.trim();
           if (val) {
-            subject.unitsList.push({
+            unitsList.push({
               title: val,
               topics: [
                 { title: 'Chapter Overview & Key Points', isDone: false },
@@ -590,7 +662,7 @@
             var inp = document.getElementById('input_topic_' + uIdx);
             var val = inp ? inp.value.trim() : '';
             if (val) {
-              subject.unitsList[uIdx].topics.push({ title: val, isDone: false });
+              unitsList[uIdx].topics.push({ title: val, isDone: false });
               saveSubjectUnits();
               renderSubjectModal();
             }
@@ -603,7 +675,7 @@
             e.stopPropagation();
             var uIdx = parseInt(btn.getAttribute('data-uidx'));
             var tIdx = parseInt(btn.getAttribute('data-tidx'));
-            subject.unitsList[uIdx].topics.splice(tIdx, 1);
+            unitsList[uIdx].topics.splice(tIdx, 1);
             saveSubjectUnits();
             renderSubjectModal();
           };
@@ -614,7 +686,7 @@
           btn.onclick = function(e) {
             e.stopPropagation();
             var uIdx = parseInt(btn.getAttribute('data-uidx'));
-            subject.unitsList.splice(uIdx, 1);
+            unitsList.splice(uIdx, 1);
             saveSubjectUnits();
             renderSubjectModal();
           };
@@ -625,7 +697,7 @@
           cb.onchange = function() {
             var uIdx = parseInt(cb.getAttribute('data-uidx'));
             var tIdx = parseInt(cb.getAttribute('data-tidx'));
-            subject.unitsList[uIdx].topics[tIdx].isDone = cb.checked;
+            unitsList[uIdx].topics[tIdx].isDone = cb.checked;
             saveSubjectUnits();
             renderSubjectModal();
           };
@@ -638,4 +710,51 @@
       console.error('[SUBJECT UNITS MODAL ERROR]:', err);
     }
   };
+
+  // --- FLOATING QUICK ACCESS DOCK (Always visible across all screens) ---
+  function injectQuickDock() {
+    if (document.getElementById('wrindha_quick_dock')) return;
+
+    var dock = document.createElement('div');
+    dock.id = 'wrindha_quick_dock';
+    dock.style.position = 'fixed';
+    dock.style.bottom = '20px';
+    dock.style.right = '20px';
+    dock.style.zIndex = '99999';
+    dock.style.display = 'flex';
+    dock.style.alignItems = 'center';
+    dock.style.gap = '8px';
+    dock.style.backgroundColor = 'rgba(15, 23, 42, 0.85)';
+    dock.style.backdropFilter = 'blur(12px)';
+    dock.style.padding = '8px 14px';
+    dock.style.borderRadius = '30px';
+    dock.style.boxShadow = '0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1)';
+    dock.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+
+    dock.innerHTML = `
+      <button id="dock_focus_btn" title="Focus Timer & Stopwatch" style="background: rgba(13, 92, 229, 0.2); color: #60A5FA; border: 1px solid rgba(13, 92, 229, 0.4); border-radius: 20px; padding: 6px 12px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: all 0.2s ease;">
+        <span>⏱️</span> <span>Focus</span>
+      </button>
+      <button id="dock_goals_btn" title="Goals (Short, Medium, Long-Term)" style="background: rgba(232, 117, 82, 0.2); color: #F87171; border: 1px solid rgba(232, 117, 82, 0.4); border-radius: 20px; padding: 6px 12px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: all 0.2s ease;">
+        <span>🎯</span> <span>Goals</span>
+      </button>
+      <button id="dock_units_btn" title="Curriculum Units & Topics" style="background: rgba(16, 185, 129, 0.2); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 20px; padding: 6px 12px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: all 0.2s ease;">
+        <span>📚</span> <span>Units & Topics</span>
+      </button>
+    `;
+
+    document.body.appendChild(dock);
+
+    document.getElementById('dock_focus_btn').onclick = function() { window._openFocusTimerModal(); };
+    document.getElementById('dock_goals_btn').onclick = function() { window._openGoalsModal(); };
+    document.getElementById('dock_units_btn').onclick = function() { window._openSubjectUnitsModal(); };
+  }
+
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    setTimeout(injectQuickDock, 500);
+  } else {
+    window.addEventListener('DOMContentLoaded', function() {
+      setTimeout(injectQuickDock, 500);
+    });
+  }
 })();
