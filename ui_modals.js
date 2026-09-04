@@ -1,4 +1,4 @@
-// WrindhaOS Interactive Tools & Modals Runtime
+// WrindhaOS Dynamic Interactive Tools & Modals Runtime
 (function() {
   function getIsDark(ctx) {
     try {
@@ -11,6 +11,19 @@
     } catch(e) {
       return false;
     }
+  }
+
+  function getAuthToken() {
+    try {
+      var token = localStorage.getItem('wrindha_token') || sessionStorage.getItem('wrindha_token');
+      if (token) return token;
+      var authUser = localStorage.getItem('wrindha_auth_user');
+      if (authUser) {
+        var u = JSON.parse(authUser);
+        if (u.token) return u.token;
+      }
+    } catch(e) {}
+    return null;
   }
 
   // --- FOCUS TIMER & STOPWATCH MODAL ---
@@ -251,7 +264,7 @@
     }
   };
 
-  // --- GOALS MANAGEMENT MODAL ---
+  // --- GOALS MANAGEMENT MODAL (Clean, User-Driven, No dummy tasks) ---
   window._openGoalsModal = window._openGoalPyramidModal = function(ctx) {
     try {
       var isDark = getIsDark(ctx);
@@ -266,20 +279,8 @@
       } catch(e) {}
 
       if (!saved) {
-        saved = {
-          short: [
-            { id: 'g_s1', title: 'Complete Calculus Assignment #4', targetDate: 'This Friday', isDone: false },
-            { id: 'g_s2', title: 'Read Chapter 5: Organic Chemistry', targetDate: 'Tomorrow', isDone: true }
-          ],
-          medium: [
-            { id: 'g_m1', title: 'Achieve Grade A in Midterm Exams', targetDate: 'End of Semester', isDone: false },
-            { id: 'g_m2', title: 'Build Full-Stack Project Portfolio', targetDate: 'Next Month', isDone: false }
-          ],
-          long: [
-            { id: 'g_l1', title: 'Land Software Engineering Role', targetDate: 'Graduation 2027', isDone: false },
-            { id: 'g_l2', title: 'Graduate with First Class Honors (GPA 3.8+)', targetDate: 'Final Year', isDone: false }
-          ]
-        };
+        // Start clean without dummy mock tasks
+        saved = { short: [], medium: [], long: [] };
       }
 
       var defaultGoals = saved;
@@ -330,13 +331,13 @@
 
             <!-- Add Goal Input -->
             <div style="display: flex; gap: 8px; margin-bottom: 18px;">
-              <input id="input_goal_title" type="text" placeholder="Add a new goal..." style="flex: 1; padding: 12px 14px; border-radius: 12px; border: 1px solid ${isDark ? '#3E4155' : '#CBD5E1'}; background: ${isDark ? '#14151F' : '#FFF'}; color: inherit; font-size: 14px; outline: none;" />
+              <input id="input_goal_title" type="text" placeholder="Add your goal (e.g. Complete Chapter 1)..." style="flex: 1; padding: 12px 14px; border-radius: 12px; border: 1px solid ${isDark ? '#3E4155' : '#CBD5E1'}; background: ${isDark ? '#14151F' : '#FFF'}; color: inherit; font-size: 14px; outline: none;" />
               <button id="btn_add_goal" style="background: #E87552; color: white; border: none; padding: 12px 18px; border-radius: 12px; font-weight: 800; cursor: pointer;">+ Add Goal</button>
             </div>
 
             <!-- Goals List -->
             <div id="goals_list_container">
-              ${goals.length === 0 ? '<div style="text-align:center; padding:24px; color:#94A3B8; font-size:13px;">No goals added in this category yet.</div>' : ''}
+              ${goals.length === 0 ? '<div style="text-align:center; padding:28px 16px; color:#94A3B8; font-size:13px; background:' + (isDark ? '#14151F' : '#F8FAFC') + '; border-radius:16px;">No goals added yet in this tier.<br/><span style="font-size:11px; opacity:0.8;">Type a goal above and tap (+ Add Goal) to start tracking!</span></div>' : ''}
               ${goals.map(function(g, idx) {
                 return `
                   <div style="display: flex; align-items: center; justify-content: space-between; background: ${isDark ? '#14151F' : '#FFFFFF'}; padding: 14px 16px; border-radius: 16px; margin-bottom: 10px; border: 1px solid ${isDark ? '#2A2C3E' : '#E2E8F0'};">
@@ -367,7 +368,7 @@
             defaultGoals[activeTab].push({
               id: 'g_' + Date.now(),
               title: val,
-              targetDate: activeTab === 'short' ? 'This Week' : activeTab === 'medium' ? 'This Quarter' : 'Vision Target',
+              targetDate: activeTab === 'short' ? 'This Week' : activeTab === 'medium' ? 'This Month' : 'Vision Target',
               isDone: false
             });
             saveGoals();
@@ -408,28 +409,55 @@
       var existingOverlay = document.getElementById('wrindha_subject_modal');
       if (existingOverlay) existingOverlay.remove();
 
-      // Resolve subject name safely
-      var subjName = 'Mathematics';
+      // Resolve clicked subject name
+      var clickedName = '';
       if (typeof subject === 'string' && subject.trim()) {
-        subjName = subject.trim();
+        clickedName = subject.trim();
       } else if (subject && typeof subject === 'object') {
-        subjName = subject.b || subject.name || subject.title || 'Mathematics';
+        clickedName = subject.b || subject.name || subject.title || '';
       }
 
-      // Load all available subjects
-      var allSubjectsKey = 'wrindha_all_subjects';
-      var allSubjects = ['Mathematics', 'Physics', 'Chemistry', 'Computer Science'];
+      // Load user subjects from backend or localStorage
+      var allSubjectsKey = 'wrindha_user_subjects_list';
+      var allSubjects = [];
       try {
         var subStr = localStorage.getItem(allSubjectsKey);
         if (subStr) allSubjects = JSON.parse(subStr);
       } catch(e) {}
-      if (!allSubjects.includes(subjName)) {
-        allSubjects.unshift(subjName);
+
+      if (!Array.isArray(allSubjects)) allSubjects = [];
+
+      // Fetch from API asynchronously or add clicked subject
+      if (clickedName && !allSubjects.includes(clickedName)) {
+        allSubjects.unshift(clickedName);
         try { localStorage.setItem(allSubjectsKey, JSON.stringify(allSubjects)); } catch(e) {}
       }
 
-      var selectedSubj = subjName;
-      var storageKey = 'wrindha_units_' + selectedSubj.toLowerCase().replace(/[^a-z0-9]/g, '_');
+      // Asynchronously fetch from /api/subjects
+      var token = getAuthToken();
+      if (token) {
+        fetch('/api/subjects', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        }).then(function(r) { return r.json(); }).then(function(data) {
+          if (Array.isArray(data)) {
+            var names = data.map(function(s) { return s.name; }).filter(Boolean);
+            if (names.length > 0) {
+              names.forEach(function(n) {
+                if (!allSubjects.includes(n)) allSubjects.push(n);
+              });
+              try { localStorage.setItem(allSubjectsKey, JSON.stringify(allSubjects)); } catch(e) {}
+              var selectEl = document.getElementById('select_subject');
+              if (selectEl) {
+                selectEl.innerHTML = allSubjects.map(function(s) {
+                  return '<option value="' + s + '" ' + (s === selectedSubj ? 'selected' : '') + '>' + s + '</option>';
+                }).join('');
+              }
+            }
+          }
+        }).catch(function() {});
+      }
+
+      var selectedSubj = clickedName || (allSubjects.length > 0 ? allSubjects[0] : 'My Subject');
 
       function loadUnitsForSubject(sName) {
         var key = 'wrindha_units_' + sName.toLowerCase().replace(/[^a-z0-9]/g, '_');
@@ -439,25 +467,9 @@
           if (str) savedUnits = JSON.parse(str);
         } catch(e) {}
 
-        if (!savedUnits || !Array.isArray(savedUnits) || savedUnits.length === 0) {
-          savedUnits = [
-            {
-              title: 'Unit 1: Fundamentals & Core Principles',
-              topics: [
-                { title: 'Chapter 1: Definitions & Formula Foundations', isDone: true },
-                { title: 'Chapter 2: Essential Theorems & Proofs', isDone: true },
-                { title: 'Chapter 3: Interactive Practice Problems', isDone: false }
-              ]
-            },
-            {
-              title: 'Unit 2: Advanced Concepts & Applied Studies',
-              topics: [
-                { title: 'Chapter 4: Complex Problem Solving', isDone: false },
-                { title: 'Chapter 5: Past Examination Papers & Review', isDone: false }
-              ]
-            }
-          ];
-          try { localStorage.setItem(key, JSON.stringify(savedUnits)); } catch(e) {}
+        if (!savedUnits || !Array.isArray(savedUnits)) {
+          // Start clean: 0 predefined dummy calculus tasks
+          savedUnits = [];
         }
         return savedUnits;
       }
@@ -518,16 +530,16 @@
             <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 16px; overflow-x: auto; padding-bottom: 4px;">
               <span style="font-size: 11px; font-weight: 700; color: #64748B; text-transform: uppercase;">Subject:</span>
               <select id="select_subject" style="background: ${isDark ? '#14151F' : '#FFF'}; color: inherit; border: 1px solid ${isDark ? '#3E4155' : '#CBD5E1'}; border-radius: 10px; padding: 6px 12px; font-size: 13px; font-weight: 700; outline: none; cursor: pointer;">
-                ${allSubjects.map(function(s) {
+                ${allSubjects.length === 0 ? '<option value="' + selectedSubj + '">' + selectedSubj + '</option>' : allSubjects.map(function(s) {
                   return '<option value="' + s + '" ' + (s === selectedSubj ? 'selected' : '') + '>' + s + '</option>';
                 }).join('')}
               </select>
               <button id="btn_new_subject" style="background: #EEF2FF; color: #0D5CE5; border: 1px solid #C7D2FE; border-radius: 10px; padding: 6px 10px; font-size: 12px; font-weight: 700; cursor: pointer;">+ New Subject</button>
             </div>
 
-            <!-- Inline New Subject Form (Hidden by default) -->
+            <!-- Inline New Subject Form -->
             <div id="new_subject_box" style="display: none; gap: 8px; margin-bottom: 16px; background: ${isDark ? '#14151F' : '#F1F5F9'}; padding: 10px; border-radius: 12px;">
-              <input id="input_new_subject_name" type="text" placeholder="Enter subject name (e.g. Biology)..." style="flex: 1; padding: 8px 12px; border-radius: 8px; border: 1px solid #CBD5E1; background: ${isDark ? '#1E1F2B' : '#FFF'}; color: inherit; font-size: 13px;" />
+              <input id="input_new_subject_name" type="text" placeholder="Enter subject name (e.g. Hindi, Mathematics)..." style="flex: 1; padding: 8px 12px; border-radius: 8px; border: 1px solid #CBD5E1; background: ${isDark ? '#1E1F2B' : '#FFF'}; color: inherit; font-size: 13px;" />
               <button id="btn_save_new_subject" style="background: #0D5CE5; color: white; border: none; padding: 8px 14px; border-radius: 8px; font-weight: 700; cursor: pointer;">Create</button>
             </div>
 
@@ -545,13 +557,13 @@
 
             <!-- Add Unit Form -->
             <div style="display: flex; gap: 8px; margin-bottom: 18px;">
-              <input id="input_unit_title" type="text" placeholder="Add new unit (e.g. Unit 3: Thermodynamics)..." style="flex: 1; padding: 11px 14px; border-radius: 12px; border: 1px solid ${isDark ? '#3E4155' : '#CBD5E1'}; background: ${isDark ? '#14151F' : '#FFF'}; color: inherit; font-size: 13px; outline: none;" />
+              <input id="input_unit_title" type="text" placeholder="Add unit (e.g. Unit 1: Prose & Poetry)..." style="flex: 1; padding: 11px 14px; border-radius: 12px; border: 1px solid ${isDark ? '#3E4155' : '#CBD5E1'}; background: ${isDark ? '#14151F' : '#FFF'}; color: inherit; font-size: 13px; outline: none;" />
               <button id="btn_add_unit" style="background: #0D5CE5; color: white; border: none; padding: 11px 16px; border-radius: 12px; font-weight: 800; cursor: pointer;">+ Add Unit</button>
             </div>
 
             <!-- Units & Topics List -->
             <div id="units_container">
-              ${unitsList.length === 0 ? '<div style="text-align:center; padding:24px; color:#94A3B8; font-size:13px;">No units added yet. Use the form above to add your first unit!</div>' : ''}
+              ${unitsList.length === 0 ? '<div style="text-align:center; padding:28px 16px; color:#94A3B8; font-size:13px; background:' + (isDark ? '#14151F' : '#F8FAFC') + '; border-radius:16px;">No units added yet for ' + selectedSubj + '.<br/><span style="font-size:11px; opacity:0.8;">Use (+ Add Unit) above to add your first curriculum unit!</span></div>' : ''}
               ${unitsList.map(function(u, uIdx) {
                 return `
                   <div style="background: ${isDark ? '#14151F' : '#FFFFFF'}; border-radius: 16px; padding: 16px; margin-bottom: 14px; border: 1px solid ${isDark ? '#2A2C3E' : '#E2E8F0'};">
@@ -563,15 +575,15 @@
                       </div>
                     </div>
 
-                    <!-- Inline Topic Creator (hidden by default) -->
+                    <!-- Inline Topic Creator -->
                     <div id="topic_creator_${uIdx}" style="display: none; gap: 6px; margin-bottom: 10px;">
-                      <input id="input_topic_${uIdx}" type="text" placeholder="Topic name (e.g. Newton Laws)..." style="flex: 1; padding: 6px 10px; font-size: 12px; border-radius: 8px; border: 1px solid #CBD5E1; background: ${isDark ? '#1E1F2B' : '#FFF'}; color: inherit;" />
+                      <input id="input_topic_${uIdx}" type="text" placeholder="Topic name (e.g. Chapter 1 Summary)..." style="flex: 1; padding: 6px 10px; font-size: 12px; border-radius: 8px; border: 1px solid #CBD5E1; background: ${isDark ? '#1E1F2B' : '#FFF'}; color: inherit;" />
                       <button class="btn_confirm_topic" data-uidx="${uIdx}" style="background: #0D5CE5; color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer;">Save</button>
                     </div>
 
                     <!-- Topics List -->
                     <div style="display: flex; flex-direction: column; gap: 8px;">
-                      ${(u.topics || []).map(function(t, tIdx) {
+                      ${(u.topics || []).length === 0 ? '<div style="font-size:12px; color:#94A3B8; padding:4px 0;">No topics in this unit yet. Click (+ Topic) to add one!</div>' : (u.topics || []).map(function(t, tIdx) {
                         return `
                           <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 8px; border-radius: 8px; background: ${isDark ? '#1E1F2B' : '#F8FAFC'};">
                             <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; flex: 1;">
@@ -632,10 +644,7 @@
           if (val) {
             unitsList.push({
               title: val,
-              topics: [
-                { title: 'Chapter Overview & Key Points', isDone: false },
-                { title: 'Exercises & Practice', isDone: false }
-              ]
+              topics: []
             });
             saveSubjectUnits();
             renderSubjectModal();
@@ -662,6 +671,7 @@
             var inp = document.getElementById('input_topic_' + uIdx);
             var val = inp ? inp.value.trim() : '';
             if (val) {
+              unitsList[uIdx].topics = unitsList[uIdx].topics || [];
               unitsList[uIdx].topics.push({ title: val, isDone: false });
               saveSubjectUnits();
               renderSubjectModal();

@@ -104859,7 +104859,7 @@ B.dV.i(0,k.gjT())
 n=m.A8(a,B.kn,j,!B.fj.n(0,B.mk),B.rS,B.rs,new A.aes(a),"Priority Matrix","Priority")
 B.dV.i(0,k.gjT())
 i=A.TF(A.a([s,i,q,p,n,m.A8(a,B.P8,j,!B.fj.n(0,B.qG),B.Kr,B.Kt,new A.aet(a),"Track Progress","Analytics")],o),!0,!0,!0)
-return A.dp(l,B.aH,A.hl(!0,new A.av(B.k3,A.a3(A.a([r,B.aC,A.aC(new A.w5(new A.TJ(2,16,16,0.98,l),i,l,B.U,!1,l,l,B.fv,l,!1,l,0,l,l,6,B.fk,B.C,l,l,B.B,B.aY,l),1)],o),B.w,B.f,B.e,0,B.m),l),!0,B.al,!0,!0),l,l)},
+return A.dp(l,B.aH,A.hl(!0,new A.av(B.k3,A.a3(A.a([r,B.aC,A.aC(new A.w5(new A.TJ(2,16,16,1.35,l),i,l,B.U,!1,l,l,B.fv,l,!1,l,0,l,l,6,B.fk,B.C,l,l,B.B,B.aY,l),1)],o),B.w,B.f,B.e,0,B.m),l),!0,B.al,!0,!0),l,l)},
 A8(a,b,c,d,e,f,g,h,i){var s,r,q=null,p=c?B.ar:e,o=A.Q(22),n=c?A.b2(B.a8,B.p,1):q,m=t.V,l=A.a([],m),k=!c
 if(k)l.push(new A.aT(0,B.J,A.R(5,B.n.m()>>>16&255,B.n.m()>>>8&255,B.n.m()&255),B.ca,10))
 else l.push(new A.aT(0,B.J,A.R(89,B.n.m()>>>16&255,B.n.m()>>>8&255,B.n.m()&255),B.fa,12))
