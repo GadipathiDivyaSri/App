@@ -223,14 +223,14 @@ async function runQualitySuite() {
   });
   assert(h3.status === 403 && h3.data?.code === 'LIMIT_REACHED', 'Free tier: Habit 3 blocked with 403 LIMIT_REACHED');
 
-  // Free Tier: Career Goals blocked -> Expect 403
-  const gFree = await makeRequest({
+  // Free Tier: Milestones blocked -> Expect 403
+  const mFree = await makeRequest({
     method: 'POST',
-    path: '/api/goals',
+    path: '/api/milestones',
     headers: authHeader,
-    body: { title: 'Crack UPSC Exam', targetDate: '2027-06-01' }
+    body: { title: 'First Class Degree', targetDate: '2027-06-01' }
   });
-  assert(gFree.status === 403 && gFree.data?.code === 'PRO_REQUIRED', 'Free tier: Goals blocked with 403 PRO_REQUIRED');
+  assert(mFree.status === 403 && mFree.data?.code === 'PRO_REQUIRED', 'Free tier: Milestones blocked with 403 PRO_REQUIRED');
 
   // ---------------------------------------------------------------------------
   // SECTION 6: PRO UPGRADE & UNLOCK
@@ -245,14 +245,23 @@ async function runQualitySuite() {
   });
   assert(upgrade.status === 200 && upgrade.data?.subscription?.plan === 'pro', 'Upgrade to Pro tier succeeds (200)');
 
-  // Pro Tier: Goal creation allowed (201)
-  const gPro = await makeRequest({
+  // Pro Tier: Milestone creation allowed (201)
+  const mPro = await makeRequest({
+    method: 'POST',
+    path: '/api/milestones',
+    headers: authHeader,
+    body: { title: 'First Class Degree', targetDate: '2027-06-01' }
+  });
+  assert(mPro.status === 201, 'Pro tier: Milestone creation allowed (201)');
+
+  // Goal creation allowed (201)
+  const gCreate = await makeRequest({
     method: 'POST',
     path: '/api/goals',
     headers: authHeader,
     body: { title: 'Crack UPSC Exam', targetDate: '2027-06-01' }
   });
-  assert(gPro.status === 201, 'Pro tier: Goal creation allowed (201)');
+  assert(gCreate.status === 201, 'Goal creation allowed (201)');
 
   // ---------------------------------------------------------------------------
   // SECTION 7: HABIT COMPLETION & STREAKS ENGINE

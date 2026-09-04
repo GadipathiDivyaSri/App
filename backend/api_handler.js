@@ -703,7 +703,6 @@ function checkFeatureEntitlement(userId, featureKey) {
   const isPro = sub.plan === 'pro' && sub.status === 'active';
 
   const proOnlyFeatures = [
-    'goals',
     'priorityMatrix',
     'eisenhowerMatrix',
     'expenseTracker',
@@ -711,7 +710,6 @@ function checkFeatureEntitlement(userId, featureKey) {
     'journal',
     'milestones',
     'careerRoadmap',
-    'focusTimer',
   ];
 
   if (proOnlyFeatures.includes(featureKey) && !isPro) {

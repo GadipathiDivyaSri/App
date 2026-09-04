@@ -26,9 +26,7 @@ class _GoalPyramidScreenState extends State<GoalPyramidScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final totalGoals = _shortGoals.length + _mediumGoals.length + _longGoals.length;
 
-    return ProFeatureGuard(
-      feature: AppFeature.goals,
-      child: Scaffold(
+    return Scaffold(
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
@@ -41,13 +39,7 @@ class _GoalPyramidScreenState extends State<GoalPyramidScreen> {
         elevation: 4,
         child: const Icon(Icons.add, color: Colors.white, size: 28),
         onPressed: () {
-          final provider = Provider.of<AppProvider>(context, listen: false);
-          final isPremium = provider.user.isPremium;
-          if (!isPremium) {
-            ProUpgradeDialog.showFeatureLockedDialog(context, AppFeature.goals);
-          } else {
-            _showAddGoalDialog(context);
-          }
+          _showAddGoalDialog(context);
         },
       ),
       body: SingleChildScrollView(
@@ -229,9 +221,8 @@ class _GoalPyramidScreenState extends State<GoalPyramidScreen> {
           ],
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildGoalSection(
       BuildContext context, String title, List<Map<String, String>> goals, VoidCallback onTap) {
