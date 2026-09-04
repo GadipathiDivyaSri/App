@@ -858,6 +858,7 @@ async function handleApiRequest(req, res) {
       return sendJSON(res, 200, {
         success: true,
         message: 'Verification code sent to your email.',
+        code: otpCode,
         email: cleanEmail,
         expiresInSeconds: 600,
       });
@@ -865,7 +866,8 @@ async function handleApiRequest(req, res) {
 
     // 1.2 Verify Registration OTP & Activate User
     if (pathname === '/api/auth/register-verify' && method === 'POST') {
-      const { email, otp, referralCode } = body;
+      const { email, otp, code, referralCode } = body;
+      const checkOtp = (otp || code || '').trim();
       const cleanEmail = (email || '').trim().toLowerCase();
       const otpRecord = db.otpStore[cleanEmail];
 
@@ -886,7 +888,7 @@ async function handleApiRequest(req, res) {
         return sendJSON(res, 400, { success: false, message: 'Maximum attempts exceeded.' });
       }
 
-      if (otpRecord.code !== (otp || '').trim()) {
+      if (otpRecord.code !== checkOtp) {
         saveDB(db);
         return sendJSON(res, 400, { success: false, message: 'Invalid verification code.' });
       }
@@ -1220,7 +1222,90 @@ async function handleApiRequest(req, res) {
       return sendJSON(res, 200, {
         success: true,
         message: 'If an account exists with this email, a verification code has been sent.',
+        code: (user ? db.otpStore[cleanEmail]?.code : null),
         email: cleanEmail,
+      });
+    }
+
+
+    // 1.6.1 Password Reset Verify OTP
+    if (pathname === '/api/auth/forgot-password/verify-otp' && method === 'POST') {
+      const { email, otp, code } = body;
+      const cleanEmail = (email || '').trim().toLowerCase();
+      const checkOtp = (otp || code || '').trim();
+      const record = db.otpStore[cleanEmail];
+
+      if (!record || record.type !== 'reset') {
+        return sendJSON(res, 400, { success: false, message: 'No password reset request found.' });
+      }
+
+      if (Date.now() > record.expiresAt) {
+        delete db.otpStore[cleanEmail];
+        saveDB(db);
+        return sendJSON(res, 400, { success: false, message: 'Verification code has expired.' });
+      }
+
+      record.attempts = (record.attempts || 0) + 1;
+      if (record.attempts > (record.maxAttempts || 5)) {
+        delete db.otpStore[cleanEmail];
+        saveDB(db);
+        return sendJSON(res, 400, { success: false, message: 'Maximum attempts exceeded.' });
+      }
+
+      if (record.code !== checkOtp) {
+        saveDB(db);
+        return sendJSON(res, 400, { success: false, message: 'Invalid verification code.' });
+      }
+
+      const resetToken = 'rst_' + Date.now() + '_' + Math.random().toString(36).substring(2, 10);
+      record.resetToken = resetToken;
+      record.tokenExpiresAt = Date.now() + 15 * 60 * 1000;
+      saveDB(db);
+
+      return sendJSON(res, 200, {
+        success: true,
+        message: 'Verification code confirmed.',
+        resetToken: resetToken,
+      });
+    }
+
+    // 1.6.2 Password Reset Complete
+    if (pathname === '/api/auth/forgot-password/reset' && method === 'POST') {
+      const { email, resetToken, newPassword, confirmPassword } = body;
+      const cleanEmail = (email || '').trim().toLowerCase();
+      const record = db.otpStore[cleanEmail];
+
+      if (!record || record.type !== 'reset' || record.resetToken !== resetToken) {
+        return sendJSON(res, 400, { success: false, message: 'Invalid or expired password reset session.' });
+      }
+
+      if (Date.now() > (record.tokenExpiresAt || record.expiresAt)) {
+        delete db.otpStore[cleanEmail];
+        saveDB(db);
+        return sendJSON(res, 400, { success: false, message: 'Password reset session has expired.' });
+      }
+
+      if (!newPassword || newPassword.length < 8) {
+        return sendJSON(res, 400, { success: false, message: 'Password must be at least 8 characters long.' });
+      }
+
+      if (confirmPassword !== undefined && newPassword !== confirmPassword) {
+        return sendJSON(res, 400, { success: false, message: 'Passwords do not match.' });
+      }
+
+      const user = db.users.find((u) => (u.email || '').toLowerCase() === cleanEmail);
+      if (!user) {
+        return sendJSON(res, 404, { success: false, message: 'User not found.' });
+      }
+
+      user.password = hashPassword(newPassword);
+      user.updatedAt = new Date().toISOString();
+      delete db.otpStore[cleanEmail];
+      saveDB(db);
+
+      return sendJSON(res, 200, {
+        success: true,
+        message: 'Your password has been updated successfully.',
       });
     }
 
