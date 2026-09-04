@@ -164,6 +164,93 @@
       "createdAt": "2026-09-04T08:58:47.363Z",
       "updatedAt": "2026-09-04T08:58:47.363Z",
       "onboardingCompleted": false
+    },
+    {
+      "id": "u_1788521494605",
+      "username": "verify_93501",
+      "name": "Verify_93501",
+      "email": "verify_user_1788521493501@example.com",
+      "password": "8237cff4f52abdd2ddc66e4055a06fd5:72a4bbdff96576dfdaa97a52f7593f950ac0d8e9748b1a5b4da20b58e2d27b0dd47da5058a7bb1883a29334995cbbbe8d5b729f75776ca4e2469aecc84724f94",
+      "isEmailVerified": true,
+      "focusScore": 85,
+      "activeStreak": 1,
+      "isPremium": false,
+      "referralCode": "WOS6728",
+      "createdAt": "2026-09-04T11:31:34.605Z",
+      "updatedAt": "2026-09-04T11:31:34.605Z",
+      "onboardingCompleted": false
+    },
+    {
+      "id": "u_1788521539435",
+      "username": "verify_37909",
+      "name": "Verify_37909",
+      "email": "verify_user_1788521537909@example.com",
+      "password": "d48d1661e7799f19f7d3de08fc9080f3:12d4ea99efc19f1139f4702853574a927d4ea5627e35ace87750d6fc71d487ed73358979e61656b38f8ad3ceda87b1f606181688ec967255f611a05b6b17a71d",
+      "isEmailVerified": true,
+      "focusScore": 85,
+      "activeStreak": 1,
+      "isPremium": false,
+      "referralCode": "WOS5127",
+      "createdAt": "2026-09-04T11:32:19.435Z",
+      "updatedAt": "2026-09-04T11:32:19.435Z",
+      "onboardingCompleted": false
+    },
+    {
+      "id": "u_1788521690194",
+      "username": "verify_87348",
+      "name": "Verify_87348",
+      "email": "verify_user_1788521687348@example.com",
+      "password": "b88f51812b5a7cfc4d696ff586eb915d:e481beb7642b1980d30e09854e40537843bd611f47a3242b367a57908ff303baf2d7f2f59d9beec71137f8c371c306f83fd989094d52182346f045b4d958f1a2",
+      "isEmailVerified": true,
+      "focusScore": 85,
+      "activeStreak": 1,
+      "isPremium": false,
+      "referralCode": "WOS2031",
+      "createdAt": "2026-09-04T11:34:50.194Z",
+      "updatedAt": "2026-09-04T11:34:50.194Z",
+      "onboardingCompleted": false
+    },
+    {
+      "id": "u_test_free",
+      "username": "freetester",
+      "name": "Free Tier Tester",
+      "email": "free@wrindha.com",
+      "password": "46b00df400db809db46ce0e12ece219d:00ebb166a777a30b3250090f02ccc99665ff5625c708a0eb0eaee9a65b02af01f50bdaebf868bc71c429151f449c8f26e1b652bd13a34cffcdf87a0f6ce05958",
+      "isEmailVerified": true,
+      "focusScore": 78,
+      "activeStreak": 3,
+      "isPremium": false,
+      "referralCode": "WOS_FREETESTER",
+      "createdAt": "2026-09-04T11:47:44.979Z",
+      "updatedAt": "2026-09-04T11:47:44.979Z"
+    },
+    {
+      "id": "u_test_pro",
+      "username": "protester",
+      "name": "Pro Tier Tester",
+      "email": "pro@wrindha.com",
+      "password": "46b00df400db809db46ce0e12ece219d:00ebb166a777a30b3250090f02ccc99665ff5625c708a0eb0eaee9a65b02af01f50bdaebf868bc71c429151f449c8f26e1b652bd13a34cffcdf87a0f6ce05958",
+      "isEmailVerified": true,
+      "focusScore": 92,
+      "activeStreak": 15,
+      "isPremium": true,
+      "referralCode": "WOS_PROTESTER",
+      "createdAt": "2026-09-04T11:47:44.979Z",
+      "updatedAt": "2026-09-04T11:47:44.979Z"
+    },
+    {
+      "id": "u_test_admin",
+      "username": "admintester",
+      "name": "Wrindha Admin Demo",
+      "email": "admin@wrindha.com",
+      "password": "46b00df400db809db46ce0e12ece219d:00ebb166a777a30b3250090f02ccc99665ff5625c708a0eb0eaee9a65b02af01f50bdaebf868bc71c429151f449c8f26e1b652bd13a34cffcdf87a0f6ce05958",
+      "isEmailVerified": true,
+      "focusScore": 99,
+      "activeStreak": 45,
+      "isPremium": true,
+      "referralCode": "WOS_ADMINTESTER",
+      "createdAt": "2026-09-04T11:47:44.979Z",
+      "updatedAt": "2026-09-04T11:47:44.979Z"
     }
   ],
   "subscriptions": [
@@ -299,10 +386,145 @@
       "transaction_id": null,
       "created_at": "2026-09-04T08:58:47.364Z",
       "updated_at": "2026-09-04T08:58:47.364Z"
+    },
+    {
+      "id": "sub_free_u_1001",
+      "user_id": "u_1001",
+      "plan": "free",
+      "status": "active",
+      "started_at": "2026-09-04T11:30:42.351Z",
+      "expires_at": null,
+      "payment_provider": "NONE",
+      "transaction_id": null,
+      "created_at": "2026-09-04T11:30:42.351Z",
+      "updated_at": "2026-09-04T11:30:42.351Z"
+    },
+    {
+      "id": "sub_free_u_1788521494605",
+      "user_id": "u_1788521494605",
+      "plan": "free",
+      "status": "active",
+      "started_at": "2026-09-04T11:31:34.607Z",
+      "expires_at": null,
+      "payment_provider": "NONE",
+      "transaction_id": null,
+      "created_at": "2026-09-04T11:31:34.607Z",
+      "updated_at": "2026-09-04T11:31:34.607Z"
+    },
+    {
+      "id": "sub_free_u_1788521539435",
+      "user_id": "u_1788521539435",
+      "plan": "free",
+      "status": "active",
+      "started_at": "2026-09-04T11:32:19.435Z",
+      "expires_at": null,
+      "payment_provider": "NONE",
+      "transaction_id": null,
+      "created_at": "2026-09-04T11:32:19.435Z",
+      "updated_at": "2026-09-04T11:32:19.435Z"
+    },
+    {
+      "id": "sub_free_u_1788521690194",
+      "user_id": "u_1788521690194",
+      "plan": "free",
+      "status": "active",
+      "started_at": "2026-09-04T11:34:50.195Z",
+      "expires_at": null,
+      "payment_provider": "NONE",
+      "transaction_id": null,
+      "created_at": "2026-09-04T11:34:50.195Z",
+      "updated_at": "2026-09-04T11:34:50.195Z"
+    },
+    {
+      "id": "sub_u_test_free",
+      "user_id": "u_test_free",
+      "plan": "free",
+      "status": "active",
+      "started_at": "2026-09-04T11:47:44.979Z",
+      "expires_at": null,
+      "payment_provider": "NONE",
+      "transaction_id": null,
+      "created_at": "2026-09-04T11:47:44.979Z",
+      "updated_at": "2026-09-04T11:47:44.979Z"
+    },
+    {
+      "id": "sub_u_test_pro",
+      "user_id": "u_test_pro",
+      "plan": "pro",
+      "status": "active",
+      "started_at": "2026-09-04T11:47:44.979Z",
+      "expires_at": "2030-12-31T23:59:59.000Z",
+      "payment_provider": "SEED_VIP",
+      "transaction_id": "txn_seed_u_test_pro",
+      "created_at": "2026-09-04T11:47:44.979Z",
+      "updated_at": "2026-09-04T11:47:44.979Z"
+    },
+    {
+      "id": "sub_u_test_admin",
+      "user_id": "u_test_admin",
+      "plan": "pro",
+      "status": "active",
+      "started_at": "2026-09-04T11:47:44.979Z",
+      "expires_at": "2030-12-31T23:59:59.000Z",
+      "payment_provider": "SEED_VIP",
+      "transaction_id": "txn_seed_u_test_admin",
+      "created_at": "2026-09-04T11:47:44.979Z",
+      "updated_at": "2026-09-04T11:47:44.979Z"
     }
   ],
   "paymentHistory": [],
-  "tasks": [],
+  "tasks": [
+    {
+      "id": "t_free_1",
+      "title": "Submit Assignment 1",
+      "category": "Studies",
+      "priority": "high",
+      "isCompleted": false,
+      "dueDate": "2026-09-10",
+      "userId": "u_test_free",
+      "createdAt": "2026-09-04T11:47:44.979Z"
+    },
+    {
+      "id": "t_pro_1",
+      "title": "Implement B-Tree Storage Engine",
+      "category": "Studies",
+      "priority": "high",
+      "isCompleted": false,
+      "dueDate": "2026-09-12",
+      "userId": "u_test_pro",
+      "createdAt": "2026-09-04T11:47:44.979Z"
+    },
+    {
+      "id": "t_pro_2",
+      "title": "Prepare System Design Mock Interview",
+      "category": "Career",
+      "priority": "high",
+      "isCompleted": false,
+      "dueDate": "2026-09-15",
+      "userId": "u_test_pro",
+      "createdAt": "2026-09-04T11:47:44.979Z"
+    },
+    {
+      "id": "t_adm_1",
+      "title": "Review System Architecture Plan",
+      "category": "Productivity",
+      "priority": "high",
+      "isCompleted": true,
+      "dueDate": "2026-09-04",
+      "userId": "u_test_admin",
+      "createdAt": "2026-09-04T11:47:44.979Z"
+    },
+    {
+      "id": "t_adm_2",
+      "title": "Host All-Hands Strategy Sync",
+      "category": "Career",
+      "priority": "high",
+      "isCompleted": false,
+      "dueDate": "2026-09-08",
+      "userId": "u_test_admin",
+      "createdAt": "2026-09-04T11:47:44.979Z"
+    }
+  ],
   "calendarEvents": [],
   "habits": [
     {
@@ -471,6 +693,78 @@
       "longestStreak": 0,
       "createdAt": "2026-09-02T01:19:31.918Z",
       "updatedAt": "2026-09-02T01:19:31.918Z"
+    },
+    {
+      "id": "h_free_1",
+      "title": "30m Daily Code Practice",
+      "category": "Studies",
+      "frequency": "DAILY",
+      "colorHex": "0xFF3B82F6",
+      "userId": "u_test_free",
+      "createdAt": "2026-09-04T11:47:44.979Z"
+    },
+    {
+      "id": "h_free_2",
+      "title": "Morning 15m Meditation",
+      "category": "Health",
+      "frequency": "DAILY",
+      "colorHex": "0xFF10B981",
+      "userId": "u_test_free",
+      "createdAt": "2026-09-04T11:47:44.979Z"
+    },
+    {
+      "id": "h_pro_1",
+      "title": "Deep Work Focus (90 mins)",
+      "category": "Productivity",
+      "frequency": "DAILY",
+      "colorHex": "0xFF0D5CE5",
+      "userId": "u_test_pro",
+      "createdAt": "2026-09-04T11:47:44.979Z"
+    },
+    {
+      "id": "h_pro_2",
+      "title": "LeetCode Problem of the Day",
+      "category": "Studies",
+      "frequency": "DAILY",
+      "colorHex": "0xFFF59E0B",
+      "userId": "u_test_pro",
+      "createdAt": "2026-09-04T11:47:44.979Z"
+    },
+    {
+      "id": "h_pro_3",
+      "title": "5km Morning Cardio Run",
+      "category": "Health",
+      "frequency": "DAILY",
+      "colorHex": "0xFF10B981",
+      "userId": "u_test_pro",
+      "createdAt": "2026-09-04T11:47:44.979Z"
+    },
+    {
+      "id": "h_adm_1",
+      "title": "Zero Inbox & Task Prioritization",
+      "category": "Productivity",
+      "frequency": "DAILY",
+      "colorHex": "0xFF8B5CF6",
+      "userId": "u_test_admin",
+      "createdAt": "2026-09-04T11:47:44.979Z"
+    },
+    {
+      "id": "h_adm_2",
+      "title": "1 Hour Engineering Architecture Review",
+      "category": "Studies",
+      "frequency": "DAILY",
+      "colorHex": "0xFF0D5CE5",
+      "userId": "u_test_admin",
+      "createdAt": "2026-09-04T11:47:44.979Z"
+    },
+    {
+      "id": "h_adm_3",
+      "title": "Evening Hydration & Reflection Journal",
+      "category": "Health",
+      "frequency": "DAILY",
+      "colorHex": "0xFF06B6D4",
+      "userId": "u_test_admin",
+      "createdAt": "2026-09-04T11:47:44.979Z"
     }
   ],
   "habitCompletions": [],
@@ -508,6 +802,138 @@
       "code": "",
       "instructor": "",
       "createdAt": "2026-09-04T09:26:18.409Z"
+    },
+    {
+      "id": "sub_1788521539441",
+      "userId": "u_1788521539435",
+      "name": "Mathematics 101",
+      "code": "",
+      "instructor": "",
+      "createdAt": "2026-09-04T11:32:19.441Z",
+      "units": [
+        {
+          "id": "u_1788521539450_68",
+          "name": "Calculus & Integration",
+          "targetHours": 10,
+          "completedHours": 0,
+          "isCompleted": false,
+          "createdAt": "2026-09-04T11:32:19.450Z"
+        }
+      ]
+    },
+    {
+      "id": "sub_1788521539444",
+      "userId": "u_1788521539435",
+      "name": "Physics Mechanics",
+      "code": "",
+      "instructor": "",
+      "createdAt": "2026-09-04T11:32:19.444Z"
+    },
+    {
+      "id": "sub_1788521690238",
+      "userId": "u_1788521690194",
+      "name": "Mathematics 101",
+      "code": "",
+      "instructor": "",
+      "createdAt": "2026-09-04T11:34:50.238Z",
+      "units": [
+        {
+          "id": "u_1788521690245_611",
+          "name": "Calculus & Integration",
+          "targetHours": 10,
+          "completedHours": 0,
+          "isCompleted": false,
+          "createdAt": "2026-09-04T11:34:50.245Z"
+        }
+      ]
+    },
+    {
+      "id": "sub_1788521690241",
+      "userId": "u_1788521690194",
+      "name": "Physics Mechanics",
+      "code": "",
+      "instructor": "",
+      "createdAt": "2026-09-04T11:34:50.241Z"
+    },
+    {
+      "id": "sub_free_1",
+      "name": "Introduction to Python",
+      "code": "CS101",
+      "instructor": "Prof. Alan",
+      "userId": "u_test_free",
+      "createdAt": "2026-09-04T11:47:44.979Z"
+    },
+    {
+      "id": "sub_pro_1",
+      "name": "Data Structures & Algorithms",
+      "code": "CS201",
+      "instructor": "Prof. Turing",
+      "userId": "u_test_pro",
+      "createdAt": "2026-09-04T11:47:44.979Z"
+    },
+    {
+      "id": "sub_pro_2",
+      "name": "Operating Systems & Concurrency",
+      "code": "CS202",
+      "instructor": "Prof. Tanenbaum",
+      "userId": "u_test_pro",
+      "createdAt": "2026-09-04T11:47:44.979Z"
+    },
+    {
+      "id": "sub_pro_3",
+      "name": "Database Management Systems",
+      "code": "CS203",
+      "instructor": "Prof. Codd",
+      "userId": "u_test_pro",
+      "createdAt": "2026-09-04T11:47:44.979Z"
+    },
+    {
+      "id": "sub_pro_4",
+      "name": "Artificial Intelligence & ML",
+      "code": "CS204",
+      "instructor": "Prof. Russell",
+      "userId": "u_test_pro",
+      "createdAt": "2026-09-04T11:47:44.979Z"
+    },
+    {
+      "id": "sub_adm_1",
+      "name": "Advanced Distributed Systems",
+      "code": "CS401",
+      "instructor": "Prof. Lamport",
+      "userId": "u_test_admin",
+      "createdAt": "2026-09-04T11:47:44.979Z"
+    },
+    {
+      "id": "sub_adm_2",
+      "name": "Compiler Design & Optimization",
+      "code": "CS402",
+      "instructor": "Prof. Aho",
+      "userId": "u_test_admin",
+      "createdAt": "2026-09-04T11:47:44.979Z"
+    },
+    {
+      "id": "sub_adm_3",
+      "name": "Quantum Information & Computing",
+      "code": "PHYS401",
+      "instructor": "Prof. Feynman",
+      "userId": "u_test_admin",
+      "createdAt": "2026-09-04T11:47:44.979Z"
+    },
+    {
+      "id": "sub_adm_4",
+      "name": "Corporate Financial Engineering",
+      "code": "FIN301",
+      "instructor": "Prof. Merton",
+      "userId": "u_test_admin",
+      "createdAt": "2026-09-04T11:47:44.979Z"
+    },
+    {
+      "id": "sub_adm_5",
+      "name": "Strategic Leadership & Management",
+      "code": "MGT501",
+      "instructor": "Prof. Drucker",
+      "userId": "u_test_admin",
+      "createdAt": "2026-09-04T11:47:44.979Z"
     }
   ],
   "studyItems": [],
@@ -521,6 +947,102 @@
       "tier": "short",
       "isCompleted": false,
       "createdAt": "2026-09-02T01:19:31.933Z"
+    },
+    {
+      "id": "g_1788521690248",
+      "userId": "u_1788521690194",
+      "title": "Finish 2 Math units this week",
+      "tier": "short",
+      "isCompleted": false,
+      "createdAt": "2026-09-04T11:34:50.248Z"
+    },
+    {
+      "id": "g_1788521690252",
+      "userId": "u_1788521690194",
+      "title": "Complete Software Internship",
+      "tier": "medium",
+      "isCompleted": false,
+      "createdAt": "2026-09-04T11:34:50.252Z"
+    },
+    {
+      "id": "g_1788521690256",
+      "userId": "u_1788521690194",
+      "title": "Become Senior System Architect",
+      "tier": "long",
+      "isCompleted": false,
+      "createdAt": "2026-09-04T11:34:50.256Z"
+    },
+    {
+      "id": "g_free_1",
+      "title": "Complete Python Control Flow unit",
+      "tier": "short",
+      "isCompleted": false,
+      "userId": "u_test_free",
+      "createdAt": "2026-09-04T11:47:44.979Z"
+    },
+    {
+      "id": "g_free_2",
+      "title": "Score A in Semester Midterms",
+      "tier": "medium",
+      "isCompleted": false,
+      "userId": "u_test_free",
+      "createdAt": "2026-09-04T11:47:44.979Z"
+    },
+    {
+      "id": "g_pro_1",
+      "title": "⚡ Solve 50 Tree & Graph LeetCode Problems",
+      "tier": "short",
+      "isCompleted": false,
+      "userId": "u_test_pro",
+      "createdAt": "2026-09-04T11:47:44.979Z"
+    },
+    {
+      "id": "g_pro_2",
+      "title": "📅 Crack Cloud Engineering Summer Internship",
+      "tier": "medium",
+      "isCompleted": false,
+      "userId": "u_test_pro",
+      "createdAt": "2026-09-04T11:47:44.979Z"
+    },
+    {
+      "id": "g_pro_3",
+      "title": "🏔️ Become Principal Cloud Solutions Architect",
+      "tier": "long",
+      "isCompleted": false,
+      "userId": "u_test_pro",
+      "createdAt": "2026-09-04T11:47:44.979Z"
+    },
+    {
+      "id": "g_adm_1",
+      "title": "⚡ Deploy WrindhaOS Production v2.0",
+      "tier": "short",
+      "isCompleted": true,
+      "userId": "u_test_admin",
+      "createdAt": "2026-09-04T11:47:44.979Z"
+    },
+    {
+      "id": "g_adm_2",
+      "title": "⚡ Complete Microservices Benchmark Suite",
+      "tier": "short",
+      "isCompleted": false,
+      "userId": "u_test_admin",
+      "createdAt": "2026-09-04T11:47:44.979Z"
+    },
+    {
+      "id": "g_adm_3",
+      "title": "📅 Onboard 10,000 University Students",
+      "tier": "medium",
+      "isCompleted": false,
+      "userId": "u_test_admin",
+      "createdAt": "2026-09-04T11:47:44.979Z"
+    },
+    {
+      "id": "g_adm_4",
+      "title": "🏔️ Establish Worldwide AI Education Foundation",
+      "tier": "long",
+      "isCompleted": false,
+      "userId": "u_test_admin",
+      "createdAt": "2026-09-04T11:47:44.979Z"
     }
   ],
   "expenses": [],
@@ -1126,6 +1648,146 @@
       "discountApplied": 24.5,
       "paymentStatus": "success",
       "createdAt": "2026-09-04T10:09:10.126Z"
+    },
+    {
+      "id": "cu_1788516799226",
+      "userId": "u_1788516798455",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-09-04T10:13:19.226Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-09-04T10:13:19.226Z"
+    },
+    {
+      "id": "cu_1788517931490",
+      "userId": "u_1788517930767",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-09-04T10:32:11.490Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-09-04T10:32:11.490Z"
+    },
+    {
+      "id": "cu_1788518285164",
+      "userId": "u_1788518284448",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-09-04T10:38:05.164Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-09-04T10:38:05.164Z"
+    },
+    {
+      "id": "cu_1788519343873",
+      "userId": "u_1788519335930",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-09-04T10:55:43.873Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-09-04T10:55:43.873Z"
+    },
+    {
+      "id": "cu_1788519579583",
+      "userId": "u_1788519578797",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-09-04T10:59:39.583Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-09-04T10:59:39.583Z"
+    },
+    {
+      "id": "cu_1788520140639",
+      "userId": "u_1788520138923",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-09-04T11:09:00.639Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-09-04T11:09:00.639Z"
+    },
+    {
+      "id": "cu_1788520520988",
+      "userId": "u_1788520520481",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-09-04T11:15:20.988Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-09-04T11:15:20.988Z"
+    },
+    {
+      "id": "cu_1788520883794",
+      "userId": "u_1788520883106",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-09-04T11:21:23.794Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-09-04T11:21:23.795Z"
+    },
+    {
+      "id": "cu_1788521254154",
+      "userId": "u_1788521253569",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-09-04T11:27:34.154Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-09-04T11:27:34.154Z"
+    },
+    {
+      "id": "cu_1788521700485",
+      "userId": "u_1788521699721",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-09-04T11:35:00.485Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-09-04T11:35:00.485Z"
     }
   ],
   "referralCodes": [
@@ -1216,6 +1878,30 @@
       "status": "active",
       "totalCount": 0,
       "createdAt": "2026-09-04T08:58:47.365Z"
+    },
+    {
+      "id": "ref_u_1788521494605",
+      "userId": "u_1788521494605",
+      "referralCode": "WOS6728",
+      "status": "active",
+      "totalCount": 0,
+      "createdAt": "2026-09-04T11:31:34.610Z"
+    },
+    {
+      "id": "ref_u_1788521539435",
+      "userId": "u_1788521539435",
+      "referralCode": "WOS5127",
+      "status": "active",
+      "totalCount": 0,
+      "createdAt": "2026-09-04T11:32:19.436Z"
+    },
+    {
+      "id": "ref_u_1788521690194",
+      "userId": "u_1788521690194",
+      "referralCode": "WOS2031",
+      "status": "active",
+      "totalCount": 0,
+      "createdAt": "2026-09-04T11:34:50.196Z"
     }
   ],
   "referralTrackings": [
