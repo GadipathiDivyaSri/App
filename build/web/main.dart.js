@@ -103920,7 +103920,7 @@ D(a){var s,r,q=null,p=A.dS(q,q,B.aH,q,q,0,q,A.bK(q,q,q,B.Q2,q,q,new A.a8b(a),q,q
 n=A.a0(q,A.a1(A.a([A.a0(q,B.QO,B.l,q,q,new A.X(B.x,q,q,A.Q(16),q,q,B.o),q,52,q,q,q,q,52),B.hl,B.Op],m),B.j,B.f,B.e,0,q,q),B.l,q,q,new A.X(B.L_,q,q,n,q,q,B.o),q,q,q,B.a0,q,q,1/0)
 s=A.Q(20)
 r=A.b2(B.x,B.p,1.5)
-var _careerGoalCard = A.co(q, A.a0(q, A.a1(A.a([A.a0(q, B.ug, B.l, q, q, B.I7, q, q, q, B.nl, q, q, q), B.dz, A.a3(A.a([A.l("🎯 3-Tier Goal Management", q, q, q, A.A(q, q, B.t, q, q, q, q, q, q, q, q, 15, q, q, B.y, q, q, !0, q, q, q, q, q, q, q, q), q, q, q), A.l("Short-Term, Medium-Term & Long-Term", q, q, q, A.A(q, q, B.G, q, q, q, q, q, q, q, q, 12, q, q, B.a9, q, q, !0, q, q, q, q, q, q, q, q), q, q, q)], m), B.w, B.f, B.e, 0, B.m), B.PU], m), B.j, B.f, B.e, 0, q, q), B.l, q, q, new A.X(B.h, q, A.b2(B.aX, B.p, 1.5), s, q, q, B.o), q, q, q, B.d0, q, q, 1/0), B.C, !1, q, q, q, q, q, q, q, q, q, q, q, q, q, q, q, q, new A.a_GoalClick(a), q, q, q, q, q, q);
+var _careerGoalCard = A.co(q, A.a0(q, A.a1(A.a([A.a0(q, B.ug, B.l, q, q, B.I7, q, q, q, B.nl, q, q, q), B.dz, A.a3(A.a([A.l("🎯 3-Tier Goal Management", q, q, q, A.A(q, q, B.t, q, q, q, q, q, q, q, q, 15, q, q, B.y, q, q, !0, q, q, q, q, q, q, q, q), q, q, q), A.l("Short-Term, Medium-Term & Long-Term", q, q, q, A.A(q, q, B.G, q, q, q, q, q, q, q, q, 12, q, q, B.a9, q, q, !0, q, q, q, q, q, q, q, q), q, q, q)], m), B.w, B.f, B.e, 0, B.m), B.PU], m), B.j, B.f, B.e, 0, q, q), B.l, q, q, new A.X(B.h, q, A.b2(B.aX, B.p, 1.5), s, q, q, B.o), q, q, q, B.d0, q, q, 1/0), B.C, !1, q, q, q, q, q, q, q, q, q, q, q, q, q, q, q, q, new A.aGPC(a), q, q, q, q, q, q);
 return A.dp(p,B.aH,A.cX(A.a3(A.a([n,B.aC,A.co(q,A.a0(q,A.a1(A.a([A.a0(q,B.QE,B.l,q,q,B.I7,q,q,q,B.nl,q,q,q),B.dz,B.Oo,B.PU],m),B.j,B.f,B.e,0,q,q),B.l,q,q,new A.X(B.LH,q,r,s,q,q,B.o),q,q,q,B.d0,q,q,1/0),B.C,!1,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,new A.a8d(a),q,q,q,q,q,q),B.am,_careerGoalCard,B.Fw],m),B.w,B.f,B.e,0,B.m),q,B.a0,q,q,B.U),q,o)}}
 A.a8b.prototype={
 $0(){A.ar(this.a,!1).aU(null)
@@ -106704,9 +106704,9 @@ var _toolBanner = A.a1(A.a([
   A.aC(A.aqY(A.aH(B.ug, B.x, n, 18), A.l("🎯 Goals (3-Tier)", n, n, n, B.cR, n, n, n), new A.aGPC(a), A.ne(n, n, n, n, n, n, n, n, n, B.x, n, n, n, n, n, n, n, n, n, n)), 1)
 ], s), B.j, B.f, B.e, 0, n, n);
 var _toolBanner = A.a1(A.a([
-  A.aC(A.aqY(A.aH(B.it, B.x, n, 18), A.l("⏱️ Focus Timer", n, n, n, B.cR, n, n, n), new A.a_FocusTimerClick(a), A.ne(n, n, n, n, n, n, n, n, n, B.x, n, n, n, n, n, n, n, n, n, n)), 1),
+  A.aC(A.aqY(A.aH(B.it, B.x, n, 18), A.l("⏱️ Focus Timer", n, n, n, B.cR, n, n, n), new A.aFTC(a), A.ne(n, n, n, n, n, n, n, n, n, B.x, n, n, n, n, n, n, n, n, n, n)), 1),
   B.bh,
-  A.aC(A.aqY(A.aH(B.ug, B.x, n, 18), A.l("🎯 Goals (3-Tier)", n, n, n, B.cR, n, n, n), new A.a_GoalClick(a), A.ne(n, n, n, n, n, n, n, n, n, B.x, n, n, n, n, n, n, n, n, n, n)), 1)
+  A.aC(A.aqY(A.aH(B.ug, B.x, n, 18), A.l("🎯 Goals (3-Tier)", n, n, n, B.cR, n, n, n), new A.aGPC(a), A.ne(n, n, n, n, n, n, n, n, n, B.x, n, n, n, n, n, n, n, n, n, n)), 1)
 ], s), B.j, B.f, B.e, 0, n, n);
 s=t.p
 r=A.a1(A.a([A.aC(o.GX("Completed",""+g,B.D,B.is,m,k),1),B.bh,A.aC(o.GX("Pending",""+f,B.cv,B.Pv,m,k),1),B.bh,A.aC(o.GX("Attention",""+d,B.ak,B.om,m,k),1)],s),B.j,B.f,B.e,0,n,n)
@@ -106785,7 +106785,7 @@ j=A.Q(4)
 s=a.e
 o=o?B.di:B.cj
 var _subjCard = A.a0(q,A.a3(A.a([i,B.aj,l,B.bH,A.ma(j,A.wr(o,6,s,new A.i8(A.bw(m),t.ZU)),B.bn)],k),B.w,B.f,B.e,0,B.m),B.l,q,q,new A.X(r.a,q,n,p,q,q,B.o),q,q,B.eU,B.bY,q,q,q);
-return A.co(q, _subjCard, B.C, !1, q, q, q, q, q, q, q, q, q, q, q, q, q, q, q, q, new A.a_SubjectCardClick(r.c, a), q, q, q, q, q, q);},
+return A.co(q, _subjCard, B.C, !1, q, q, q, q, q, q, q, q, q, q, q, q, q, q, q, q, new A.aSCC(r.c, a), q, q, q, q, q, q);},
 $S:680}
 A.aIY.prototype={
 $1(a){if(a==="delete")this.a.axo(this.b.a)},
