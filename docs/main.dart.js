@@ -104910,8 +104910,8 @@ A.aei.prototype={
 $1(a){return B.ZC},
 $S:657}
 A.aet.prototype={
-$0(){var s=A.ck(new A.aeh(),null,t.z)
-A.ar(this.a,!1).c6(s)},
+$0(){var p=A.d9(this.a,!1,t.C),u=p.c,isPro=(u&&u.x)||p.d.ga6s();
+if(!isPro){A.lq(this.a,B.qG,null);}else{var s=A.ck(new A.aeh(),null,t.z);A.ar(this.a,!1).c6(s);}},
 $S:0}
 A.aeh.prototype={
 $1(a){return B.Hm},
@@ -113827,7 +113827,7 @@ B.Hs=new A.fT(1,"calendar")
 B.Hu=new A.fT(4,"goals")
 B.Hv=new A.fT(9,"milestones")
 B.Ht=new A.fT(11,"focusTimer")
-B.fj=new A.eF([B.Hr,B.Hs,B.mi,B.mj,B.Hu,B.mk,B.ml,B.mm,B.mn,B.Hv,B.fw,B.Ht,B.qG],A.aP("eF<fT>"))
+B.fj=new A.eF([B.Hr,B.Hs,B.mi,B.mj,B.Hu,B.mk,B.ml,B.mm,B.mn,B.Hv,B.fw,B.Ht],A.aP("eF<fT>"))
 B.oX=new A.Eb("Free Plan","Essential organization tools to get started.",2,2)
 B.Zh=new A.Eb("WrindhaOS Pro","Full, unlocked access to all productivity & study modules.",-1,-1)
 B.dV=new A.cT([B.FG,B.oX,B.FH,B.Zh],A.aP("cT<G3,Eb>"))

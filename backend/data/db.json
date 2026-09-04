@@ -236,6 +236,21 @@
       "referralCode": "WOS_ADMINTESTER",
       "createdAt": "2026-09-04T11:47:44.979Z",
       "updatedAt": "2026-09-04T11:47:44.979Z"
+    },
+    {
+      "id": "u_1788538962118",
+      "username": "hari",
+      "name": "Hari",
+      "email": "ghari1076@gmail.com",
+      "password": "a77861231ab736ae773bef5f1f530f49:34e7ee7d798edbd9f0471eb9acefea45f881a773f7dc04d7aea113bcf2c3035f64a96ab6bfcea6eaae371f278cca958267f99affb244584648596bff268991f4",
+      "isEmailVerified": true,
+      "focusScore": 85,
+      "activeStreak": 1,
+      "isPremium": false,
+      "referralCode": "WOS9534",
+      "createdAt": "2026-09-04T16:22:42.118Z",
+      "updatedAt": "2026-09-04T16:22:42.118Z",
+      "onboardingCompleted": false
     }
   ],
   "subscriptions": [
@@ -443,6 +458,18 @@
       "transaction_id": "txn_seed_u_test_admin",
       "created_at": "2026-09-04T11:47:44.979Z",
       "updated_at": "2026-09-04T11:47:44.979Z"
+    },
+    {
+      "id": "sub_free_u_1788538962118",
+      "user_id": "u_1788538962118",
+      "plan": "free",
+      "status": "active",
+      "started_at": "2026-09-04T16:22:42.149Z",
+      "expires_at": null,
+      "payment_provider": "NONE",
+      "transaction_id": null,
+      "created_at": "2026-09-04T16:22:42.149Z",
+      "updated_at": "2026-09-04T16:22:42.149Z"
     }
   ],
   "paymentHistory": [],
@@ -2036,6 +2063,14 @@
       "status": "active",
       "totalCount": 0,
       "createdAt": "2026-09-04T11:34:50.196Z"
+    },
+    {
+      "id": "ref_u_1788538962118",
+      "userId": "u_1788538962118",
+      "referralCode": "WOS9534",
+      "status": "active",
+      "totalCount": 0,
+      "createdAt": "2026-09-04T16:22:42.153Z"
     }
   ],
   "referralTrackings": [

@@ -191,12 +191,19 @@ class HomeScreen extends StatelessWidget {
                       lightIconContainerColor: AppTheme.pastelAnalyticsIcon,
                       isLocked: !provider.hasAccess(AppFeature.analytics),
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const AnalyticsScreen(),
-                          ),
-                        );
+                        if (!provider.hasAccess(AppFeature.analytics)) {
+                          ProUpgradeDialog.showFeatureLockedDialog(
+                            context,
+                            AppFeature.analytics,
+                          );
+                        } else {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const AnalyticsScreen(),
+                            ),
+                          );
+                        }
                       },
                     ),
                   ],
