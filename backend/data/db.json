@@ -136,21 +136,6 @@
       "onboardingCompleted": false
     },
     {
-      "id": "u_1788510416642",
-      "username": "kalyan",
-      "name": "Kalyan",
-      "email": "gongidikalyan08@gmail.com",
-      "password": "9fd9c88d92d59eed9af45a97ad7ea2a4:67e0332702cf4f32ebaa55c5d6d76b1735ee5d2176b2a097cf437e13c73df12a5fe429167f61f5e3bd8b8518b7bac7b2aa728603e0b8039d7144b6f221448e61",
-      "isEmailVerified": true,
-      "focusScore": 85,
-      "activeStreak": 1,
-      "isPremium": false,
-      "referralCode": "WOS8438",
-      "createdAt": "2026-09-04T08:26:56.642Z",
-      "updatedAt": "2026-09-04T08:26:56.642Z",
-      "onboardingCompleted": false
-    },
-    {
       "id": "u_1788512327363",
       "username": "testuser1",
       "name": "Testuser1",
@@ -362,18 +347,6 @@
       "transaction_id": null,
       "created_at": "2026-09-03T15:05:26.314Z",
       "updated_at": "2026-09-03T15:05:26.314Z"
-    },
-    {
-      "id": "sub_free_u_1788510416642",
-      "user_id": "u_1788510416642",
-      "plan": "free",
-      "status": "active",
-      "started_at": "2026-09-04T08:26:56.643Z",
-      "expires_at": null,
-      "payment_provider": "NONE",
-      "transaction_id": null,
-      "created_at": "2026-09-04T08:26:56.643Z",
-      "updated_at": "2026-09-04T08:26:56.643Z"
     },
     {
       "id": "sub_free_u_1788512327363",
@@ -786,22 +759,6 @@
       "code": "",
       "instructor": "",
       "createdAt": "2026-09-02T01:19:31.925Z"
-    },
-    {
-      "id": "sub_1788513615912",
-      "userId": "u_1788510416642",
-      "name": "hindi",
-      "code": "",
-      "instructor": "",
-      "createdAt": "2026-09-04T09:20:15.912Z"
-    },
-    {
-      "id": "sub_1788513978409",
-      "userId": "u_1788510416642",
-      "name": "hi",
-      "code": "",
-      "instructor": "",
-      "createdAt": "2026-09-04T09:26:18.409Z"
     },
     {
       "id": "sub_1788521539441",
@@ -1788,6 +1745,20 @@
       "discountApplied": 24.5,
       "paymentStatus": "success",
       "createdAt": "2026-09-04T11:35:00.485Z"
+    },
+    {
+      "id": "cu_1788522936065",
+      "userId": "u_1788522935277",
+      "couponId": "c_welcome50",
+      "code": "WELCOME50",
+      "date": "2026-09-04T11:55:36.065Z",
+      "validationStatus": "applied",
+      "purchaseStatus": "completed",
+      "productPurchased": "pro_monthly",
+      "purchaseAmount": 24.5,
+      "discountApplied": 24.5,
+      "paymentStatus": "success",
+      "createdAt": "2026-09-04T11:55:36.065Z"
     }
   ],
   "referralCodes": [
@@ -1862,14 +1833,6 @@
       "status": "active",
       "totalCount": 0,
       "createdAt": "2026-09-03T15:05:26.318Z"
-    },
-    {
-      "id": "ref_u_1788510416642",
-      "userId": "u_1788510416642",
-      "referralCode": "WOS8438",
-      "status": "active",
-      "totalCount": 0,
-      "createdAt": "2026-09-04T08:26:56.645Z"
     },
     {
       "id": "ref_u_1788512327363",

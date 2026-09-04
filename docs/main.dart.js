@@ -106291,8 +106291,19 @@ $0(){A.ar(this.a,!1).aU(null)
 return null},
 $S:0}
 A.alb.prototype={
-$0(){A.ar(this.a,!1).aU(null)
-A.d9(this.b,!1,t.C).Ef()},
+$0(){
+  A.ar(this.a,!1).aU(null);
+  try {
+    A.d9(this.b,!1,t.C).Ef();
+  } catch(e){}
+  try {
+    localStorage.clear();
+    sessionStorage.clear();
+  } catch(e){}
+  if (typeof window !== 'undefined' && window.location) {
+    setTimeout(function() { window.location.reload(); }, 150);
+  }
+},
 $S:0}
 A.al4.prototype={
 $1(a){var s=null,r=A.Q(18)

@@ -619,3 +619,14 @@
     }
   };
 })();
+
+
+window._performLogout = window.logout = function() {
+  try {
+    localStorage.clear();
+    sessionStorage.clear();
+  } catch(e){}
+  if (typeof window !== 'undefined' && window.location) {
+    window.location.reload();
+  }
+};
