@@ -1385,6 +1385,28 @@ async function handleApiRequest(req, res) {
       saveDB(db);
       return sendJSON(res, 201, newTask);
     }
+    
+    // Update Task (PUT/PATCH)
+    if (pathname.startsWith('/api/tasks/') && (method === 'PUT' || method === 'PATCH')) {
+      const taskId = pathname.split('/').pop();
+      const task = (db.tasks || []).find((t) => t.id === taskId && (t.userId === userId || !t.userId));
+      if (!task) {
+        return sendJSON(res, 404, { success: false, message: 'Task not found.' });
+      }
+      if (body.title !== undefined) task.title = body.title;
+      if (body.category !== undefined) task.category = body.category;
+      if (body.priority !== undefined) task.priority = body.priority;
+      if (body.dueDate !== undefined) task.dueDate = body.dueDate;
+      if (body.isCompleted !== undefined) task.isCompleted = !!body.isCompleted;
+      if (body.status !== undefined) {
+        task.status = body.status;
+        task.isCompleted = body.status === 'completed';
+      }
+      task.updatedAt = new Date().toISOString();
+      saveDB(db);
+      return sendJSON(res, 200, task);
+    }
+
     if (pathname.startsWith('/api/tasks/') && method === 'DELETE') {
       const taskId = pathname.split('/').pop();
       db.tasks = db.tasks.filter((t) => !(t.id === taskId && (t.userId === userId || !t.userId)));
@@ -1817,6 +1839,37 @@ async function handleApiRequest(req, res) {
       return sendJSON(res, 201, newSubject);
     }
 
+    
+    // Subject Unit Add
+    if (pathname.startsWith('/api/subjects/') && pathname.endsWith('/units') && method === 'POST') {
+      const parts = pathname.split('/');
+      const subjectId = parts[3];
+      const subject = (db.subjects || []).find((s) => s.id === subjectId && (s.userId === userId || !s.userId));
+      if (!subject) return sendJSON(res, 404, { success: false, message: 'Subject not found.' });
+
+      if (!Array.isArray(subject.units)) subject.units = [];
+      const newUnit = {
+        id: 'u_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+        name: body.name || 'Unit',
+        targetHours: Number(body.targetHours) || 10,
+        completedHours: 0,
+        isCompleted: false,
+        createdAt: new Date().toISOString()
+      };
+      subject.units.push(newUnit);
+      saveDB(db);
+      return sendJSON(res, 201, newUnit);
+    }
+
+    // Subject DELETE
+    if (pathname.startsWith('/api/subjects/') && method === 'DELETE') {
+      const subjectId = pathname.split('/').pop();
+      const beforeCount = (db.subjects || []).length;
+      db.subjects = (db.subjects || []).filter((s) => !(s.id === subjectId && (s.userId === userId || !s.userId)));
+      saveDB(db);
+      return sendJSON(res, 200, { success: true, message: 'Subject deleted successfully.', deleted: (db.subjects.length < beforeCount) });
+    }
+
     // 2.5 Timetable
     if (pathname === '/api/timetable' && method === 'GET') {
       const items = db.timetable.filter((tt) => tt.userId === userId || !tt.userId);
@@ -1835,6 +1888,16 @@ async function handleApiRequest(req, res) {
       db.timetable.push(newItem);
       saveDB(db);
       return sendJSON(res, 201, newItem);
+    }
+
+    
+    // Timetable DELETE
+    if (pathname.startsWith('/api/timetable/') && method === 'DELETE') {
+      const ttId = pathname.split('/').pop();
+      const beforeCount = (db.timetable || []).length;
+      db.timetable = (db.timetable || []).filter((t) => !(t.id === ttId && (t.userId === userId || !t.userId)));
+      saveDB(db);
+      return sendJSON(res, 200, { success: true, message: 'Timetable item deleted successfully.' });
     }
 
     // 2.6 Pro Modules: Goals, Expenses, Journal, Career Roadmap, Milestones
@@ -1858,6 +1921,36 @@ async function handleApiRequest(req, res) {
       syncGoalToSupabase(newGoal);
       saveDB(db);
       return sendJSON(res, 201, newGoal);
+    }
+
+    
+    // Goal Milestone Add
+    if (pathname.startsWith('/api/goals/') && pathname.endsWith('/milestones') && method === 'POST') {
+      const parts = pathname.split('/');
+      const goalId = parts[3];
+      const goal = (db.goals || []).find((g) => g.id === goalId && (g.userId === userId || !g.userId));
+      if (!goal) return sendJSON(res, 404, { success: false, message: 'Goal not found.' });
+
+      if (!Array.isArray(goal.milestones)) goal.milestones = [];
+      const newMilestone = {
+        id: 'm_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+        title: body.title || 'Milestone',
+        dueDate: body.dueDate || null,
+        isCompleted: false,
+        createdAt: new Date().toISOString()
+      };
+      goal.milestones.push(newMilestone);
+      saveDB(db);
+      return sendJSON(res, 201, newMilestone);
+    }
+
+    // Goal DELETE
+    if (pathname.startsWith('/api/goals/') && method === 'DELETE') {
+      const goalId = pathname.split('/').pop();
+      const beforeCount = (db.goals || []).length;
+      db.goals = (db.goals || []).filter((g) => !(g.id === goalId && (g.userId === userId || !g.userId)));
+      saveDB(db);
+      return sendJSON(res, 200, { success: true, message: 'Goal deleted successfully.', deleted: (db.goals.length < beforeCount) });
     }
 
     if (pathname === '/api/expenses' && method === 'GET') {
@@ -1884,6 +1977,16 @@ async function handleApiRequest(req, res) {
       return sendJSON(res, 201, newExpense);
     }
 
+    
+    // Expense DELETE
+    if (pathname.startsWith('/api/expenses/') && method === 'DELETE') {
+      const expenseId = pathname.split('/').pop();
+      const beforeCount = (db.expenses || []).length;
+      db.expenses = (db.expenses || []).filter((e) => !(e.id === expenseId && (e.userId === userId || !e.userId)));
+      saveDB(db);
+      return sendJSON(res, 200, { success: true, message: 'Expense deleted successfully.', deleted: (db.expenses.length < beforeCount) });
+    }
+
     if (pathname === '/api/journal' && method === 'GET') {
       const entries = db.journalEntries.filter((j) => j.userId === userId || !j.userId);
       return sendJSON(res, 200, entries);
@@ -1903,6 +2006,16 @@ async function handleApiRequest(req, res) {
       db.journalEntries.push(newEntry);
       saveDB(db);
       return sendJSON(res, 201, newEntry);
+    }
+
+    
+    // Journal DELETE
+    if (pathname.startsWith('/api/journal/') && method === 'DELETE') {
+      const jId = pathname.split('/').pop();
+      const beforeCount = (db.journalEntries || []).length;
+      db.journalEntries = (db.journalEntries || []).filter((j) => !(j.id === jId && (j.userId === userId || !j.userId)));
+      saveDB(db);
+      return sendJSON(res, 200, { success: true, message: 'Journal entry deleted successfully.' });
     }
 
     if (pathname === '/api/career-roadmap' && method === 'GET') {
