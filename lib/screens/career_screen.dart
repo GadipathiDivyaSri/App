@@ -142,7 +142,7 @@ class CareerScreen extends StatelessWidget {
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
-                        Icons.hub_rounded,
+                        Icons.military_tech_rounded,
                         color: Colors.white,
                         size: 22,
                       ),
@@ -153,7 +153,7 @@ class CareerScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Interactive Node Map',
+                            'Goals',
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w800,
@@ -162,7 +162,7 @@ class CareerScreen extends StatelessWidget {
                           ),
                           SizedBox(height: 2),
                           Text(
-                            'Drag, zoom & connect skill nodes live',
+                            'Short-Term, Medium-Term & Long-Term Targets',
                             style: TextStyle(
                               fontSize: 12,
                               color: textMuted,
