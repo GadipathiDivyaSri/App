@@ -103026,23 +103026,18 @@ ajj(){
 
   q.K(new A.aDx(q)); // reveals OTP field
 
-  // Generate a live 6-digit verification code for this email session
+  // Generate unique 6-digit security code
   var liveOtp = '' + Math.floor(100000 + Math.random() * 900000);
   if (typeof window !== 'undefined') {
     window._wrindhaActiveOtp = liveOtp;
     window._wrindhaActiveEmail = email;
-    console.log('[WrindhaOS Security] 6-Digit OTP for ' + email + ' is: ' + liveOtp);
+    console.log('[SECURITY] 6-Digit OTP for ' + email + ' is: ' + liveOtp);
     if (typeof window.sendMSG91EmailOTP === 'function') {
-      window.sendMSG91EmailOTP(email);
+      window.sendMSG91EmailOTP(email, liveOtp);
     }
   }
 
-  // If OTP input field exists, auto-populate code for instant one-click testing
-  if (q.w && q.w.a) {
-    q.w.a.a = liveOtp;
-  }
-
-  var msg = "Verification code: " + liveOtp + " (Sent to " + email + ")";
+  var msg = "Verification code sent to " + email;
   q.c.Y(t.J).f.d7(A.jd(p,p,p,B.u,p,B.z,p,A.m(msg,p,p,p,p,p,p,p,p),p,B.b7,p,p,p,p,p,p,p,p,p,p));
 },
 ny(){var s=0,r=A.V(t.H),q=this,p,o
