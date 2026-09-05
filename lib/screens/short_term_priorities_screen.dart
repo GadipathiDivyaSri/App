@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/app_provider.dart';
+import '../models/models.dart';
 import '../theme/app_theme.dart';
 import 'goal_achieved_screen.dart';
 
@@ -11,11 +14,11 @@ class ShortTermPrioritiesScreen extends StatefulWidget {
 }
 
 class _ShortTermPrioritiesScreenState extends State<ShortTermPrioritiesScreen> {
-  List<Map<String, dynamic>> _priorities = [];
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final provider = Provider.of<AppProvider>(context);
+    final shortGoals = provider.shortGoals;
 
     return Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
@@ -47,6 +50,14 @@ class _ShortTermPrioritiesScreenState extends State<ShortTermPrioritiesScreen> {
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        heroTag: 'add_short_priority_fab',
+        backgroundColor: const Color(0xFF0D5CE5),
+        child: const Icon(Icons.add, color: Colors.white),
+        onPressed: () {
+          _showAddShortGoalDialog(context);
+        },
+      ),
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
         children: [
@@ -60,7 +71,7 @@ class _ShortTermPrioritiesScreenState extends State<ShortTermPrioritiesScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            'Focus on the next 7 days',
+            'Focus on the next 7 days (${shortGoals.length} Active)',
             style: TextStyle(
               fontSize: 13,
               color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
@@ -68,21 +79,43 @@ class _ShortTermPrioritiesScreenState extends State<ShortTermPrioritiesScreen> {
           ),
           const SizedBox(height: 24),
 
-          ..._priorities.asMap().entries.map((entry) {
-            final idx = entry.key;
-            final item = entry.value;
-            return _buildPriorityCard(context, idx, item);
-          }).toList(),
-          const SizedBox(height: 30),
+          if (shortGoals.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 40.0),
+              child: Center(
+                child: Column(
+                  children: [
+                    Icon(Icons.flag_outlined, size: 48, color: const Color(0xFF94A3B8)),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'No short term priorities yet',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'Tap + to add your priority for this week',
+                      style: TextStyle(color: Color(0xFF64748B), fontSize: 13),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            ...shortGoals.asMap().entries.map((entry) {
+              final idx = entry.key;
+              final goal = entry.value;
+              return _buildGoalPriorityCard(context, idx, goal, provider);
+            }).toList(),
+          const SizedBox(height: 80),
         ],
       ),
     );
   }
 
-  Widget _buildPriorityCard(
-      BuildContext context, int index, Map<String, dynamic> item) {
+  Widget _buildGoalPriorityCard(
+      BuildContext context, int index, Goal goal, AppProvider provider) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final isCompleted = item['isCompleted'] == true;
+    final isCompleted = goal.isCompleted;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -95,15 +128,13 @@ class _ShortTermPrioritiesScreenState extends State<ShortTermPrioritiesScreen> {
       child: IntrinsicHeight(
         child: Row(
           children: [
-            // Left Accent Border
             Container(
               width: 5,
               decoration: BoxDecoration(
                 color: isCompleted
                     ? (isDark ? const Color(0xFF4C658A) : const Color(0xFF94A3B8))
                     : (isDark ? AppTheme.darkIconGlow : AppTheme.pastelPriorityIcon),
-                borderRadius: const BorderRadius.horizontal(
-                    left: Radius.circular(20)),
+                borderRadius: const BorderRadius.horizontal(left: Radius.circular(20)),
               ),
             ),
             Expanded(
@@ -117,221 +148,118 @@ class _ShortTermPrioritiesScreenState extends State<ShortTermPrioritiesScreen> {
                       children: [
                         Expanded(
                           child: Text(
-                            item['title'] as String,
+                            goal.title,
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
-                              decoration: isCompleted
-                                  ? TextDecoration.lineThrough
-                                  : null,
+                              decoration: isCompleted ? TextDecoration.lineThrough : null,
                               color: isCompleted
                                   ? (isDark ? AppTheme.darkTextSecondary : const Color(0xFF94A3B8))
-                                  : (isDark
-                                      ? Colors.white
-                                      : AppTheme.lightTextPrimary),
+                                  : (isDark ? Colors.white : AppTheme.lightTextPrimary),
                             ),
                           ),
                         ),
-                        if (isCompleted)
-                          Container(
-                            width: 22,
-                            height: 22,
-                            decoration: BoxDecoration(
-                              color: isDark ? AppTheme.darkIconGlow : AppTheme.pastelPriorityIcon,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(Icons.check,
-                                size: 14, color: Colors.white),
-                          )
-                        else
-                          Row(
-                            children: [
-                              GestureDetector(
-                                onTap: () {},
-                                child: const Icon(Icons.edit_outlined,
-                                    size: 18, color: Color(0xFF64748B)),
-                              ),
-                              const SizedBox(width: 12),
-                              GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    _priorities.removeAt(index);
-                                  });
-                                },
-                                child: const Icon(Icons.delete_outline_rounded,
-                                    size: 18, color: Color(0xFF64748B)),
-                              ),
-                            ],
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      item['subtitle'] as String,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Color(0xFF64748B),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Card Variant Details
-                    if (item['type'] == 'progress') ...[
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'PROGRESS',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1.1,
-                              color: Color(0xFF94A3B8),
-                            ),
-                          ),
-                          Text(
-                            '${((item['progress'] as double) * 100).toInt()}%',
-                            style: const TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF64748B),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(6),
-                        child: LinearProgressIndicator(
-                          value: item['progress'] as double,
-                          minHeight: 6,
-                          backgroundColor: const Color(0xFFEEF2FF),
-                          valueColor: const AlwaysStoppedAnimation<Color>(
-                            Color(0xFF0D5CE5),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => GoalAchievedScreen(
-                                goalTitle: item['title'] as String,
-                              ),
-                            ),
-                          );
-                        },
-                        child: Row(
+                        Row(
                           children: [
-                            const Icon(Icons.calendar_today_rounded,
-                                size: 14, color: Color(0xFF64748B)),
-                            const SizedBox(width: 6),
-                            Text(
-                              item['dueText'] as String,
-                              style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF64748B),
+                            IconButton(
+                              icon: Icon(
+                                isCompleted ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
+                                color: isCompleted ? const Color(0xFF10B981) : const Color(0xFF94A3B8),
+                                size: 22,
                               ),
+                              onPressed: () => provider.toggleGoal(goal.id),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete_outline_rounded, size: 20, color: Color(0xFFEF4444)),
+                              onPressed: () => provider.deleteGoal(goal.id),
                             ),
                           ],
                         ),
-                      ),
-                    ],
-
-                    if (item['type'] == 'streak') ...[
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: (item['days'] as List<String>)
-                                .asMap()
-                                .entries
-                                .map((d) {
-                              final dayIdx = d.key;
-                              final dayName = d.value;
-                              final isActive = (item['activeDays'] as List<int>)
-                                  .contains(dayIdx);
-
-                              return Container(
-                                margin: const EdgeInsets.only(right: 6),
-                                width: 26,
-                                height: 26,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: isActive
-                                      ? const Color(0xFF0D5CE5)
-                                      : const Color(0xFFEEF2FF),
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    dayName,
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                      color: isActive
-                                          ? Colors.white
-                                          : const Color(0xFF64748B),
-                                    ),
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? const Color(0xFF2A2B3D)
-                                  : const Color(0xFFF8FAFC),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              item['streak'] as String,
-                              style: const TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 0.8,
-                                color: Color(0xFF0D5CE5),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-
-                    if (item['type'] == 'urgent') ...[
-                      Row(
-                        children: [
-                          const Icon(Icons.access_time_rounded,
-                              size: 14, color: Color(0xFF64748B)),
-                          const SizedBox(width: 6),
-                          Text(
-                            item['estTime'] as String,
-                            style: const TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF64748B),
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          Text(
-                            item['tag'] as String,
-                            style: const TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.8,
-                              color: Color(0xFFEF4444),
-                            ),
-                          ),
-                        ],
+                      ],
+                    ),
+                    if (goal.description.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        goal.description,
+                        style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)),
                       ),
                     ],
                   ],
                 ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showAddShortGoalDialog(BuildContext context) {
+    final titleCtrl = TextEditingController();
+    final descCtrl = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+          top: 24,
+          left: 20,
+          right: 20,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Add Short-Term Priority',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: titleCtrl,
+              autofocus: true,
+              decoration: const InputDecoration(
+                hintText: 'Priority Title (e.g. Finish Sprint Task)',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: descCtrl,
+              decoration: const InputDecoration(
+                hintText: 'Description / Purpose (Optional)',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF0D5CE5),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+                onPressed: () {
+                  if (titleCtrl.text.trim().isNotEmpty) {
+                    final provider = Provider.of<AppProvider>(context, listen: false);
+                    final newGoal = Goal(
+                      id: 'g_${DateTime.now().millisecondsSinceEpoch}',
+                      userId: provider.user.id,
+                      title: titleCtrl.text.trim(),
+                      description: descCtrl.text.trim(),
+                      tier: 'short',
+                    );
+                    provider.addGoal(newGoal);
+                    Navigator.pop(ctx);
+                  }
+                },
+                child: const Text('Save Priority', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
               ),
             ),
           ],

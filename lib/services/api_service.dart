@@ -643,18 +643,124 @@ class ApiService {
   }
 
   /// Pro Goal Creation API
-  static Future<Map<String, dynamic>> createGoalOnBackend(String title, String tier) async {
+  static Future<List<Goal>> fetchGoals({String? tier}) async {
     try {
       final headers = await _getHeaders();
+      final uri = Uri.parse('$baseUrl/goals').replace(queryParameters: tier != null ? {'tier': tier} : null);
+      final response = await http.get(uri, headers: headers);
+      if (response.statusCode == 200) {
+        final List<dynamic> list = jsonDecode(response.body);
+        return list.map((json) => Goal.fromJson(json)).toList();
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  static Future<Map<String, dynamic>> createGoalOnBackend(dynamic goalOrTitle, [String? tier]) async {
+    try {
+      final headers = await _getHeaders();
+      Map<String, dynamic> payload;
+      if (goalOrTitle is Goal) {
+        payload = goalOrTitle.toJson();
+      } else {
+        payload = {'title': goalOrTitle.toString(), 'tier': (tier ?? 'short').toLowerCase()};
+      }
       final response = await http.post(
         Uri.parse('$baseUrl/goals'),
         headers: headers,
-        body: jsonEncode({'title': title, 'tier': tier}),
+        body: jsonEncode(payload),
       );
       return {
         'statusCode': response.statusCode,
         'data': jsonDecode(response.body),
       };
+    } catch (e) {
+      return {'statusCode': 500, 'data': {'success': false, 'message': '$e'}};
+    }
+  }
+
+  static Future<Map<String, dynamic>> updateGoalOnBackend(Goal goal) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.patch(
+        Uri.parse('$baseUrl/goals/${goal.id}'),
+        headers: headers,
+        body: jsonEncode(goal.toJson()),
+      );
+      return {
+        'statusCode': response.statusCode,
+        'data': jsonDecode(response.body),
+      };
+    } catch (e) {
+      return {'statusCode': 500, 'data': {'success': false, 'message': '$e'}};
+    }
+  }
+
+  static Future<Map<String, dynamic>> deleteGoalOnBackend(String goalId) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.delete(
+        Uri.parse('$baseUrl/goals/$goalId'),
+        headers: headers,
+      );
+      return {
+        'statusCode': response.statusCode,
+        'data': jsonDecode(response.body),
+      };
+    } catch (e) {
+      return {'statusCode': 500, 'data': {'success': false, 'message': '$e'}};
+    }
+  }
+
+  /// Career Roadmap Node backend sync
+  static Future<Map<String, dynamic>> createCareerNodeOnBackend(CareerRoadmapNode node) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.post(
+        Uri.parse('$baseUrl/career-roadmap'),
+        headers: headers,
+        body: jsonEncode({
+          'id': node.id,
+          'title': node.title,
+          'description': node.description,
+          'section': node.section,
+          'tier': 'long',
+          'is_completed': node.isCompleted,
+        }),
+      );
+      return {'statusCode': response.statusCode, 'data': jsonDecode(response.body)};
+    } catch (e) {
+      return {'statusCode': 500, 'data': {'success': false, 'message': '$e'}};
+    }
+  }
+
+  static Future<Map<String, dynamic>> updateCareerNodeOnBackend(CareerRoadmapNode node) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.patch(
+        Uri.parse('$baseUrl/career-roadmap/${node.id}'),
+        headers: headers,
+        body: jsonEncode({
+          'title': node.title,
+          'description': node.description,
+          'section': node.section,
+          'is_completed': node.isCompleted,
+        }),
+      );
+      return {'statusCode': response.statusCode, 'data': jsonDecode(response.body)};
+    } catch (e) {
+      return {'statusCode': 500, 'data': {'success': false, 'message': '$e'}};
+    }
+  }
+
+  static Future<Map<String, dynamic>> deleteCareerNodeOnBackend(String nodeId) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.delete(
+        Uri.parse('$baseUrl/career-roadmap/$nodeId'),
+        headers: headers,
+      );
+      return {'statusCode': response.statusCode, 'data': jsonDecode(response.body)};
     } catch (e) {
       return {'statusCode': 500, 'data': {'success': false, 'message': '$e'}};
     }
