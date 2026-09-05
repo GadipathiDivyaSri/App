@@ -252,7 +252,6 @@ class SubscriptionRegistry {
       AppFeature.milestones,
       AppFeature.careerRoadmap,
       AppFeature.focusTimer,
-      AppFeature.analytics,
     },
   );
 

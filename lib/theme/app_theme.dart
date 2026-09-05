@@ -62,18 +62,19 @@ class AppTheme {
   static const Color matrixEliminate = Color(0xFFEF4444); // Q4: Not Urgent, Not Important (Red)
 
   // ---------------------------------------------------------------------------
-  // DEFAULT PALETTE (Soft Warm Cream & Pastel Colors Everywhere)
   // ---------------------------------------------------------------------------
-  static const Color darkBg = background; // #FFF9F0
-  static const Color darkBackground = background;
-  static const Color darkCardBg = Color(0xFFFFFDF9); // Soft Warm Off-White
-  static const Color darkCardBorder = Color(0x1AE87552); // Subtle Warm 10% Border
-  static const Color darkPrimary = primaryAccent; // #E87552 Coral
-  static const Color darkIconGlow = primaryAccent; // #E87552 Coral
-  static const Color darkIconBg = Color(0xFFFFECE5); // Soft Peach Container
-  static const Color darkTextPrimary = textPrimary; // #2D2622 Deep Espresso
-  static const Color darkTextSecondary = textSecondary; // #8D827A Warm Taupe
-  static const Color darkNavBg = Colors.white; // Pure White Nav
+  // NAVY BLUE DARK THEME PALETTE
+  // ---------------------------------------------------------------------------
+  static const Color darkBg = Color(0xFF0A1128); // Deep Navy Blue Background
+  static const Color darkBackground = Color(0xFF0A1128);
+  static const Color darkCardBg = Color(0xFF101B3B); // Elevated Navy Blue Card Surface
+  static const Color darkCardBorder = Color(0xFF1E2F5E); // Navy Blue Border
+  static const Color darkPrimary = primaryAccent; // #E87552 Coral Accent
+  static const Color darkIconGlow = Color(0xFF38BDF8); // Sky Blue Accent Glow
+  static const Color darkIconBg = Color(0xFF162347); // Navy Container
+  static const Color darkTextPrimary = Color(0xFFF1F5F9); // Crisp White/Slate Neutral
+  static const Color darkTextSecondary = Color(0xFF94A3B8); // Slate Blue Secondary
+  static const Color darkNavBg = Color(0xFF0A1128); // Pure Navy Bottom Nav
 
   // ---------------------------------------------------------------------------
   // ELEVATION & SHADOWS
@@ -91,7 +92,13 @@ class AppTheme {
         ),
       ];
 
-  static List<BoxShadow> get darkCardShadow => cardShadow;
+  static List<BoxShadow> get darkCardShadow => [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.3),
+          blurRadius: 16,
+          offset: const Offset(0, 6),
+        ),
+      ];
 
   // ---------------------------------------------------------------------------
   // THEME DATA DEFINITIONS
@@ -143,5 +150,50 @@ class AppTheme {
     ),
   );
 
-  static ThemeData darkTheme = lightTheme;
+  static ThemeData darkTheme = ThemeData(
+    useMaterial3: true,
+    brightness: Brightness.dark,
+    scaffoldBackgroundColor: darkBg,
+    primaryColor: darkPrimary,
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: primaryAccent,
+      brightness: Brightness.dark,
+      surface: darkBg,
+      primary: darkPrimary,
+      secondary: const Color(0xFF38BDF8),
+      onSurface: darkTextPrimary,
+    ),
+    appBarTheme: const AppBarTheme(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      iconTheme: IconThemeData(color: darkTextPrimary),
+      titleTextStyle: TextStyle(
+        color: darkTextPrimary,
+        fontSize: 22,
+        fontWeight: FontWeight.w800,
+      ),
+    ),
+    cardTheme: CardThemeData(
+      color: darkCardBg,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: const BorderSide(color: darkCardBorder),
+      ),
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: darkPrimary,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        textStyle: const TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 15,
+        ),
+      ),
+    ),
+  );
 }

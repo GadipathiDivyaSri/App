@@ -134,7 +134,9 @@ class _EmailOtpScreenState extends State<EmailOtpScreen> {
       _attemptsCount++;
       setState(() {
         _isLoading = false;
-        _errorMessage = res['message'] ?? 'Invalid verification code. Please try again.';
+        _errorMessage = _attemptsCount >= 5
+            ? 'Too many failed attempts. Please request a new code.'
+            : (res['message'] ?? 'Invalid verification code. Please try again.');
       });
     }
   }

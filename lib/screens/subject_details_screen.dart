@@ -85,7 +85,89 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
           ),
           const SizedBox(height: 20),
 
-          ..._units.map((unit) => _buildUnitCard(context, unit)).toList(),
+          if (_units.isEmpty)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 32),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E1F2B) : Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isDark ? Colors.white10 : const Color(0xFFE2E8F0),
+                ),
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0D5CE5).withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.menu_book_rounded,
+                      size: 36,
+                      color: Color(0xFF0D5CE5),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No Units Added Yet',
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w800,
+                      color: isDark ? Colors.white : const Color(0xFF1E293B),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Break down this subject into organized curriculum units & topics.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Color(0xFF64748B),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF0D5CE5),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    ),
+                    icon: const Icon(Icons.add, size: 18),
+                    label: const Text(
+                      'Add First Unit',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const AddUnitScreen(),
+                        ),
+                      ).then((newUnit) {
+                        if (newUnit != null && newUnit is Map<String, dynamic>) {
+                          setState(() {
+                            _units.add({
+                              'title': newUnit['title'] as String,
+                              'progress': 0.0,
+                              'topicsCount': 3,
+                              'description': newUnit['desc'] as String,
+                            });
+                          });
+                        }
+                      });
+                    },
+                  ),
+                ],
+              ),
+            )
+          else
+            ..._units.map((unit) => _buildUnitCard(context, unit)).toList(),
           const SizedBox(height: 80),
         ],
       ),

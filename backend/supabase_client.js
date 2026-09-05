@@ -29,9 +29,14 @@ try {
 }
 
 const supabaseUrl = process.env.SUPABASE_URL || '';
-const supabaseKey = process.env.SUPABASE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || '';
+let rawKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || process.env.SUPABASE_ANON_KEY || '';
+if (rawKey.includes('=')) {
+  const parts = rawKey.split('=');
+  rawKey = parts[parts.length - 1].trim();
+}
+const supabaseKey = rawKey.trim();
 
-const isConfigured = supabaseUrl.startsWith('https://') && supabaseKey.length > 20 && !supabaseUrl.includes('your-project-ref');
+const isConfigured = supabaseUrl.startsWith('https://') && supabaseKey.startsWith('eyJ') && !supabaseUrl.includes('your-project-ref');
 
 let supabase = null;
 if (isConfigured && createClient) {

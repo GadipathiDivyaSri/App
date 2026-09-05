@@ -149,6 +149,16 @@ class AppProvider extends ChangeNotifier {
     );
     _subscription = UserSubscription.defaultFree('u_guest');
     await ApiService.clearSession();
+    await AuthApiService.clearSession();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('saved_session_user');
+      await prefs.remove('saved_session_token');
+      await prefs.remove('wrindha_auth_token');
+      await prefs.remove('wrindha_auth_user');
+      await prefs.remove('wrindha_secure_jwt_token');
+      await prefs.remove('wrindha_secure_user_profile');
+    } catch (_) {}
     notifyListeners();
   }
   // ---------------------------------------------------------------------------
@@ -481,22 +491,47 @@ class AppProvider extends ChangeNotifier {
     required String token,
   }) {
     _isLoggedIn = true;
+    final plan = (userMap['subscriptionPlan'] ?? userMap['subscription_plan'] ?? '').toString().toUpperCase();
+    final isPro = userMap['isPremium'] == true || plan == 'PRO' || plan == 'PREMIUM';
+
     _user = UserProfile(
       id: userMap['id'] ?? 'u_1',
-      name: userMap['full_name'] ?? 'Student User',
-      contact: userMap['email'] ?? '',
-      focusScore: userMap['focus_score'] ?? 0,
-      activeStreak: userMap['active_streak'] ?? 0,
-      isPremium: (userMap['subscription_plan'] == 'PREMIUM'),
+      name: userMap['name'] ?? userMap['full_name'] ?? 'Student User',
+      contact: userMap['email'] ?? userMap['username'] ?? '',
+      email: userMap['email'] ?? '',
+      username: userMap['username'] ?? '',
+      focusScore: userMap['focus_score'] ?? userMap['focusScore'] ?? 0,
+      activeStreak: userMap['active_streak'] ?? userMap['activeStreak'] ?? 0,
+      isPremium: isPro,
+      subscriptionPlan: isPro ? 'PRO' : 'FREE',
       token: token,
-      referralCode: userMap['referral_code'] ?? 'WRINDHA',
-      referredByCode: userMap['referred_by_code'],
+      referralCode: userMap['referral_code'] ?? userMap['referralCode'] ?? 'WRINDHA',
+      referredByCode: userMap['referred_by_code'] ?? userMap['referredByCode'],
     );
+    _subscription = UserSubscription(
+      id: 'sub_${_user.id}',
+      userId: _user.id,
+      plan: isPro ? 'pro' : 'free',
+      status: 'active',
+      startedAt: DateTime.now(),
+    );
+    _saveSession();
     notifyListeners();
   }
 
-  void login(String name, String contact, {String? id, String? token, String? refCode, String? username, String? email}) {
+  void login(
+    String name,
+    String contact, {
+    String? id,
+    String? token,
+    String? refCode,
+    String? username,
+    String? email,
+    bool isPremium = false,
+    String subscriptionPlan = 'FREE',
+  }) {
     _isLoggedIn = true;
+    final isPro = isPremium || subscriptionPlan.toUpperCase() == 'PRO' || subscriptionPlan.toUpperCase() == 'PREMIUM';
     _user = UserProfile(
       id: id ?? 'u_1',
       username: username ?? (name.isNotEmpty ? name.toLowerCase().replaceAll(' ', '_') : (contact.contains('@') ? contact.split('@')[0] : 'user')),
@@ -505,10 +540,18 @@ class AppProvider extends ChangeNotifier {
       contact: contact,
       focusScore: 0,
       activeStreak: 0,
-      isPremium: false,
+      isPremium: isPro,
+      subscriptionPlan: isPro ? 'PRO' : 'FREE',
       token: token,
       referralCode: 'WRINDHA7K92',
       referredByCode: refCode,
+    );
+    _subscription = UserSubscription(
+      id: 'sub_${_user.id}',
+      userId: _user.id,
+      plan: isPro ? 'pro' : 'free',
+      status: 'active',
+      startedAt: DateTime.now(),
     );
     if (refCode != null && refCode.trim().isNotEmpty) {
       applyReferralCode(refCode.trim());
