@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <base href="/WRINDHA_OS_APP/">
+  <base href="./">
   <!-- Dynamic Base override: adjusts base for localhost vs GitHub Pages -->
   <script>
     (function() {
@@ -54,7 +54,7 @@
       tokenAuth: "563368AbE6Nls32x6a9703baP1"
     };
 
-    window.sendMSG91EmailOTP = function(email, callback) {
+    window.sendMSG91EmailOTP = function(email, liveOtp, callback) {
       console.log("[MSG91] Sending Email OTP to:", email);
       if (typeof window.initSendOTP === 'function') {
         try {
@@ -64,28 +64,23 @@
             identifier: email,
             exposeMethods: true,
             success: function(data) {
-              console.log("[MSG91 OTP Sent Successfully]:", data);
+              console.log("[MSG91 Success]:", data);
               if (callback) callback({ success: true, data: data });
             },
             failure: function(error) {
-              console.warn("[MSG91 OTP Error]:", error);
+              console.warn("[MSG91 Error]:", error);
               if (callback) callback({ success: false, error: error });
             }
           });
+          setTimeout(function() {
+            if (typeof window.sendOTP === 'function') {
+              window.sendOTP(email);
+            }
+          }, 300);
         } catch(e) {
           console.error("[MSG91 Widget Exception]:", e);
         }
       }
-      try {
-        fetch("https://control.msg91.com/api/v5/otp?email=" + encodeURIComponent(email) + "&template_id=" + window.MSG91_CONFIG.widgetId + "&authkey=" + window.MSG91_CONFIG.tokenAuth, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" }
-        }).then(function(res){ return res.json(); }).then(function(json){
-          console.log("[MSG91 Direct API Response]:", json);
-        }).catch(function(err){
-          console.log("[MSG91 Direct API]:", err);
-        });
-      } catch(e) {}
     };
 
     window.verifyMSG91EmailOTP = function(email, otp, callback) {
