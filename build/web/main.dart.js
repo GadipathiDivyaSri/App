@@ -104844,7 +104844,7 @@ q=j?B.us:B.ul
 q=A.aH(q,j?B.Ls:B.t,l,22)
 p=j?"Switch to Light Mode":"Switch to Dark Mode"
 o=t.p
-r=A.a1(A.a([i,A.a0(l,A.bK(l,l,l,q,l,l,new A.aen(k),l,l,l,p),B.l,l,l,new A.X(s,l,l,r,l,l,B.o),l,l,l,l,l,l,l)],o),B.j,B.a_,B.e,0,l,l)
+r=A.a1(A.a([i],o),B.j,B.a_,B.e,0,l,l)
 s=m.GW(a,B.ko,j,B.i7,B.dM,new A.aeo(a),"Habits & Streaks","Personal\nGrowth")
 B.dV.i(0,k.gjT())
 i=m.A8(a,B.uG,j,!B.fj.n(0,B.fw),B.jJ,B.x,new A.aep(a),"Pathways & Goals","Career")
@@ -106277,15 +106277,21 @@ A.alb.prototype={
 $0(){
   A.ar(this.a,!1).aU(null);
   try {
-    A.d9(this.b,!1,t.C).Ef();
+    var p=A.d9(this.b,!1,t.C);
+    p.b=!1;
+    p.c=A.yk(0,0,"","",0,"u_guest",!0,!1,"Guest User",0,"WRINDHA7K92",null,"FREE",0,null,"alex_j");
+    p.d=A.UP(null,null,"sub_free_u_guest","NONE","free",new A.aI(Date.now(),0,!1),"active",null,null,"u_guest");
+    p.V();
   } catch(e){}
   try {
     localStorage.clear();
     sessionStorage.clear();
   } catch(e){}
-  if (typeof window !== 'undefined' && window.location) {
-    setTimeout(function() { window.location.reload(); }, 150);
-  }
+  try {
+    if (typeof window!=="undefined"&&window.location) {
+      setTimeout(function(){ window.location.reload(); }, 100);
+    }
+  } catch(e){}
 },
 $S:0}
 A.al4.prototype={

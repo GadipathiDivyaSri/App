@@ -678,21 +678,29 @@ function getAuthUserId(req) {
 
 function getUserSubscription(userId) {
   if (!Array.isArray(db.subscriptions)) db.subscriptions = [];
-  let sub = db.subscriptions.find((s) => s.user_id === userId);
+  let sub = db.subscriptions.find((s) => s.user_id === userId || s.userId === userId);
+  
+  const user = db.users.find((u) => u.id === userId);
+  const isUserPro = user && (user.isPremium === true || (user.subscriptionPlan || '').toUpperCase() === 'PRO' || (user.subscription_plan || '').toUpperCase() === 'PRO');
+
   if (!sub) {
     sub = {
-      id: 'sub_free_' + userId,
+      id: (isUserPro ? 'sub_pro_' : 'sub_free_') + userId,
       user_id: userId,
-      plan: 'free',
+      plan: isUserPro ? 'pro' : 'free',
       status: 'active',
       started_at: new Date().toISOString(),
-      expires_at: null,
-      payment_provider: 'NONE',
+      expires_at: isUserPro ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() : null,
+      payment_provider: isUserPro ? 'PRO_BENEFIT' : 'NONE',
       transaction_id: null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
     db.subscriptions.push(sub);
+    saveDB(db);
+  } else if (isUserPro && sub.plan !== 'pro') {
+    sub.plan = 'pro';
+    sub.status = 'active';
     saveDB(db);
   }
   return sub;
