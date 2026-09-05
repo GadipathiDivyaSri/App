@@ -332,24 +332,94 @@ function saveDatabase(data) {
 }
 
 // -----------------------------------------------------------------------------
-// 4. SUPABASE SYNCHRONIZATION BRIDGE (WHEN SUPABASE IS ACTIVE)
 // -----------------------------------------------------------------------------
-async function syncToSupabase(table, record) {
-  if (!isSupabaseConfigured() || !supabase) return;
+// 4. SUPABASE SYNCHRONIZATION BRIDGE (LIVE CLOUD POSTGRESQL SYNC)
+// -----------------------------------------------------------------------------
+async function syncToSupabase(entityType, record) {
+  if (!isSupabaseConfigured() || !supabase || !record) return;
   try {
-    const { error } = await supabase.from(table).upsert(record);
-    if (error) {
-      console.warn(`[Supabase Sync Notice] (${table}):`, error.message);
+    const uid = record.user_id || record.userId;
+    if (!uid) return;
+
+    if (entityType === 'profiles' || entityType === 'user_profiles') {
+      await supabase.from('profiles').upsert({
+        id: uid,
+        username: record.username || record.email?.split('@')[0],
+        name: record.name || record.display_name || 'Student User',
+        email: record.email,
+        referral_code: record.referral_code || record.referralCode || 'WRINDHA',
+      }, { onConflict: 'id' });
+    } else if (entityType === 'subscriptions' || entityType === 'user_subscriptions') {
+      await supabase.from('subscriptions').upsert({
+        user_id: uid,
+        plan: (record.plan || '').toLowerCase() === 'pro' ? 'premium' : 'free',
+        status: record.status || 'active',
+        started_at: record.started_at || record.startedAt || new Date().toISOString(),
+      }, { onConflict: 'user_id' });
+    } else if (entityType === 'tasks') {
+      await supabase.from('tasks').upsert({
+        id: record.id?.includes('-') ? record.id : undefined,
+        user_id: uid,
+        title: record.title || 'Task',
+        category: record.category || 'Studies',
+        priority: Number(record.priority) || 1,
+        is_completed: !!(record.is_completed ?? record.isCompleted),
+      });
+    } else if (entityType === 'habits') {
+      const freq = (record.frequency || 'daily').toLowerCase();
+      const validFreq = ['daily', 'weekdays', 'weekends', 'custom'].includes(freq) ? freq : 'daily';
+      await supabase.from('habits').upsert({
+        id: record.id?.includes('-') ? record.id : undefined,
+        user_id: uid,
+        title: record.title || 'Habit',
+        category: record.category || 'General',
+        frequency: validFreq,
+        status: record.status || 'active',
+      });
+    } else if (entityType === 'expenses') {
+      await supabase.from('expenses').upsert({
+        id: record.id?.includes('-') ? record.id : undefined,
+        user_id: uid,
+        title: record.title || 'Expense',
+        amount: Number(record.amount) || 0,
+        category: record.category || 'General',
+        transaction_type: (record.is_income || record.isIncome) ? 'income' : 'expense',
+      });
+    } else if (entityType === 'subjects' || entityType === 'study_subjects') {
+      await supabase.from('subjects').upsert({
+        id: record.id?.includes('-') ? record.id : undefined,
+        user_id: uid,
+        name: record.name || record.subject_name || 'Subject',
+        color: record.color_hex || record.colorHex || '#0D5CE5',
+      });
+    } else if (entityType === 'goals') {
+      await supabase.from('goals').upsert({
+        id: record.id?.includes('-') ? record.id : undefined,
+        user_id: uid,
+        title: record.title || 'Goal',
+        timeframe: (record.timeframe || 'SHORT').toUpperCase(),
+        is_achieved: !!(record.is_achieved || record.isCompleted || record.isAchieved),
+      });
+    } else if (entityType === 'calendar_events') {
+      await supabase.from('calendar_events').upsert({
+        id: record.id?.includes('-') ? record.id : undefined,
+        user_id: uid,
+        title: record.title || 'Event',
+        start_time: record.start_time || record.startTime || new Date().toISOString(),
+        end_time: record.end_time || record.endTime || new Date().toISOString(),
+      });
     }
-  } catch (e) {
-    // Fail resiliently without breaking application flow
+  } catch (err) {
+    // Non-blocking resilient logging
+    console.warn(`[Supabase Sync Warning] (${entityType}):`, err.message);
   }
 }
 
 async function deleteFromSupabase(table, matchObj) {
   if (!isSupabaseConfigured() || !supabase) return;
   try {
-    await supabase.from(table).delete().match(matchObj);
+    const tableName = table === 'user_profiles' ? 'profiles' : (table === 'user_subscriptions' ? 'subscriptions' : table);
+    await supabase.from(tableName).delete().match(matchObj);
   } catch (_) {}
 }
 

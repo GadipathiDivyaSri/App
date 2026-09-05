@@ -627,6 +627,19 @@
       "transaction_id": null,
       "created_at": "2026-09-05T06:03:56.084Z",
       "updated_at": "2026-09-05T06:03:56.084Z"
+    },
+    {
+      "id": "sub_a61fd549-e4fa-4402-b3b7-15b8dafd97ee",
+      "user_id": "a61fd549-e4fa-4402-b3b7-15b8dafd97ee",
+      "userId": "a61fd549-e4fa-4402-b3b7-15b8dafd97ee",
+      "plan": "free",
+      "status": "active",
+      "started_at": "2026-09-05T06:26:15.594Z",
+      "expires_at": null,
+      "payment_provider": "NONE",
+      "transaction_id": null,
+      "created_at": "2026-09-05T06:26:54.858Z",
+      "updated_at": "2026-09-05T06:26:54.858Z"
     }
   ],
   "tasks": [
@@ -749,6 +762,46 @@
       "completed_at": null,
       "created_at": "2026-09-05T06:04:27.126Z",
       "updated_at": "2026-09-05T06:04:27.126Z"
+    },
+    {
+      "id": "t_1788589575591_qa25",
+      "user_id": "a61fd549-e4fa-4402-b3b7-15b8dafd97ee",
+      "userId": "a61fd549-e4fa-4402-b3b7-15b8dafd97ee",
+      "title": "Cloud Database Live Sync Task 1788589575585",
+      "description": "",
+      "category": "Studies",
+      "tag": "STUDY",
+      "priority": 1,
+      "quadrant": "Q1_DO_FIRST",
+      "due_date": "2026-09-05",
+      "dueDate": "2026-09-05",
+      "due_time": "18:00",
+      "dueTime": "18:00",
+      "is_completed": false,
+      "isCompleted": false,
+      "completed_at": null,
+      "created_at": "2026-09-05T06:26:15.592Z",
+      "updated_at": "2026-09-05T06:26:15.592Z"
+    },
+    {
+      "id": "t_1788589614879_edr9",
+      "user_id": "u_test_pro",
+      "userId": "u_test_pro",
+      "title": "Pro Secret Strategy Plan 1788589614877",
+      "description": "",
+      "category": "Studies",
+      "tag": "STUDY",
+      "priority": 1,
+      "quadrant": "Q1_DO_FIRST",
+      "due_date": "2026-09-05",
+      "dueDate": "2026-09-05",
+      "due_time": "18:00",
+      "dueTime": "18:00",
+      "is_completed": false,
+      "isCompleted": false,
+      "completed_at": null,
+      "created_at": "2026-09-05T06:26:54.879Z",
+      "updated_at": "2026-09-05T06:26:54.879Z"
     }
   ],
   "habits": [
@@ -1252,6 +1305,43 @@
       "streakDay": 0,
       "created_at": "2026-09-04T11:47:44.979Z",
       "updated_at": "2026-09-05T06:03:56.085Z"
+    },
+    {
+      "id": "h_1788589575596_sxev",
+      "user_id": "a61fd549-e4fa-4402-b3b7-15b8dafd97ee",
+      "userId": "a61fd549-e4fa-4402-b3b7-15b8dafd97ee",
+      "title": "Live Supabase Cloud Habit 1788589575594",
+      "description": "",
+      "category": "General",
+      "frequency": "DAILY",
+      "selected_days": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "selectedDays": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "preferred_time": "08:00:00",
+      "icon_name": "repeat",
+      "iconName": "repeat",
+      "color_hex": "#10B981",
+      "colorHex": "#10B981",
+      "status": "active",
+      "streak_day": 0,
+      "streakDay": 0,
+      "created_at": "2026-09-05T06:26:15.596Z",
+      "updated_at": "2026-09-05T06:26:15.596Z"
     }
   ],
   "habit_logs": [],
@@ -1283,6 +1373,20 @@
       "expense_date": "2026-09-05T06:04:27.258Z",
       "date": "2026-09-05T06:04:27.258Z",
       "created_at": "2026-09-05T06:04:27.258Z"
+    },
+    {
+      "id": "e_1788589614919",
+      "user_id": "u_test_pro",
+      "userId": "u_test_pro",
+      "title": "Pro Research Hardware",
+      "amount": 12000,
+      "category": "Technology",
+      "is_income": false,
+      "isIncome": false,
+      "payment_method": "UPI",
+      "expense_date": "2026-09-05T06:26:54.919Z",
+      "date": "2026-09-05T06:26:54.919Z",
+      "created_at": "2026-09-05T06:26:54.919Z"
     }
   ],
   "monthly_budgets": [],
