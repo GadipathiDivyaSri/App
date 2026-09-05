@@ -220,35 +220,7 @@ async function handleApiRequest(req, res) {
     const stored = db.auth_otps ? db.auth_otps[cleanEmail] : null;
 
     if (!stored) {
-      const cleanUsername = (username || cleanEmail.split('@')[0]).trim().toLowerCase();
-      const existingUser = DatabaseManager.getUserByEmailOrUsername(cleanUsername) || DatabaseManager.getUserByEmailOrUsername(cleanEmail);
-      if (existingUser) {
-        const token = generateJwtToken({ id: existingUser.id, email: existingUser.email, username: existingUser.username });
-        return sendJSON(res, 200, {
-          success: true,
-          message: 'Account verified.',
-          token,
-          user: sanitizeUser(existingUser),
-        });
-      }
-
-      if (cleanOtp.length === 6) {
-        const newUser = DatabaseManager.createUser({
-          username: cleanUsername,
-          email: cleanEmail,
-          password_hash: hashPassword('AutoRegistered123!'),
-          is_email_verified: true,
-        });
-        const token = generateJwtToken({ id: newUser.id, email: newUser.email, username: newUser.username });
-        return sendJSON(res, 200, {
-          success: true,
-          message: 'Registration verified successfully.',
-          token,
-          user: sanitizeUser(newUser),
-        });
-      }
-
-      return sendJSON(res, 400, { success: false, message: 'Invalid or expired OTP session. Please request a new code.' });
+      return sendJSON(res, 400, { success: false, message: 'Invalid or expired OTP session. Please click "Send OTP" to receive a verification code.' });
     }
 
     if (Date.now() > stored.expiresAt) {

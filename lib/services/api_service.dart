@@ -112,28 +112,7 @@ class ApiService {
       }
       return data;
     } catch (e) {
-      // Resilient fallback for Web / GitHub Pages
-      if (otp.trim().length == 6) {
-        final cleanEmail = email.trim().toLowerCase();
-        final fallbackUser = {
-          'id': 'u_${DateTime.now().millisecondsSinceEpoch}',
-          'username': username ?? cleanEmail.split('@')[0],
-          'email': cleanEmail,
-          'name': username ?? 'Student',
-          'focusScore': 85,
-          'activeStreak': 1,
-          'isPremium': false,
-        };
-        final token = 'wrindha_token_${DateTime.now().millisecondsSinceEpoch}';
-        await saveSession(token, fallbackUser);
-        return {
-          'success': true,
-          'message': 'Registration verified successfully.',
-          'token': token,
-          'user': fallbackUser,
-        };
-      }
-      return {'success': false, 'message': 'Verification failed: $e'};
+      return {'success': false, 'message': 'Unable to connect to authentication server. Please check your internet connection or try again.'};
     }
   }
 
