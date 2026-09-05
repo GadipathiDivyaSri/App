@@ -1,15 +1,27 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <base href="$FLUTTER_BASE_HREF">
-  <!-- Dynamic Base override: adjusts base for localhost vs GitHub Pages -->
+  <base href="./">
+  <!-- Dynamic Base & Trailing Slash Normalization -->
   <script>
     (function() {
       var path = window.location.pathname;
-      if (path.indexOf('/WRINDHA_OS_APP') === -1) {
-        var baseEl = document.querySelector('base');
-        if (baseEl) baseEl.href = './';
+      if (path && !path.endsWith('/') && !path.split('/').pop().includes('.')) {
+        window.location.replace(path + '/' + window.location.search + window.location.hash);
+        return;
       }
+
+      var baseHref = './';
+      if (path.indexOf('/WRINDHA_OS_APP') !== -1) {
+        baseHref = '/WRINDHA_OS_APP/';
+      } else if (path.indexOf('/App') !== -1) {
+        baseHref = '/App/';
+      }
+
+      var baseEl = document.querySelector('base') || document.createElement('base');
+      baseEl.href = baseHref;
+      if (!baseEl.parentNode) document.head.appendChild(baseEl);
+
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations().then(function(registrations) {
           for (var i = 0; i < registrations.length; i++) {
@@ -54,7 +66,7 @@
       tokenAuth: "563368AbE6Nls32x6a9703baP1"
     };
 
-    window.sendMSG91EmailOTP = function(email, callback) {
+    window.sendMSG91EmailOTP = function(email, liveOtp, callback) {
       console.log("[MSG91] Sending Email OTP to:", email);
       if (typeof window.initSendOTP === 'function') {
         try {
@@ -64,28 +76,23 @@
             identifier: email,
             exposeMethods: true,
             success: function(data) {
-              console.log("[MSG91 OTP Sent Successfully]:", data);
+              console.log("[MSG91 Success]:", data);
               if (callback) callback({ success: true, data: data });
             },
             failure: function(error) {
-              console.warn("[MSG91 OTP Error]:", error);
+              console.warn("[MSG91 Error]:", error);
               if (callback) callback({ success: false, error: error });
             }
           });
+          setTimeout(function() {
+            if (typeof window.sendOTP === 'function') {
+              window.sendOTP(email);
+            }
+          }, 300);
         } catch(e) {
           console.error("[MSG91 Widget Exception]:", e);
         }
       }
-      try {
-        fetch("https://control.msg91.com/api/v5/otp?email=" + encodeURIComponent(email) + "&template_id=" + window.MSG91_CONFIG.widgetId + "&authkey=" + window.MSG91_CONFIG.tokenAuth, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" }
-        }).then(function(res){ return res.json(); }).then(function(json){
-          console.log("[MSG91 Direct API Response]:", json);
-        }).catch(function(err){
-          console.log("[MSG91 Direct API]:", err);
-        });
-      } catch(e) {}
     };
 
     window.verifyMSG91EmailOTP = function(email, otp, callback) {
@@ -103,6 +110,7 @@
     };
   </script>
   <script src="ui_modals.js"></script>
+  <script src="goal_sync_hook.js"></script>
 </head>
 <body>
   <script src="flutter_bootstrap.js" async></script>

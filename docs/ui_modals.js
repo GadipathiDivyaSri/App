@@ -1,20 +1,6 @@
 // WrindhaOS Interactive Tools & Modals Runtime v4.0 (Navy Blue Dark Theme & Clean State)
 (function() {
-  function getIsDark(ctx) {
-    try {
-      if (ctx && typeof A !== 'undefined' && A.r && typeof B !== 'undefined' && B.F) {
-        return A.r(ctx).ax.a === B.F;
-      }
-    } catch(e) {}
-    try {
-      return (document.body.style.backgroundColor === 'rgb(10, 17, 40)' || 
-              document.body.style.backgroundColor === 'rgb(30, 31, 43)' || 
-              document.body.classList.contains('dark-theme') || 
-              window._isDarkMode === true);
-    } catch(e) {
-      return false;
-    }
-  }
+  function getIsDark(ctx) { return false; }
 
   // =========================================================================
   // 1. FOCUS TIMER & STOPWATCH MODAL (Navy Blue Dark Palette)

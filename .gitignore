@@ -22,9 +22,9 @@ migrate_working_dir/
 # Flutter / Dart
 .dart_tool/
 .packages
-.pub-cache/
 .pub/
-/build/
+build/*
+!build/web/
 ephemeral/
 
 # Android Studio / Android

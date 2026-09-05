@@ -2,14 +2,26 @@
 <html>
 <head>
   <base href="./">
-  <!-- Dynamic Base override: adjusts base for localhost vs GitHub Pages -->
+  <!-- Dynamic Base & Trailing Slash Normalization -->
   <script>
     (function() {
       var path = window.location.pathname;
-      if (path.indexOf('/WRINDHA_OS_APP') === -1) {
-        var baseEl = document.querySelector('base');
-        if (baseEl) baseEl.href = './';
+      if (path && !path.endsWith('/') && !path.split('/').pop().includes('.')) {
+        window.location.replace(path + '/' + window.location.search + window.location.hash);
+        return;
       }
+
+      var baseHref = './';
+      if (path.indexOf('/WRINDHA_OS_APP') !== -1) {
+        baseHref = '/WRINDHA_OS_APP/';
+      } else if (path.indexOf('/App') !== -1) {
+        baseHref = '/App/';
+      }
+
+      var baseEl = document.querySelector('base') || document.createElement('base');
+      baseEl.href = baseHref;
+      if (!baseEl.parentNode) document.head.appendChild(baseEl);
+
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations().then(function(registrations) {
           for (var i = 0; i < registrations.length; i++) {
