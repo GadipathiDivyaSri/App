@@ -17,14 +17,21 @@ class GoalPyramidScreen extends StatefulWidget {
 }
 
 class _GoalPyramidScreenState extends State<GoalPyramidScreen> {
-  final List<Map<String, String>> _shortGoals = [];
-  final List<Map<String, String>> _mediumGoals = [];
-  final List<Map<String, String>> _longGoals = [];
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<AppProvider>(context, listen: false).fetchGoalsFromBackend();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final totalGoals = _shortGoals.length + _mediumGoals.length + _longGoals.length;
+    final provider = Provider.of<AppProvider>(context);
+    final shortGoals = provider.shortGoals;
+    final mediumGoals = provider.mediumGoals;
+    final longGoals = provider.longGoals;
 
     return Scaffold(
       appBar: AppBar(
@@ -87,12 +94,7 @@ class _GoalPyramidScreenState extends State<GoalPyramidScreen> {
                   // Top Level: Short
                   GestureDetector(
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const ShortTermPrioritiesScreen(),
-                        ),
-                      );
+                      _showGoalTierDetails(context, 'Short Term Goals', shortGoals, 'short');
                     },
                     child: Container(
                       width: 150,
@@ -108,10 +110,10 @@ class _GoalPyramidScreenState extends State<GoalPyramidScreen> {
                           ),
                         ],
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Text(
-                          'Short',
-                          style: TextStyle(
+                          'Short (${shortGoals.length})',
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -125,7 +127,7 @@ class _GoalPyramidScreenState extends State<GoalPyramidScreen> {
                   // Middle Level: Medium
                   GestureDetector(
                     onTap: () {
-                      _showGoalTierDetails(context, 'Medium Term Goals', _mediumGoals);
+                      _showGoalTierDetails(context, 'Medium Term Goals', mediumGoals, 'medium');
                     },
                     child: Container(
                       width: 230,
@@ -141,10 +143,10 @@ class _GoalPyramidScreenState extends State<GoalPyramidScreen> {
                           ),
                         ],
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Text(
-                          'Medium',
-                          style: TextStyle(
+                          'Medium (${mediumGoals.length})',
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -158,12 +160,7 @@ class _GoalPyramidScreenState extends State<GoalPyramidScreen> {
                   // Bottom Level: Long Term
                   GestureDetector(
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const CareerRoadmapScreen(),
-                        ),
-                      );
+                      _showGoalTierDetails(context, 'Long Term Roadmap Goals', longGoals, 'long');
                     },
                     child: Container(
                       width: double.infinity,
@@ -175,7 +172,7 @@ class _GoalPyramidScreenState extends State<GoalPyramidScreen> {
                       ),
                       child: Center(
                         child: Text(
-                          'Long Term',
+                          'Long Term (${longGoals.length})',
                           style: TextStyle(
                             color: isDark ? Colors.white : const Color(0xFF1E293B),
                             fontSize: 18,
@@ -200,22 +197,16 @@ class _GoalPyramidScreenState extends State<GoalPyramidScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            _buildGoalSection(context, 'Short Term', _shortGoals, () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const ShortTermPrioritiesScreen()),
-              );
+            _buildGoalSection(context, 'Short Term', shortGoals, () {
+              _showGoalTierDetails(context, 'Short Term Goals', shortGoals, 'short');
             }),
             const SizedBox(height: 14),
-            _buildGoalSection(context, 'Medium Term', _mediumGoals, () {
-              _showGoalTierDetails(context, 'Medium Term Goals', _mediumGoals);
+            _buildGoalSection(context, 'Medium Term', mediumGoals, () {
+              _showGoalTierDetails(context, 'Medium Term Goals', mediumGoals, 'medium');
             }),
             const SizedBox(height: 14),
-            _buildGoalSection(context, 'Long Term Roadmap', _longGoals, () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const CareerRoadmapScreen()),
-              );
+            _buildGoalSection(context, 'Long Term Roadmap', longGoals, () {
+              _showGoalTierDetails(context, 'Long Term Roadmap Goals', longGoals, 'long');
             }),
             const SizedBox(height: 80),
           ],
@@ -225,8 +216,9 @@ class _GoalPyramidScreenState extends State<GoalPyramidScreen> {
   }
 
   Widget _buildGoalSection(
-      BuildContext context, String title, List<Map<String, String>> goals, VoidCallback onTap) {
+      BuildContext context, String title, List<dynamic> goals, VoidCallback onTap) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final provider = Provider.of<AppProvider>(context, listen: false);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -241,9 +233,8 @@ class _GoalPyramidScreenState extends State<GoalPyramidScreen> {
         ),
         if (goals.isNotEmpty) ...[
           const SizedBox(height: 6),
-          ...goals.asMap().entries.map((entry) {
-            final idx = entry.key;
-            final g = entry.value;
+          ...goals.map((g) {
+            final isDone = g.isCompleted == true;
             return Container(
               margin: const EdgeInsets.only(bottom: 6),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -255,30 +246,32 @@ class _GoalPyramidScreenState extends State<GoalPyramidScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  IconButton(
+                    icon: Icon(
+                      isDone ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
+                      color: isDone ? const Color(0xFF10B981) : const Color(0xFF94A3B8),
+                      size: 20,
+                    ),
+                    onPressed: () {
+                      provider.toggleGoal(g.id);
+                    },
+                  ),
                   Expanded(
                     child: Text(
-                      g['title'] ?? '',
+                      g.title,
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
+                        decoration: isDone ? TextDecoration.lineThrough : null,
                         color: isDark ? Colors.white : const Color(0xFF1E293B),
                       ),
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF0D5CE5).withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      g['progress'] ?? '0%',
-                      style: const TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF0D5CE5),
-                      ),
-                    ),
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline_rounded, size: 18, color: Color(0xFFEF4444)),
+                    onPressed: () {
+                      provider.deleteGoal(g.id);
+                    },
                   ),
                 ],
               ),
@@ -289,50 +282,79 @@ class _GoalPyramidScreenState extends State<GoalPyramidScreen> {
     );
   }
 
-  void _showGoalTierDetails(BuildContext context, String title, List<Map<String, String>> goals) {
+  void _showGoalTierDetails(BuildContext context, String title, List<dynamic> goals, String tier) {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (ctx) => Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 16),
-            ...goals.map((g) => ListTile(
-                  title: Text(g['title']!),
-                  subtitle: Text('Status: ${g['progress']}'),
-                  trailing: const Icon(Icons.check_circle_outline, color: Color(0xFF0D5CE5)),
-                )),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0D5CE5),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      builder: (ctx) => Consumer<AppProvider>(
+        builder: (context, provider, _) {
+          final currentGoals = tier == 'short' ? provider.shortGoals : (tier == 'medium' ? provider.mediumGoals : provider.longGoals);
+          return Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 16),
+                if (currentGoals.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 20),
+                    child: Center(child: Text('No goals added to this tier yet.', style: TextStyle(color: Color(0xFF94A3B8)))),
+                  )
+                else
+                  ...currentGoals.map((g) => ListTile(
+                        leading: IconButton(
+                          icon: Icon(
+                            g.isCompleted ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
+                            color: g.isCompleted ? const Color(0xFF10B981) : const Color(0xFF0D5CE5),
+                          ),
+                          onPressed: () => provider.toggleGoal(g.id),
+                        ),
+                        title: Text(
+                          g.title,
+                          style: TextStyle(
+                            decoration: g.isCompleted ? TextDecoration.lineThrough : null,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        subtitle: Text(g.description.isNotEmpty ? g.description : 'Tier: ${g.tier.toUpperCase()}'),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent),
+                          onPressed: () => provider.deleteGoal(g.id),
+                        ),
+                      )),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF0D5CE5),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    ),
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      _showAddGoalDialog(context, initialTier: tier);
+                    },
+                    child: const Text('Add Goal to this Tier', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  ),
                 ),
-                onPressed: () {
-                  Navigator.pop(ctx);
-                  _showAddGoalDialog(context);
-                },
-                child: const Text('Add Goal to this Tier', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-              ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 
-  void _showAddGoalDialog(BuildContext context) {
+  void _showAddGoalDialog(BuildContext context, {String initialTier = 'Short'}) {
     final titleCtrl = TextEditingController();
-    String selectedTerm = 'Short';
+    final descCtrl = TextEditingController();
+    String selectedTerm = initialTier.toLowerCase() == 'medium' ? 'Medium' : (initialTier.toLowerCase() == 'long' ? 'Long Term' : 'Short');
 
     showModalBottomSheet(
       context: context,
@@ -388,6 +410,14 @@ class _GoalPyramidScreenState extends State<GoalPyramidScreen> {
                   border: OutlineInputBorder(),
                 ),
               ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: descCtrl,
+                decoration: const InputDecoration(
+                  hintText: 'Aligned Purpose / Description (Optional)',
+                  border: OutlineInputBorder(),
+                ),
+              ),
               const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
@@ -401,18 +431,23 @@ class _GoalPyramidScreenState extends State<GoalPyramidScreen> {
                   ),
                   onPressed: () {
                     if (titleCtrl.text.trim().isNotEmpty) {
-                      setState(() {
-                        if (selectedTerm == 'Short') {
-                          _shortGoals.add({'title': titleCtrl.text.trim(), 'progress': '0%'});
-                        } else if (selectedTerm == 'Medium') {
-                          _mediumGoals.add({'title': titleCtrl.text.trim(), 'progress': '0%'});
-                        } else {
-                          _longGoals.add({'title': titleCtrl.text.trim(), 'progress': 'Planned'});
-                        }
-                      });
+                      final provider = Provider.of<AppProvider>(context, listen: false);
+                      String normalizedTier = 'short';
+                      if (selectedTerm == 'Medium') normalizedTier = 'medium';
+                      else if (selectedTerm == 'Long Term') normalizedTier = 'long';
+
+                      final newGoal = Goal(
+                        id: 'g_${DateTime.now().millisecondsSinceEpoch}',
+                        userId: provider.user.id,
+                        title: titleCtrl.text.trim(),
+                        description: descCtrl.text.trim(),
+                        tier: normalizedTier,
+                      );
+
+                      provider.addGoal(newGoal);
                       Navigator.pop(ctx);
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Goal added to $selectedTerm term hierarchy!')),
+                        SnackBar(content: Text('Goal added to $selectedTerm tier and synced to database!')),
                       );
                     }
                   },

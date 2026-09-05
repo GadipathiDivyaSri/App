@@ -404,7 +404,67 @@ class AppProvider extends ChangeNotifier {
   }
 
   // ---------------------------------------------------------------------------
-  // 4. Career Roadmap (Floating & Flexible)
+  // 4. Goals & Strategic Hierarchy (Short, Medium, Long)
+  // ---------------------------------------------------------------------------
+  List<Goal> _goals = [];
+  List<Goal> get goals => _goals;
+
+  List<Goal> get shortGoals =>
+      _goals.where((g) => g.tier.toLowerCase() == 'short').toList();
+
+  List<Goal> get mediumGoals =>
+      _goals.where((g) => g.tier.toLowerCase() == 'medium').toList();
+
+  List<Goal> get longGoals =>
+      _goals.where((g) => g.tier.toLowerCase() == 'long').toList();
+
+  void addGoal(Goal goal) {
+    _goals.add(goal);
+    _saveGoals();
+    notifyListeners();
+    ApiService.createGoalOnBackend(goal);
+  }
+
+  void updateGoal(Goal goal) {
+    final idx = _goals.indexWhere((g) => g.id == goal.id);
+    if (idx != -1) {
+      _goals[idx] = goal;
+      _saveGoals();
+      notifyListeners();
+      ApiService.updateGoalOnBackend(goal);
+    }
+  }
+
+  void toggleGoal(String id) {
+    final idx = _goals.indexWhere((g) => g.id == id);
+    if (idx != -1) {
+      _goals[idx].isCompleted = !_goals[idx].isCompleted;
+      _saveGoals();
+      notifyListeners();
+      ApiService.updateGoalOnBackend(_goals[idx]);
+    }
+  }
+
+  void deleteGoal(String id) {
+    _goals.removeWhere((g) => g.id == id);
+    _saveGoals();
+    notifyListeners();
+    ApiService.deleteGoalOnBackend(id);
+  }
+
+  Future<void> fetchGoalsFromBackend() async {
+    try {
+      final remote = await ApiService.fetchGoals();
+      if (remote.isNotEmpty) {
+        _goals = remote;
+        _saveGoals();
+        notifyListeners();
+      }
+    } catch (_) {}
+  }
+
+  // ---------------------------------------------------------------------------
+  // 4B. Career Roadmap (Floating & Flexible)
   // ---------------------------------------------------------------------------
   List<CareerRoadmapNode> _careerNodes = [];
   List<CareerRoadmapNode> get careerNodes => _careerNodes;
@@ -414,6 +474,7 @@ class AppProvider extends ChangeNotifier {
     _careerNodes.add(node);
     _saveCareerNodes();
     notifyListeners();
+    ApiService.createCareerNodeOnBackend(node);
   }
 
   void toggleCareerNode(String id) {
@@ -422,6 +483,7 @@ class AppProvider extends ChangeNotifier {
       _careerNodes[idx].isCompleted = !_careerNodes[idx].isCompleted;
       _saveCareerNodes();
       notifyListeners();
+      ApiService.updateCareerNodeOnBackend(_careerNodes[idx]);
     }
   }
 
@@ -431,6 +493,7 @@ class AppProvider extends ChangeNotifier {
       _careerNodes[idx] = node;
       _saveCareerNodes();
       notifyListeners();
+      ApiService.updateCareerNodeOnBackend(node);
     }
   }
 
@@ -438,6 +501,7 @@ class AppProvider extends ChangeNotifier {
     _careerNodes.removeWhere((n) => n.id == id);
     _saveCareerNodes();
     notifyListeners();
+    ApiService.deleteCareerNodeOnBackend(id);
   }
 
   // ---------------------------------------------------------------------------
@@ -1185,5 +1249,13 @@ class AppProvider extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     final jsonList = _careerNodes.map((n) => n.toJson()).toList();
     await prefs.setString('saved_career_${_user.id}', jsonEncode(jsonList));
+  }
+
+  Future<void> _saveGoals() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonList = _goals.map((g) => g.toJson()).toList();
+      await prefs.setString('saved_goals_${_user.id}', jsonEncode(jsonList));
+    } catch (_) {}
   }
 }

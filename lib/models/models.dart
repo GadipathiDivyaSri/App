@@ -625,6 +625,112 @@ class CareerRoadmapNode {
       );
 }
 
+class Goal {
+  final String id;
+  final String userId;
+  String title;
+  String description;
+  String tier; // 'short', 'medium', 'long'
+  bool isCompleted;
+  DateTime? targetDate;
+  double progress;
+  DateTime createdAt;
+
+  Goal({
+    required this.id,
+    this.userId = '',
+    required this.title,
+    this.description = '',
+    this.tier = 'short',
+    this.isCompleted = false,
+    this.targetDate,
+    this.progress = 0.0,
+    DateTime? createdAt,
+  }) : createdAt = createdAt ?? DateTime.now();
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'user_id': userId,
+        'title': title,
+        'description': description,
+        'tier': tier.toLowerCase(),
+        'is_completed': isCompleted,
+        'isCompleted': isCompleted,
+        'target_date': targetDate?.toIso8601String(),
+        'progress': progress,
+        'created_at': createdAt.toIso8601String(),
+      };
+
+  factory Goal.fromJson(Map<String, dynamic> json) {
+    final rawTier = (json['tier'] ?? json['timeframe'] ?? json['section'] ?? 'short').toString().toLowerCase();
+    String normalizedTier = 'short';
+    if (rawTier.contains('med')) normalizedTier = 'medium';
+    else if (rawTier.contains('long') || rawTier.contains('career')) normalizedTier = 'long';
+
+    return Goal(
+      id: json['id'] ?? 'g_${DateTime.now().millisecondsSinceEpoch}',
+      userId: json['user_id'] ?? json['userId'] ?? '',
+      title: json['title'] ?? 'Goal',
+      description: json['description'] ?? json['aligned_purpose'] ?? '',
+      tier: normalizedTier,
+      isCompleted: !!(json['is_completed'] ?? json['isCompleted'] ?? json['is_achieved'] ?? (json['status'] == 'COMPLETED')),
+      targetDate: json['target_date'] != null
+          ? DateTime.tryParse(json['target_date'].toString())
+          : (json['targetDate'] != null ? DateTime.tryParse(json['targetDate'].toString()) : null),
+      progress: (json['progress'] is num)
+          ? (json['progress'] as num).toDouble()
+          : (json['progress_percentage'] is num ? (json['progress_percentage'] as num).toDouble() / 100 : 0.0),
+      createdAt: json['created_at'] != null
+          ? (DateTime.tryParse(json['created_at'].toString()) ?? DateTime.now())
+          : DateTime.now(),
+    );
+  }
+}
+
+class Milestone {
+  final String id;
+  final String userId;
+  final String goalId;
+  String title;
+  String description;
+  bool isCompleted;
+  DateTime? targetDate;
+
+  Milestone({
+    required this.id,
+    this.userId = '',
+    required this.goalId,
+    required this.title,
+    this.description = '',
+    this.isCompleted = false,
+    this.targetDate,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'user_id': userId,
+        'goal_id': goalId,
+        'goalId': goalId,
+        'title': title,
+        'description': description,
+        'is_completed': isCompleted,
+        'isCompleted': isCompleted,
+        'target_date': targetDate?.toIso8601String(),
+      };
+
+  factory Milestone.fromJson(Map<String, dynamic> json) => Milestone(
+        id: json['id'] ?? 'ms_${DateTime.now().millisecondsSinceEpoch}',
+        userId: json['user_id'] ?? json['userId'] ?? '',
+        goalId: json['goal_id'] ?? json['goalId'] ?? '',
+        title: json['title'] ?? json['milestone_title'] ?? 'Milestone',
+        description: json['description'] ?? '',
+        isCompleted: !!(json['is_completed'] ?? json['isCompleted']),
+        targetDate: json['target_date'] != null
+            ? DateTime.tryParse(json['target_date'].toString())
+            : (json['targetDate'] != null ? DateTime.tryParse(json['targetDate'].toString()) : null),
+      );
+}
+
 class UserProfile {
   String id;
   String username;
