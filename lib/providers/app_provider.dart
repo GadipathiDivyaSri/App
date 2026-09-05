@@ -149,6 +149,16 @@ class AppProvider extends ChangeNotifier {
     );
     _subscription = UserSubscription.defaultFree('u_guest');
     await ApiService.clearSession();
+    await AuthApiService.clearSession();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('saved_session_user');
+      await prefs.remove('saved_session_token');
+      await prefs.remove('wrindha_auth_token');
+      await prefs.remove('wrindha_auth_user');
+      await prefs.remove('wrindha_secure_jwt_token');
+      await prefs.remove('wrindha_secure_user_profile');
+    } catch (_) {}
     notifyListeners();
   }
   // ---------------------------------------------------------------------------

@@ -397,9 +397,15 @@ class ApiService {
   }
 
   static Future<void> clearSession() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_tokenKey);
-    await prefs.remove(_userKey);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_tokenKey);
+      await prefs.remove(_userKey);
+      await prefs.remove('saved_session_user');
+      await prefs.remove('saved_session_token');
+      await prefs.remove('wrindha_secure_jwt_token');
+      await prefs.remove('wrindha_secure_user_profile');
+    } catch (_) {}
   }
 
   // ---------------------------------------------------------------------------

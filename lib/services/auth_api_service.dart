@@ -141,8 +141,14 @@ class AuthApiService {
   }
 
   static Future<void> clearSession() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_jwtStorageKey);
-    await prefs.remove(_userStorageKey);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_jwtStorageKey);
+      await prefs.remove(_userStorageKey);
+      await prefs.remove('wrindha_auth_token');
+      await prefs.remove('wrindha_auth_user');
+      await prefs.remove('saved_session_user');
+      await prefs.remove('saved_session_token');
+    } catch (_) {}
   }
 }
