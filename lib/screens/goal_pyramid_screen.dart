@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../models/models.dart';
 import '../config/subscription_config.dart';
 import '../providers/app_provider.dart';
 import '../widgets/pro_feature_guard.dart';
