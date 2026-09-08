@@ -195,89 +195,154 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
   );
 }
 
+  // Increment & Decrement Helpers
+  void _adjustStopwatch(int deltaSeconds) {
+    setState(() {
+      _stopwatchSeconds = (_stopwatchSeconds + deltaSeconds).clamp(0, 86400);
+    });
+  }
+
+  void _adjustPomodoro(int deltaSeconds) {
+    setState(() {
+      _pomodoroSeconds = (_pomodoroSeconds + deltaSeconds).clamp(10, 86400);
+    });
+  }
+
   // ---------------------------------------------------------------------------
   // 1. STOPWATCH TAB (COUNT UP)
   // ---------------------------------------------------------------------------
   Widget _buildStopwatchTab(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        // Circular Stopwatch Display
-        Container(
-          width: 220,
-          height: 220,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: isDark ? AppTheme.darkCardBg : AppTheme.pastelStudies,
-            border: Border.all(
-              color: isDark ? AppTheme.darkIconGlow : AppTheme.pastelStudiesIcon,
-              width: 4,
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const SizedBox(height: 12),
+          // Circular Stopwatch Display
+          Container(
+            width: 220,
+            height: 220,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: isDark ? AppTheme.darkCardBg : AppTheme.pastelStudies,
+              border: Border.all(
+                color: isDark ? AppTheme.darkIconGlow : AppTheme.pastelStudiesIcon,
+                width: 4,
+              ),
+              boxShadow: isDark ? AppTheme.darkCardShadow : AppTheme.cardShadow,
             ),
-            boxShadow: isDark ? AppTheme.darkCardShadow : AppTheme.cardShadow,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  _formatStopwatch(_stopwatchSeconds),
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w900,
+                    color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  _isStopwatchRunning ? 'RUNNING' : 'PAUSED',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.2,
+                    color: _isStopwatchRunning
+                        ? (isDark ? AppTheme.darkIconGlow : AppTheme.pastelStudiesIcon)
+                        : (isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary),
+                  ),
+                ),
+              ],
+            ),
           ),
-          child: Column(
+          const SizedBox(height: 24),
+
+          // Increment & Decrement Buttons Row for Stopwatch
+          Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                _formatStopwatch(_stopwatchSeconds),
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.w900,
-                  color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+              OutlinedButton.icon(
+                onPressed: () => _adjustStopwatch(-300),
+                icon: const Text('➖', style: TextStyle(fontSize: 12)),
+                label: const Text('- 5 Min', style: TextStyle(fontWeight: FontWeight.bold)),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
               ),
-              const SizedBox(height: 6),
-              Text(
-                _isStopwatchRunning ? 'RUNNING' : 'PAUSED',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.2,
-                  color: _isStopwatchRunning
-                      ? (isDark ? AppTheme.darkIconGlow : AppTheme.pastelStudiesIcon)
-                      : (isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary),
+              const SizedBox(width: 8),
+              OutlinedButton.icon(
+                onPressed: () => _adjustStopwatch(-60),
+                icon: const Text('➖', style: TextStyle(fontSize: 12)),
+                label: const Text('- 1 Min', style: TextStyle(fontWeight: FontWeight.bold)),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+              const SizedBox(width: 8),
+              OutlinedButton.icon(
+                onPressed: () => _adjustStopwatch(60),
+                icon: const Text('➕', style: TextStyle(fontSize: 12)),
+                label: const Text('+ 1 Min', style: TextStyle(fontWeight: FontWeight.bold)),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+              const SizedBox(width: 8),
+              OutlinedButton.icon(
+                onPressed: () => _adjustStopwatch(300),
+                icon: const Text('➕', style: TextStyle(fontSize: 12)),
+                label: const Text('+ 5 Min', style: TextStyle(fontWeight: FontWeight.bold)),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
               ),
             ],
           ),
-        ),
-        const SizedBox(height: 40),
+          const SizedBox(height: 24),
 
-        // Controls
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            FloatingActionButton(
-              heroTag: 'sw_reset_fab',
-              backgroundColor: isDark ? AppTheme.darkCardBg : Colors.white,
-              elevation: 2,
-              onPressed: _resetStopwatch,
-              child: Icon(
-                Icons.refresh_rounded,
-                color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
-              ),
-            ),
-            const SizedBox(width: 24),
-            SizedBox(
-              width: 64,
-              height: 64,
-              child: FloatingActionButton(
-                heroTag: 'sw_play_fab',
-                backgroundColor: isDark ? AppTheme.darkPrimary : AppTheme.pastelStudiesIcon,
-                elevation: 4,
-                onPressed: _toggleStopwatch,
-                child: Icon(
-                  _isStopwatchRunning ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                  size: 34,
-                  color: Colors.white,
+          // Action Controls: RESET & PLAY / PAUSE
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton.icon(
+                onPressed: _resetStopwatch,
+                icon: const Icon(Icons.refresh_rounded, size: 20),
+                label: const Text('RESET', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
+                  foregroundColor: isDark ? Colors.white : AppTheme.lightTextPrimary,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  elevation: 2,
                 ),
               ),
-            ),
-          ],
-        ),
-      ],
+              const SizedBox(width: 16),
+              ElevatedButton.icon(
+                onPressed: _toggleStopwatch,
+                icon: Icon(_isStopwatchRunning ? Icons.pause_rounded : Icons.play_arrow_rounded, size: 24),
+                label: Text(
+                  _isStopwatchRunning ? 'PAUSE' : 'START',
+                  style: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: 0.5, fontSize: 16),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isDark ? AppTheme.darkPrimary : AppTheme.pastelStudiesIcon,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  elevation: 4,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -289,118 +354,170 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
     final totalSecs = _isBreakMode ? 5 * 60 : 25 * 60;
     final progress = totalSecs > 0 ? (1.0 - (_pomodoroSeconds / totalSecs)).clamp(0.0, 1.0) : 0.0;
 
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        // Mode Switch Chips: 25m Focus vs 5m Break
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ChoiceChip(
-              label: const Text('25m Focus ⚡'),
-              selected: !_isBreakMode,
-              selectedColor: isDark ? AppTheme.darkPrimary : AppTheme.pastelStudiesIcon,
-              labelStyle: TextStyle(
-                color: !_isBreakMode ? Colors.white : (isDark ? Colors.white70 : AppTheme.lightTextPrimary),
-                fontWeight: FontWeight.bold,
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const SizedBox(height: 8),
+          // Mode Switch Chips: 25m Focus vs 5m Break
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ChoiceChip(
+                label: const Text('25m Focus ⚡'),
+                selected: !_isBreakMode,
+                selectedColor: isDark ? AppTheme.darkPrimary : AppTheme.pastelStudiesIcon,
+                labelStyle: TextStyle(
+                  color: !_isBreakMode ? Colors.white : (isDark ? Colors.white70 : AppTheme.lightTextPrimary),
+                  fontWeight: FontWeight.bold,
+                ),
+                onSelected: (_) => _switchPomodoroMode(false),
               ),
-              onSelected: (_) => _switchPomodoroMode(false),
-            ),
-            const SizedBox(width: 12),
-            ChoiceChip(
-              label: const Text('5m Break ☕'),
-              selected: _isBreakMode,
-              selectedColor: const Color(0xFF10B981),
-              labelStyle: TextStyle(
-                color: _isBreakMode ? Colors.white : (isDark ? Colors.white70 : AppTheme.lightTextPrimary),
-                fontWeight: FontWeight.bold,
+              const SizedBox(width: 12),
+              ChoiceChip(
+                label: const Text('5m Break ☕'),
+                selected: _isBreakMode,
+                selectedColor: const Color(0xFF10B981),
+                labelStyle: TextStyle(
+                  color: _isBreakMode ? Colors.white : (isDark ? Colors.white70 : AppTheme.lightTextPrimary),
+                  fontWeight: FontWeight.bold,
+                ),
+                onSelected: (_) => _switchPomodoroMode(true),
               ),
-              onSelected: (_) => _switchPomodoroMode(true),
-            ),
-          ],
-        ),
-        const SizedBox(height: 32),
+            ],
+          ),
+          const SizedBox(height: 20),
 
-        // Circular Pomodoro Progress Display
-        Stack(
-          alignment: Alignment.center,
-          children: [
-            SizedBox(
-              width: 220,
-              height: 220,
-              child: CircularProgressIndicator(
-                value: progress,
-                strokeWidth: 10,
-                backgroundColor: isDark ? const Color(0xFF1E1F2B) : const Color(0xFFFFF9E6),
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  _isBreakMode
-                      ? const Color(0xFF10B981)
-                      : (isDark ? AppTheme.darkPrimary : AppTheme.pastelStudiesIcon),
-                ),
-              ),
-            ),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  _formatPomodoro(_pomodoroSeconds),
-                  style: TextStyle(
-                    fontSize: 40,
-                    fontWeight: FontWeight.w900,
-                    color: isDark ? Colors.white : AppTheme.lightTextPrimary,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  _isBreakMode ? 'BREAK TIME' : (_isPomodoroRunning ? 'FOCUSING' : 'READY'),
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.2,
-                    color: _isBreakMode
+          // Circular Pomodoro Progress Display
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              SizedBox(
+                width: 220,
+                height: 220,
+                child: CircularProgressIndicator(
+                  value: progress,
+                  strokeWidth: 10,
+                  backgroundColor: isDark ? const Color(0xFF1E1F2B) : const Color(0xFFFFF9E6),
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    _isBreakMode
                         ? const Color(0xFF10B981)
-                        : (isDark ? AppTheme.darkIconGlow : AppTheme.pastelStudiesIcon),
+                        : (isDark ? AppTheme.darkPrimary : AppTheme.pastelStudiesIcon),
                   ),
                 ),
-              ],
-            ),
-          ],
-        ),
-        const SizedBox(height: 40),
-
-        // Controls
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            FloatingActionButton(
-              heroTag: 'pomo_reset_fab',
-              backgroundColor: isDark ? AppTheme.darkCardBg : Colors.white,
-              elevation: 2,
-              onPressed: _resetPomodoro,
-              child: Icon(
-                Icons.refresh_rounded,
-                color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
               ),
-            ),
-            const SizedBox(width: 24),
-            SizedBox(
-              width: 64,
-              height: 64,
-              child: FloatingActionButton(
-                heroTag: 'pomo_play_fab',
-                backgroundColor: isDark ? AppTheme.darkPrimary : AppTheme.pastelStudiesIcon,
-                elevation: 4,
-                onPressed: _togglePomodoro,
-                child: Icon(
-                  _isPomodoroRunning ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                  size: 34,
-                  color: Colors.white,
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    _formatPomodoro(_pomodoroSeconds),
+                    style: TextStyle(
+                      fontSize: 40,
+                      fontWeight: FontWeight.w900,
+                      color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _isBreakMode ? 'BREAK TIME' : (_isPomodoroRunning ? 'FOCUSING' : 'READY'),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.2,
+                      color: _isBreakMode
+                          ? const Color(0xFF10B981)
+                          : (isDark ? AppTheme.darkIconGlow : AppTheme.pastelStudiesIcon),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+
+          // Increment & Decrement Buttons Row for Pomodoro
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              OutlinedButton.icon(
+                onPressed: () => _adjustPomodoro(-300),
+                icon: const Text('➖', style: TextStyle(fontSize: 12)),
+                label: const Text('- 5 Min', style: TextStyle(fontWeight: FontWeight.bold)),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
               ),
-            ),
-          ],
-        ),
-      ],
+              const SizedBox(width: 8),
+              OutlinedButton.icon(
+                onPressed: () => _adjustPomodoro(-60),
+                icon: const Text('➖', style: TextStyle(fontSize: 12)),
+                label: const Text('- 1 Min', style: TextStyle(fontWeight: FontWeight.bold)),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+              const SizedBox(width: 8),
+              OutlinedButton.icon(
+                onPressed: () => _adjustPomodoro(60),
+                icon: const Text('➕', style: TextStyle(fontSize: 12)),
+                label: const Text('+ 1 Min', style: TextStyle(fontWeight: FontWeight.bold)),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+              const SizedBox(width: 8),
+              OutlinedButton.icon(
+                onPressed: () => _adjustPomodoro(300),
+                icon: const Text('➕', style: TextStyle(fontSize: 12)),
+                label: const Text('+ 5 Min', style: TextStyle(fontWeight: FontWeight.bold)),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+
+          // Action Controls: RESET & PLAY / PAUSE
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton.icon(
+                onPressed: _resetPomodoro,
+                icon: const Icon(Icons.refresh_rounded, size: 20),
+                label: const Text('RESET', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
+                  foregroundColor: isDark ? Colors.white : AppTheme.lightTextPrimary,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  elevation: 2,
+                ),
+              ),
+              const SizedBox(width: 16),
+              ElevatedButton.icon(
+                onPressed: _togglePomodoro,
+                icon: Icon(_isPomodoroRunning ? Icons.pause_rounded : Icons.play_arrow_rounded, size: 24),
+                label: Text(
+                  _isPomodoroRunning ? 'PAUSE' : 'START',
+                  style: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: 0.5, fontSize: 16),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isDark ? AppTheme.darkPrimary : AppTheme.pastelStudiesIcon,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  elevation: 4,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
