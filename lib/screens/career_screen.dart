@@ -112,7 +112,7 @@ class CareerScreen extends StatelessWidget {
             ),
             const SizedBox(height: 20),
 
-            // Floating Interactive Roadmap Hero Card
+            // 1. Career Roadmap Card
             GestureDetector(
               onTap: () {
                 Navigator.push(
@@ -126,25 +126,25 @@ class CareerScreen extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: cardNodeBg,
+                  color: cardPeach,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: primaryCoral,
+                    color: primaryCoral.withOpacity(0.5),
                     width: 1.5,
                   ),
                 ),
                 child: Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(10),
+                      padding: const EdgeInsets.all(12),
                       decoration: const BoxDecoration(
                         color: primaryCoral,
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
-                        Icons.military_tech_rounded,
+                        Icons.alt_route_rounded,
                         color: Colors.white,
-                        size: 22,
+                        size: 24,
                       ),
                     ),
                     const SizedBox(width: 14),
@@ -153,19 +153,20 @@ class CareerScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Goals',
+                            'Career Roadmap',
                             style: TextStyle(
-                              fontSize: 15,
+                              fontSize: 16,
                               fontWeight: FontWeight.w800,
                               color: textDark,
                             ),
                           ),
-                          SizedBox(height: 2),
+                          SizedBox(height: 3),
                           Text(
-                            'Short-Term, Medium-Term & Long-Term Targets',
+                            'Floating Skill & Pathway Node Graph',
                             style: TextStyle(
                               fontSize: 12,
                               color: textMuted,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ],
@@ -182,80 +183,112 @@ class CareerScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            // 🎯 Goals Hierarchy Hero Card
-            GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const GoalPyramidScreen(),
+            // 2. Goals (PRO Feature - Short-Term, Medium-Term & Long-Term Targets)
+            Consumer<AppProvider>(
+              builder: (context, provider, child) {
+                final isPro = provider.user.isPremium;
+                return GestureDetector(
+                  onTap: () {
+                    if (!isPro) {
+                      ProUpgradeDialog.showFeatureLockedDialog(context, AppFeature.goals);
+                    } else {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const GoalPyramidScreen(),
+                        ),
+                      );
+                    }
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: cardNodeBg,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: isPro ? const Color(0xFF0D5CE5) : const Color(0xFFF59E0B),
+                        width: 1.5,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.04),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: (isPro ? const Color(0xFF0D5CE5) : const Color(0xFFF59E0B)).withOpacity(0.15),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            isPro ? Icons.military_tech_rounded : Icons.lock_rounded,
+                            color: isPro ? const Color(0xFF0D5CE5) : const Color(0xFFF59E0B),
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  const Text(
+                                    'Goals 🎯',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w800,
+                                      color: textDark,
+                                    ),
+                                  ),
+                                  if (!isPro) ...[
+                                    const SizedBox(width: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFF59E0B),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: const Text(
+                                        'PRO',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                              const SizedBox(height: 3),
+                              const Text(
+                                'Short-Term, Medium-Term & Long-Term Targets',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: textMuted,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Icon(
+                          isPro ? Icons.arrow_forward_ios_rounded : Icons.lock_outline_rounded,
+                          size: 16,
+                          color: isPro ? const Color(0xFF0D5CE5) : const Color(0xFFF59E0B),
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: const Color(0xFFE2E8F0),
-                    width: 1.5,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF0D5CE5).withOpacity(0.12),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.military_tech_rounded,
-                        color: Color(0xFF0D5CE5),
-                        size: 22,
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    const Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Goals',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w800,
-                              color: textDark,
-                            ),
-                          ),
-                          SizedBox(height: 2),
-                          Text(
-                            'Short-Term, Medium-Term & Long-Term Goals',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: textMuted,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Icon(
-                      Icons.arrow_forward_ios_rounded,
-                      size: 16,
-                      color: Color(0xFF0D5CE5),
-                    ),
-                  ],
-                ),
-              ),
             ),
             const SizedBox(height: 80),
           ],

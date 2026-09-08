@@ -64,7 +64,7 @@ class HomeScreen extends StatelessWidget {
                   crossAxisCount: 2,
                   mainAxisSpacing: 16,
                   crossAxisSpacing: 16,
-                  childAspectRatio: 1.35,
+                  childAspectRatio: 1.18,
                   children: [
                     // 1. Personal Growth
                     _buildModuleCard(

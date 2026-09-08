@@ -105744,11 +105744,12 @@ D(a){var s,r,q,p,o=null,n=A.dm(o,o,B.aN,o,o,0,o,A.by(o,o,o,B.Qs,o,o,new A.a96(a)
 l=A.X(o,A.a4(A.a([A.X(o,B.Rq,B.l,o,o,new A.U(B.z,o,o,A.G(16),o,o,B.o),o,52,o,o,o,o,52),B.hx,B.OQ],k),B.i,B.f,B.e,0,o,o),B.l,o,o,new A.U(B.Lr,o,o,l,o,o,B.o),o,o,o,B.U,o,o,1/0)
 s=A.G(20)
 r=A.aV(B.z,B.p,1.5)
-s=A.cb(o,A.X(o,A.a4(A.a([A.X(o,B.QX,B.l,o,o,B.Iz,o,o,o,B.ko,o,o,o),B.cL,B.OP,B.Qk],k),B.i,B.f,B.e,0,o,o),B.l,o,o,new A.U(B.M7,o,r,s,o,o,B.o),o,o,o,B.cG,o,o,1/0),B.t,!1,o,o,o,o,o,o,o,o,o,o,o,o,o,o,o,o,new A.a98(a),o,o,o,o,o,o)
+s=A.cb(o,A.X(o,A.a4(A.a([A.X(o,B.QX,B.l,o,o,B.Iz,o,o,o,B.ko,o,o,o),B.cL,A.m("Career Roadmap",o,o,o,o,A.J(o,o,B.d,o,o,o,o,o,o,o,o,15,o,o,B.K,o,o,!0,o,o,o,o,o,o,o,o),o,o,o),A.m("Floating Skill & Pathway Node Graph",o,o,o,o,A.J(o,o,B.as,o,o,o,o,o,o,o,o,12,o,o,o,o,o,!0,o,o,o,o,o,o,o,o),o,o,o)],k),B.i,B.f,B.e,0,o,o),B.l,o,o,new A.U(B.M7,o,r,s,o,o,B.o),o,o,o,B.cG,o,o,1/0),B.t,!1,o,o,o,o,o,o,o,o,o,o,o,o,o,o,o,o,new A.a98(a),o,o,o,o,o,o)
 r=A.G(20)
 q=A.aV(B.bu,B.p,1.5)
 p=A.a([new A.aP(0,B.H,A.Q(10,B.n.m()>>>16&255,B.n.m()>>>8&255,B.n.m()&255),B.bK,10)],t.V)
-return A.d5(n,B.aN,A.cT(A.a2(A.a([l,B.ax,s,B.as,A.cb(o,A.X(o,A.a4(A.a([A.X(o,B.Ro,B.l,o,o,new A.U(A.Q(31,B.v.m()>>>16&255,B.v.m()>>>8&255,B.v.m()&255),o,o,o,o,o,B.aW),o,o,o,B.ko,o,o,o),B.cL,B.OR,B.Qh],k),B.i,B.f,B.e,0,o,o),B.l,o,o,new A.U(B.h,o,q,r,p,o,B.o),o,o,o,B.cG,o,o,1/0),B.t,!1,o,o,o,o,o,o,o,o,o,o,o,o,o,o,o,o,new A.a99(a),o,o,o,o,o,o),B.ji],k),B.w,B.f,B.e,0,B.m),o,B.t,B.U,o,o,B.T),o,m)}}
+var goalsCard = A.cb(o,A.X(o,A.a4(A.a([A.X(o,B.Ro,B.l,o,o,new A.U(A.Q(31,B.v.m()>>>16&255,B.v.m()>>>8&255,B.v.m()&255),o,o,o,o,o,B.aW),o,o,o,B.ko,o,o,o),B.cL,A.m("Goals 🎯 (Pro)",o,o,o,o,A.J(o,o,B.d,o,o,o,o,o,o,o,o,15,o,o,B.K,o,o,!0,o,o,o,o,o,o,o,o),o,o,o),A.m("Short-Term, Medium-Term & Long-Term Targets",o,o,o,o,A.J(o,o,B.as,o,o,o,o,o,o,o,o,12,o,o,o,o,o,!0,o,o,o,o,o,o,o,o),o,o,o)],k),B.i,B.f,B.e,0,o,o),B.l,o,o,new A.U(B.h,o,q,r,p,o,B.o),o,o,o,B.cG,o,o,1/0),B.t,!1,o,o,o,o,o,o,o,o,o,o,o,o,o,o,o,o,new A.ahm(a),o,o,o,o,o,o)
+return A.d5(n,B.aN,A.cT(A.a2(A.a([l,B.ax,s,B.as,goalsCard,B.ji],k),B.w,B.f,B.e,0,B.m),o,B.t,B.U,o,o,B.T),o,m)}}
 A.a96.prototype={
 $0(){A.ai(this.a,!1).aI(null)
 return null},
@@ -107934,7 +107935,7 @@ A.aGC.prototype={
 $1(a){return B.rS},
 $S:164}
 A.aGw.prototype={
-$0(){return this.a.YH(this.b,this.c)},
+$0(){var s=this.b;if(!A.cF(s,!1,t.C).c.x)return A.iL(s,B.jG,null);return this.a.YH(this.b,this.c)},
 $S:0}
 A.aGB.prototype={
 $1(a){var s,r=this

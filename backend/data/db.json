@@ -137,6 +137,29 @@
       "is_email_verified": true,
       "created_at": "2026-09-06T10:53:22.421Z",
       "updated_at": "2026-09-06T10:53:22.421Z"
+    },
+    {
+      "id": "31c22ef9-b0db-44ee-be2d-778a515f2151",
+      "user_id": "31c22ef9-b0db-44ee-be2d-778a515f2151",
+      "username": "brygfyueuroie",
+      "name": "Brygfyueuroie",
+      "display_name": "Brygfyueuroie",
+      "email": "mothukurumadhuri@gmail.com",
+      "password": "e69b04eb442f727ccbfcd51d6cf8e712:1ae952bdc0826811a87b87715ca4dd0a94c201d045c2c186ddbc4464e9f56a48dc0461c193982dd93110fba3e8b2b96a9706210fc914a88896585f4b3f7f2a58",
+      "password_hash": "e69b04eb442f727ccbfcd51d6cf8e712:1ae952bdc0826811a87b87715ca4dd0a94c201d045c2c186ddbc4464e9f56a48dc0461c193982dd93110fba3e8b2b96a9706210fc914a88896585f4b3f7f2a58",
+      "is_premium": false,
+      "isPremium": false,
+      "subscription_plan": "FREE",
+      "subscriptionPlan": "FREE",
+      "focus_score": 85,
+      "focusScore": 85,
+      "active_streak": 1,
+      "activeStreak": 1,
+      "referral_code": "WOS2210",
+      "referralCode": "WOS9031",
+      "is_email_verified": true,
+      "created_at": "2026-09-08T14:48:24.442Z",
+      "updated_at": "2026-09-08T14:48:24.442Z"
     }
   ],
   "user_subscriptions": [
@@ -217,6 +240,19 @@
       "transaction_id": null,
       "created_at": "2026-09-06T10:53:22.421Z",
       "updated_at": "2026-09-06T10:53:22.421Z"
+    },
+    {
+      "id": "83199075-ea97-4588-978b-aa37b48ae667",
+      "user_id": "31c22ef9-b0db-44ee-be2d-778a515f2151",
+      "userId": "31c22ef9-b0db-44ee-be2d-778a515f2151",
+      "plan": "free",
+      "status": "active",
+      "started_at": "2026-09-08T14:48:24.442Z",
+      "expires_at": null,
+      "payment_provider": "NONE",
+      "transaction_id": null,
+      "created_at": "2026-09-08T14:48:24.442Z",
+      "updated_at": "2026-09-08T14:48:24.442Z"
     }
   ],
   "tasks": [

@@ -254,22 +254,27 @@ class _StudiesScreenState extends State<StudiesScreen> {
 
             // 2. Subjects Section
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Your Subjects',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: textPrimary),
-                    ),
-                    Text(
-                      'Tap any subject to view & add Units & Topics',
-                      style: TextStyle(fontSize: 11, color: textSecondary),
-                    ),
-                  ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Your Subjects',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: textPrimary),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Tap any subject to view & add Units & Topics',
+                        style: TextStyle(fontSize: 11, color: textSecondary),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
                 ),
-                TextButton.icon(
+                const SizedBox(width: 8),
+                ElevatedButton.icon(
                   onPressed: () {
                     if (!provider.canAddSubject) {
                       ProUpgradeDialog.showSubjectLimitDialog(context);
@@ -277,9 +282,19 @@ class _StudiesScreenState extends State<StudiesScreen> {
                       _showAddSubjectDialog(context);
                     }
                   },
-                  icon: Icon(!provider.canAddSubject ? Icons.lock_rounded : Icons.add_rounded, size: 18),
-                  label: Text(!provider.canAddSubject ? 'Add (Pro)' : 'Add Subject', style: const TextStyle(fontWeight: FontWeight.w700)),
-                  style: TextButton.styleFrom(foregroundColor: primaryColor),
+                  icon: Icon(!provider.canAddSubject ? Icons.lock_rounded : Icons.add_rounded, size: 16),
+                  label: Text(
+                    !provider.canAddSubject ? 'Add (Pro)' : 'Add Subject',
+                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryColor,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    minimumSize: const Size(0, 36),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    elevation: 1,
+                  ),
                 ),
               ],
             ),
