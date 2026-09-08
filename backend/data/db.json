@@ -160,6 +160,29 @@
       "is_email_verified": true,
       "created_at": "2026-09-08T14:48:24.442Z",
       "updated_at": "2026-09-08T14:48:24.442Z"
+    },
+    {
+      "id": "cbd3a9d5-3757-41db-9a09-ec196549b639",
+      "user_id": "cbd3a9d5-3757-41db-9a09-ec196549b639",
+      "username": "maddy123",
+      "name": "Maddy123",
+      "display_name": "Maddy123",
+      "email": "madhurimothukuru23@gmail.com",
+      "password": "c556f4f9d8d7229f0cea7de76a7a9344:afaae38b0b1db60cef6d6895d1e3716436d308911a9c98834e06af8b86c43926529c27d80c8b7467a7a51434ce5d0f31f875e7da468c294ff3dbb6ff147cd476",
+      "password_hash": "c556f4f9d8d7229f0cea7de76a7a9344:afaae38b0b1db60cef6d6895d1e3716436d308911a9c98834e06af8b86c43926529c27d80c8b7467a7a51434ce5d0f31f875e7da468c294ff3dbb6ff147cd476",
+      "is_premium": false,
+      "isPremium": false,
+      "subscription_plan": "FREE",
+      "subscriptionPlan": "FREE",
+      "focus_score": 85,
+      "focusScore": 85,
+      "active_streak": 1,
+      "activeStreak": 1,
+      "referral_code": "WOS7563",
+      "referralCode": "WOS7978",
+      "is_email_verified": true,
+      "created_at": "2026-09-08T15:21:48.440Z",
+      "updated_at": "2026-09-08T15:21:48.440Z"
     }
   ],
   "user_subscriptions": [
@@ -253,6 +276,19 @@
       "transaction_id": null,
       "created_at": "2026-09-08T14:48:24.442Z",
       "updated_at": "2026-09-08T14:48:24.442Z"
+    },
+    {
+      "id": "5f05d382-94f3-4832-bd9b-fe1fe5229233",
+      "user_id": "cbd3a9d5-3757-41db-9a09-ec196549b639",
+      "userId": "cbd3a9d5-3757-41db-9a09-ec196549b639",
+      "plan": "free",
+      "status": "active",
+      "started_at": "2026-09-08T15:21:48.440Z",
+      "expires_at": null,
+      "payment_provider": "NONE",
+      "transaction_id": null,
+      "created_at": "2026-09-08T15:21:48.440Z",
+      "updated_at": "2026-09-08T15:21:48.440Z"
     }
   ],
   "tasks": [
