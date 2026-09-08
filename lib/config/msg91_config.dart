@@ -11,9 +11,10 @@ class Msg91Config {
   static const int otpLength = 6;
 
   // Backend API URL Configuration
-  static const String devBaseUrl = 'https://wrindhaosapp.vercel.app/api';
+  static const String devBaseUrl =
+      'https://wrindhaosapp.vercel.app/api';
   static const String prodBaseUrl =
-      'https://wrindhaos-backend.onrender.com/api';
+      'https://wrindhaosapp.vercel.app/api';
 
   // Active Base URL (Development vs Production)
   static String get baseUrl {

@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../config/subscription_config.dart';
+import '../providers/app_provider.dart';
+import '../widgets/pro_upgrade_dialog.dart';
 import '../theme/app_theme.dart';
 import 'career_roadmap_screen.dart';
 import 'goal_pyramid_screen.dart';
