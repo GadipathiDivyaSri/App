@@ -539,7 +539,14 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
 
   Widget _buildAddTaskButton(BuildContext context, {required int priorityLevel}) {
     return GestureDetector(
-      onTap: () => _showAddTaskModal(context, defaultPriority: priorityLevel),
+      onTap: () {
+        final provider = Provider.of<AppProvider>(context, listen: false);
+        if (!provider.user.isPremium) {
+          ProUpgradeDialog.showFeatureLockedDialog(context, AppFeature.priorityMatrix);
+        } else {
+          _showAddTaskModal(context, defaultPriority: priorityLevel);
+        }
+      },
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 10),
@@ -843,6 +850,11 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
   }
 
   void _showAddTaskModal(BuildContext context, {int? defaultPriority}) {
+    final provider = Provider.of<AppProvider>(context, listen: false);
+    if (!provider.user.isPremium) {
+      ProUpgradeDialog.showFeatureLockedDialog(context, AppFeature.priorityMatrix);
+      return;
+    }
     final titleCtrl = TextEditingController();
     String selectedTag = 'STUDY';
     DateTime selectedDate = DateTime.now();
