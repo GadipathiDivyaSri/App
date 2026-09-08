@@ -12,7 +12,6 @@ class EmailOtpScreen extends StatefulWidget {
   final String email;
   final String? username;
   final bool isForgotPassword;
-
   const EmailOtpScreen({
     super.key,
     required this.email,
@@ -161,9 +160,9 @@ class _EmailOtpScreenState extends State<EmailOtpScreen> {
       _otpFocusNodes[0].requestFocus();
       _startCooldownTimer();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(res['message'] ?? 'New verification code sent!'),
-          backgroundColor: const Color(0xFF10B981),
+        const SnackBar(
+          content: Text('A verification code has been sent to your email!'),
+          backgroundColor: Color(0xFF10B981),
         ),
       );
     } else {

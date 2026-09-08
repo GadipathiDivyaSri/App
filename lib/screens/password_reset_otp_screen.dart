@@ -7,8 +7,10 @@ import 'create_new_password_screen.dart';
 
 class PasswordResetOtpScreen extends StatefulWidget {
   final String email;
-
-  const PasswordResetOtpScreen({super.key, required this.email});
+  const PasswordResetOtpScreen({
+    super.key,
+    required this.email,
+  });
 
   @override
   State<PasswordResetOtpScreen> createState() => _PasswordResetOtpScreenState();
@@ -133,9 +135,9 @@ class _PasswordResetOtpScreenState extends State<PasswordResetOtpScreen> {
     _startCooldownTimer();
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(res['message'] ?? 'Verification code resent!'),
-        backgroundColor: const Color(0xFF10B981),
+      const SnackBar(
+        content: Text('A verification code has been sent to your email!'),
+        backgroundColor: Color(0xFF10B981),
       ),
     );
   }

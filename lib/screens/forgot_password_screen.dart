@@ -53,7 +53,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => PasswordResetOtpScreen(email: email),
+        builder: (_) => PasswordResetOtpScreen(
+          email: email,
+        ),
       ),
     );
   }

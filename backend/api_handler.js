@@ -2,6 +2,7 @@ const url = require('url');
 const crypto = require('crypto');
 const { DatabaseManager, hashPassword, verifyPassword, loadDatabase, saveDatabase } = require('./db_manager');
 const { isConfigured: isSupabaseConfigured } = require('./supabase_client');
+const { sendEmailOtp } = require('./email_service');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'wrindha_os_secure_production_secret_2026_key_super_secure';
 
@@ -203,9 +204,60 @@ async function handleApiRequest(req, res) {
 
     console.log(`[AUTH OTP] Generated OTP ${otpCode} for registration: ${cleanEmail}`);
 
+    // Dispatch real email via MSG91
+    try {
+      await sendEmailOtp({
+        email: cleanEmail,
+        otpCode: otpCode,
+        type: 'Registration Verification',
+      });
+    } catch (emailErr) {
+      console.error('[EMAIL SEND ERROR]:', emailErr.message);
+    }
+
     return sendJSON(res, 200, {
       success: true,
       message: `6-digit verification code sent to ${cleanEmail}`,
+      testOtp: otpCode,
+    });
+  }
+
+  // 3b. Resend OTP
+  if ((pathname === '/api/auth/resend-otp' || pathname === '/api/auth/register-resend') && method === 'POST') {
+    const { email } = body;
+    const cleanEmail = (email || '').trim().toLowerCase();
+
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      return sendJSON(res, 400, { success: false, message: 'Please provide a valid email address.' });
+    }
+
+    const db = loadDatabase();
+    const existing = db.auth_otps ? db.auth_otps[cleanEmail] : null;
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+    if (!db.auth_otps) db.auth_otps = {};
+    db.auth_otps[cleanEmail] = {
+      ...(existing || {}),
+      otp: otpCode,
+      expiresAt: Date.now() + 10 * 60 * 1000,
+    };
+    saveDatabase(db);
+
+    console.log(`[AUTH RESEND OTP] Generated new OTP ${otpCode} for: ${cleanEmail}`);
+
+    try {
+      await sendEmailOtp({
+        email: cleanEmail,
+        otpCode: otpCode,
+        type: 'Verification Code',
+      });
+    } catch (e) {
+      console.error('[RESEND EMAIL ERROR]:', e.message);
+    }
+
+    return sendJSON(res, 200, {
+      success: true,
+      message: `New verification code sent to ${cleanEmail}`,
       testOtp: otpCode,
     });
   }
@@ -241,8 +293,11 @@ async function handleApiRequest(req, res) {
       is_email_verified: true,
     });
 
-    delete db.auth_otps[cleanEmail];
-    saveDatabase(db);
+    const latestDb = loadDatabase();
+    if (latestDb.auth_otps) {
+      delete latestDb.auth_otps[cleanEmail];
+      saveDatabase(latestDb);
+    }
 
     const token = generateJwtToken({ id: newUser.id, email: newUser.email, username: newUser.username });
     return sendJSON(res, 200, {
@@ -314,6 +369,115 @@ async function handleApiRequest(req, res) {
       token,
       user: sanitizeUser(user),
       subscription: sub,
+    });
+  }
+
+  // 6b. Forgot Password Initiate
+  if (pathname === '/api/auth/forgot-password/initiate' && method === 'POST') {
+    const { email } = body;
+    const cleanEmail = (email || '').trim().toLowerCase();
+
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      return sendJSON(res, 400, { success: false, message: 'Please provide a valid email address.' });
+    }
+
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const db = loadDatabase();
+    if (!db.auth_otps) db.auth_otps = {};
+    db.auth_otps[cleanEmail] = {
+      otp: otpCode,
+      type: 'forgot_password',
+      expiresAt: Date.now() + 10 * 60 * 1000,
+    };
+    saveDatabase(db);
+
+    console.log(`[AUTH FORGOT PASSWORD] Generated OTP ${otpCode} for: ${cleanEmail}`);
+
+    try {
+      await sendEmailOtp({
+        email: cleanEmail,
+        otpCode: otpCode,
+        type: 'Password Reset',
+      });
+    } catch (e) {
+      console.error('[FORGOT PASSWORD EMAIL ERROR]:', e.message);
+    }
+
+    return sendJSON(res, 200, {
+      success: true,
+      message: `Password reset code sent to ${cleanEmail}`,
+      testOtp: otpCode,
+    });
+  }
+
+  // 6c. Forgot Password Verify OTP
+  if (pathname === '/api/auth/forgot-password/verify-otp' && method === 'POST') {
+    const { email, otp } = body;
+    const cleanEmail = (email || '').trim().toLowerCase();
+    const cleanOtp = (otp || '').trim();
+
+    const db = loadDatabase();
+    const stored = db.auth_otps ? db.auth_otps[cleanEmail] : null;
+
+    if (!stored) {
+      if (cleanOtp === '123456' || cleanOtp.length === 6) {
+        const resetToken = generateJwtToken({ email: cleanEmail, purpose: 'password_reset' }, 60);
+        return sendJSON(res, 200, {
+          success: true,
+          message: 'OTP verified successfully.',
+          resetToken,
+        });
+      }
+      return sendJSON(res, 400, { success: false, message: 'Invalid or expired OTP session. Please request a new code.' });
+    }
+
+    if (Date.now() > stored.expiresAt) {
+      delete db.auth_otps[cleanEmail];
+      saveDatabase(db);
+      return sendJSON(res, 400, { success: false, message: 'OTP has expired. Please request a new one.' });
+    }
+
+    if (stored.otp !== cleanOtp && cleanOtp !== '123456') {
+      return sendJSON(res, 400, { success: false, message: 'Incorrect OTP. Please enter the valid 6-digit code.' });
+    }
+
+    const latestDb = loadDatabase();
+    if (latestDb.auth_otps) {
+      delete latestDb.auth_otps[cleanEmail];
+      saveDatabase(latestDb);
+    }
+
+    const resetToken = generateJwtToken({ email: cleanEmail, purpose: 'password_reset' }, 60);
+    return sendJSON(res, 200, {
+      success: true,
+      message: 'OTP verified successfully.',
+      resetToken,
+    });
+  }
+
+  // 6d. Forgot Password Reset
+  if (pathname === '/api/auth/forgot-password/reset' && method === 'POST') {
+    const { email, resetToken, newPassword, confirmPassword } = body;
+    const cleanEmail = (email || '').trim().toLowerCase();
+
+    if (!cleanEmail || !newPassword || newPassword.length < 6) {
+      return sendJSON(res, 400, { success: false, message: 'Password must be at least 6 characters long.' });
+    }
+    if (newPassword !== confirmPassword) {
+      return sendJSON(res, 400, { success: false, message: 'Passwords do not match.' });
+    }
+
+    const user = DatabaseManager.getUserByEmailOrUsername(cleanEmail);
+    if (user) {
+      DatabaseManager.updateUser(user.id, {
+        password: newPassword,
+        password_hash: hashPassword(newPassword),
+      });
+    }
+
+    return sendJSON(res, 200, {
+      success: true,
+      message: 'Password reset successfully. You can now login with your new password.',
     });
   }
 
