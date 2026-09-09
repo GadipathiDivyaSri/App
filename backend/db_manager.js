@@ -3,30 +3,12 @@ const path = require('path');
 const crypto = require('crypto');
 const { supabase, isConfigured: isSupabaseConfigured } = require('./supabase_client');
 
-const isServerless = !!(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.LAMBDA_TASK_ROOT);
-const DB_DIR = isServerless ? path.join('/tmp', 'data') : path.join(__dirname, 'data');
-const DB_FILE = path.join(DB_DIR, 'db.json');
-const DB_TMP_FILE = path.join(DB_DIR, '.db.json.tmp');
+const DB_FILE = path.join(__dirname, 'data', 'db.json');
+const DB_TMP_FILE = path.join(__dirname, 'data', '.db.json.tmp');
 
 // Ensure DB directory exists
-if (!fs.existsSync(DB_DIR)) {
-  try {
-    fs.mkdirSync(DB_DIR, { recursive: true });
-  } catch (e) {
-    console.warn('[DB DIR CREATE ERROR]:', e.message);
-  }
-}
-
-// In serverless environments, initialize /tmp/data/db.json from bundled db.json if not present
-if (isServerless && !fs.existsSync(DB_FILE)) {
-  const bundledDb = path.join(__dirname, 'data', 'db.json');
-  if (fs.existsSync(bundledDb)) {
-    try {
-      fs.copyFileSync(bundledDb, DB_FILE);
-    } catch (e) {
-      console.warn('[DB INIT COPY ERROR]:', e.message);
-    }
-  }
+if (!fs.existsSync(path.join(__dirname, 'data'))) {
+  fs.mkdirSync(path.join(__dirname, 'data'), { recursive: true });
 }
 
 // -----------------------------------------------------------------------------
