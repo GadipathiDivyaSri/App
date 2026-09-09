@@ -105748,7 +105748,7 @@ s=A.cb(o,A.X(o,A.a4(A.a([A.X(o,B.QX,B.l,o,o,B.Iz,o,o,o,B.ko,o,o,o),B.cL,A.m("Car
 r=A.G(20)
 q=A.aV(B.bu,B.p,1.5)
 p=A.a([new A.aP(0,B.H,A.Q(10,B.n.m()>>>16&255,B.n.m()>>>8&255,B.n.m()&255),B.bK,10)],t.V)
-var goalsCard = A.cb(o,A.X(o,A.a4(A.a([A.X(o,B.Ro,B.l,o,o,new A.U(A.Q(31,B.v.m()>>>16&255,B.v.m()>>>8&255,B.v.m()&255),o,o,o,o,o,B.aW),o,o,o,B.ko,o,o,o),B.cL,A.m("Goals 🎯 (Pro)",o,o,o,o,A.J(o,o,B.d,o,o,o,o,o,o,o,o,15,o,o,B.K,o,o,!0,o,o,o,o,o,o,o,o),o,o,o),A.m("Short-Term, Medium-Term & Long-Term Targets",o,o,o,o,A.J(o,o,B.as,o,o,o,o,o,o,o,o,12,o,o,o,o,o,!0,o,o,o,o,o,o,o,o),o,o,o)],k),B.i,B.f,B.e,0,o,o),B.l,o,o,new A.U(B.h,o,q,r,p,o,B.o),o,o,o,B.cG,o,o,1/0),B.t,!1,o,o,o,o,o,o,o,o,o,o,o,o,o,o,o,o,new A.ahm(a),o,o,o,o,o,o)
+var goalsCard = A.cb(o,A.X(o,A.a4(A.a([A.X(o,B.Ro,B.l,o,o,new A.U(A.Q(31,B.v.m()>>>16&255,B.v.m()>>>8&255,B.v.m()&255),o,o,o,o,o,B.aW),o,o,o,B.ko,o,o,o),B.cL,A.m("Goals 🎯 (Pro)",o,o,o,o,A.J(o,o,B.d,o,o,o,o,o,o,o,o,15,o,o,B.K,o,o,!0,o,o,o,o,o,o,o,o),o,o,o),A.m("Short-Term, Medium-Term & Long-Term Targets",o,o,o,o,A.J(o,o,B.as,o,o,o,o,o,o,o,o,12,o,o,o,o,o,!0,o,o,o,o,o,o,o,o),o,o,o)],k),B.i,B.f,B.e,0,o,o),B.l,o,o,new A.U(B.h,o,q,r,p,o,B.o),o,o,o,B.cG,o,o,1/0),B.t,!1,o,o,o,o,o,o,o,o,o,o,o,o,o,o,o,o,new A.a98(a),o,o,o,o,o,o)
 return A.d5(n,B.aN,A.cT(A.a2(A.a([l,B.ax,s,B.as,goalsCard,B.ji],k),B.w,B.f,B.e,0,B.m),o,B.t,B.U,o,o,B.T),o,m)}}
 A.a96.prototype={
 $0(){A.ai(this.a,!1).aI(null)
