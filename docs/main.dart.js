@@ -107091,10 +107091,10 @@ r=A.G(12)
 q=A.aV(A.Q(B.d.a2(76.5),B.K.m()>>>16&255,B.K.m()>>>8&255,B.K.m()&255),B.p,1)
 p=o.x
 p.toString
-B.b.N(j,A.a([A.X(n,A.a4(A.a([B.h9,B.bn,A.ay(A.k(p,n,n,n,n,B.hB,n,n,n),1)],i),B.i,B.f,B.e,0,n,n),B.l,n,n,new A.U(s,n,q,r,n,n,B.o),n,n,n,B.db,n,n,n),B.ax],i))}j.push(A.k("Username",n,n,n,n,A.w(n,n,m?B.a4:B.du,n,n,n,n,n,n,n,n,13.5,n,n,B.a3,n,n,!0,n,n,n,n,n,n,n,n),n,n,n))
+B.b.N(j,A.a([A.X(n,A.a4(A.a([B.h9,B.bn,A.ay(A.k(p,n,n,n,n,B.hB,n,n,n),1)],i),B.i,B.f,B.e,0,n,n),B.l,n,n,new A.U(s,n,q,r,n,n,B.o),n,n,n,B.db,n,n,n),B.ax],i))}j.push(A.k("Email Address",n,n,n,n,A.w(n,n,m?B.a4:B.du,n,n,n,n,n,n,n,n,13.5,n,n,B.a3,n,n,!0,n,n,n,n,n,n,n,n),n,n,n))
 j.push(B.a5)
 s=A.w(n,n,m?B.h:B.E,n,n,n,n,n,n,n,n,15,n,n,n,n,n,!0,n,n,n,n,n,n,n,n)
-j.push(A.kt(!1,!1,o.e,o.anO("Enter your username",m,B.uW),!1,n,n,n,1,!1,n,n,n,n,n,s,B.L,B.a6,B.eD,n))
+j.push(A.kt(!1,!1,o.e,o.anO("Enter your email address",m,B.uW),!1,n,n,n,1,!1,n,n,n,n,n,s,B.L,B.a6,B.eD,n))
 j.push(B.ax)
 j.push(A.k("Password",n,n,n,n,A.w(n,n,m?B.a4:B.du,n,n,n,n,n,n,n,n,13.5,n,n,B.a3,n,n,!0,n,n,n,n,n,n,n,n),n,n,n))
 j.push(B.a5)
@@ -107116,7 +107116,7 @@ Wo(a,b,c,d){var s=null,r=A.w(s,s,b?B.dv:B.f2,s,s,s,s,s,s,s,s,14.5,s,s,s,s,s,!0,s
 return A.fl(s,new A.ce(4,o,B.u),s,B.bz,s,s,s,s,!0,new A.ce(4,n,new A.aR(m,1,B.p,-1)),s,s,s,s,s,q,!0,s,s,s,s,new A.ce(4,l,new A.aR(B.z,1.5,B.p,-1)),s,s,s,s,s,s,s,s,r,a,s,s,s,s,s,s,s,s,s,!0,!0,!1,s,p,s,s,s,s,s,s,d,s,s,s,s,s)},
 anO(a,b,c){return this.Wo(a,b,c,null)}}
 A.aDG.prototype={
-$0(){this.a.x="Please enter both your username and password."},
+$0(){this.a.x="Please enter both your email address and password."},
 $S:0}
 A.aDH.prototype={
 $0(){var s=this.a
@@ -107139,7 +107139,7 @@ A.aDM.prototype={
 $0(){var s,r=this.a
 r.w=!1
 s=this.b.i(0,"message")
-r.x=s==null?"Incorrect username or password.":s},
+r.x=s==null?"Incorrect email address or password.":s},
 $S:0}
 A.aDQ.prototype={
 $0(){A.ai(this.a,!1).aI(null)
@@ -108590,7 +108590,7 @@ r=A.G(12)
 q=A.aV(A.Q(B.d.a2(76.5),B.K.m()>>>16&255,B.K.m()>>>8&255,B.K.m()&255),B.p,1)
 p=o.as
 p.toString
-B.b.N(j,A.a([A.X(n,A.a4(A.a([B.h9,B.bn,A.ay(A.k(p,n,n,n,n,B.hB,n,n,n),1)],i),B.i,B.f,B.e,0,n,n),B.l,n,n,new A.U(s,n,q,r,n,n,B.o),n,n,n,B.db,n,n,n),B.ax],i))}j.push(A.k("Username",n,n,n,n,A.w(n,n,m?B.a4:B.du,n,n,n,n,n,n,n,n,13.5,n,n,B.a3,n,n,!0,n,n,n,n,n,n,n,n),n,n,n))
+B.b.N(j,A.a([A.X(n,A.a4(A.a([B.h9,B.bn,A.ay(A.k(p,n,n,n,n,B.hB,n,n,n),1)],i),B.i,B.f,B.e,0,n,n),B.l,n,n,new A.U(s,n,q,r,n,n,B.o),n,n,n,B.db,n,n,n),B.ax],i))}j.push(A.k("Email Address",n,n,n,n,A.w(n,n,m?B.a4:B.du,n,n,n,n,n,n,n,n,13.5,n,n,B.a3,n,n,!0,n,n,n,n,n,n,n,n),n,n,n))
 j.push(B.a5)
 s=A.w(n,n,m?B.h:B.E,n,n,n,n,n,n,n,n,15,n,n,n,n,n,!0,n,n,n,n,n,n,n,n)
 if(o.ax)r=B.Bj

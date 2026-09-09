@@ -38,7 +38,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (username.isEmpty || password.isEmpty) {
       setState(() {
-        _errorMessage = 'Please enter both your username and password.';
+        _errorMessage = 'Please enter both your email address and password.';
       });
       return;
     }
@@ -174,20 +174,21 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 20),
                 ],
 
-                // Username Field
-                _buildFieldLabel('Username', isDark),
+                // Email Address Field
+                _buildFieldLabel('Email Address', isDark),
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _usernameCtrl,
                   autocorrect: false,
+                  keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
                   style: TextStyle(
                     fontSize: 15,
                     color: isDark ? Colors.white : AppTheme.lightTextPrimary,
                   ),
                   decoration: _buildInputDecoration(
-                    hintText: 'Enter your username',
-                    prefixIcon: Icons.person_outline_rounded,
+                    hintText: 'Enter your email address',
+                    prefixIcon: Icons.mail_outline_rounded,
                     isDark: isDark,
                   ),
                 ),
