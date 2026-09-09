@@ -18,6 +18,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Configure Vercel to ignore gh-pages branch
+        run: |
+          mkdir -p ./build/web/backend
+          echo '{"version": 2, "ignoreCommand": "exit 0"}' > ./build/web/backend/vercel.json
+          echo '{"version": 2, "ignoreCommand": "exit 0"}' > ./build/web/vercel.json
+
       - name: Deploy pre-built Web to gh-pages branch
         uses: peaceiris/actions-gh-pages@v4
         with:

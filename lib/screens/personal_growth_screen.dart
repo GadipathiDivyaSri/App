@@ -8,7 +8,7 @@ import '../widgets/upgrade_pro_modal.dart';
 import '../theme/app_theme.dart';
 import 'habit_tracker_screen.dart';
 import 'expense_tracker_screen.dart';
-import 'career_roadmap_screen.dart';
+
 import 'organize_matrix_screen.dart';
 import 'notes_screen.dart';
 
@@ -139,24 +139,7 @@ class PersonalGrowthScreen extends StatelessWidget {
             ),
             const SizedBox(height: 14),
 
-            // 3. Career Roadmap (Pro Only)
-            _buildMenuCard(
-              context,
-              category: 'CAREER ROADMAP',
-              title: 'Career Roadmap & Growth',
-              icon: Icons.alt_route_rounded,
-              isDark: isDark,
-              isLocked: !provider.hasAccess(AppFeature.careerRoadmap),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const CareerRoadmapScreen(),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 14),
+
 
             // 4. Organize Matrix (Pro Only)
             _buildMenuCard(

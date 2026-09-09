@@ -5,15 +5,9 @@ import '../models/models.dart';
 import '../providers/app_provider.dart';
 import '../widgets/pro_feature_guard.dart';
 import '../widgets/pro_upgrade_dialog.dart';
-import '../widgets/premium_lock_banner.dart';
-import '../widgets/upgrade_pro_modal.dart';
 import '../theme/app_theme.dart';
 
-/// Floating / Flexible Career Roadmap Screen for WrindhaOS
-/// 
-/// Flexible structure:
-/// Career Goal → Skills → Learning → Projects → Experience → Career Opportunities
-/// Completely free of rigid milestone stages.
+/// Serpentine S-Curve Career Roadmap Screen matching exact user UI & interactions
 class CareerRoadmapScreen extends StatefulWidget {
   const CareerRoadmapScreen({super.key});
 
@@ -22,366 +16,709 @@ class CareerRoadmapScreen extends StatefulWidget {
 }
 
 class _CareerRoadmapScreenState extends State<CareerRoadmapScreen> {
-  static const List<Map<String, dynamic>> _sections = [
-    {
-      'key': 'GOAL',
-      'title': 'Career Goal',
-      'icon': Icons.flag_rounded,
-      'color': Color(0xFF6366F1),
-      'desc': 'Your primary career aspiration & north star',
-    },
-    {
-      'key': 'SKILLS',
-      'title': 'Skills Mastery',
-      'icon': Icons.psychology_rounded,
-      'color': Color(0xFF0D5CE5),
-      'desc': 'Core technical and leadership competencies',
-    },
-    {
-      'key': 'LEARNING',
-      'title': 'Learning & Certifications',
-      'icon': Icons.school_rounded,
-      'color': Color(0xFF10B981),
-      'desc': 'Deep-dive courses, books, and credentials',
-    },
-    {
-      'key': 'PROJECTS',
-      'title': 'Projects & Portfolio',
-      'icon': Icons.terminal_rounded,
-      'color': Color(0xFFF59E0B),
-      'desc': 'Practical builds and verifiable proof of work',
-    },
-    {
-      'key': 'EXPERIENCE',
-      'title': 'Work & Practical Experience',
-      'icon': Icons.business_center_rounded,
-      'color': Color(0xFF8B5CF6),
-      'desc': 'Internships, freelance contracts, and jobs',
-    },
-    {
-      'key': 'OPPORTUNITIES',
-      'title': 'Target Opportunities',
-      'icon': Icons.rocket_launch_rounded,
-      'color': Color(0xFFEC4899),
-      'desc': 'Applications, interviews, and offers in flight',
-    },
+  static const List<Map<String, dynamic>> _defaultNodeIcons = [
+    {'icon': Icons.flag_rounded, 'title': 'Entry Level Goal', 'desc': 'Start of career pathway'},
+    {'icon': Icons.code_rounded, 'title': 'Core Technical Skills', 'desc': 'Foundational programming & algorithms'},
+    {'icon': Icons.terminal_rounded, 'title': 'Portfolio Projects', 'desc': 'Production-grade applications & builds'},
+    {'icon': Icons.architecture_rounded, 'title': 'System Architecture', 'desc': 'Scalable systems & cloud design'},
+    {'icon': Icons.bar_chart_rounded, 'title': 'Engineering Leadership', 'desc': 'Team mentoring & project metrics'},
+    {'icon': Icons.emoji_events_rounded, 'title': 'Senior Offer Target', 'desc': 'Target role & career milestone'},
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _ensureDefaultNodes();
+    });
+  }
+
+  void _ensureDefaultNodes() {
+    final provider = Provider.of<AppProvider>(context, listen: false);
+    if (provider.careerRoadmap.isEmpty) {
+      for (int i = 0; i < _defaultNodeIcons.length; i++) {
+        final def = _defaultNodeIcons[i];
+        provider.addCareerNode(
+          CareerRoadmapNode(
+            id: 'cr_node_${i + 1}_${DateTime.now().millisecondsSinceEpoch}',
+            section: 'SKILLS',
+            title: def['title'] as String,
+            description: def['desc'] as String,
+            status: i == 0 ? 'COMPLETED' : 'PLANNED',
+            order: i,
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final provider = Provider.of<AppProvider>(context);
     final isPremium = provider.user.isPremium;
-    final textPrimary = isDark ? AppTheme.darkTextPrimary : AppTheme.textPrimary;
-    final textSecondary = isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary;
-    final cardBg = isDark ? AppTheme.darkCardBg : AppTheme.cardSurface;
 
-    final allNodes = provider.careerRoadmap;
-    final totalCompleted = allNodes.where((n) => n.isCompleted).length;
+    final bgLight = const Color(0xFFFAFBFF);
+    final bgDark = AppTheme.darkBg;
+    final textDark = isDark ? Colors.white : const Color(0xFF1E293B);
+
+    final nodes = provider.careerRoadmap;
+    final completedCount = nodes.where((n) => n.isCompleted).length;
 
     return ProFeatureGuard(
       feature: AppFeature.careerRoadmap,
       child: Scaffold(
-      backgroundColor: isDark ? AppTheme.darkBg : AppTheme.background,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: textPrimary),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          'Career Roadmap',
-          style: TextStyle(color: textPrimary, fontWeight: FontWeight.w800),
-        ),
-        actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 16),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: isDark ? AppTheme.darkIconBg : AppTheme.pastelCareer,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.stars_rounded,
-                  color: isDark ? AppTheme.darkIconGlow : AppTheme.pastelCareerIcon,
-                  size: 16,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  '$totalCompleted Done',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? AppTheme.darkIconGlow : AppTheme.pastelCareerIcon,
-                  ),
-                ),
-              ],
+        backgroundColor: isDark ? bgDark : bgLight,
+        appBar: AppBar(
+          backgroundColor: isDark ? bgDark : bgLight,
+          elevation: 0,
+          centerTitle: false,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: textDark),
+            onPressed: () => Navigator.pop(context),
+          ),
+          title: Text(
+            'Career Roadmap',
+            style: TextStyle(
+              color: textDark,
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
             ),
           ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          actions: [
+            IconButton(
+              icon: Icon(Icons.account_circle_outlined, size: 26, color: textDark),
+              onPressed: () {},
+            ),
+            const SizedBox(width: 8),
+          ],
+        ),
+        floatingActionButton: FloatingActionButton(
+          heroTag: 'add_milestone_fab',
+          backgroundColor: const Color(0xFF0D5CE5),
+          elevation: 6,
+          onPressed: () {
+            if (!isPremium) {
+              ProUpgradeDialog.showFeatureLockedDialog(context, AppFeature.careerRoadmap);
+            } else {
+              _showAddMilestoneNodeDialog(context);
+            }
+          },
+          child: const Icon(Icons.add, color: Colors.white, size: 28),
+        ),
+        body: Column(
           children: [
-            // 1. Premium Lock Banner if Free
-            if (!isPremium)
-              const PremiumLockBanner(
-                featureName: 'Career Roadmap',
-                description: 'You are currently viewing Career Roadmap in preview mode. Upgrade to Pro for ₹49/month to customize floating path nodes and unlock infinite growth tracking.',
-              ),
-
-            const Text(
-              'FLEXIBLE PATHWAY',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.1,
-                color: Color(0xFF94A3B8),
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Your Personalized Career Map',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: textPrimary),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'Floating structure that adapts as you grow. Add focus targets to each stage.',
-              style: TextStyle(fontSize: 13, height: 1.4, color: textSecondary),
-            ),
-            const SizedBox(height: 24),
-
-            // 2. Sections Flow
-            ..._sections.asMap().entries.map((entry) {
-              final idx = entry.key;
-              final sec = entry.value;
-              final String secKey = sec['key'] as String;
-              final String secTitle = sec['title'] as String;
-              final String secDesc = sec['desc'] as String;
-              final Color secColor = sec['color'] as Color;
-              final IconData secIcon = sec['icon'] as IconData;
-              final isLast = idx == _sections.length - 1;
-
-              final items = allNodes.where((n) => n.section == secKey).toList();
-
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Section Header Card
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: cardBg,
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(
-                        color: isDark ? AppTheme.darkCardBorder : secColor.withOpacity(0.2),
+            const SizedBox(height: 8),
+            // Top Badge Pill: "Start: Entry Level"
+            Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E2433),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.play_arrow_rounded, color: Color(0xFF38BDF8), size: 16),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Start: Entry Level',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        fontFamily: 'monospace',
+                        letterSpacing: 0.5,
                       ),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: secColor.withOpacity(0.15),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Icon(secIcon, color: secColor, size: 20),
-                                ),
-                                const SizedBox(width: 12),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      secTitle,
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w800,
-                                        color: textPrimary,
-                                      ),
-                                    ),
-                                    Text(
-                                      secDesc,
-                                      style: TextStyle(fontSize: 11, color: textSecondary),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            IconButton(
-                              icon: Icon(
-                                !isPremium ? Icons.lock_rounded : Icons.add_circle_outline_rounded,
-                                color: secColor,
-                                size: 22,
-                              ),
-                              onPressed: () {
-                                if (!isPremium) {
-                                  ProUpgradeDialog.showFeatureLockedDialog(context, AppFeature.careerRoadmap);
-                                } else {
-                                  _showAddNodeDialog(context, secKey, secTitle);
-                                }
-                              },
-                            ),
-                          ],
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0D5CE5),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '$completedCount/${nodes.length} Done',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
                         ),
-                        const SizedBox(height: 12),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
 
-                        // Section Items List
-                        if (items.isEmpty)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            child: Text(
-                              'Tap (+) to add items to $secTitle',
-                              style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic, color: textSecondary),
-                            ),
-                          )
-                        else
-                          Column(
-                            children: items.map((node) {
-                              return Container(
-                                margin: const EdgeInsets.only(bottom: 8),
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: isDark ? const Color(0xFF242321) : const Color(0xFFF8FAFC),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: secColor.withOpacity(0.15)),
+            // Serpentine Roadmap Container
+            Expanded(
+              child: nodes.isEmpty
+                  ? Center(
+                      child: Text(
+                        'No milestone nodes yet.\nTap (+) to add your first roadmap node!',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+                      ),
+                    )
+                  : LayoutBuilder(
+                      builder: (ctx, constraints) {
+                        final width = constraints.maxWidth;
+                        final height = constraints.maxHeight;
+
+                        return SingleChildScrollView(
+                          padding: const EdgeInsets.only(bottom: 100),
+                          child: SizedBox(
+                            width: width,
+                            height: (nodes.length * 110.0) + 60,
+                            child: Stack(
+                              children: [
+                                // S-Curve Dashed Line Background Painter
+                                Positioned.fill(
+                                  child: CustomPaint(
+                                    painter: _SerpentinePathPainter(
+                                      nodeCount: nodes.length,
+                                      isDark: isDark,
+                                    ),
+                                  ),
                                 ),
-                                child: Row(
-                                  children: [
-                                    GestureDetector(
+
+                                // Interactive Nodes along S-Curve
+                                ...nodes.asMap().entries.map((entry) {
+                                  final index = entry.key;
+                                  final node = entry.value;
+
+                                  // Calculate X position along S-curve
+                                  final double progress = index / (nodes.length > 1 ? nodes.length - 1 : 1);
+                                  // S-curve oscillation left to right
+                                  final double targetX = (width / 2) + ((width * 0.28) * (index % 2 == 0 ? -1 : 1));
+                                  final double targetY = 30.0 + (index * 110.0);
+
+                                  final IconData nodeIcon = _getNodeIconForIndex(index);
+                                  final bool isDone = node.isCompleted;
+
+                                  return Positioned(
+                                    left: targetX - 32,
+                                    top: targetY - 32,
+                                    child: GestureDetector(
                                       onTap: () {
                                         if (!isPremium) {
                                           ProUpgradeDialog.showFeatureLockedDialog(context, AppFeature.careerRoadmap);
                                         } else {
                                           provider.toggleCareerNode(node.id);
+                                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                node.isCompleted
+                                                    ? '✓ Milestone "${node.title}" marked as Completed!'
+                                                    : 'Milestone "${node.title}" marked as Planned',
+                                              ),
+                                              backgroundColor: node.isCompleted ? const Color(0xFF10B981) : const Color(0xFF334155),
+                                              duration: const Duration(seconds: 2),
+                                            ),
+                                          );
                                         }
                                       },
-                                      child: Icon(
-                                        node.isCompleted ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
-                                        color: node.isCompleted ? const Color(0xFF10B981) : Colors.grey,
-                                        size: 20,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Expanded(
+                                      onLongPress: () {
+                                        _showNodeOptionsModal(context, node);
+                                      },
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          Text(
-                                            node.title,
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w700,
-                                              decoration: node.isCompleted ? TextDecoration.lineThrough : null,
-                                              color: textPrimary,
+                                          AnimatedContainer(
+                                            duration: const Duration(milliseconds: 250),
+                                            width: 56,
+                                            height: 56,
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              color: isDone
+                                                  ? const Color(0xFF0D5CE5)
+                                                  : (isDark ? const Color(0xFF1E293B) : const Color(0xFFEEF2FF)),
+                                              border: Border.all(
+                                                color: isDone
+                                                    ? const Color(0xFF38BDF8)
+                                                    : const Color(0xFF94A3B8).withOpacity(0.5),
+                                                width: isDone ? 2.5 : 1.5,
+                                              ),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: isDone
+                                                      ? const Color(0xFF0D5CE5).withOpacity(0.35)
+                                                      : Colors.black.withOpacity(0.05),
+                                                  blurRadius: isDone ? 12 : 6,
+                                                  offset: const Offset(0, 4),
+                                                ),
+                                              ],
+                                            ),
+                                            child: Center(
+                                              child: isDone
+                                                  ? const Icon(
+                                                      Icons.check_rounded,
+                                                      color: Colors.white,
+                                                      size: 28,
+                                                    )
+                                                  : Icon(
+                                                      nodeIcon,
+                                                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF0D5CE5),
+                                                      size: 24,
+                                                    ),
                                             ),
                                           ),
-                                          if (node.description.isNotEmpty)
-                                            Text(
-                                              node.description,
-                                              style: TextStyle(fontSize: 12, color: textSecondary),
+                                          const SizedBox(height: 6),
+                                          // Title & Completion Tag
+                                          Container(
+                                            constraints: const BoxConstraints(maxWidth: 130),
+                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                            decoration: BoxDecoration(
+                                              color: isDone
+                                                  ? (isDark ? const Color(0xFF065F46) : const Color(0xFFD1FAE5))
+                                                  : (isDark ? const Color(0xFF1E293B) : Colors.white.withOpacity(0.9)),
+                                              borderRadius: BorderRadius.circular(10),
+                                              border: Border.all(
+                                                color: isDone ? const Color(0xFF10B981) : Colors.transparent,
+                                                width: 1,
+                                              ),
                                             ),
+                                            child: Column(
+                                              children: [
+                                                Text(
+                                                  node.title,
+                                                  textAlign: TextAlign.center,
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                  style: TextStyle(
+                                                    fontSize: 11,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: isDone
+                                                        ? (isDark ? const Color(0xFF6EE7B7) : const Color(0xFF047857))
+                                                        : textDark,
+                                                  ),
+                                                ),
+                                                if (isDone) ...[
+                                                  const SizedBox(height: 1),
+                                                  const Text(
+                                                    '✓ Completed',
+                                                    style: TextStyle(
+                                                      fontSize: 9,
+                                                      fontWeight: FontWeight.w800,
+                                                      color: Color(0xFF10B981),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ],
+                                            ),
+                                          ),
                                         ],
                                       ),
                                     ),
-                                    IconButton(
-                                      icon: Icon(Icons.delete_outline_rounded, size: 18, color: textSecondary),
-                                      onPressed: () {
-                                        if (!isPremium) {
-                                          ProUpgradeDialog.showFeatureLockedDialog(context, AppFeature.careerRoadmap);
-                                        } else {
-                                          provider.deleteCareerNode(node.id);
-                                        }
-                                      },
-                                    ),
-                                  ],
-                                ),
-                              );
-                            }).toList(),
+                                  );
+                                }).toList(),
+                              ],
+                            ),
                           ),
-                      ],
+                        );
+                      },
                     ),
-                  ),
-
-                  // Floating Connecting Indicator (Unless last)
-                  if (!isLast)
-                    Center(
-                      child: Container(
-                        width: 2,
-                        height: 20,
-                        margin: const EdgeInsets.symmetric(vertical: 4),
-                        decoration: BoxDecoration(
-                          color: secColor.withOpacity(0.4),
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                    ),
-                ],
-              );
-            }).toList(),
-            const SizedBox(height: 40),
+            ),
           ],
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
-  void _showAddNodeDialog(BuildContext context, String secKey, String secTitle) {
+  IconData _getNodeIconForIndex(int index) {
+    if (index < _defaultNodeIcons.length) {
+      return _defaultNodeIcons[index]['icon'] as IconData;
+    }
+    const icons = [
+      Icons.star_rounded,
+      Icons.rocket_launch_rounded,
+      Icons.lightbulb_rounded,
+      Icons.school_rounded,
+      Icons.work_rounded,
+    ];
+    return icons[index % icons.length];
+  }
+
+  void _showNodeOptionsModal(BuildContext context, CareerRoadmapNode node) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    node.title,
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: node.isCompleted ? const Color(0xFFD1FAE5) : const Color(0xFFFEF3C7),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    node.isCompleted ? 'Completed ✓' : 'In Progress',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: node.isCompleted ? const Color(0xFF047857) : const Color(0xFFD97706),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            if (node.description.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                node.description,
+                style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+              ),
+            ],
+            const SizedBox(height: 20),
+            ListTile(
+              leading: Icon(
+                node.isCompleted ? Icons.radio_button_unchecked : Icons.check_circle_rounded,
+                color: node.isCompleted ? Colors.grey : const Color(0xFF10B981),
+              ),
+              title: Text(node.isCompleted ? 'Mark as Incomplete' : 'Mark as Completed'),
+              onTap: () {
+                Navigator.pop(ctx);
+                Provider.of<AppProvider>(context, listen: false).toggleCareerNode(node.id);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent),
+              title: const Text('Delete Node', style: TextStyle(color: Colors.redAccent)),
+              onTap: () {
+                Navigator.pop(ctx);
+                Provider.of<AppProvider>(context, listen: false).deleteCareerNode(node.id);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Add Milestone Node Dialog matching Image 3 UI
+  void _showAddMilestoneNodeDialog(BuildContext context) {
     final titleCtrl = TextEditingController();
     final descCtrl = TextEditingController();
+    DateTime? selectedCompletionDate;
+    final dateCtrl = TextEditingController();
 
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('Add to $secTitle', style: const TextStyle(fontWeight: FontWeight.w800)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: titleCtrl,
-              autofocus: true,
-              decoration: const InputDecoration(labelText: 'Title', border: OutlineInputBorder()),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: descCtrl,
-              decoration: const InputDecoration(labelText: 'Notes / Target (Optional)', border: OutlineInputBorder()),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          ElevatedButton(
-            onPressed: () {
-              final title = titleCtrl.text.trim();
-              if (title.isNotEmpty) {
-                final provider = Provider.of<AppProvider>(context, listen: false);
-                provider.addCareerNode(
-                  CareerRoadmapNode(
-                    id: 'node_${DateTime.now().millisecondsSinceEpoch}',
-                    title: title,
-                    description: descCtrl.text.trim(),
-                    section: secKey,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) {
+          return Dialog(
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.12),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
                   ),
-                );
-                Navigator.pop(ctx);
-              }
-            },
-            child: const Text('Add'),
-          ),
-        ],
+                ],
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Header Title
+                    const Text(
+                      'Roadmap',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    const Text(
+                      '·',
+                      style: TextStyle(fontSize: 18, color: Color(0xFF94A3B8)),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Card Title Header
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: const Text(
+                        'Add Milestone Node',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF0F172A),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // 1. NODE TITLE
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: const Text(
+                        'NODE TITLE',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.2,
+                          color: Color(0xFF64748B),
+                          fontFamily: 'monospace',
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: titleCtrl,
+                      decoration: InputDecoration(
+                        hintText: 'e.g. Senior Architect Certification',
+                        hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 13.5),
+                        filled: true,
+                        fillColor: const Color(0xFFF8FAFC),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+
+                    // 2. DESCRIPTION
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: const Text(
+                        'DESCRIPTION',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.2,
+                          color: Color(0xFF64748B),
+                          fontFamily: 'monospace',
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: descCtrl,
+                      maxLines: 3,
+                      decoration: InputDecoration(
+                        hintText: 'Briefly define the scope of this milestone...',
+                        hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 13.5),
+                        filled: true,
+                        fillColor: const Color(0xFFF8FAFC),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+
+                    // 3. ESTIMATED COMPLETION
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: const Text(
+                        'ESTIMATED COMPLETION',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.2,
+                          color: Color(0xFF64748B),
+                          fontFamily: 'monospace',
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: dateCtrl,
+                      readOnly: true,
+                      onTap: () async {
+                        final picked = await showDatePicker(
+                          context: context,
+                          initialDate: DateTime.now().add(const Duration(days: 30)),
+                          firstDate: DateTime.now(),
+                          lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+                        );
+                        if (picked != null) {
+                          setDialogState(() {
+                            selectedCompletionDate = picked;
+                            dateCtrl.text =
+                                '${picked.day.toString().padLeft(2, '0')}-${picked.month.toString().padLeft(2, '0')}-${picked.year}';
+                          });
+                        }
+                      },
+                      decoration: InputDecoration(
+                        hintText: 'dd-mm-yyyy',
+                        hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 13.5),
+                        suffixIcon: const Icon(Icons.calendar_today_outlined, color: Color(0xFF64748B), size: 18),
+                        filled: true,
+                        fillColor: const Color(0xFFF8FAFC),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Buttons: Cancel & Add Node
+                    SizedBox(
+                      width: double.infinity,
+                      height: 48,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFEEF2FF),
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        onPressed: () => Navigator.pop(ctx),
+                        child: const Text(
+                          'Cancel',
+                          style: TextStyle(
+                            color: Color(0xFF334155),
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF2563EB),
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        onPressed: () {
+                          final title = titleCtrl.text.trim();
+                          if (title.isNotEmpty) {
+                            final provider = Provider.of<AppProvider>(context, listen: false);
+                            final desc = descCtrl.text.trim();
+                            final formattedDateStr = dateCtrl.text.trim();
+                            final fullDesc = formattedDateStr.isNotEmpty ? '$desc (Est: $formattedDateStr)' : desc;
+
+                            provider.addCareerNode(
+                              CareerRoadmapNode(
+                                id: 'cr_${DateTime.now().millisecondsSinceEpoch}',
+                                section: 'SKILLS',
+                                title: title,
+                                description: fullDesc,
+                                status: 'PLANNED',
+                                order: provider.careerRoadmap.length,
+                              ),
+                            );
+                            Navigator.pop(ctx);
+                          }
+                        },
+                        child: const Text(
+                          'Add Node',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
+  }
+}
+
+/// CustomPainter drawing a smooth, elegant serpentine S-Curve path down the roadmap
+class _SerpentinePathPainter extends CustomPainter {
+  final int nodeCount;
+  final bool isDark;
+
+  _SerpentinePathPainter({required this.nodeCount, required this.isDark});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (nodeCount <= 0) return;
+
+    final paint = Paint()
+      ..color = (isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1))
+      ..strokeWidth = 2.5
+      ..style = PaintingStyle.stroke;
+
+    final path = Path();
+
+    final double width = size.width;
+
+    for (int i = 0; i < nodeCount; i++) {
+      final double x = (width / 2) + ((width * 0.28) * (i % 2 == 0 ? -1 : 1));
+      final double y = 30.0 + (i * 110.0);
+
+      if (i == 0) {
+        path.moveTo(x, y);
+      } else {
+        final double prevX = (width / 2) + ((width * 0.28) * ((i - 1) % 2 == 0 ? -1 : 1));
+        final double prevY = 30.0 + ((i - 1) * 110.0);
+
+        final double controlY1 = prevY + 55.0;
+        final double controlY2 = y - 55.0;
+
+        path.cubicTo(prevX, controlY1, x, controlY2, x, y);
+      }
+    }
+
+    // Draw dashed path effect
+    final pathMetrics = path.computeMetrics();
+    for (final metric in pathMetrics) {
+      double distance = 0.0;
+      const double dashWidth = 6.0;
+      const double dashGap = 6.0;
+
+      while (distance < metric.length) {
+        final double end = distance + dashWidth;
+        final extractPath = metric.extractPath(distance, end > metric.length ? metric.length : end);
+        canvas.drawPath(extractPath, paint);
+        distance += dashWidth + dashGap;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _SerpentinePathPainter oldDelegate) {
+    return oldDelegate.nodeCount != nodeCount || oldDelegate.isDark != isDark;
   }
 }

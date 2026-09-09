@@ -6,7 +6,7 @@ import '../models/models.dart';
 /// Centralized REST API Service for WrindhaOS
 class ApiService {
   // Production default endpoint with fallback capability
-  static String baseUrl = 'https://wrindhaosapp.vercel.app/api';
+  static String baseUrl = 'http://localhost:8080/api';
 
   static const String _tokenKey = 'wrindha_auth_token';
   static const String _userKey = 'wrindha_auth_user';
