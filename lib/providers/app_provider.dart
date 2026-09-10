@@ -136,7 +136,9 @@ class AppProvider extends ChangeNotifier {
     }
     _isLoggedIn = true;
     _saveSession();
+    _loadUserIsolatedData();
     syncSubscription();
+    syncAllDataFromCloud();
     notifyListeners();
   }
 
@@ -333,6 +335,7 @@ class AppProvider extends ChangeNotifier {
     _saveSubjects();
     _saveStudyItems();
     notifyListeners();
+    ApiService.deleteSubjectOnBackend(id);
   }
 
   List<StudyItem> _studyItems = [];
@@ -584,6 +587,9 @@ class AppProvider extends ChangeNotifier {
       startedAt: DateTime.now(),
     );
     _saveSession();
+    _loadUserIsolatedData();
+    syncSubscription();
+    syncAllDataFromCloud();
     notifyListeners();
   }
 
@@ -626,6 +632,8 @@ class AppProvider extends ChangeNotifier {
     }
     _saveSession();
     _loadUserIsolatedData();
+    syncSubscription();
+    syncAllDataFromCloud();
     notifyListeners();
   }
 
@@ -635,6 +643,8 @@ class AppProvider extends ChangeNotifier {
     if (token != null) _user.token = token;
     _saveSession();
     _loadUserIsolatedData();
+    syncSubscription();
+    syncAllDataFromCloud();
     notifyListeners();
   }
 
@@ -764,7 +774,7 @@ class AppProvider extends ChangeNotifier {
   }) {
     if (amount <= 0) return;
     final newExp = ExpenseTransaction(
-      id: 'exp_${DateTime.now().millisecondsSinceEpoch}',
+      id: generateUuidV4(),
       title: title.trim().isEmpty ? category : title.trim(),
       category: category,
       amount: amount,
@@ -774,14 +784,8 @@ class AppProvider extends ChangeNotifier {
     );
     _expenses.insert(0, newExp);
     _saveExpenses();
-    ApiService.createExpense(
-      title: newExp.title,
-      category: newExp.category,
-      amount: newExp.amount,
-      isIncome: newExp.isIncome,
-      paymentMethod: newExp.paymentMethod,
-    );
     notifyListeners();
+    ApiService.createExpenseOnBackend(newExp);
   }
 
   void editExpense(
@@ -813,6 +817,7 @@ class AppProvider extends ChangeNotifier {
     _expenses.removeWhere((e) => e.id == id);
     _saveExpenses();
     notifyListeners();
+    ApiService.deleteExpenseOnBackend(id);
   }
 
   void applyReferralCode(String code) {
@@ -925,6 +930,8 @@ class AppProvider extends ChangeNotifier {
           }
           _isLoggedIn = true;
           await _loadUserIsolatedData();
+          syncSubscription();
+          syncAllDataFromCloud();
         } catch (err) {
           _isLoggedIn = false;
         }
@@ -932,6 +939,8 @@ class AppProvider extends ChangeNotifier {
         _isLoggedIn = true;
         _user.token = sessionToken;
         await _loadUserIsolatedData();
+        syncSubscription();
+        syncAllDataFromCloud();
       } else {
         _isLoggedIn = false;
       }
@@ -965,10 +974,7 @@ class AppProvider extends ChangeNotifier {
       final List decoded = jsonDecode(tasksJson);
       _tasks = decoded.map((item) => Task.fromJson(item)).toList();
     } else {
-      _tasks = [
-        Task(id: 't_1', title: 'Complete Math Assignment 3', category: 'Studies', dueDateLabel: 'Today', dueDate: DateTime.now(), priority: 1),
-        Task(id: 't_2', title: 'Review System Architecture Notes', category: 'Career Roadmap', dueDateLabel: 'Tomorrow', dueDate: DateTime.now().add(const Duration(days: 1)), priority: 2),
-      ];
+      _tasks = [];
     }
 
     // 3. Calendar Events
@@ -986,10 +992,7 @@ class AppProvider extends ChangeNotifier {
       final List decoded = jsonDecode(expensesJson);
       _expenses = decoded.map((item) => ExpenseTransaction.fromJson(item)).toList();
     } else {
-      _expenses = [
-        ExpenseTransaction(id: 'exp_1', title: 'Course Textbook', category: 'Education', amount: 450.0, date: DateTime.now()),
-        ExpenseTransaction(id: 'exp_2', title: 'Study Cafe Coffee', category: 'Food & Dining', amount: 120.0, date: DateTime.now()),
-      ];
+      _expenses = [];
     }
 
     // 5. Subjects & Studies
@@ -998,10 +1001,7 @@ class AppProvider extends ChangeNotifier {
       final List decoded = jsonDecode(subjectsJson);
       _subjects = decoded.map((item) => StudySubject.fromJson(item)).toList();
     } else {
-      _subjects = [
-        StudySubject(id: 'sub_1', name: 'Computer Science', code: 'CS101', colorHex: 0xFF0D5CE5, progress: 0.65),
-        StudySubject(id: 'sub_2', name: 'Applied Mathematics', code: 'MATH201', colorHex: 0xFF10B981, progress: 0.40),
-      ];
+      _subjects = [];
     }
 
     final studyItemsJson = prefs.getString('saved_study_items_$uid');
@@ -1009,11 +1009,7 @@ class AppProvider extends ChangeNotifier {
       final List decoded = jsonDecode(studyItemsJson);
       _studyItems = decoded.map((item) => StudyItem.fromJson(item)).toList();
     } else {
-      _studyItems = [
-        StudyItem(id: 'st_1', subjectId: 'sub_1', subjectName: 'Computer Science', title: 'Algorithm Complexity Analysis', type: 'ASSIGNMENT', dueDate: DateTime.now().add(const Duration(days: 2)), isCompleted: true),
-        StudyItem(id: 'st_2', subjectId: 'sub_1', subjectName: 'Computer Science', title: 'Data Structures Lab Exam', type: 'EXAM', dueDate: DateTime.now().add(const Duration(days: 5)), isCompleted: false),
-        StudyItem(id: 'st_3', subjectId: 'sub_2', subjectName: 'Applied Mathematics', title: 'Differential Equations Chapter 4', type: 'TASK', dueDate: DateTime.now().add(const Duration(days: 1)), isCompleted: false),
-      ];
+      _studyItems = [];
     }
 
     // 6. Journal / Notes
@@ -1022,16 +1018,7 @@ class AppProvider extends ChangeNotifier {
       final List decoded = jsonDecode(journalJson);
       _journalEntries = decoded.map((item) => JournalEntry.fromJson(item)).toList();
     } else {
-      _journalEntries = [
-        JournalEntry(
-          id: 'j_1',
-          title: 'Deep Work & Consistency Reflections',
-          content: 'Today was highly focused. Managed 3 solid pomodoro sessions on system design. Energy levels were consistent throughout the morning.',
-          date: DateTime.now().subtract(const Duration(days: 1)),
-          mood: 'Productive',
-          tags: ['Study', 'Focus', 'Reflections'],
-        ),
-      ];
+      _journalEntries = [];
     }
 
     // 7. Career Roadmap
@@ -1040,14 +1027,7 @@ class AppProvider extends ChangeNotifier {
       final List decoded = jsonDecode(careerJson);
       _careerNodes = decoded.map((item) => CareerRoadmapNode.fromJson(item)).toList();
     } else {
-      _careerNodes = [
-        CareerRoadmapNode(id: 'cr_1', section: 'GOAL', title: 'Software Engineering Specialist', description: 'Master full-stack architecture & distributed systems', status: 'IN_PROGRESS', order: 1),
-        CareerRoadmapNode(id: 'cr_2', section: 'SKILLS', title: 'Flutter & Dart Mastery', description: 'Advanced state management, custom painting, animations', status: 'COMPLETED', order: 2),
-        CareerRoadmapNode(id: 'cr_3', section: 'LEARNING', title: 'Cloud & Database Optimization', description: 'PostgreSQL indexing, Redis caching, microservices', status: 'IN_PROGRESS', order: 3),
-        CareerRoadmapNode(id: 'cr_4', section: 'PROJECTS', title: 'Production OS Dashboard', description: 'Full offline-first mobile and desktop productivity application', status: 'IN_PROGRESS', order: 4),
-        CareerRoadmapNode(id: 'cr_5', section: 'EXPERIENCE', title: 'Open Source Contributor', description: 'Contribute to top developer tooling ecosystems', status: 'PLANNED', order: 5),
-        CareerRoadmapNode(id: 'cr_6', section: 'OPPORTUNITY', title: 'Full-Stack Software Engineer', description: 'Top product engineering company', status: 'PLANNED', order: 6),
-      ];
+      _careerNodes = [];
     }
 
     // 8. Notifications
@@ -1058,22 +1038,27 @@ class AppProvider extends ChangeNotifier {
     } else {
       _notifications = [];
     }
+
+    _recalculateMetrics();
+    syncAllDataFromCloud();
   }
 
   // Task Operations
-  void addTask(String title, String category, String dueDateLabel, {int priority = 1}) {
+  void addTask(String title, String category, String dueDateLabel, {int priority = 1, DateTime? dueDate, String? dueTime}) {
     final newTask = Task(
-      id: 't_${DateTime.now().millisecondsSinceEpoch}',
+      id: generateUuidV4(),
       title: title,
       category: category,
       dueDateLabel: dueDateLabel,
-      dueDate: DateTime.now(),
+      dueDate: dueDate ?? DateTime.now(),
+      dueTime: dueTime ?? '05:00 PM',
       priority: priority,
     );
     _tasks.add(newTask);
     _saveTasks();
     _recalculateMetrics();
     notifyListeners();
+    ApiService.createTaskOnBackend(newTask);
   }
 
   void editTask(String taskId, String newTitle, int priority, String category) {
@@ -1084,6 +1069,7 @@ class AppProvider extends ChangeNotifier {
       _tasks[index].category = category;
       _saveTasks();
       notifyListeners();
+      ApiService.updateTaskOnBackend(_tasks[index]);
     }
   }
 
@@ -1101,6 +1087,7 @@ class AppProvider extends ChangeNotifier {
       _saveTasks();
       _recalculateMetrics();
       notifyListeners();
+      ApiService.updateTaskOnBackend(_tasks[index]);
     }
   }
 
@@ -1109,6 +1096,7 @@ class AppProvider extends ChangeNotifier {
     _saveTasks();
     _recalculateMetrics();
     notifyListeners();
+    ApiService.deleteTaskOnBackend(taskId);
   }
 
   // Calendar Event Operations
@@ -1137,7 +1125,7 @@ class AppProvider extends ChangeNotifier {
     );
 
     final newEvent = CalendarEvent(
-      id: 'ev_${DateTime.now().millisecondsSinceEpoch}',
+      id: generateUuidV4(),
       title: title,
       description: description,
       startTime: startDT,
@@ -1149,6 +1137,7 @@ class AppProvider extends ChangeNotifier {
     _calendarEvents.add(newEvent);
     _saveEvents();
     notifyListeners();
+    ApiService.createCalendarEventOnBackend(newEvent);
   }
 
   void toggleEventCompletion(String eventId) {
@@ -1165,6 +1154,7 @@ class AppProvider extends ChangeNotifier {
     _calendarEvents.removeWhere((e) => e.id == eventId);
     _saveEvents();
     notifyListeners();
+    ApiService.deleteCalendarEventOnBackend(eventId);
   }
 
   // Notification Operations
@@ -1274,5 +1264,100 @@ class AppProvider extends ChangeNotifier {
       final jsonList = _goals.map((g) => g.toJson()).toList();
       await prefs.setString('saved_goals_${_user.id}', jsonEncode(jsonList));
     } catch (_) {}
+  }
+
+  // ---------------------------------------------------------------------------
+  // CLOUD PERSISTENCE & SYNCHRONIZATION SYSTEM
+  // ---------------------------------------------------------------------------
+  bool _isSyncing = false;
+  bool get isSyncing => _isSyncing;
+
+  Future<void> syncAllDataFromCloud() async {
+    if (!_isLoggedIn) return;
+    _isSyncing = true;
+    try {
+      await Future.wait([
+        syncTasksFromCloud(),
+        syncHabitsFromCloud(),
+        syncExpensesFromCloud(),
+        syncSubjectsFromCloud(),
+        syncCalendarEventsFromCloud(),
+        fetchGoalsFromBackend(),
+      ]);
+    } catch (e) {
+      debugPrint('[AppProvider] Error during syncAllDataFromCloud: $e');
+    } finally {
+      _isSyncing = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> syncTasksFromCloud() async {
+    try {
+      final remoteTasks = await ApiService.fetchTasks();
+      if (remoteTasks.isNotEmpty) {
+        _tasks = remoteTasks;
+        _saveTasks();
+        _recalculateMetrics();
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('[AppProvider] syncTasksFromCloud error: $e');
+    }
+  }
+
+  Future<void> syncHabitsFromCloud() async {
+    try {
+      final remoteHabits = await ApiService.fetchHabits();
+      if (remoteHabits.isNotEmpty) {
+        _habits = remoteHabits;
+        for (final h in _habits) {
+          h.recalculateStreaks(DateTime.now());
+        }
+        _saveHabits();
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('[AppProvider] syncHabitsFromCloud error: $e');
+    }
+  }
+
+  Future<void> syncExpensesFromCloud() async {
+    try {
+      final remoteExpenses = await ApiService.fetchExpenses();
+      if (remoteExpenses.isNotEmpty) {
+        _expenses = remoteExpenses;
+        _saveExpenses();
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('[AppProvider] syncExpensesFromCloud error: $e');
+    }
+  }
+
+  Future<void> syncSubjectsFromCloud() async {
+    try {
+      final remoteSubjects = await ApiService.fetchSubjects();
+      if (remoteSubjects.isNotEmpty) {
+        _subjects = remoteSubjects;
+        _saveSubjects();
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('[AppProvider] syncSubjectsFromCloud error: $e');
+    }
+  }
+
+  Future<void> syncCalendarEventsFromCloud() async {
+    try {
+      final remoteEvents = await ApiService.fetchCalendarEvents();
+      if (remoteEvents.isNotEmpty) {
+        _calendarEvents = remoteEvents;
+        _saveEvents();
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('[AppProvider] syncCalendarEventsFromCloud error: $e');
+    }
   }
 }

@@ -1,3 +1,14 @@
+import 'dart:math';
+
+String generateUuidV4() {
+  final rnd = Random.secure();
+  final bytes = List<int>.generate(16, (_) => rnd.nextInt(256));
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  final hex = bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join('');
+  return '${hex.substring(0, 8)}-${hex.substring(8, 12)}-${hex.substring(12, 16)}-${hex.substring(16, 20)}-${hex.substring(20, 32)}';
+}
+
 class Habit {
   final String id;
   String title;
@@ -256,20 +267,26 @@ class Task {
       };
 
   factory Task.fromJson(Map<String, dynamic> json) => Task(
-        id: json['id'] ?? 't_1',
+        id: json['id']?.toString() ?? generateUuidV4(),
         title: json['title'] ?? 'Untitled Task',
         category: json['category'] ?? 'Studies',
         tag: json['tag'] ?? 'STUDY',
-        dueDateLabel: json['dueDateLabel'] ?? 'Today',
+        dueDateLabel: json['dueDateLabel'] ?? json['due_date_label'] ?? 'Today',
         dueDate: json['dueDate'] != null
             ? (DateTime.tryParse(json['dueDate'].toString()) ?? DateTime.now())
-            : DateTime.now(),
-        dueTime: json['dueTime'] ?? '05:00 PM',
+            : (json['due_date'] != null
+                ? (DateTime.tryParse(json['due_date'].toString()) ?? DateTime.now())
+                : (json['due_at'] != null
+                    ? (DateTime.tryParse(json['due_at'].toString()) ?? DateTime.now())
+                    : DateTime.now())),
+        dueTime: json['dueTime'] ?? json['due_time'] ?? '05:00 PM',
         priority: json['priority'] != null ? int.tryParse(json['priority'].toString()) ?? 1 : 1,
-        isCompleted: json['isCompleted'] ?? false,
+        isCompleted: json['isCompleted'] ?? json['is_completed'] ?? false,
         completedDate: json['completedDate'] != null
             ? DateTime.tryParse(json['completedDate'].toString())
-            : null,
+            : (json['completed_at'] != null
+                ? DateTime.tryParse(json['completed_at'].toString())
+                : null),
       );
 }
 
@@ -312,19 +329,23 @@ class CalendarEvent {
       };
 
   factory CalendarEvent.fromJson(Map<String, dynamic> json) => CalendarEvent(
-        id: json['id'] ?? 'ev_${DateTime.now().millisecondsSinceEpoch}',
+        id: json['id']?.toString() ?? generateUuidV4(),
         title: json['title'] ?? 'Event',
         description: json['description'] ?? '',
         startTime: json['startTime'] != null
             ? (DateTime.tryParse(json['startTime'].toString()) ?? DateTime.now())
-            : DateTime.now(),
+            : (json['start_time'] != null
+                ? (DateTime.tryParse(json['start_time'].toString()) ?? DateTime.now())
+                : DateTime.now()),
         endTime: json['endTime'] != null
             ? (DateTime.tryParse(json['endTime'].toString()) ?? DateTime.now().add(const Duration(hours: 1)))
-            : DateTime.now().add(const Duration(hours: 1)),
+            : (json['end_time'] != null
+                ? (DateTime.tryParse(json['end_time'].toString()) ?? DateTime.now().add(const Duration(hours: 1)))
+                : DateTime.now().add(const Duration(hours: 1))),
         location: json['location'] ?? 'Workspace A',
         type: json['type'] ?? 'Focus Session',
         category: json['category'] ?? 'General',
-        isCompleted: json['isCompleted'] ?? false,
+        isCompleted: json['isCompleted'] ?? json['is_completed'] ?? false,
       );
 }
 
@@ -402,17 +423,21 @@ class ExpenseTransaction {
 
   factory ExpenseTransaction.fromJson(Map<String, dynamic> json) =>
       ExpenseTransaction(
-        id: json['id'] ?? 'exp_${DateTime.now().millisecondsSinceEpoch}',
-        title: json['title'] ?? 'Expense',
+        id: json['id']?.toString() ?? generateUuidV4(),
+        title: json['title'] ?? json['description'] ?? 'Expense',
         category: json['category'] ?? 'General',
         amount: (json['amount'] is num)
             ? (json['amount'] as num).toDouble()
             : double.tryParse(json['amount']?.toString() ?? '0') ?? 0.0,
-        isIncome: json['isIncome'] ?? false,
+        isIncome: json['isIncome'] ?? json['is_income'] ?? (json['transaction_type'] == 'income'),
         date: json['date'] != null
             ? (DateTime.tryParse(json['date'].toString()) ?? DateTime.now())
-            : DateTime.now(),
-        paymentMethod: json['paymentMethod'] ?? 'UPI',
+            : (json['occurred_at'] != null
+                ? (DateTime.tryParse(json['occurred_at'].toString()) ?? DateTime.now())
+                : (json['expense_date'] != null
+                    ? (DateTime.tryParse(json['expense_date'].toString()) ?? DateTime.now())
+                    : DateTime.now())),
+        paymentMethod: json['paymentMethod'] ?? json['payment_method'] ?? 'UPI',
       );
 }
 
@@ -522,16 +547,26 @@ class StudySubject {
         'topics': topics,
       };
 
+  static int _parseColor(dynamic c) {
+    if (c == null) return 0xFF0D5CE5;
+    if (c is int) return c;
+    final s = c.toString().trim();
+    if (s.startsWith('#')) {
+      final hex = s.substring(1);
+      if (hex.length == 6) return int.tryParse('FF$hex', radix: 16) ?? 0xFF0D5CE5;
+      if (hex.length == 8) return int.tryParse(hex, radix: 16) ?? 0xFF0D5CE5;
+    }
+    return int.tryParse(s) ?? 0xFF0D5CE5;
+  }
+
   factory StudySubject.fromJson(Map<String, dynamic> json) => StudySubject(
-        id: json['id'] ?? 'sub_${DateTime.now().millisecondsSinceEpoch}',
-        name: json['name'] ?? 'Subject',
+        id: json['id']?.toString() ?? generateUuidV4(),
+        name: json['name'] ?? json['subject_name'] ?? 'Subject',
         code: json['code'] ?? '',
-        colorHex: json['colorHex'] != null
-            ? int.tryParse(json['colorHex'].toString()) ?? 0xFF0D5CE5
-            : 0xFF0D5CE5,
+        colorHex: _parseColor(json['colorHex'] ?? json['color'] ?? json['color_hex']),
         progress: (json['progress'] is num)
             ? (json['progress'] as num).toDouble()
-            : 0.0,
+            : double.tryParse(json['progress']?.toString() ?? '0.0') ?? 0.0,
         topics: (json['topics'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
       );
 }
