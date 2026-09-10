@@ -386,6 +386,9 @@ class DatabaseManager {
     if (idx === -1) return null;
 
     const user = db.user_profiles[idx];
+    if (updates.username) {
+      user.username = updates.username.trim().toLowerCase();
+    }
     if (updates.name) {
       user.name = updates.name;
       user.display_name = updates.name;

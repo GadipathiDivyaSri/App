@@ -370,6 +370,13 @@ async function handleApiRequest(req, res) {
     let existingUser = DatabaseManager.getUserByEmailOrUsername(cleanEmail);
     let newUser;
     if (existingUser) {
+      const targetUsername = stored.username || (username ? username.trim().toLowerCase() : null);
+      if (targetUsername) {
+        existingUser.username = targetUsername;
+        existingUser.name = targetUsername[0].toUpperCase() + targetUsername.slice(1);
+        existingUser.display_name = existingUser.name;
+        DatabaseManager.updateUser(existingUser.id, { username: targetUsername, name: existingUser.name });
+      }
       newUser = existingUser;
     } else {
       newUser = DatabaseManager.createUser({
