@@ -173,6 +173,7 @@ CREATE TABLE IF NOT EXISTS public.habits (
     color VARCHAR(30) DEFAULT '#10B981',
     color_hex VARCHAR(30) DEFAULT '#10B981',
     streak_count INT DEFAULT 0,
+    streak_day INT DEFAULT 0,
     best_streak INT DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -185,6 +186,8 @@ CREATE TABLE IF NOT EXISTS public.habit_completions (
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     habit_id UUID NOT NULL REFERENCES public.habits(id) ON DELETE CASCADE,
     completion_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    completed_date DATE DEFAULT CURRENT_DATE,
+    date DATE DEFAULT CURRENT_DATE,
     completed_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     status VARCHAR(30) DEFAULT 'completed',
     notes TEXT,
@@ -208,6 +211,8 @@ CREATE TABLE IF NOT EXISTS public.expenses (
     is_income BOOLEAN DEFAULT FALSE,
     payment_method VARCHAR(50) DEFAULT 'UPI',
     occurred_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    expense_date TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    date TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -230,6 +235,7 @@ CREATE TABLE IF NOT EXISTS public.subjects (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
+    subject_name TEXT,
     code VARCHAR(50),
     color VARCHAR(30) DEFAULT '#0D5CE5',
     color_hex VARCHAR(30) DEFAULT '#0D5CE5',
@@ -245,7 +251,9 @@ CREATE TABLE IF NOT EXISTS public.study_units (
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     subject_id UUID NOT NULL REFERENCES public.subjects(id) ON DELETE CASCADE,
     unit_number INT DEFAULT 1,
+    order_num INT DEFAULT 1,
     title TEXT NOT NULL,
+    unit_title TEXT,
     status VARCHAR(30) DEFAULT 'pending',
     is_completed BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -257,8 +265,10 @@ CREATE TABLE IF NOT EXISTS public.study_items (
     subject_id UUID NOT NULL REFERENCES public.subjects(id) ON DELETE CASCADE,
     unit_id UUID REFERENCES public.study_units(id) ON DELETE CASCADE,
     title TEXT NOT NULL,
+    type VARCHAR(30) DEFAULT 'TASK',
     status VARCHAR(30) DEFAULT 'pending',
     is_completed BOOLEAN DEFAULT FALSE,
+    due_date TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -272,9 +282,12 @@ CREATE TABLE IF NOT EXISTS public.goals (
     description TEXT,
     tier VARCHAR(30) DEFAULT 'short',
     timeframe VARCHAR(30) DEFAULT 'short',
+    section VARCHAR(50) DEFAULT 'GOAL',
     category VARCHAR(50) DEFAULT 'General',
     is_completed BOOLEAN DEFAULT FALSE,
     target_date DATE,
+    aligned_purpose TEXT,
+    progress_percentage NUMERIC(5, 2) DEFAULT 0.00,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -287,6 +300,7 @@ CREATE TABLE IF NOT EXISTS public.milestones (
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     goal_id UUID NOT NULL REFERENCES public.goals(id) ON DELETE CASCADE,
     title TEXT NOT NULL,
+    milestone_title TEXT,
     description TEXT,
     is_completed BOOLEAN DEFAULT FALSE,
     target_date DATE,
@@ -302,9 +316,12 @@ CREATE TABLE IF NOT EXISTS public.calendar_events (
     title TEXT NOT NULL,
     description TEXT,
     event_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    date DATE DEFAULT CURRENT_DATE,
     start_time TIME DEFAULT '10:00:00',
     end_time TIME DEFAULT '11:00:00',
     category VARCHAR(50) DEFAULT 'General',
+    event_type VARCHAR(50) DEFAULT 'General',
+    location VARCHAR(255) DEFAULT 'Workspace A',
     is_all_day BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -318,9 +335,11 @@ CREATE TABLE IF NOT EXISTS public.journal_entries (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     title TEXT NOT NULL,
-    content_ciphertext TEXT NOT NULL,
+    content_ciphertext TEXT DEFAULT '',
+    content TEXT DEFAULT '',
     mood VARCHAR(30) DEFAULT 'neutral',
     entry_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    date DATE DEFAULT CURRENT_DATE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
