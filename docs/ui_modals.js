@@ -50,7 +50,7 @@
       overlay.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
 
       overlay.innerHTML = `
-        <div style="background: ${isDark ? '#0A1128' : '#FFF9F0'}; color: ${isDark ? '#F1F5F9' : '#1E293B'}; width: 90%; max-width: 480px; border-radius: 28px; padding: 28px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.45); border: 1px solid ${isDark ? '#1E2F5E' : '#E2E8F0'}; position: relative; max-height: 90vh; overflow-y: auto;">
+        <div style="background: ${isDark ? '#0A1128' : '#FFF9F0'}; color: ${isDark ? '#F1F5F9' : '#1E293B'}; width: 90%; max-width: 460px; border-radius: 28px; padding: 28px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.45); border: 1px solid ${isDark ? '#1E2F5E' : '#E2E8F0'}; position: relative; max-height: 90vh; overflow-y: auto;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <div style="display: flex; align-items: center; gap: 10px;">
               <div style="background: #0D5CE5; color: white; width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px;">⏱️</div>
@@ -64,32 +64,21 @@
 
           <!-- Mode Selector -->
           <div style="display: flex; background: ${isDark ? '#101B3B' : '#E2E8F0'}; border-radius: 14px; padding: 4px; margin-bottom: 24px; border: 1px solid ${isDark ? '#1E2F5E' : 'transparent'};">
-            <button id="mode_pomodoro" style="flex: 1; padding: 10px; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; background: #0D5CE5; color: white;">🍅 Pomodoro</button>
-            <button id="mode_stopwatch" style="flex: 1; padding: 10px; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; background: transparent; color: #94A3B8;">⏱️ Stopwatch</button>
+            <button id="mode_pomodoro" style="flex: 1; padding: 10px; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; background: #0D5CE5; color: white;">Pomodoro (25m)</button>
+            <button id="mode_stopwatch" style="flex: 1; padding: 10px; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; background: transparent; color: #94A3B8;">Stopwatch</button>
           </div>
 
           <!-- Pomodoro View -->
           <div id="pomodoro_section" style="text-align: center;">
-            <div style="width: 190px; height: 190px; border-radius: 50%; border: 6px solid #0D5CE5; margin: 0 auto 20px; display: flex; flex-direction: column; justify-content: center; align-items: center; background: ${isDark ? '#101B3B' : '#FFFFFF'}; box-shadow: ${isDark ? '0 8px 24px rgba(13,92,229,0.18)' : 'none'};">
+            <div style="width: 190px; height: 190px; border-radius: 50%; border: 6px solid #0D5CE5; margin: 0 auto 24px; display: flex; flex-direction: column; justify-content: center; align-items: center; background: ${isDark ? '#101B3B' : '#FFFFFF'}; box-shadow: ${isDark ? '0 8px 24px rgba(13,92,229,0.18)' : 'none'};">
               <span id="pomo_timer_display" style="font-size: 42px; font-weight: 900; letter-spacing: -1px; font-variant-numeric: tabular-nums;">25:00</span>
               <span id="pomo_status" style="font-size: 12px; font-weight: 700; color: #38BDF8; letter-spacing: 1px; text-transform: uppercase;">DEEP FOCUS</span>
             </div>
-
-            <!-- Increment / Decrement Row for Pomodoro -->
-            <div style="display: flex; gap: 8px; justify-content: center; margin-bottom: 20px;">
-              <button id="btn_pomo_dec5" style="background: ${isDark ? '#162347' : '#E2E8F0'}; color: inherit; border: 1px solid ${isDark ? '#1E2F5E' : '#CBD5E1'}; border-radius: 10px; padding: 6px 12px; font-size: 13px; font-weight: 700; cursor: pointer;">➖ -5m</button>
-              <button id="btn_pomo_dec1" style="background: ${isDark ? '#162347' : '#E2E8F0'}; color: inherit; border: 1px solid ${isDark ? '#1E2F5E' : '#CBD5E1'}; border-radius: 10px; padding: 6px 12px; font-size: 13px; font-weight: 700; cursor: pointer;">➖ -1m</button>
-              <button id="btn_pomo_inc1" style="background: ${isDark ? '#162347' : '#E2E8F0'}; color: inherit; border: 1px solid ${isDark ? '#1E2F5E' : '#CBD5E1'}; border-radius: 10px; padding: 6px 12px; font-size: 13px; font-weight: 700; cursor: pointer;">➕ +1m</button>
-              <button id="btn_pomo_inc5" style="background: ${isDark ? '#162347' : '#E2E8F0'}; color: inherit; border: 1px solid ${isDark ? '#1E2F5E' : '#CBD5E1'}; border-radius: 10px; padding: 6px 12px; font-size: 13px; font-weight: 700; cursor: pointer;">➕ +5m</button>
+            <div style="display: flex; gap: 12px; justify-content: center;">
+              <button id="btn_pomo_start" style="background: #0D5CE5; color: white; border: none; padding: 12px 28px; border-radius: 14px; font-size: 15px; font-weight: 800; cursor: pointer;">Start</button>
+              <button id="btn_pomo_reset" style="background: ${isDark ? '#162347' : '#E2E8F0'}; color: ${isDark ? '#F1F5F9' : '#1E293B'}; border: 1px solid ${isDark ? '#1E2F5E' : 'transparent'}; padding: 12px 20px; border-radius: 14px; font-size: 15px; font-weight: 700; cursor: pointer;">Reset</button>
             </div>
-
-            <!-- Play / Pause / Reset Row -->
-            <div style="display: flex; gap: 12px; justify-content: center; margin-bottom: 16px;">
-              <button id="btn_pomo_start" style="background: #0D5CE5; color: white; border: none; padding: 12px 28px; border-radius: 14px; font-size: 15px; font-weight: 800; cursor: pointer;">▶ START</button>
-              <button id="btn_pomo_reset" style="background: ${isDark ? '#162347' : '#E2E8F0'}; color: ${isDark ? '#F1F5F9' : '#1E293B'}; border: 1px solid ${isDark ? '#1E2F5E' : 'transparent'}; padding: 12px 20px; border-radius: 14px; font-size: 15px; font-weight: 700; cursor: pointer;">🔄 RESET</button>
-            </div>
-
-            <div style="display: flex; gap: 8px; justify-content: center; margin-top: 14px;">
+            <div style="display: flex; gap: 8px; justify-content: center; margin-top: 18px;">
               <button class="pomo_preset" data-min="15" style="background: transparent; border: 1px solid ${isDark ? '#1E2F5E' : '#CBD5E1'}; color: inherit; border-radius: 8px; padding: 4px 10px; font-size: 12px; cursor: pointer;">15m</button>
               <button class="pomo_preset" data-min="25" style="background: #0D5CE5; color: white; border: 1px solid #0D5CE5; border-radius: 8px; padding: 4px 10px; font-size: 12px; cursor: pointer;">25m</button>
               <button class="pomo_preset" data-min="45" style="background: transparent; border: 1px solid ${isDark ? '#1E2F5E' : '#CBD5E1'}; color: inherit; border-radius: 8px; padding: 4px 10px; font-size: 12px; cursor: pointer;">45m</button>
@@ -99,23 +88,13 @@
 
           <!-- Stopwatch View -->
           <div id="stopwatch_section" style="display: none; text-align: center;">
-            <div style="margin: 20px 0 16px;">
+            <div style="margin: 20px 0 24px;">
               <span id="sw_timer_display" style="font-size: 46px; font-weight: 900; letter-spacing: -1px; font-variant-numeric: tabular-nums;">00:00.00</span>
             </div>
-
-            <!-- Increment / Decrement Row for Stopwatch -->
-            <div style="display: flex; gap: 8px; justify-content: center; margin-bottom: 20px;">
-              <button id="btn_sw_dec5" style="background: ${isDark ? '#162347' : '#E2E8F0'}; color: inherit; border: 1px solid ${isDark ? '#1E2F5E' : '#CBD5E1'}; border-radius: 10px; padding: 6px 12px; font-size: 13px; font-weight: 700; cursor: pointer;">➖ -5m</button>
-              <button id="btn_sw_dec1" style="background: ${isDark ? '#162347' : '#E2E8F0'}; color: inherit; border: 1px solid ${isDark ? '#1E2F5E' : '#CBD5E1'}; border-radius: 10px; padding: 6px 12px; font-size: 13px; font-weight: 700; cursor: pointer;">➖ -1m</button>
-              <button id="btn_sw_inc1" style="background: ${isDark ? '#162347' : '#E2E8F0'}; color: inherit; border: 1px solid ${isDark ? '#1E2F5E' : '#CBD5E1'}; border-radius: 10px; padding: 6px 12px; font-size: 13px; font-weight: 700; cursor: pointer;">➕ +1m</button>
-              <button id="btn_sw_inc5" style="background: ${isDark ? '#162347' : '#E2E8F0'}; color: inherit; border: 1px solid ${isDark ? '#1E2F5E' : '#CBD5E1'}; border-radius: 10px; padding: 6px 12px; font-size: 13px; font-weight: 700; cursor: pointer;">➕ +5m</button>
-            </div>
-
-            <!-- Play / Pause / Lap / Reset Row -->
-            <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px;">
-              <button id="btn_sw_start" style="background: #0D5CE5; color: white; border: none; padding: 12px 24px; border-radius: 14px; font-size: 15px; font-weight: 800; cursor: pointer;">▶ START</button>
-              <button id="btn_sw_lap" style="background: #10B981; color: white; border: none; padding: 12px 18px; border-radius: 14px; font-size: 15px; font-weight: 700; cursor: pointer;">⏱️ LAP</button>
-              <button id="btn_sw_reset" style="background: ${isDark ? '#162347' : '#E2E8F0'}; color: ${isDark ? '#F1F5F9' : '#1E293B'}; border: 1px solid ${isDark ? '#1E2F5E' : 'transparent'}; padding: 12px 18px; border-radius: 14px; font-size: 15px; font-weight: 700; cursor: pointer;">🔄 RESET</button>
+            <div style="display: flex; gap: 12px; justify-content: center; margin-bottom: 20px;">
+              <button id="btn_sw_start" style="background: #0D5CE5; color: white; border: none; padding: 12px 28px; border-radius: 14px; font-size: 15px; font-weight: 800; cursor: pointer;">Start</button>
+              <button id="btn_sw_lap" style="background: #10B981; color: white; border: none; padding: 12px 20px; border-radius: 14px; font-size: 15px; font-weight: 700; cursor: pointer;">Lap</button>
+              <button id="btn_sw_reset" style="background: ${isDark ? '#162347' : '#E2E8F0'}; color: ${isDark ? '#F1F5F9' : '#1E293B'}; border: 1px solid ${isDark ? '#1E2F5E' : 'transparent'}; padding: 12px 20px; border-radius: 14px; font-size: 15px; font-weight: 700; cursor: pointer;">Reset</button>
             </div>
             <div id="sw_laps_container" style="max-height: 140px; overflow-y: auto; text-align: left; background: ${isDark ? '#101B3B' : '#F1F5F9'}; border: 1px solid ${isDark ? '#1E2F5E' : 'transparent'}; border-radius: 12px; padding: 10px;">
               <div style="font-size: 12px; color: #94A3B8; text-align: center;">No laps recorded yet</div>
@@ -162,30 +141,15 @@
         };
       }
 
-      // Pomodoro Controls & Adjustments
       var btnPomoStart = overlay.querySelector('#btn_pomo_start');
       var btnPomoReset = overlay.querySelector('#btn_pomo_reset');
       var pomoDisplay = overlay.querySelector('#pomo_timer_display');
-
-      function adjustPomoTime(deltaSec) {
-        remainingSec = Math.max(10, remainingSec + deltaSec);
-        if (pomoDisplay) pomoDisplay.innerText = formatTime(remainingSec);
-      }
-
-      var btnPomoDec5 = overlay.querySelector('#btn_pomo_dec5');
-      var btnPomoDec1 = overlay.querySelector('#btn_pomo_dec1');
-      var btnPomoInc1 = overlay.querySelector('#btn_pomo_inc1');
-      var btnPomoInc5 = overlay.querySelector('#btn_pomo_inc5');
-      if (btnPomoDec5) btnPomoDec5.onclick = function() { adjustPomoTime(-300); };
-      if (btnPomoDec1) btnPomoDec1.onclick = function() { adjustPomoTime(-60); };
-      if (btnPomoInc1) btnPomoInc1.onclick = function() { adjustPomoTime(60); };
-      if (btnPomoInc5) btnPomoInc5.onclick = function() { adjustPomoTime(300); };
 
       if (btnPomoStart && btnPomoReset && pomoDisplay) {
         btnPomoStart.onclick = function() {
           if (!isRunning) {
             isRunning = true;
-            btnPomoStart.innerText = '⏸ PAUSE';
+            btnPomoStart.innerText = 'Pause';
             btnPomoStart.style.background = '#EF4444';
             timerId = setInterval(function() {
               if (remainingSec > 0) {
@@ -194,7 +158,7 @@
               } else {
                 clearInterval(timerId);
                 isRunning = false;
-                btnPomoStart.innerText = '▶ START';
+                btnPomoStart.innerText = 'Start';
                 btnPomoStart.style.background = '#0D5CE5';
                 alert('🎉 Focus Session Completed! Take a well-deserved break.');
               }
@@ -202,7 +166,7 @@
           } else {
             clearInterval(timerId);
             isRunning = false;
-            btnPomoStart.innerText = '▶ RESUME';
+            btnPomoStart.innerText = 'Resume';
             btnPomoStart.style.background = '#0D5CE5';
           }
         };
@@ -212,7 +176,7 @@
           isRunning = false;
           remainingSec = totalSec;
           pomoDisplay.innerText = formatTime(remainingSec);
-          btnPomoStart.innerText = '▶ START';
+          btnPomoStart.innerText = 'Start';
           btnPomoStart.style.background = '#0D5CE5';
         };
       }
@@ -233,63 +197,47 @@
             clearInterval(timerId);
             isRunning = false;
             if (btnPomoStart) {
-              btnPomoStart.innerText = '▶ START';
+              btnPomoStart.innerText = 'Start';
               btnPomoStart.style.background = '#0D5CE5';
             }
           }
         };
       });
 
-      // Stopwatch Controls & Adjustments
       var btnSwStart = overlay.querySelector('#btn_sw_start');
       var btnSwLap = overlay.querySelector('#btn_sw_lap');
       var btnSwReset = overlay.querySelector('#btn_sw_reset');
       var swDisplay = overlay.querySelector('#sw_timer_display');
       var swLapsContainer = overlay.querySelector('#sw_laps_container');
 
-      function adjustSwTime(deltaMs) {
-        swElapsed = Math.max(0, swElapsed + deltaMs);
-        if (swDisplay) swDisplay.innerText = formatStopwatch(swElapsed);
-      }
-
-      var btnSwDec5 = overlay.querySelector('#btn_sw_dec5');
-      var btnSwDec1 = overlay.querySelector('#btn_sw_dec1');
-      var btnSwInc1 = overlay.querySelector('#btn_sw_inc1');
-      var btnSwInc5 = overlay.querySelector('#btn_sw_inc5');
-      if (btnSwDec5) btnSwDec5.onclick = function() { adjustSwTime(-30000); };
-      if (btnSwDec1) btnSwDec1.onclick = function() { adjustSwTime(-6000); };
-      if (btnSwInc1) btnSwInc1.onclick = function() { adjustSwTime(6000); };
-      if (btnSwInc5) btnSwInc5.onclick = function() { adjustSwTime(30000); };
-
-      if (btnSwStart && btnSwReset && swDisplay) {
+      if (btnSwStart && btnSwLap && btnSwReset && swDisplay && swLapsContainer) {
         btnSwStart.onclick = function() {
           if (!swRunning) {
             swRunning = true;
-            btnSwStart.innerText = '⏸ PAUSE';
+            btnSwStart.innerText = 'Pause';
             btnSwStart.style.background = '#EF4444';
+            var startTime = Date.now() - swElapsed;
             swTimerId = setInterval(function() {
-              swElapsed += 1;
-              swDisplay.innerText = formatStopwatch(swElapsed);
+              swElapsed = Date.now() - startTime;
+              swDisplay.innerText = formatStopwatch(Math.floor(swElapsed / 10));
             }, 10);
           } else {
             clearInterval(swTimerId);
             swRunning = false;
-            btnSwStart.innerText = '▶ RESUME';
+            btnSwStart.innerText = 'Resume';
             btnSwStart.style.background = '#0D5CE5';
           }
         };
 
-        if (btnSwLap) {
-          btnSwLap.onclick = function() {
-            if (swElapsed === 0) return;
-            swLaps.unshift(formatStopwatch(swElapsed));
-            if (swLapsContainer) {
-              swLapsContainer.innerHTML = swLaps.map(function(lap, idx) {
-                return '<div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid ' + (isDark ? '#1E2F5E' : '#E2E8F0') + '; font-size:13px; font-variant-numeric: tabular-nums;"><span>Lap ' + (swLaps.length - idx) + '</span><span style="font-weight:700;">' + lap + '</span></div>';
-              }).join('');
-            }
-          };
-        }
+        btnSwLap.onclick = function() {
+          if (swRunning) {
+            var lapTime = formatStopwatch(Math.floor(swElapsed / 10));
+            swLaps.unshift({ num: swLaps.length + 1, time: lapTime });
+            swLapsContainer.innerHTML = swLaps.map(function(l) {
+              return '<div style="display:flex; justify-content:space-between; padding:4px 8px; border-bottom:1px solid ' + (isDark ? '#1E2F5E' : '#CBD5E1') + '; font-size:12px;"><span>Lap ' + l.num + '</span><strong>' + l.time + '</strong></div>';
+            }).join('');
+          }
+        };
 
         btnSwReset.onclick = function() {
           clearInterval(swTimerId);
@@ -297,18 +245,20 @@
           swElapsed = 0;
           swLaps = [];
           swDisplay.innerText = '00:00.00';
-          btnSwStart.innerText = '▶ START';
+          btnSwStart.innerText = 'Start';
           btnSwStart.style.background = '#0D5CE5';
-          if (swLapsContainer) {
-            swLapsContainer.innerHTML = '<div style="font-size: 12px; color: #94A3B8; text-align: center;">No laps recorded yet</div>';
-          }
+          swLapsContainer.innerHTML = '<div style="font-size: 12px; color: #94A3B8; text-align: center;">No laps recorded yet</div>';
         };
       }
-    } catch(e) {
-      console.error('[FOCUS MODAL ERROR]:', e);
+    } catch(err) {
+      console.error('[FOCUS MODAL ERROR]:', err);
     }
   };
-window._openGoalPyramidModal = function(ctx) {
+
+  // =========================================================================
+  // 2. GOALS MANAGEMENT MODAL (Clean State: 0 Predefined Goals & Navy Blue)
+  // =========================================================================
+  window._openGoalsModal = window._openGoalPyramidModal = function(ctx) {
     try {
       var isDark = getIsDark(ctx);
       var existingOverlay = document.getElementById('wrindha_goal_modal');
