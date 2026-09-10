@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../models/models.dart';
+import '../providers/app_provider.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import 'login_screen.dart';
@@ -27,10 +30,23 @@ class _AuthEntryScreenState extends State<AuthEntryScreen> {
     if (!mounted) return;
 
     if (hasSession) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
-      );
+      try {
+        final userMap = await ApiService.getSessionUser();
+        final token = await ApiService.getSessionToken();
+        if (userMap != null && mounted) {
+          final provider = Provider.of<AppProvider>(context, listen: false);
+          final user = UserProfile.fromJson(userMap);
+          if (token != null) user.token = token;
+          provider.setUser(user);
+        }
+      } catch (_) {}
+
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
+        );
+      }
     } else {
       setState(() {
         _isCheckingSession = false;
@@ -192,6 +208,46 @@ class _AuthEntryScreenState extends State<AuthEntryScreen> {
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
                         ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // [ Explore Dashboard as Guest ] Button
+                  SizedBox(
+                    height: 46,
+                    child: TextButton(
+                      style: TextButton.styleFrom(
+                        foregroundColor: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                      ),
+                      onPressed: () {
+                        final provider = Provider.of<AppProvider>(context, listen: false);
+                        provider.setUser(UserProfile(
+                          id: 'guest_user',
+                          name: 'Guest Explorer',
+                          contact: '',
+                          focusScore: 85,
+                          activeStreak: 1,
+                          isPremium: false,
+                        ));
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
+                        );
+                      },
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Explore Dashboard as Guest',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          SizedBox(width: 4),
+                          Icon(Icons.arrow_forward_rounded, size: 16),
+                        ],
                       ),
                     ),
                   ),
