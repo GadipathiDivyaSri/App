@@ -29,27 +29,49 @@ try {
 }
 
 const supabaseUrl = process.env.SUPABASE_URL || '';
-let rawKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || process.env.SUPABASE_ANON_KEY || '';
+let rawKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || '';
 if (rawKey.includes('=')) {
   const parts = rawKey.split('=');
   rawKey = parts[parts.length - 1].trim();
 }
 const supabaseKey = rawKey.trim();
 
+let rawAnonKey = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_KEY || '';
+if (rawAnonKey.includes('=')) {
+  const parts = rawAnonKey.split('=');
+  rawAnonKey = parts[parts.length - 1].trim();
+}
+const supabaseAnonKey = rawAnonKey.trim();
+
 const isConfigured = supabaseUrl.startsWith('https://') && supabaseKey.startsWith('eyJ') && !supabaseUrl.includes('your-project-ref');
 
 let supabase = null;
+let anonClient = null;
+
 if (isConfigured && createClient) {
   try {
     supabase = createClient(supabaseUrl, supabaseKey, {
       auth: {
-        autoRefreshToken: true,
+        autoRefreshToken: false,
         persistSession: false,
       },
     });
     console.log('✅ Supabase PostgreSQL Database connected successfully: ' + supabaseUrl);
   } catch (err) {
-    console.warn('⚠️ Could not initialize Supabase client:', err.message);
+    console.warn('⚠️ Could not initialize Supabase admin client:', err.message);
+  }
+
+  try {
+    if (supabaseAnonKey) {
+      anonClient = createClient(supabaseUrl, supabaseAnonKey, {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      });
+    }
+  } catch (err) {
+    console.warn('⚠️ Could not initialize Supabase anon client:', err.message);
   }
 } else {
   console.log('ℹ️ Supabase not yet configured. Using local persistent JSON storage (backend/data/db.json).');
@@ -57,5 +79,6 @@ if (isConfigured && createClient) {
 
 module.exports = {
   supabase,
+  anonClient: anonClient || supabase,
   isConfigured: () => !!supabase,
 };

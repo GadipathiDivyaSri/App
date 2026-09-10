@@ -10,6 +10,7 @@ class ApiService {
 
   static const String _tokenKey = 'wrindha_auth_token';
   static const String _userKey = 'wrindha_auth_user';
+  static String? currentOtpSession;
 
   /// Helper to generate authenticated HTTP headers
   static Future<Map<String, String>> _getHeaders() async {
@@ -43,14 +44,15 @@ class ApiService {
             'referralCode': referralCode.trim().toUpperCase(),
         }),
       );
-      return jsonDecode(response.body);
+      final data = jsonDecode(response.body);
+      if (data['otpSession'] != null) {
+        currentOtpSession = data['otpSession'];
+      }
+      return data;
     } catch (e) {
-      // Resilient fallback for Web / GitHub Pages where local backend is unreachable
-      final liveOtp = (100000 + DateTime.now().millisecondsSinceEpoch % 900000).toString();
       return {
-        'success': true,
-        'message': '6-digit verification code sent to ${email.trim().toLowerCase()}',
-        'testOtp': liveOtp,
+        'success': false,
+        'message': 'Network error: Unable to connect to server ($e)',
       };
     }
   }
@@ -96,6 +98,7 @@ class ApiService {
     required String email,
     required String otp,
     String? referralCode,
+    String? otpSession,
   }) async {
     try {
       final response = await http.post(
@@ -106,6 +109,7 @@ class ApiService {
           'email': email.trim().toLowerCase(),
           'otp': otp.trim(),
           if (referralCode != null) 'referralCode': referralCode.trim(),
+          'otpSession': otpSession ?? currentOtpSession,
         }),
       );
       final data = jsonDecode(response.body);
@@ -114,25 +118,7 @@ class ApiService {
       }
       return data;
     } catch (e) {
-      if (otp.trim().length == 6) {
-        final mockUser = {
-          'id': 'u_${DateTime.now().millisecondsSinceEpoch}',
-          'name': username ?? email.split('@')[0],
-          'email': email.trim().toLowerCase(),
-          'focusScore': 85,
-          'activeStreak': 1,
-          'isPremium': false,
-        };
-        final mockToken = 'mock_jwt_token_${DateTime.now().millisecondsSinceEpoch}';
-        await saveSession(mockToken, mockUser);
-        return {
-          'success': true,
-          'message': 'Account verified successfully!',
-          'token': mockToken,
-          'user': mockUser,
-        };
-      }
-      return {'success': false, 'message': 'Unable to connect to authentication server. Please check your internet connection or try again.'};
+      return {'success': false, 'message': 'Unable to connect to authentication server: $e'};
     }
   }
 
@@ -171,14 +157,13 @@ class ApiService {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': email.trim().toLowerCase(), 'type': 'register'}),
       );
-      return jsonDecode(response.body);
+      final data = jsonDecode(response.body);
+      if (data['otpSession'] != null) {
+        currentOtpSession = data['otpSession'];
+      }
+      return data;
     } catch (e) {
-      final liveOtp = (100000 + DateTime.now().millisecondsSinceEpoch % 900000).toString();
-      return {
-        'success': true,
-        'message': 'New verification code sent to ${email.trim().toLowerCase()}',
-        'testOtp': liveOtp,
-      };
+      return {'success': false, 'message': 'Network error: Unable to connect to server ($e)'};
     }
   }
 
@@ -191,12 +176,7 @@ class ApiService {
       );
       return jsonDecode(response.body);
     } catch (e) {
-      final liveOtp = (100000 + DateTime.now().millisecondsSinceEpoch % 900000).toString();
-      return {
-        'success': true,
-        'message': 'Password reset code sent to ${email.trim().toLowerCase()}',
-        'testOtp': liveOtp,
-      };
+      return {'success': false, 'message': 'Network error: Unable to connect to server ($e)'};
     }
   }
 
@@ -215,14 +195,7 @@ class ApiService {
       );
       return jsonDecode(response.body);
     } catch (e) {
-      if (otp.trim().length == 6) {
-        return {
-          'success': true,
-          'message': 'OTP verified successfully.',
-          'resetToken': 'reset_token_${DateTime.now().millisecondsSinceEpoch}',
-        };
-      }
-      return {'success': false, 'message': 'Invalid verification code.'};
+      return {'success': false, 'message': 'Network error: Unable to connect to server ($e)'};
     }
   }
 
@@ -245,10 +218,7 @@ class ApiService {
       );
       return jsonDecode(response.body);
     } catch (e) {
-      return {
-        'success': true,
-        'message': 'Password reset successfully. You can now login with your new password.',
-      };
+      return {'success': false, 'message': 'Network error: Unable to connect to server ($e)'};
     }
   }
 
@@ -271,27 +241,7 @@ class ApiService {
       }
       return data;
     } catch (e) {
-      // Resilient fallback for Web / GitHub Pages
-      if (username.trim().isNotEmpty && password.isNotEmpty) {
-        final cleanUsername = username.trim().toLowerCase();
-        final fallbackUser = {
-          'id': 'u_${cleanUsername.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '')}',
-          'username': cleanUsername,
-          'email': cleanUsername.contains('@') ? cleanUsername : '$cleanUsername@wrindhaos.in',
-          'name': username,
-          'focusScore': 85,
-          'activeStreak': 1,
-          'isPremium': false,
-        };
-        final token = 'wrindha_token_${DateTime.now().millisecondsSinceEpoch}';
-        await saveSession(token, fallbackUser);
-        return {
-          'success': true,
-          'token': token,
-          'user': fallbackUser,
-        };
-      }
-      return {'success': false, 'message': 'Network error: Unable to connect to server.'};
+      return {'success': false, 'message': 'Network error: Unable to connect to server ($e)'};
     }
   }
 
