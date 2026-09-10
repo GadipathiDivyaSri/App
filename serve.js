@@ -67,14 +67,21 @@ function createServerInstance() {
       reqUrl = reqUrl.substring(15) || '/';
     }
 
-    let filePath = path.join(dir, reqUrl === '/' ? 'index.html' : reqUrl);
+    let targetRel = reqUrl === '/' ? 'index.html' : reqUrl;
+    let filePath = path.join(dir, 'docs', targetRel);
+    if (!fs.existsSync(filePath)) {
+      filePath = path.join(dir, targetRel);
+    }
 
     if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
       if (path.extname(reqUrl)) {
         res.writeHead(404, { 'Content-Type': 'text/plain' });
         return res.end('Not Found');
       }
-      filePath = path.join(dir, 'index.html');
+      filePath = path.join(dir, 'docs', 'index.html');
+      if (!fs.existsSync(filePath)) {
+        filePath = path.join(dir, 'index.html');
+      }
     }
 
     const ext = path.extname(filePath).toLowerCase();

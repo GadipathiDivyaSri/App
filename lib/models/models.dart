@@ -280,7 +280,7 @@ class Task {
                     ? (DateTime.tryParse(json['due_at'].toString()) ?? DateTime.now())
                     : DateTime.now())),
         dueTime: json['dueTime'] ?? json['due_time'] ?? '05:00 PM',
-        priority: json['priority'] != null ? int.tryParse(json['priority'].toString()) ?? 1 : 1,
+        priority: json['priority'] != null ? (int.tryParse(json['priority'].toString()) ?? 1) : 1,
         isCompleted: json['isCompleted'] ?? json['is_completed'] ?? false,
         completedDate: json['completedDate'] != null
             ? DateTime.tryParse(json['completedDate'].toString())
@@ -429,7 +429,9 @@ class ExpenseTransaction {
         amount: (json['amount'] is num)
             ? (json['amount'] as num).toDouble()
             : double.tryParse(json['amount']?.toString() ?? '0') ?? 0.0,
-        isIncome: json['isIncome'] ?? json['is_income'] ?? (json['transaction_type'] == 'income'),
+        isIncome: json['isIncome'] ??
+            json['is_income'] ??
+            (json['transaction_type'] == 'income'),
         date: json['date'] != null
             ? (DateTime.tryParse(json['date'].toString()) ?? DateTime.now())
             : (json['occurred_at'] != null
