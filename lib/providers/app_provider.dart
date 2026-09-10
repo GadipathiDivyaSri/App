@@ -54,6 +54,9 @@ class AppProvider extends ChangeNotifier {
   bool _isLoggedIn = false;
   bool get isLoggedIn => _isLoggedIn;
 
+  bool _isInitialized = false;
+  bool get isInitialized => _isInitialized;
+
   UserProfile _user = UserProfile(
     id: 'u_1',
     name: 'Student User',
@@ -132,6 +135,7 @@ class AppProvider extends ChangeNotifier {
       );
     }
     _isLoggedIn = true;
+    _saveSession();
     syncSubscription();
     notifyListeners();
   }
@@ -685,9 +689,14 @@ class AppProvider extends ChangeNotifier {
 
   Future<void> _saveSession() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('saved_session_user', jsonEncode(_user.toJson()));
+    final userJson = jsonEncode(_user.toJson());
+    await prefs.setString('saved_session_user', userJson);
+    await prefs.setString('wrindha_auth_user', userJson);
+    await prefs.setString('wrindha_secure_user_profile', userJson);
     if (_user.token != null) {
       await prefs.setString('saved_session_token', _user.token!);
+      await prefs.setString('wrindha_auth_token', _user.token!);
+      await prefs.setString('wrindha_secure_jwt_token', _user.token!);
     }
   }
 
@@ -900,27 +909,40 @@ class AppProvider extends ChangeNotifier {
       }
 
       // Load Active Session
-      final sessionUserJson = prefs.getString('saved_session_user');
-      final sessionToken = prefs.getString('saved_session_token');
+      final sessionUserJson = prefs.getString('saved_session_user') ??
+          prefs.getString('wrindha_auth_user') ??
+          prefs.getString('wrindha_secure_user_profile');
+      final sessionToken = prefs.getString('saved_session_token') ??
+          prefs.getString('wrindha_auth_token') ??
+          prefs.getString('wrindha_secure_jwt_token');
+
       if (sessionUserJson != null && sessionUserJson.isNotEmpty) {
         try {
           final Map<String, dynamic> userMap = jsonDecode(sessionUserJson);
           _user = UserProfile.fromJson(userMap);
-          if (sessionToken != null) {
+          if (sessionToken != null && sessionToken.isNotEmpty) {
             _user.token = sessionToken;
           }
           _isLoggedIn = true;
+          await _loadUserIsolatedData();
         } catch (err) {
           _isLoggedIn = false;
         }
+      } else if (sessionToken != null && sessionToken.isNotEmpty) {
+        _isLoggedIn = true;
+        _user.token = sessionToken;
+        await _loadUserIsolatedData();
       } else {
         _isLoggedIn = false;
       }
 
       _recalculateMetrics();
+      _isInitialized = true;
       notifyListeners();
     } catch (e) {
       debugPrint('Error loading saved state: $e');
+      _isInitialized = true;
+      notifyListeners();
     }
   }
 
@@ -1192,11 +1214,6 @@ class AppProvider extends ChangeNotifier {
   }
 
   // Persistence helpers
-  Future<void> _saveTheme() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('isDarkTheme', _themeMode == ThemeMode.dark);
-  }
-
   Future<void> _saveHabits() async {
     final prefs = await SharedPreferences.getInstance();
     final jsonList = _habits.map((h) => h.toJson()).toList();

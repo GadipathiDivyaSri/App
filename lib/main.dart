@@ -35,6 +35,21 @@ class ProductivityApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = Provider.of<AppProvider>(context);
 
+    if (!provider.isInitialized) {
+      return MaterialApp(
+        title: 'Wrindha OS',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.lightTheme,
+        themeMode: ThemeMode.light,
+        home: const Scaffold(
+          backgroundColor: Color(0xFFFFF9F0),
+          body: Center(
+            child: CircularProgressIndicator(color: Color(0xFF2A85FF)),
+          ),
+        ),
+      );
+    }
+
     return MaterialApp(
       title: 'Wrindha OS',
       debugShowCheckedModeBanner: false,

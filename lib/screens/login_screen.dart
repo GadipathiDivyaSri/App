@@ -57,6 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (res['success'] == true) {
       final userMap = res['user'];
+      final token = res['token'] ?? res['sessionToken'];
       if (userMap != null) {
         final provider = Provider.of<AppProvider>(context, listen: false);
         provider.setUser(UserProfile(
@@ -66,7 +67,8 @@ class _LoginScreenState extends State<LoginScreen> {
           focusScore: userMap['focusScore'] ?? 85,
           activeStreak: userMap['activeStreak'] ?? 1,
           isPremium: userMap['isPremium'] ?? false,
-          referralCode: 'WRINDHA2026',
+          referralCode: userMap['referralCode'] ?? 'WRINDHA2026',
+          token: token,
         ));
       }
 

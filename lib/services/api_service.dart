@@ -389,19 +389,30 @@ class ApiService {
   static Future<void> saveSession(String token, Map<String, dynamic>? user) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_tokenKey, token);
+    await prefs.setString('saved_session_token', token);
+    await prefs.setString('wrindha_secure_jwt_token', token);
     if (user != null) {
-      await prefs.setString(_userKey, jsonEncode(user));
+      final userCopy = Map<String, dynamic>.from(user);
+      userCopy['token'] ??= token;
+      final userJson = jsonEncode(userCopy);
+      await prefs.setString(_userKey, userJson);
+      await prefs.setString('saved_session_user', userJson);
+      await prefs.setString('wrindha_secure_user_profile', userJson);
     }
   }
 
   static Future<String?> getSessionToken() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_tokenKey);
+    return prefs.getString(_tokenKey) ??
+        prefs.getString('saved_session_token') ??
+        prefs.getString('wrindha_secure_jwt_token');
   }
 
   static Future<Map<String, dynamic>?> getSessionUser() async {
     final prefs = await SharedPreferences.getInstance();
-    final str = prefs.getString(_userKey);
+    final str = prefs.getString(_userKey) ??
+        prefs.getString('saved_session_user') ??
+        prefs.getString('wrindha_secure_user_profile');
     if (str == null) return null;
     try {
       return jsonDecode(str);
