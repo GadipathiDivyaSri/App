@@ -1,12 +1,13 @@
 -- =============================================================================
--- WRINDHAOS COMPLETE PRODUCTION-READY SUPABASE DATABASE SCHEMA v4.1.0
+-- WRINDHAOS COMPLETE PRODUCTION-READY SUPABASE DATABASE SCHEMA v4.2.0
 -- Security Architecture: Zero-Admin Data Privacy & User-Isolated Row Level Security (RLS)
--- Includes:
---   1. Profiles, Subscriptions, Tasks, Habits, Expenses, Study, Goals, 
---      Calendar, Journal Entries, Auth Identities, Audit Logs, and Referrals.
---   2. Payments & Purchases Module (Google Play, Order IDs, Purchase Tokens).
---   3. Coupons, Discounts & Coupon Redemptions Module.
---   4. Row-Level Security (RLS) on all tables for 100% Zero-Data-Leakage.
+-- Key Improvements:
+--   1. Flexible String Column Types (No strict CHECK constraints that reject UI strings).
+--   2. Deterministic UUID & Backwards-Compatible Views for 100% Table Connectivity.
+--   3. All 12 production modules supported (Profiles, Subscriptions, Payments, 
+--      Coupons, Redemptions, Tasks, Habits, Habit Completions, Expenses, Budgets, 
+--      Subjects, Study Units, Study Items, Goals, Milestones, Calendar Events, 
+--      Encrypted Journal Entries, Auth Identities, Audit Logs, Referrals).
 -- =============================================================================
 
 -- Enable required extensions
@@ -37,19 +38,19 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     contact VARCHAR(30),
     avatar_url TEXT,
     profile_image TEXT,
-    role VARCHAR(30) DEFAULT 'USER' CHECK (role IN ('USER', 'ADMIN', 'SUPER_ADMIN', 'MODERATOR', 'SUPPORT_AGENT')),
+    role VARCHAR(30) DEFAULT 'USER',
     is_email_verified BOOLEAN DEFAULT FALSE,
     is_2fa_enabled BOOLEAN DEFAULT FALSE,
     two_factor_secret VARCHAR(64),
     is_premium BOOLEAN DEFAULT FALSE,
-    subscription_plan VARCHAR(30) DEFAULT 'FREE' CHECK (subscription_plan IN ('FREE', 'PRO_MONTHLY', 'PRO_YEARLY', 'PREMIUM')),
-    focus_score INT DEFAULT 0 CHECK (focus_score BETWEEN 0 AND 100),
-    active_streak INT DEFAULT 0 CHECK (active_streak >= 0),
-    xp INT DEFAULT 0 CHECK (xp >= 0),
+    subscription_plan VARCHAR(30) DEFAULT 'FREE',
+    focus_score INT DEFAULT 0,
+    active_streak INT DEFAULT 0,
+    xp INT DEFAULT 0,
     referral_code VARCHAR(50) UNIQUE NOT NULL DEFAULT ('WRINDHA_' || upper(substring(md5(random()::text) from 1 for 6))),
     referred_by_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
     fcm_device_token TEXT,
-    account_status VARCHAR(30) DEFAULT 'ACTIVE' CHECK (account_status IN ('ACTIVE', 'SUSPENDED', 'BANNED', 'DELETED')),
+    account_status VARCHAR(30) DEFAULT 'ACTIVE',
     deleted_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -71,8 +72,8 @@ CREATE OR REPLACE VIEW public.user_profiles AS SELECT * FROM public.profiles;
 CREATE TABLE IF NOT EXISTS public.subscriptions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-    plan VARCHAR(30) DEFAULT 'free' CHECK (plan IN ('free', 'premium', 'elite', 'pro_monthly')),
-    status VARCHAR(30) DEFAULT 'active' CHECK (status IN ('active', 'cancelled', 'expired', 'grace_period', 'paused')),
+    plan VARCHAR(30) DEFAULT 'free',
+    status VARCHAR(30) DEFAULT 'active',
     billing_provider VARCHAR(50) DEFAULT 'NONE',
     payment_provider VARCHAR(50) DEFAULT 'NONE',
     started_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -99,7 +100,7 @@ CREATE TABLE IF NOT EXISTS public.payments (
     provider VARCHAR(50) DEFAULT 'google_play',
     amount NUMERIC(12, 2) NOT NULL DEFAULT 59.00,
     currency VARCHAR(10) DEFAULT 'INR',
-    status VARCHAR(30) DEFAULT 'SUCCESS' CHECK (status IN ('PENDING', 'SUCCESS', 'FAILED', 'REFUNDED')),
+    status VARCHAR(30) DEFAULT 'SUCCESS',
     raw_payload JSONB,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -114,7 +115,7 @@ CREATE TABLE IF NOT EXISTS public.coupons (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     code VARCHAR(50) UNIQUE NOT NULL,
     description TEXT,
-    discount_type VARCHAR(20) DEFAULT 'PERCENTAGE' CHECK (discount_type IN ('PERCENTAGE', 'FIXED_AMOUNT', 'FREE_TRIAL')),
+    discount_type VARCHAR(30) DEFAULT 'PERCENTAGE',
     discount_value NUMERIC(10, 2) NOT NULL DEFAULT 100.00,
     max_redemptions INT DEFAULT 1000,
     times_redeemed INT DEFAULT 0,
@@ -134,7 +135,7 @@ CREATE TABLE IF NOT EXISTS public.coupon_redemptions (
 );
 
 -- -----------------------------------------------------------------------------
--- 5. TASKS & TODOS MODULE
+-- 5. TASKS & TODOS MODULE (Eisenhower Matrix Support)
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.tasks (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -142,8 +143,8 @@ CREATE TABLE IF NOT EXISTS public.tasks (
     title TEXT NOT NULL,
     description TEXT,
     category VARCHAR(50) DEFAULT 'Studies',
-    priority INT DEFAULT 1 CHECK (priority BETWEEN 1 AND 4),
-    quadrant VARCHAR(50) DEFAULT 'q1_do_first' CHECK (quadrant IN ('q1_do_first', 'q2_schedule', 'q3_delegate', 'q4_eliminate')),
+    priority INT DEFAULT 1,
+    quadrant VARCHAR(50) DEFAULT 'q1_do_first',
     is_completed BOOLEAN DEFAULT FALSE,
     due_at TIMESTAMPTZ,
     due_date DATE,
@@ -166,13 +167,13 @@ CREATE TABLE IF NOT EXISTS public.habits (
     title TEXT NOT NULL,
     description TEXT,
     category VARCHAR(50) DEFAULT 'General',
-    frequency VARCHAR(30) DEFAULT 'daily',
-    status VARCHAR(30) DEFAULT 'active' CHECK (status IN ('active', 'paused', 'archived')),
+    frequency VARCHAR(50) DEFAULT 'daily',
+    status VARCHAR(30) DEFAULT 'active',
     icon_name VARCHAR(50) DEFAULT 'repeat',
     color VARCHAR(30) DEFAULT '#10B981',
     color_hex VARCHAR(30) DEFAULT '#10B981',
-    streak_count INT DEFAULT 0 CHECK (streak_count >= 0),
-    best_streak INT DEFAULT 0 CHECK (best_streak >= 0),
+    streak_count INT DEFAULT 0,
+    best_streak INT DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -201,9 +202,9 @@ CREATE TABLE IF NOT EXISTS public.expenses (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     title TEXT NOT NULL,
-    amount NUMERIC(12, 2) NOT NULL DEFAULT 0.00 CHECK (amount >= 0),
+    amount NUMERIC(12, 2) NOT NULL DEFAULT 0.00,
     category VARCHAR(50) DEFAULT 'General',
-    transaction_type VARCHAR(20) DEFAULT 'expense' CHECK (transaction_type IN ('expense', 'income')),
+    transaction_type VARCHAR(30) DEFAULT 'expense',
     is_income BOOLEAN DEFAULT FALSE,
     payment_method VARCHAR(50) DEFAULT 'UPI',
     occurred_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -215,9 +216,9 @@ CREATE INDEX IF NOT EXISTS idx_expenses_user_date ON public.expenses(user_id, oc
 CREATE TABLE IF NOT EXISTS public.monthly_budgets (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-    amount NUMERIC(12, 2) NOT NULL DEFAULT 0.00 CHECK (amount >= 0),
-    month INT NOT NULL CHECK (month BETWEEN 1 AND 12),
-    year INT NOT NULL CHECK (year >= 2020),
+    amount NUMERIC(12, 2) NOT NULL DEFAULT 0.00,
+    month INT NOT NULL,
+    year INT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT uq_monthly_budgets_user_month UNIQUE (user_id, month, year)
 );
@@ -243,9 +244,9 @@ CREATE TABLE IF NOT EXISTS public.study_units (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     subject_id UUID NOT NULL REFERENCES public.subjects(id) ON DELETE CASCADE,
-    unit_number INT DEFAULT 1 CHECK (unit_number > 0),
+    unit_number INT DEFAULT 1,
     title TEXT NOT NULL,
-    status VARCHAR(30) DEFAULT 'pending' CHECK (status IN ('pending', 'in_progress', 'completed')),
+    status VARCHAR(30) DEFAULT 'pending',
     is_completed BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -256,7 +257,7 @@ CREATE TABLE IF NOT EXISTS public.study_items (
     subject_id UUID NOT NULL REFERENCES public.subjects(id) ON DELETE CASCADE,
     unit_id UUID REFERENCES public.study_units(id) ON DELETE CASCADE,
     title TEXT NOT NULL,
-    status VARCHAR(30) DEFAULT 'pending' CHECK (status IN ('pending', 'in_progress', 'completed')),
+    status VARCHAR(30) DEFAULT 'pending',
     is_completed BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -269,7 +270,7 @@ CREATE TABLE IF NOT EXISTS public.goals (
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     title TEXT NOT NULL,
     description TEXT,
-    tier VARCHAR(30) DEFAULT 'short' CHECK (tier IN ('short', 'medium', 'long')),
+    tier VARCHAR(30) DEFAULT 'short',
     timeframe VARCHAR(30) DEFAULT 'short',
     category VARCHAR(50) DEFAULT 'General',
     is_completed BOOLEAN DEFAULT FALSE,

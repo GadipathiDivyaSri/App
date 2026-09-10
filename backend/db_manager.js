@@ -51,10 +51,13 @@ function verifyPassword(password, stored) {
 }
 
 function ensureUuid(id) {
-  if (id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
-    return id;
+  if (!id) return crypto.randomUUID();
+  const str = String(id).trim();
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str)) {
+    return str;
   }
-  return crypto.randomUUID();
+  const hash = crypto.createHash('sha256').update(str).digest('hex');
+  return `${hash.substring(0, 8)}-${hash.substring(8, 12)}-4${hash.substring(13, 16)}-a${hash.substring(17, 20)}-${hash.substring(20, 32)}`;
 }
 
 // -----------------------------------------------------------------------------
