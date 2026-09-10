@@ -64,14 +64,14 @@ class HomeScreen extends StatelessWidget {
                   crossAxisCount: 2,
                   mainAxisSpacing: 16,
                   crossAxisSpacing: 16,
-                  childAspectRatio: 1.18,
+                  childAspectRatio: 1.06,
                   children: [
                     // 1. Personal Growth
                     _buildModuleCard(
                       context,
                       isDark: isDark,
                       icon: Icons.spa_outlined,
-                      title: 'Personal\nGrowth',
+                      title: 'Personal Growth',
                       subtitle: 'Habits & Streaks',
                       lightCardBg: AppTheme.pastelPersonalGrowth,
                       lightIconContainerColor: const Color(0xFF4A9B65),
@@ -213,7 +213,7 @@ class HomeScreen extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 13.0),
         decoration: BoxDecoration(
           color: isDark ? AppTheme.darkCardBg : lightCardBg,
           borderRadius: BorderRadius.circular(22),
@@ -244,13 +244,13 @@ class HomeScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
-                  width: 44,
-                  height: 44,
+                  width: 40,
+                  height: 40,
                   decoration: BoxDecoration(
                     color: isDark
                         ? AppTheme.darkIconBg
                         : lightIconContainerColor,
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(13),
                     boxShadow: [
                       if (!isDark)
                         BoxShadow(
@@ -262,7 +262,7 @@ class HomeScreen extends StatelessWidget {
                   ),
                   child: Icon(
                     icon,
-                    size: 22,
+                    size: 21,
                     color: isDark ? AppTheme.darkIconGlow : Colors.white,
                   ),
                 ),
@@ -313,14 +313,16 @@ class HomeScreen extends StatelessWidget {
               children: [
                 Text(
                   title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 15,
                     fontWeight: FontWeight.w800,
-                    height: 1.2,
+                    height: 1.15,
                     color: isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 3),
                 Text(
                   subtitle,
                   maxLines: 1,
