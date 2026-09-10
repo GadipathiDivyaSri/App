@@ -10,7 +10,8 @@ import 'main_navigation.dart';
 
 /// Authentication Entry / Welcome Screen for WrindhaOS
 class AuthEntryScreen extends StatefulWidget {
-  const AuthEntryScreen({super.key});
+  final bool initialIsSignUp;
+  const AuthEntryScreen({super.key, this.initialIsSignUp = false});
 
   @override
   State<AuthEntryScreen> createState() => _AuthEntryScreenState();
