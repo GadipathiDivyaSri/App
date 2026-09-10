@@ -274,11 +274,38 @@ async function syncToSupabase(entityType, record) {
         title: record.title || 'Event',
         description: record.description || null,
         event_date: d,
-        start_time: startTime,
-        end_time: endTime,
         category: record.category || record.event_type || record.eventType || 'General',
         is_all_day: !!(record.is_all_day ?? record.isAllDay),
       }, { onConflict: 'id' });
+    } else if (entityType === 'journal_entries' || entityType === 'journal') {
+      await supabase.from('journal_entries').upsert({
+        id: ensureUuid(record.id),
+        user_id: uid,
+        title: record.title || 'Journal Entry',
+        content_ciphertext: record.content_ciphertext || record.content || '',
+        mood: record.mood || 'neutral',
+        entry_date: record.entry_date || record.date || new Date().toISOString().split('T')[0],
+      }, { onConflict: 'id' });
+    } else if (entityType === 'payments') {
+      await supabase.from('payments').upsert({
+        id: ensureUuid(record.id),
+        user_id: uid,
+        order_id: record.order_id || record.orderId || null,
+        purchase_token: record.purchase_token || record.purchaseToken || null,
+        product_id: record.product_id || record.productId || 'wrindhaos_premium_monthly',
+        provider: record.provider || 'google_play',
+        amount: Number(record.amount) || 59.00,
+        currency: record.currency || 'INR',
+        status: record.status || 'SUCCESS',
+      }, { onConflict: 'id' });
+    } else if (entityType === 'coupons') {
+      await supabase.from('coupons').upsert({
+        id: ensureUuid(record.id),
+        code: (record.code || '').toUpperCase(),
+        discount_type: record.discount_type || 'PERCENTAGE',
+        discount_value: Number(record.discount_value) || 100.00,
+        is_active: record.is_active ?? true,
+      }, { onConflict: 'code' });
     }
   } catch (err) {
     console.warn(`[Supabase Sync Notice] (${entityType}):`, err.message);

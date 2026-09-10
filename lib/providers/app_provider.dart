@@ -1214,58 +1214,102 @@ class AppProvider extends ChangeNotifier {
   }
 
   // Persistence helpers
+  Future<void> _saveTheme() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('isDarkTheme', _themeMode == ThemeMode.dark);
+    } catch (e) {
+      debugPrint('Error saving theme: $e');
+    }
+  }
   Future<void> _saveHabits() async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonList = _habits.map((h) => h.toJson()).toList();
-    await prefs.setString('saved_habits_${_user.id}', jsonEncode(jsonList));
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonList = _habits.map((h) => h.toJson()).toList();
+      await prefs.setString('saved_habits_${_user.id}', jsonEncode(jsonList));
+    } catch (e) {
+      debugPrint('Error saving habits: $e');
+    }
   }
 
   Future<void> _saveTasks() async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonList = _tasks.map((t) => t.toJson()).toList();
-    await prefs.setString('saved_tasks_${_user.id}', jsonEncode(jsonList));
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonList = _tasks.map((t) => t.toJson()).toList();
+      await prefs.setString('saved_tasks_${_user.id}', jsonEncode(jsonList));
+    } catch (e) {
+      debugPrint('Error saving tasks: $e');
+    }
   }
 
   Future<void> _saveEvents() async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonList = _calendarEvents.map((e) => e.toJson()).toList();
-    await prefs.setString('saved_events_${_user.id}', jsonEncode(jsonList));
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonList = _calendarEvents.map((e) => e.toJson()).toList();
+      await prefs.setString('saved_events_${_user.id}', jsonEncode(jsonList));
+    } catch (e) {
+      debugPrint('Error saving events: $e');
+    }
   }
 
   Future<void> _saveNotifications() async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonList = _notifications.map((n) => n.toJson()).toList();
-    await prefs.setString('saved_notifications_${_user.id}', jsonEncode(jsonList));
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonList = _notifications.map((n) => n.toJson()).toList();
+      await prefs.setString('saved_notifications_${_user.id}', jsonEncode(jsonList));
+    } catch (e) {
+      debugPrint('Error saving notifications: $e');
+    }
   }
 
   Future<void> _saveExpenses() async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonList = _expenses.map((e) => e.toJson()).toList();
-    await prefs.setString('saved_expenses_${_user.id}', jsonEncode(jsonList));
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonList = _expenses.map((e) => e.toJson()).toList();
+      await prefs.setString('saved_expenses_${_user.id}', jsonEncode(jsonList));
+    } catch (e) {
+      debugPrint('Error saving expenses: $e');
+    }
   }
 
   Future<void> _saveSubjects() async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonList = _subjects.map((s) => s.toJson()).toList();
-    await prefs.setString('saved_subjects_${_user.id}', jsonEncode(jsonList));
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonList = _subjects.map((s) => s.toJson()).toList();
+      await prefs.setString('saved_subjects_${_user.id}', jsonEncode(jsonList));
+    } catch (e) {
+      debugPrint('Error saving subjects: $e');
+    }
   }
 
   Future<void> _saveStudyItems() async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonList = _studyItems.map((i) => i.toJson()).toList();
-    await prefs.setString('saved_study_items_${_user.id}', jsonEncode(jsonList));
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonList = _studyItems.map((i) => i.toJson()).toList();
+      await prefs.setString('saved_study_items_${_user.id}', jsonEncode(jsonList));
+    } catch (e) {
+      debugPrint('Error saving study items: $e');
+    }
   }
 
   Future<void> _saveJournalEntries() async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonList = _journalEntries.map((j) => j.toJson()).toList();
-    await prefs.setString('saved_journal_${_user.id}', jsonEncode(jsonList));
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonList = _journalEntries.map((j) => j.toJson()).toList();
+      await prefs.setString('saved_journal_${_user.id}', jsonEncode(jsonList));
+    } catch (e) {
+      debugPrint('Error saving journal entries: $e');
+    }
   }
 
   Future<void> _saveCareerNodes() async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonList = _careerNodes.map((n) => n.toJson()).toList();
-    await prefs.setString('saved_career_${_user.id}', jsonEncode(jsonList));
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonList = _careerNodes.map((n) => n.toJson()).toList();
+      await prefs.setString('saved_career_${_user.id}', jsonEncode(jsonList));
+    } catch (e) {
+      debugPrint('Error saving career nodes: $e');
+    }
   }
 
   Future<void> _saveGoals() async {
@@ -1273,6 +1317,8 @@ class AppProvider extends ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       final jsonList = _goals.map((g) => g.toJson()).toList();
       await prefs.setString('saved_goals_${_user.id}', jsonEncode(jsonList));
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Error saving goals: $e');
+    }
   }
 }

@@ -61,7 +61,7 @@ async function authenticateEmail(rawEmail, ipAddress, referredByCode = null) {
     try {
       // 1. Query existing user by normalized email
       const { data: existingUser, error: findError } = await dbClient
-        .from('users')
+        .from('profiles')
         .select('*')
         .eq('email', email)
         .maybeSingle();
@@ -77,7 +77,7 @@ async function authenticateEmail(rawEmail, ipAddress, referredByCode = null) {
         // Update last login timestamp
         const now = new Date().toISOString();
         await dbClient
-          .from('users')
+          .from('profiles')
           .update({ last_login_at: now, updated_at: now })
           .eq('id', user.id);
         user.last_login_at = now;
@@ -108,7 +108,7 @@ async function authenticateEmail(rawEmail, ipAddress, referredByCode = null) {
         };
 
         const { data: createdUser, error: insertError } = await dbClient
-          .from('users')
+          .from('profiles')
           .insert(newUserData)
           .select()
           .single();
@@ -117,7 +117,7 @@ async function authenticateEmail(rawEmail, ipAddress, referredByCode = null) {
           // Handle potential race condition / duplicate email on concurrent signup
           if (insertError.code === '23505' || insertError.message?.includes('duplicate key')) {
             const { data: concurrentUser } = await dbClient
-              .from('users')
+              .from('profiles')
               .select('*')
               .eq('email', email)
               .single();
@@ -318,7 +318,8 @@ async function authenticateGoogle(idToken, ipAddress) {
       updated_at: new Date().toISOString(),
       last_login_at: new Date().toISOString(),
     };
-  }
+
+    mockStore.users.set(userId, user);
 
     mockStore.identities.set(`google_${googleSub}`, {
       id: crypto.randomUUID(),

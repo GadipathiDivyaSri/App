@@ -263,10 +263,14 @@ class Task {
         dueDateLabel: json['dueDateLabel'] ?? 'Today',
         dueDate: json['dueDate'] != null
             ? (DateTime.tryParse(json['dueDate'].toString()) ?? DateTime.now())
-            : DateTime.now(),
+            : (json['due_at'] != null
+                ? (DateTime.tryParse(json['due_at'].toString()) ?? DateTime.now())
+                : (json['due_date'] != null
+                    ? (DateTime.tryParse(json['due_date'].toString()) ?? DateTime.now())
+                    : DateTime.now())),
         dueTime: json['dueTime'] ?? '05:00 PM',
-        priority: json['priority'] != null ? int.tryParse(json['priority'].toString()) ?? 1 : 1,
-        isCompleted: json['isCompleted'] ?? false,
+        priority: json['priority'] != null ? (int.tryParse(json['priority'].toString()) ?? 1) : 1,
+        isCompleted: json['isCompleted'] ?? json['is_completed'] ?? false,
         completedDate: json['completedDate'] != null
             ? DateTime.tryParse(json['completedDate'].toString())
             : null,
@@ -405,14 +409,18 @@ class ExpenseTransaction {
         id: json['id'] ?? 'exp_${DateTime.now().millisecondsSinceEpoch}',
         title: json['title'] ?? 'Expense',
         category: json['category'] ?? 'General',
-        amount: (json['amount'] is num)
-            ? (json['amount'] as num).toDouble()
-            : double.tryParse(json['amount']?.toString() ?? '0') ?? 0.0,
-        isIncome: json['isIncome'] ?? false,
+        amount: json['amount'] != null
+            ? (double.tryParse(json['amount'].toString()) ?? 0.0)
+            : 0.0,
+        isIncome: json['isIncome'] ??
+            json['is_income'] ??
+            (json['transaction_type'] == 'income'),
         date: json['date'] != null
             ? (DateTime.tryParse(json['date'].toString()) ?? DateTime.now())
-            : DateTime.now(),
-        paymentMethod: json['paymentMethod'] ?? 'UPI',
+            : (json['occurred_at'] != null
+                ? (DateTime.tryParse(json['occurred_at'].toString()) ?? DateTime.now())
+                : DateTime.now()),
+        paymentMethod: json['paymentMethod'] ?? json['payment_method'] ?? 'UPI',
       );
 }
 

@@ -1,7 +1,6 @@
 const msg91Service = require('../services/msg91Service');
 const otpService = require('../services/otpService');
 const authService = require('../services/authService');
-const otpService = require('../services/otpService');
 const { sendSuccess, sendError } = require('../utils/response');
 
 /**
