@@ -265,7 +265,7 @@ class TodoScreen extends StatelessWidget {
             onPressed: () {
               if (titleCtrl.text.trim().isNotEmpty) {
                 task.title = titleCtrl.text.trim();
-                provider.notifyListeners();
+                provider.updateTask(task);
                 Navigator.pop(ctx);
               }
             },

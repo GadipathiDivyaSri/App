@@ -1058,6 +1058,15 @@ class AppProvider extends ChangeNotifier {
     }
   }
 
+  void updateTask(Task task) {
+    final index = _tasks.indexWhere((t) => t.id == task.id);
+    if (index != -1) {
+      _tasks[index] = task;
+      _saveTasks();
+      notifyListeners();
+    }
+  }
+
   void toggleTaskCompletion(String taskId) {
     final index = _tasks.indexWhere((t) => t.id == taskId);
     if (index != -1) {
