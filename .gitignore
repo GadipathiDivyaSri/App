@@ -65,3 +65,7 @@ wrindhaos-backend/.env.*
 wrindhaos-backend/powershell.cmd
 wrindhaos-backend/powershell.bat
 
+
+WrindhaOS-v1.0.0-release.apk
+.flutter-plugins
+chrome_data/

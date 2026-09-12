@@ -1,36 +1,11 @@
-const fs = require('fs');
-const path = require('path');
 const crypto = require('crypto');
 const { supabase, isConfigured: isSupabaseConfigured } = require('./supabase_client');
 
-const isServerless = !!(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.LAMBDA_TASK_ROOT);
-const DB_DIR = isServerless ? path.join('/tmp', 'data') : path.join(__dirname, 'data');
-const DB_FILE = path.join(DB_DIR, 'db.json');
-const DB_TMP_FILE = path.join(DB_DIR, '.db.json.tmp');
-
-// Ensure DB directory exists
-if (!fs.existsSync(DB_DIR)) {
-  try {
-    fs.mkdirSync(DB_DIR, { recursive: true });
-  } catch (e) {
-    console.warn('[DB DIR CREATE ERROR]:', e.message);
-  }
-}
-
-// In serverless environments, initialize /tmp/data/db.json from bundled db.json if not present
-if (isServerless && !fs.existsSync(DB_FILE)) {
-  const bundledDb = path.join(__dirname, 'data', 'db.json');
-  if (fs.existsSync(bundledDb)) {
-    try {
-      fs.copyFileSync(bundledDb, DB_FILE);
-    } catch (e) {
-      console.warn('[DB INIT COPY ERROR]:', e.message);
-    }
-  }
-}
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://hkeyywopbkmlclsealbz.supabase.co';
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhrZXl5d29wYmttbGNsc2VhbGJ6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4ODI3MTIxOSwiZXhwIjoyMTAzODQ3MjE5fQ.rAJQONxcr0PgCT-59ZfsjoyojY4-_g5aTaH2zwIntAg';
 
 // -----------------------------------------------------------------------------
-// 1. CRYPTOGRAPHIC SECURITY HELPERS
+// 1. CRYPTOGRAPHIC SECURITY HELPERS & UUID GENERATOR
 // -----------------------------------------------------------------------------
 function hashPassword(password) {
   const salt = crypto.randomBytes(16).toString('hex');
@@ -61,302 +36,100 @@ function ensureUuid(id) {
 }
 
 // -----------------------------------------------------------------------------
-// 2. CANONICAL DATABASE SCHEMA TEMPLATE
+// 2. DIRECT SUPABASE POSTGRES HTTP REST FALLBACK CLIENT
 // -----------------------------------------------------------------------------
-function getEmptyDatabaseSchema() {
-  return {
-    user_profiles: [],
-    user_subscriptions: [],
-    tasks: [],
-    habits: [],
-    habit_logs: [],
-    expenses: [],
-    monthly_budgets: [],
-    goals: [],
-    milestones: [],
-    study_subjects: [],
-    study_units: [],
-    study_items: [],
-    calendar_events: [],
-    user_referrals: [],
-    payment_history: [],
-    coupons: [
-      { code: 'STUDENT100', discountPercent: 100, maxUses: 1000, plan: 'pro', active: true },
-      { code: 'PROVIP', discountPercent: 100, maxUses: 1000, plan: 'pro', active: true }
-    ],
-    coupon_usages: [],
-    auth_otps: {}
-  };
-}
-
-// -----------------------------------------------------------------------------
-// 3. PERSISTENT STORAGE ENGINE
-// -----------------------------------------------------------------------------
-function loadDatabase() {
+async function dbQuery(table, options = {}) {
+  const { method = 'GET', body = null, select = '*', match = {}, single = false } = options;
   try {
-    if (!fs.existsSync(DB_FILE)) {
-      const initial = getEmptyDatabaseSchema();
-      saveDatabase(initial);
-      return initial;
-    }
-    const raw = fs.readFileSync(DB_FILE, 'utf8');
-    const parsed = JSON.parse(raw);
-    const schema = getEmptyDatabaseSchema();
-    return Object.assign(schema, parsed);
-  } catch (err) {
-    console.error('[DB LOAD ERROR]:', err.message);
-    return getEmptyDatabaseSchema();
-  }
-}
-
-function saveDatabase(db) {
-  try {
-    const jsonStr = JSON.stringify(db, null, 2);
-    fs.writeFileSync(DB_TMP_FILE, jsonStr, 'utf8');
-    fs.renameSync(DB_TMP_FILE, DB_FILE);
-  } catch (err) {
-    console.error('[DB SAVE ERROR]:', err.message);
-  }
-}
-
-// -----------------------------------------------------------------------------
-// 4. SUPABASE CLOUD POSTGRESQL SYNC ENGINE (ALL 12 CLOUD TABLES)
-// -----------------------------------------------------------------------------
-async function syncToSupabase(entityType, record) {
-  if (!isSupabaseConfigured() || !supabase) return;
-  try {
-    const uid = ensureUuid(record.user_id || record.userId);
-    if (!uid) return;
-
-    if (entityType === 'profiles' || entityType === 'user_profiles') {
-      try {
-        const { data: authUser } = await supabase.auth.admin.getUserById(uid);
-        if (!authUser || !authUser.user) {
-          const userEmail = record.email || `${record.username || 'user'}_${Date.now()}@wrindhaos.in`;
-          await supabase.auth.admin.createUser({
-            id: uid,
-            email: userEmail,
-            email_confirm: true,
-            user_metadata: { username: record.username, name: record.name }
-          });
-        }
-      } catch (authCreateErr) {
-        console.warn('[Supabase Auth Provisioning Notice]:', authCreateErr.message);
+    if (supabase && typeof supabase.from === 'function') {
+      let query = supabase.from(table);
+      if (method === 'GET') {
+        query = query.select(select);
+        for (const [k, v] of Object.entries(match)) query = query.eq(k, v);
+        const { data, error } = single ? await query.maybeSingle() : await query;
+        if (error) throw error;
+        return data;
       }
-
-      await supabase.from('profiles').upsert({
-        id: uid,
-        username: record.username || 'user',
-        name: record.name || record.display_name || 'Student User',
-        email: record.email || '',
-        referral_code: record.referral_code || record.referralCode || 'WRINDHA',
-      }, { onConflict: 'id' });
-    } else if (entityType === 'subscriptions' || entityType === 'user_subscriptions') {
-      try {
-        const { data: existingSub } = await supabase.from('subscriptions').select('id').eq('user_id', uid).maybeSingle();
-        const subPayload = {
-          user_id: uid,
-          plan: (record.plan || '').toLowerCase() === 'pro' || (record.plan || '').toLowerCase() === 'premium' ? 'premium' : 'free',
-          status: record.status || 'active',
-          billing_provider: record.payment_provider || record.paymentProvider || 'NONE',
-          started_at: record.started_at || record.startedAt || new Date().toISOString(),
-        };
-        if (existingSub && existingSub.id) {
-          subPayload.id = existingSub.id;
-        }
-        await supabase.from('subscriptions').upsert(subPayload);
-      } catch (subUpsertErr) {
-        console.warn('[Supabase Subscription Sync Notice]:', subUpsertErr.message);
+      if (method === 'POST') {
+        const { data, error } = await query.upsert(body).select();
+        if (error) throw error;
+        return single ? (data ? data[0] : null) : data;
       }
-    } else if (entityType === 'tasks') {
-      await supabase.from('tasks').upsert({
-        id: ensureUuid(record.id),
-        user_id: uid,
-        title: record.title || 'Task',
-        description: record.description || null,
-        category: record.category || 'Studies',
-        priority: Number(record.priority) || 1,
-        is_completed: !!(record.is_completed ?? record.isCompleted),
-        due_at: record.due_date || record.dueDate || null,
-      }, { onConflict: 'id' });
-    } else if (entityType === 'habits') {
-      const freq = (record.frequency || 'daily').toLowerCase();
-      const validFreq = ['daily', 'weekly', 'custom'].includes(freq) ? freq : 'daily';
-      await supabase.from('habits').upsert({
-        id: ensureUuid(record.id),
-        user_id: uid,
-        title: record.title || 'Habit',
-        category: record.category || 'General',
-        frequency: validFreq,
-        status: record.status || 'active',
-        description: record.description || '',
-        icon_name: record.icon_name || record.iconName || 'repeat',
-        color: record.color_hex || record.colorHex || '#10B981',
-      }, { onConflict: 'id' });
-    } else if (entityType === 'habit_completions' || entityType === 'habit_logs') {
-      await supabase.from('habit_completions').upsert({
-        id: ensureUuid(record.id),
-        user_id: uid,
-        habit_id: ensureUuid(record.habit_id || record.habitId),
-        completion_date: record.completion_date || record.date || new Date().toISOString().split('T')[0],
-        status: 'completed',
-        completed_at: record.completed_at || new Date().toISOString(),
-      }, { onConflict: 'id' });
-    } else if (entityType === 'expenses') {
-      const isInc = !!(record.is_income ?? record.isIncome ?? (record.transaction_type === 'income'));
-      await supabase.from('expenses').upsert({
-        id: ensureUuid(record.id),
-        user_id: uid,
-        title: record.title || 'Expense',
-        amount: Number(record.amount) || 0,
-        category: record.category || 'General',
-        transaction_type: isInc ? 'income' : 'expense',
-        payment_method: record.payment_method || record.paymentMethod || 'UPI',
-        occurred_at: record.expense_date || record.occurred_at || record.date || new Date().toISOString(),
-      }, { onConflict: 'id' });
-    } else if (entityType === 'subjects' || entityType === 'study_subjects') {
-      await supabase.from('subjects').upsert({
-        id: ensureUuid(record.id),
-        user_id: uid,
-        name: record.name || record.subject_name || 'Subject',
-        code: record.code || '',
-        color: record.color_hex || record.colorHex || record.color || '#0D5CE5',
-      }, { onConflict: 'id' });
-    } else if (entityType === 'study_units') {
-      await supabase.from('study_units').upsert({
-        id: ensureUuid(record.id),
-        user_id: uid,
-        subject_id: ensureUuid(record.subject_id || record.subjectId),
-        unit_number: Number(record.unit_number || record.order) || 1,
-        title: record.title || record.unit_title || 'Unit',
-        status: (record.is_completed || record.isCompleted || record.status === 'completed') ? 'completed' : ((record.status === 'in_progress') ? 'in_progress' : 'pending'),
-      }, { onConflict: 'id' });
-    } else if (entityType === 'study_items') {
-      await supabase.from('study_items').upsert({
-        id: ensureUuid(record.id),
-        user_id: uid,
-        subject_id: ensureUuid(record.subject_id || record.subjectId),
-        title: record.title || 'Study Item',
-        status: (record.is_completed || record.isCompleted || record.status === 'completed') ? 'completed' : ((record.status === 'in_progress') ? 'in_progress' : 'pending'),
-      }, { onConflict: 'id' });
-    } else if (entityType === 'goals' || entityType === 'career_roadmap') {
-      const rawTier = (record.tier || record.timeframe || record.section || 'short').toString().toLowerCase().trim();
-      let normalizedTier = 'short';
-      if (rawTier.includes('med')) normalizedTier = 'medium';
-      else if (rawTier.includes('long') || rawTier.includes('career') || rawTier.includes('goal') || rawTier.includes('skill') || rawTier.includes('project') || rawTier.includes('learn') || rawTier.includes('exp') || rawTier.includes('opp')) normalizedTier = 'long';
-
-      await supabase.from('goals').upsert({
-        id: ensureUuid(record.id),
-        user_id: uid,
-        title: record.title || 'Goal',
-        description: record.description || record.aligned_purpose || null,
-        tier: normalizedTier,
-        is_completed: !!(record.is_completed || record.isCompleted || record.isAchieved || record.status === 'COMPLETED'),
-        target_date: record.target_date || record.targetDate || null,
-      }, { onConflict: 'id' });
-    } else if (entityType === 'milestones') {
-      await supabase.from('milestones').upsert({
-        id: ensureUuid(record.id),
-        user_id: uid,
-        goal_id: ensureUuid(record.goal_id || record.goalId),
-        title: record.title || record.milestone_title || 'Milestone',
-        description: record.description || null,
-        is_completed: !!(record.is_completed || record.isCompleted),
-        target_date: record.target_date || record.targetDate || null,
-      }, { onConflict: 'id' });
-    } else if (entityType === 'calendar_events') {
-      const d = record.event_date || record.date || (record.start_time ? record.start_time.split('T')[0] : new Date().toISOString().split('T')[0]);
-      let startTime = record.start_time?.includes('T') ? record.start_time.split('T')[1].substring(0, 8) : (record.start_time || '10:00:00');
-      let endTime = record.end_time?.includes('T') ? record.end_time.split('T')[1].substring(0, 8) : (record.end_time || '11:00:00');
-      if (startTime.length === 5) startTime += ':00';
-      if (endTime.length === 5) endTime += ':00';
-
-      await supabase.from('calendar_events').upsert({
-        id: ensureUuid(record.id),
-        user_id: uid,
-        title: record.title || 'Event',
-        description: record.description || null,
-        event_date: d,
-        category: record.category || record.event_type || record.eventType || 'General',
-        is_all_day: !!(record.is_all_day ?? record.isAllDay),
-      }, { onConflict: 'id' });
-    } else if (entityType === 'journal_entries' || entityType === 'journal') {
-      await supabase.from('journal_entries').upsert({
-        id: ensureUuid(record.id),
-        user_id: uid,
-        title: record.title || 'Journal Entry',
-        content_ciphertext: record.content_ciphertext || record.content || '',
-        mood: record.mood || 'neutral',
-        entry_date: record.entry_date || record.date || new Date().toISOString().split('T')[0],
-      }, { onConflict: 'id' });
-    } else if (entityType === 'payments') {
-      await supabase.from('payments').upsert({
-        id: ensureUuid(record.id),
-        user_id: uid,
-        order_id: record.order_id || record.orderId || null,
-        purchase_token: record.purchase_token || record.purchaseToken || null,
-        product_id: record.product_id || record.productId || 'wrindhaos_premium_monthly',
-        provider: record.provider || 'google_play',
-        amount: Number(record.amount) || 59.00,
-        currency: record.currency || 'INR',
-        status: record.status || 'SUCCESS',
-      }, { onConflict: 'id' });
-    } else if (entityType === 'coupons') {
-      await supabase.from('coupons').upsert({
-        id: ensureUuid(record.id),
-        code: (record.code || '').toUpperCase(),
-        discount_type: record.discount_type || 'PERCENTAGE',
-        discount_value: Number(record.discount_value) || 100.00,
-        is_active: record.is_active ?? true,
-      }, { onConflict: 'code' });
-    }
-  } catch (err) {
-    console.warn(`[Supabase Sync Notice] (${entityType}):`, err.message);
-  }
-}
-
-async function deleteFromSupabase(table, matchObj) {
-  if (!isSupabaseConfigured() || !supabase) return;
-  try {
-    const tableName = table === 'user_profiles' ? 'profiles' : (table === 'user_subscriptions' ? 'subscriptions' : (table === 'study_subjects' ? 'subjects' : (table === 'habit_logs' ? 'habit_completions' : table)));
-    const cleanMatch = {};
-    for (const [k, v] of Object.entries(matchObj)) {
-      if (k === 'id' || k.endsWith('_id')) {
-        cleanMatch[k] = ensureUuid(v);
-      } else {
-        cleanMatch[k] = v;
+      if (method === 'PATCH' || method === 'PUT') {
+        let q = query.update(body);
+        for (const [k, v] of Object.entries(match)) q = q.eq(k, v);
+        const { data, error } = await q.select();
+        if (error) throw error;
+        return single ? (data ? data[0] : null) : data;
+      }
+      if (method === 'DELETE') {
+        let q = query.delete();
+        for (const [k, v] of Object.entries(match)) q = q.eq(k, v);
+        const { data, error } = await q;
+        if (error) throw error;
+        return true;
       }
     }
-    await supabase.from(tableName).delete().match(cleanMatch);
+
+    // Direct REST API Fallback
+    let endpoint = `${SUPABASE_URL}/rest/v1/${table}`;
+    if (method === 'GET') {
+      const params = new URLSearchParams({ select });
+      for (const [k, v] of Object.entries(match)) params.append(k, `eq.${v}`);
+      endpoint += `?${params.toString()}`;
+    } else if (method === 'DELETE') {
+      const params = new URLSearchParams();
+      for (const [k, v] of Object.entries(match)) params.append(k, `eq.${v}`);
+      endpoint += `?${params.toString()}`;
+    }
+
+    const res = await fetch(endpoint, {
+      method: method === 'PATCH' ? 'POST' : method,
+      headers: {
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'apikey': SUPABASE_KEY,
+        'Content-Type': 'application/json',
+        'Prefer': method === 'POST' ? 'return=representation, resolution=merge-duplicates' : 'return=representation',
+      },
+      body: body ? JSON.stringify(body) : null,
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`[Postgres ${table} ${method} Error ${res.status}]: ${errText}`);
+    }
+
+    if (method === 'DELETE') return true;
+    const data = await res.json();
+    return single ? (Array.isArray(data) ? data[0] : data) : data;
   } catch (err) {
-    console.warn(`[Supabase Delete Notice] (${table}):`, err.message);
+    console.error(`[Database Engine Error] (${table} ${method}):`, err.message);
+    return method === 'GET' ? (single ? null : []) : null;
   }
 }
 
 // -----------------------------------------------------------------------------
-// 5. UNIFIED DATABASE ACCESS LAYER
+// 3. UNIFIED DIRECT POSTGRES DATABASE MANAGER
 // -----------------------------------------------------------------------------
 class DatabaseManager {
   // ---------------------------------------------------------------------------
   // AUTHENTICATION & USER PROFILES
   // ---------------------------------------------------------------------------
-  static getUserById(userId) {
+  static async getUserById(userId) {
     if (!userId) return null;
-    const db = loadDatabase();
-    return db.user_profiles.find(u => u.id === userId || u.user_id === userId) || null;
+    const uid = ensureUuid(userId);
+    return await dbQuery('profiles', { method: 'GET', match: { id: uid }, single: true });
   }
 
-  static getUserByEmailOrUsername(identifier) {
+  static async getUserByEmailOrUsername(identifier) {
     if (!identifier) return null;
     const clean = identifier.trim().toLowerCase();
-    const db = loadDatabase();
-    return db.user_profiles.find(
-      u => (u.username || '').toLowerCase() === clean || (u.email || '').toLowerCase() === clean
-    ) || null;
+    const byEmail = await dbQuery('profiles', { method: 'GET', match: { email: clean }, single: true });
+    if (byEmail) return byEmail;
+    return await dbQuery('profiles', { method: 'GET', match: { username: clean }, single: true });
   }
 
-  static createUser(userData) {
-    const db = loadDatabase();
+  static async createUser(userData) {
     const userId = ensureUuid(userData.id);
     const cleanUsername = (userData.username || '').trim().toLowerCase();
     const cleanEmail = (userData.email || '').trim().toLowerCase();
@@ -368,140 +141,70 @@ class DatabaseManager {
       name: userData.name || userData.display_name || (cleanUsername ? cleanUsername[0].toUpperCase() + cleanUsername.slice(1) : 'Student User'),
       display_name: userData.display_name || userData.name || (cleanUsername ? cleanUsername[0].toUpperCase() + cleanUsername.slice(1) : 'Student User'),
       email: cleanEmail,
-      password: userData.password_hash || userData.password,
-      password_hash: userData.password_hash || userData.password,
       is_premium: !!userData.is_premium,
-      isPremium: !!userData.is_premium,
       subscription_plan: (userData.subscription_plan || 'FREE').toUpperCase(),
-      subscriptionPlan: (userData.subscription_plan || 'FREE').toUpperCase(),
       focus_score: userData.focus_score ?? 85,
-      focusScore: userData.focus_score ?? 85,
       active_streak: userData.active_streak ?? 1,
-      activeStreak: userData.active_streak ?? 1,
-      referral_code: userData.referral_code || ('WOS' + Math.floor(1000 + Math.random() * 9000)),
-      referralCode: userData.referral_code || ('WOS' + Math.floor(1000 + Math.random() * 9000)),
+      referral_code: userData.referral_code || ('WRINDHA_' + Math.floor(100000 + Math.random() * 900000)),
       is_email_verified: !!userData.is_email_verified,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
 
-    db.user_profiles.push(newUser);
+    const createdProfile = await dbQuery('profiles', { method: 'POST', body: newUser, single: true });
 
+    // Initialize Default Subscription Row
     const newSub = {
       id: ensureUuid(),
       user_id: userId,
-      userId: userId,
-      plan: newUser.is_premium ? 'pro' : 'free',
+      plan: newUser.is_premium ? 'premium' : 'free',
       status: 'active',
       started_at: new Date().toISOString(),
-      expires_at: newUser.is_premium ? '2030-12-31T23:59:59.000Z' : null,
       payment_provider: newUser.is_premium ? 'SEED_VIP' : 'NONE',
-      transaction_id: null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
-    db.user_subscriptions.push(newSub);
+    await dbQuery('subscriptions', { method: 'POST', body: newSub });
 
-    saveDatabase(db);
-
-    syncToSupabase('user_profiles', newUser);
-    syncToSupabase('user_subscriptions', newSub);
-
-    return newUser;
+    return createdProfile || newUser;
   }
 
-  static updateUser(userId, updates) {
-    const db = loadDatabase();
-    const idx = db.user_profiles.findIndex(u => u.id === userId || u.user_id === userId);
-    if (idx === -1) return null;
+  static async updateUser(userId, updates) {
+    if (!userId) return null;
+    const uid = ensureUuid(userId);
+    const payload = { updated_at: new Date().toISOString() };
 
-    const user = db.user_profiles[idx];
-    if (updates.username) {
-      user.username = updates.username.trim().toLowerCase();
-    }
-    if (updates.name) {
-      user.name = updates.name;
-      user.display_name = updates.name;
-    }
-    if (updates.display_name) {
-      user.name = updates.display_name;
-      user.display_name = updates.display_name;
-    }
-    if (updates.focus_score !== undefined) {
-      user.focus_score = updates.focus_score;
-      user.focusScore = updates.focus_score;
-    }
-    if (updates.active_streak !== undefined) {
-      user.active_streak = updates.active_streak;
-      user.activeStreak = updates.active_streak;
-    }
-    if (updates.is_premium !== undefined) {
-      user.is_premium = !!updates.is_premium;
-      user.isPremium = !!updates.is_premium;
-    }
-    if (updates.subscription_plan) {
-      user.subscription_plan = updates.subscription_plan.toUpperCase();
-      user.subscriptionPlan = updates.subscription_plan.toUpperCase();
-    }
-    if (updates.password || updates.password_hash) {
-      user.password = updates.password_hash || hashPassword(updates.password);
-      user.password_hash = updates.password_hash || hashPassword(updates.password);
-    }
-    user.updated_at = new Date().toISOString();
+    if (updates.username) payload.username = updates.username.trim().toLowerCase();
+    if (updates.name) payload.name = updates.name;
+    if (updates.display_name) payload.display_name = updates.display_name;
+    if (updates.focus_score !== undefined) payload.focus_score = updates.focus_score;
+    if (updates.active_streak !== undefined) payload.active_streak = updates.active_streak;
+    if (updates.is_premium !== undefined) payload.is_premium = !!updates.is_premium;
+    if (updates.subscription_plan) payload.subscription_plan = updates.subscription_plan.toUpperCase();
 
-    saveDatabase(db);
-    syncToSupabase('user_profiles', user);
-
-    return user;
+    return await dbQuery('profiles', { method: 'PATCH', match: { id: uid }, body: payload, single: true });
   }
 
-  static deleteUser(userId) {
+  static async deleteUser(userId) {
     if (!userId) return false;
-    const db = loadDatabase();
-    db.user_profiles = db.user_profiles.filter(u => u.id !== userId && u.user_id !== userId);
-    db.user_subscriptions = db.user_subscriptions.filter(s => s.user_id !== userId && s.userId !== userId);
-    db.tasks = db.tasks.filter(t => t.user_id !== userId && t.userId !== userId);
-    db.habits = db.habits.filter(h => h.user_id !== userId && h.userId !== userId);
-    db.habit_logs = db.habit_logs.filter(hl => hl.user_id !== userId && hl.userId !== userId);
-    db.expenses = db.expenses.filter(e => e.user_id !== userId && e.userId !== userId);
-    db.goals = db.goals.filter(g => g.user_id !== userId && g.userId !== userId);
-    db.milestones = db.milestones.filter(m => m.user_id !== userId && m.userId !== userId);
-    db.study_subjects = db.study_subjects.filter(s => s.user_id !== userId && s.userId !== userId);
-    db.study_units = db.study_units.filter(u => u.user_id !== userId && u.userId !== userId);
-    db.study_items = db.study_items.filter(i => i.user_id !== userId && i.userId !== userId);
-    db.calendar_events = db.calendar_events.filter(ce => ce.user_id !== userId && ce.userId !== userId);
-    saveDatabase(db);
-
-    deleteFromSupabase('user_profiles', { id: userId });
-    deleteFromSupabase('user_subscriptions', { user_id: userId });
-    deleteFromSupabase('tasks', { user_id: userId });
-    deleteFromSupabase('habits', { user_id: userId });
-    deleteFromSupabase('habit_logs', { user_id: userId });
-    deleteFromSupabase('expenses', { user_id: userId });
-    deleteFromSupabase('goals', { user_id: userId });
-    deleteFromSupabase('milestones', { user_id: userId });
-    deleteFromSupabase('study_subjects', { user_id: userId });
-    deleteFromSupabase('study_units', { user_id: userId });
-    deleteFromSupabase('study_items', { user_id: userId });
-    deleteFromSupabase('calendar_events', { user_id: userId });
-
-    return true;
+    const uid = ensureUuid(userId);
+    return await dbQuery('profiles', { method: 'DELETE', match: { id: uid } });
   }
 
   // ---------------------------------------------------------------------------
   // SUBSCRIPTIONS & BILLING
   // ---------------------------------------------------------------------------
-  static getUserSubscription(userId) {
+  static async getUserSubscription(userId) {
     if (!userId) return { plan: 'free', isPro: false, isFree: true, status: 'active' };
-    const db = loadDatabase();
-    const sub = db.user_subscriptions.find(s => s.user_id === userId || s.userId === userId);
-    const user = this.getUserById(userId);
+    const uid = ensureUuid(userId);
+    const sub = await dbQuery('subscriptions', { method: 'GET', match: { user_id: uid }, single: true });
+    const user = await this.getUserById(uid);
 
-    const isPro = (sub && sub.plan === 'pro') || (user && user.is_premium) || (user && user.subscription_plan === 'PRO');
+    const isPro = (sub && (sub.plan === 'pro' || sub.plan === 'premium')) || (user && (user.is_premium || user.subscription_plan === 'PRO' || user.subscription_plan === 'PREMIUM'));
     return {
-      id: sub ? sub.id : `sub_${userId}`,
-      userId,
-      user_id: userId,
+      id: sub ? sub.id : `sub_${uid}`,
+      userId: uid,
+      user_id: uid,
       plan: isPro ? 'pro' : 'free',
       isPro,
       isPremium: isPro,
@@ -513,712 +216,548 @@ class DatabaseManager {
     };
   }
 
-  static upgradeSubscription(userId, plan = 'pro', paymentProvider = 'GOOGLE_PLAY', transactionId = null) {
+  static async upgradeSubscription(userId, plan = 'pro', paymentProvider = 'GOOGLE_PLAY', transactionId = null) {
     if (!userId) throw new Error('userId is required');
-    const db = loadDatabase();
-    let sub = db.user_subscriptions.find(s => s.user_id === userId || s.userId === userId);
+    const uid = ensureUuid(userId);
+    const planName = plan.toLowerCase() === 'pro' || plan.toLowerCase() === 'premium' ? 'premium' : 'free';
 
-    if (!sub) {
-      sub = {
-        id: ensureUuid(),
-        user_id: userId,
-        userId: userId,
-        plan: plan.toLowerCase(),
-        status: 'active',
-        started_at: new Date().toISOString(),
-        expires_at: '2030-12-31T23:59:59.000Z',
-        payment_provider: paymentProvider,
-        transaction_id: transactionId,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-      db.user_subscriptions.push(sub);
-    } else {
-      sub.plan = plan.toLowerCase();
-      sub.status = 'active';
-      sub.expires_at = '2030-12-31T23:59:59.000Z';
-      sub.payment_provider = paymentProvider;
-      sub.transaction_id = transactionId;
-      sub.updated_at = new Date().toISOString();
-    }
+    const subPayload = {
+      user_id: uid,
+      plan: planName,
+      status: 'active',
+      started_at: new Date().toISOString(),
+      expires_at: '2030-12-31T23:59:59.000Z',
+      payment_provider: paymentProvider,
+      updated_at: new Date().toISOString(),
+    };
 
-    const userIdx = db.user_profiles.findIndex(u => u.id === userId || u.user_id === userId);
-    if (userIdx !== -1) {
-      db.user_profiles[userIdx].is_premium = true;
-      db.user_profiles[userIdx].isPremium = true;
-      db.user_profiles[userIdx].subscription_plan = 'PRO';
-      db.user_profiles[userIdx].subscriptionPlan = 'PRO';
-      db.user_profiles[userIdx].updated_at = new Date().toISOString();
-      syncToSupabase('user_profiles', db.user_profiles[userIdx]);
-    }
+    await dbQuery('subscriptions', { method: 'POST', body: subPayload });
+    await this.updateUser(uid, { is_premium: true, subscription_plan: 'PRO' });
 
-    saveDatabase(db);
-    syncToSupabase('user_subscriptions', sub);
-
-    return this.getUserSubscription(userId);
+    return await this.getUserSubscription(uid);
   }
 
   // ---------------------------------------------------------------------------
-  // TASKS (STRICT USER ISOLATION)
+  // TASKS (DIRECT POSTGRESQL CRUD)
   // ---------------------------------------------------------------------------
-  static getTasks(userId) {
+  static async getTasks(userId) {
     if (!userId) return [];
-    const db = loadDatabase();
-    return db.tasks.filter(t => t.user_id === userId || t.userId === userId);
+    const uid = ensureUuid(userId);
+    const tasks = await dbQuery('tasks', { method: 'GET', match: { user_id: uid } });
+    return (tasks || []).map(t => ({
+      ...t,
+      userId: t.user_id,
+      isCompleted: t.is_completed,
+      dueDate: t.due_at || t.due_date,
+    }));
   }
 
-  static createTask(userId, taskData) {
+  static async createTask(userId, taskData) {
     if (!userId) throw new Error('userId is required');
-    const db = loadDatabase();
+    const uid = ensureUuid(userId);
     const taskId = ensureUuid(taskData.id);
 
     const isDone = !!(taskData.is_completed ?? taskData.isCompleted);
     const newTask = {
       id: taskId,
-      user_id: userId,
-      userId: userId,
+      user_id: uid,
       title: taskData.title || 'New Task',
       description: taskData.description || '',
       category: taskData.category || 'Studies',
       priority: Number(taskData.priority) || 1,
+      quadrant: taskData.quadrant || 'q1_do_first',
       is_completed: isDone,
-      isCompleted: isDone,
-      due_date: taskData.due_date || taskData.dueDate || new Date().toISOString(),
-      dueDate: taskData.due_date || taskData.dueDate || new Date().toISOString(),
+      due_at: taskData.due_date || taskData.dueDate || taskData.due_at || new Date().toISOString(),
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
 
-    db.tasks.push(newTask);
-    saveDatabase(db);
-    syncToSupabase('tasks', newTask);
-
-    return newTask;
+    const created = await dbQuery('tasks', { method: 'POST', body: newTask, single: true });
+    return { ...created, userId: uid, isCompleted: isDone };
   }
 
-  static updateTask(userId, taskId, updates) {
+  static async updateTask(userId, taskId, updates) {
     if (!userId || !taskId) return null;
-    const db = loadDatabase();
-    const idx = db.tasks.findIndex(t => (t.id === taskId) && (t.user_id === userId || t.userId === userId));
-    if (idx === -1) return null;
+    const uid = ensureUuid(userId);
+    const tid = ensureUuid(taskId);
 
-    const task = db.tasks[idx];
-    if (updates.title !== undefined) task.title = updates.title;
-    if (updates.description !== undefined) task.description = updates.description;
-    if (updates.category !== undefined) task.category = updates.category;
-    if (updates.priority !== undefined) task.priority = Number(updates.priority) || 1;
-    if (updates.due_date || updates.dueDate) {
-      const d = updates.due_date || updates.dueDate;
-      task.due_date = d;
-      task.dueDate = d;
+    const payload = { updated_at: new Date().toISOString() };
+    if (updates.title !== undefined) payload.title = updates.title;
+    if (updates.description !== undefined) payload.description = updates.description;
+    if (updates.category !== undefined) payload.category = updates.category;
+    if (updates.priority !== undefined) payload.priority = Number(updates.priority) || 1;
+    if (updates.quadrant !== undefined) payload.quadrant = updates.quadrant;
+    if (updates.due_date || updates.dueDate || updates.due_at) {
+      payload.due_at = updates.due_date || updates.dueDate || updates.due_at;
     }
     if (updates.is_completed !== undefined || updates.isCompleted !== undefined) {
-      const done = !!(updates.is_completed ?? updates.isCompleted);
-      task.is_completed = done;
-      task.isCompleted = done;
-      task.completed_at = done ? (task.completed_at || new Date().toISOString()) : null;
+      payload.is_completed = !!(updates.is_completed ?? updates.isCompleted);
     }
 
-    task.updated_at = new Date().toISOString();
-    saveDatabase(db);
-    syncToSupabase('tasks', task);
-
-    return task;
+    const updated = await dbQuery('tasks', { method: 'PATCH', match: { id: tid, user_id: uid }, body: payload, single: true });
+    return updated ? { ...updated, userId: uid, isCompleted: updated.is_completed } : null;
   }
 
-  static deleteTask(userId, taskId) {
+  static async deleteTask(userId, taskId) {
     if (!userId || !taskId) return false;
-    const db = loadDatabase();
-    const initialLen = db.tasks.length;
-    db.tasks = db.tasks.filter(t => !(t.id === taskId && (t.user_id === userId || t.userId === userId)));
-    if (db.tasks.length !== initialLen) {
-      saveDatabase(db);
-      deleteFromSupabase('tasks', { id: taskId, user_id: userId });
-      return true;
-    }
-    return false;
+    const uid = ensureUuid(userId);
+    const tid = ensureUuid(taskId);
+    return await dbQuery('tasks', { method: 'DELETE', match: { id: tid, user_id: uid } });
   }
 
   // ---------------------------------------------------------------------------
-  // HABITS & HABIT COMPLETIONS (PLAN LIMITS ENFORCED)
+  // HABITS & HABIT COMPLETIONS (DIRECT POSTGRESQL CRUD)
   // ---------------------------------------------------------------------------
-  static getHabits(userId) {
+  static async getHabits(userId) {
     if (!userId) return [];
-    const db = loadDatabase();
-    return db.habits.filter(h => (h.user_id === userId || h.userId === userId) && h.status !== 'archived');
+    const uid = ensureUuid(userId);
+    const habits = await dbQuery('habits', { method: 'GET', match: { user_id: uid } });
+    return (habits || []).map(h => ({
+      ...h,
+      userId: h.user_id,
+      colorHex: h.color_hex || h.color,
+      iconName: h.icon_name,
+    }));
   }
 
-  static getHabitOverview(userId, targetDateStr = null) {
+  static async getHabitOverview(userId, targetDateStr = null) {
     if (!userId) return { scheduledHabits: [], totalScheduled: 0, completedCount: 0, completionRate: 0 };
+    const uid = ensureUuid(userId);
     const dateStr = targetDateStr || new Date().toISOString().split('T')[0];
-    const userHabits = this.getHabits(userId);
-    const db = loadDatabase();
-    const userLogs = db.habit_logs.filter(hl => hl.user_id === userId || hl.userId === userId);
 
-    const scheduled = userHabits.map(h => {
-      const completed = userLogs.some(hl => (hl.habit_id === h.id || hl.habitId === h.id) && (hl.completed_date === dateStr || hl.date === dateStr));
-      return {
-        ...h,
-        isCompleted: completed,
-        is_completed: completed,
-      };
+    const habits = await this.getHabits(uid);
+    const completions = await dbQuery('habit_completions', { method: 'GET', match: { user_id: uid, completion_date: dateStr } });
+    const completedSet = new Set((completions || []).map(c => c.habit_id));
+
+    const scheduled = habits.map(h => {
+      const isDone = completedSet.has(h.id);
+      return { ...h, isCompleted: isDone, is_completed: isDone };
     });
 
     const completedCount = scheduled.filter(h => h.isCompleted).length;
     const totalScheduled = scheduled.length;
     const completionRate = totalScheduled > 0 ? completedCount / totalScheduled : 0;
 
-    return {
-      date: dateStr,
-      scheduledHabits: scheduled,
-      totalScheduled,
-      completedCount,
-      completionRate,
-    };
+    return { date: dateStr, scheduledHabits: scheduled, totalScheduled, completedCount, completionRate };
   }
 
-  static createHabit(userId, habitData) {
+  static async createHabit(userId, habitData) {
     if (!userId) throw new Error('userId is required');
-    const db = loadDatabase();
-    const sub = this.getUserSubscription(userId);
-    const activeHabits = db.habits.filter(h => (h.user_id === userId || h.userId === userId) && h.status === 'active');
-
-    // Free tier max 2 active habits
-    if (!sub.isPro && activeHabits.length >= 2) {
-      return {
-        error: 'FREE_LIMIT_REACHED',
-        message: 'Free tier is limited to 2 active habits. Upgrade to Pro for unlimited habits.',
-      };
-    }
-
+    const uid = ensureUuid(userId);
     const habitId = ensureUuid(habitData.id);
+
     const newHabit = {
       id: habitId,
-      user_id: userId,
-      userId: userId,
+      user_id: uid,
       title: habitData.title || 'New Habit',
       description: habitData.description || '',
       category: habitData.category || 'General',
       frequency: (habitData.frequency || 'daily').toLowerCase(),
-      selected_days: habitData.selected_days || habitData.selectedDays || [1, 2, 3, 4, 5, 6, 7],
-      selectedDays: habitData.selected_days || habitData.selectedDays || [1, 2, 3, 4, 5, 6, 7],
-      preferred_time: habitData.preferred_time || habitData.preferredTime || '08:00:00',
       icon_name: habitData.icon_name || habitData.iconName || 'repeat',
-      iconName: habitData.icon_name || habitData.iconName || 'repeat',
-      color_hex: habitData.color_hex || habitData.colorHex || '#10B981',
-      colorHex: habitData.color_hex || habitData.colorHex || '#10B981',
+      color_hex: habitData.color_hex || habitData.colorHex || habitData.color || '#10B981',
       status: 'active',
-      streak_day: 0,
-      streakDay: 0,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
 
-    db.habits.push(newHabit);
-    saveDatabase(db);
-    syncToSupabase('habits', newHabit);
-
-    return newHabit;
+    const created = await dbQuery('habits', { method: 'POST', body: newHabit, single: true });
+    return { ...created, userId: uid, colorHex: newHabit.color_hex, iconName: newHabit.icon_name };
   }
 
-  static updateHabit(userId, habitId, updates) {
+  static async updateHabit(userId, habitId, updates) {
     if (!userId || !habitId) return null;
-    const db = loadDatabase();
-    const idx = db.habits.findIndex(h => (h.id === habitId) && (h.user_id === userId || h.userId === userId));
-    if (idx === -1) return null;
+    const uid = ensureUuid(userId);
+    const hid = ensureUuid(habitId);
 
-    const habit = db.habits[idx];
-    if (updates.title !== undefined) habit.title = updates.title;
-    if (updates.description !== undefined) habit.description = updates.description;
-    if (updates.category !== undefined) habit.category = updates.category;
-    if (updates.frequency !== undefined) habit.frequency = updates.frequency;
-    if (updates.selected_days || updates.selectedDays) {
-      const days = updates.selected_days || updates.selectedDays;
-      habit.selected_days = days;
-      habit.selectedDays = days;
+    const payload = { updated_at: new Date().toISOString() };
+    if (updates.title !== undefined) payload.title = updates.title;
+    if (updates.description !== undefined) payload.description = updates.description;
+    if (updates.category !== undefined) payload.category = updates.category;
+    if (updates.frequency !== undefined) payload.frequency = updates.frequency;
+    if (updates.color_hex || updates.colorHex || updates.color) {
+      payload.color_hex = updates.color_hex || updates.colorHex || updates.color;
     }
-    if (updates.color_hex || updates.colorHex) {
-      const cl = updates.color_hex || updates.colorHex;
-      habit.color_hex = cl;
-      habit.colorHex = cl;
-    }
-    if (updates.status !== undefined) habit.status = updates.status;
+    if (updates.status !== undefined) payload.status = updates.status;
 
-    habit.updated_at = new Date().toISOString();
-    saveDatabase(db);
-    syncToSupabase('habits', habit);
-
-    return habit;
+    return await dbQuery('habits', { method: 'PATCH', match: { id: hid, user_id: uid }, body: payload, single: true });
   }
 
-  static deleteHabit(userId, habitId) {
+  static async deleteHabit(userId, habitId) {
     if (!userId || !habitId) return false;
-    const db = loadDatabase();
-    const initialLen = db.habits.length;
-    db.habits = db.habits.filter(h => !(h.id === habitId && (h.user_id === userId || h.userId === userId)));
-    db.habit_logs = db.habit_logs.filter(hl => !((hl.habit_id === habitId || hl.habitId === habitId) && (hl.user_id === userId || hl.userId === userId)));
-    if (db.habits.length !== initialLen) {
-      saveDatabase(db);
-      deleteFromSupabase('habits', { id: habitId, user_id: userId });
-      deleteFromSupabase('habit_logs', { habit_id: habitId, user_id: userId });
-      return true;
-    }
-    return false;
+    const uid = ensureUuid(userId);
+    const hid = ensureUuid(habitId);
+    await dbQuery('habit_completions', { method: 'DELETE', match: { habit_id: hid, user_id: uid } });
+    return await dbQuery('habits', { method: 'DELETE', match: { id: hid, user_id: uid } });
   }
 
-  static toggleHabitCompletion(userId, habitId, dateStr = null) {
+  static async toggleHabitCompletion(userId, habitId, dateStr = null, notes = '') {
     if (!userId || !habitId) return null;
+    const uid = ensureUuid(userId);
+    const hid = ensureUuid(habitId);
     const targetDate = dateStr || new Date().toISOString().split('T')[0];
-    const db = loadDatabase();
 
-    const existingIdx = db.habit_logs.findIndex(
-      hl => (hl.habit_id === habitId || hl.habitId === habitId) &&
-            (hl.user_id === userId || hl.userId === userId) &&
-            (hl.completed_date === targetDate || hl.date === targetDate)
-    );
+    const existing = await dbQuery('habit_completions', { method: 'GET', match: { habit_id: hid, user_id: uid, completion_date: targetDate }, single: true });
 
-    let isCompleted = false;
-    if (existingIdx !== -1) {
-      const removed = db.habit_logs.splice(existingIdx, 1)[0];
-      isCompleted = false;
-      deleteFromSupabase('habit_logs', { id: removed.id });
+    if (existing) {
+      await dbQuery('habit_completions', { method: 'DELETE', match: { id: existing.id } });
+      return { isCompleted: false, habitId: hid, date: targetDate };
     } else {
       const log = {
         id: ensureUuid(),
-        habit_id: habitId,
-        habitId: habitId,
-        user_id: userId,
-        userId: userId,
+        habit_id: hid,
+        user_id: uid,
         completion_date: targetDate,
-        completed_date: targetDate,
-        date: targetDate,
         status: 'completed',
+        notes: notes || '',
         completed_at: new Date().toISOString(),
       };
-      db.habit_logs.push(log);
-      isCompleted = true;
-      syncToSupabase('habit_completions', log);
+      await dbQuery('habit_completions', { method: 'POST', body: log });
+      return { isCompleted: true, habitId: hid, date: targetDate };
     }
-
-    saveDatabase(db);
-    return { habitId, date: targetDate, isCompleted };
   }
 
   // ---------------------------------------------------------------------------
-  // EXPENSES (PRO TIER GATED)
+  // EXPENSES & BUDGETS (DIRECT POSTGRESQL CRUD)
   // ---------------------------------------------------------------------------
-  static getExpenses(userId) {
+  static async getExpenses(userId) {
     if (!userId) return [];
-    const db = loadDatabase();
-    return db.expenses.filter(e => e.user_id === userId || e.userId === userId);
+    const uid = ensureUuid(userId);
+    const expenses = await dbQuery('expenses', { method: 'GET', match: { user_id: uid } });
+    return (expenses || []).map(e => ({
+      ...e,
+      userId: e.user_id,
+      isIncome: e.transaction_type === 'income',
+      expenseDate: e.occurred_at,
+    }));
   }
 
-  static createExpense(userId, expenseData) {
+  static async createExpense(userId, expenseData) {
     if (!userId) throw new Error('userId is required');
-    const sub = this.getUserSubscription(userId);
-    if (!sub.isPro) {
-      return {
-        error: 'PRO_REQUIRED',
-        message: 'Expense tracking is exclusively available on WrindhaOS Pro.',
-      };
-    }
+    const uid = ensureUuid(userId);
+    const expId = ensureUuid(expenseData.id);
+    const isInc = !!(expenseData.is_income ?? expenseData.isIncome ?? (expenseData.transaction_type === 'income'));
 
-    const db = loadDatabase();
-    const expenseId = ensureUuid(expenseData.id);
-    const newExp = {
-      id: expenseId,
-      user_id: userId,
-      userId: userId,
+    const newExpense = {
+      id: expId,
+      user_id: uid,
       title: expenseData.title || 'Expense',
-      amount: Number(expenseData.amount) || 0,
+      amount: Number(expenseData.amount) || 0.00,
       category: expenseData.category || 'General',
-      is_income: !!(expenseData.is_income ?? expenseData.isIncome ?? (expenseData.transaction_type === 'income')),
-      isIncome: !!(expenseData.is_income ?? expenseData.isIncome ?? (expenseData.transaction_type === 'income')),
-      transaction_type: (expenseData.is_income || expenseData.isIncome || expenseData.transaction_type === 'income') ? 'income' : 'expense',
+      transaction_type: isInc ? 'income' : 'expense',
       payment_method: expenseData.payment_method || expenseData.paymentMethod || 'UPI',
-      expense_date: expenseData.expense_date || expenseData.date || new Date().toISOString(),
-      date: expenseData.expense_date || expenseData.date || new Date().toISOString(),
+      occurred_at: expenseData.expense_date || expenseData.occurred_at || new Date().toISOString(),
       created_at: new Date().toISOString(),
     };
 
-    db.expenses.push(newExp);
-    saveDatabase(db);
-    syncToSupabase('expenses', newExp);
-
-    return newExp;
+    const created = await dbQuery('expenses', { method: 'POST', body: newExpense, single: true });
+    return { ...created, userId: uid, isIncome: isInc };
   }
 
-  static deleteExpense(userId, expenseId) {
+  static async deleteExpense(userId, expenseId) {
     if (!userId || !expenseId) return false;
-    const db = loadDatabase();
-    const initialLen = db.expenses.length;
-    db.expenses = db.expenses.filter(e => !(e.id === expenseId && (e.user_id === userId || e.userId === userId)));
-    if (db.expenses.length !== initialLen) {
-      saveDatabase(db);
-      deleteFromSupabase('expenses', { id: expenseId, user_id: userId });
-      return true;
-    }
-    return false;
+    const uid = ensureUuid(userId);
+    const eid = ensureUuid(expenseId);
+    return await dbQuery('expenses', { method: 'DELETE', match: { id: eid, user_id: uid } });
   }
 
-  // ---------------------------------------------------------------------------
-  // STUDY SUBJECTS, UNITS & ITEMS
-  // ---------------------------------------------------------------------------
-  static getSubjects(userId) {
-    if (!userId) return [];
-    const db = loadDatabase();
-    return db.study_subjects.filter(s => s.user_id === userId || s.userId === userId);
+  static async getMonthlyBudget(userId, month = null, year = null) {
+    if (!userId) return { amount: 0, month: new Date().getMonth() + 1, year: new Date().getFullYear() };
+    const uid = ensureUuid(userId);
+    const m = month || (new Date().getMonth() + 1);
+    const y = year || new Date().getFullYear();
+    const budget = await dbQuery('monthly_budgets', { method: 'GET', match: { user_id: uid, month: m, year: y }, single: true });
+    return budget || { amount: 0, month: m, year: y };
   }
 
-  static createSubject(userId, subjectData) {
+  static async setMonthlyBudget(userId, amount, month = null, year = null) {
     if (!userId) throw new Error('userId is required');
-    const db = loadDatabase();
-    const sub = this.getUserSubscription(userId);
-    const userSubs = db.study_subjects.filter(s => s.user_id === userId || s.userId === userId);
+    const uid = ensureUuid(userId);
+    const m = month || (new Date().getMonth() + 1);
+    const y = year || new Date().getFullYear();
 
-    if (!sub.isPro && userSubs.length >= 2) {
-      return {
-        error: 'FREE_LIMIT_REACHED',
-        message: 'Free tier is limited to 2 subjects. Upgrade to Pro for unlimited subjects.',
-      };
-    }
-
-    const subjId = ensureUuid(subjectData.id);
-    const name = subjectData.subject_name || subjectData.name || 'Subject';
-    const color = subjectData.color_hex || subjectData.colorHex || subjectData.color || '#0D5CE5';
-
-    const newSubj = {
-      id: subjId,
-      user_id: userId,
-      userId: userId,
-      subject_name: name,
-      name: name,
-      code: subjectData.code || '',
-      color_hex: color,
-      colorHex: color,
-      color: color,
+    const payload = {
+      id: ensureUuid(),
+      user_id: uid,
+      amount: Number(amount) || 0.00,
+      month: m,
+      year: y,
       created_at: new Date().toISOString(),
     };
 
-    db.study_subjects.push(newSubj);
-    saveDatabase(db);
-    syncToSupabase('subjects', newSubj);
-
-    return newSubj;
+    return await dbQuery('monthly_budgets', { method: 'POST', body: payload, single: true });
   }
 
-  static deleteSubject(userId, subjectId) {
-    if (!userId || !subjectId) return false;
-    const db = loadDatabase();
-    db.study_subjects = db.study_subjects.filter(s => !(s.id === subjectId && (s.user_id === userId || s.userId === userId)));
-    db.study_units = db.study_units.filter(u => !(u.subject_id === subjectId && (u.user_id === userId || u.userId === userId)));
-    db.study_items = db.study_items.filter(i => !(i.subject_id === subjectId && (i.user_id === userId || i.userId === userId)));
-    saveDatabase(db);
-
-    deleteFromSupabase('subjects', { id: subjectId, user_id: userId });
-    deleteFromSupabase('study_units', { subject_id: subjectId, user_id: userId });
-    deleteFromSupabase('study_items', { subject_id: subjectId, user_id: userId });
-    return true;
-  }
-
-  static getStudyUnits(userId, subjectId = null) {
+  // ---------------------------------------------------------------------------
+  // STUDY MODULE: SUBJECTS, UNITS & ITEMS (DIRECT POSTGRESQL CRUD)
+  // ---------------------------------------------------------------------------
+  static async getSubjects(userId) {
     if (!userId) return [];
-    const db = loadDatabase();
-    return db.study_units.filter(u => (u.user_id === userId || u.userId === userId) && (!subjectId || u.subject_id === subjectId || u.subjectId === subjectId));
+    const uid = ensureUuid(userId);
+    return await dbQuery('subjects', { method: 'GET', match: { user_id: uid } });
   }
 
-  static createStudyUnit(userId, unitData) {
+  static async createSubject(userId, subjectData) {
     if (!userId) throw new Error('userId is required');
-    const db = loadDatabase();
-    const unitId = ensureUuid(unitData.id);
-    const subId = ensureUuid(unitData.subject_id || unitData.subjectId);
+    const uid = ensureUuid(userId);
+    const newSubject = {
+      id: ensureUuid(subjectData.id),
+      user_id: uid,
+      name: subjectData.name || subjectData.subject_name || 'New Subject',
+      code: subjectData.code || '',
+      instructor: subjectData.instructor || '',
+      color: subjectData.color_hex || subjectData.colorHex || subjectData.color || '#0D5CE5',
+      credits: Number(subjectData.credits) || 3,
+      created_at: new Date().toISOString(),
+    };
+    return await dbQuery('subjects', { method: 'POST', body: newSubject, single: true });
+  }
+
+  static async deleteSubject(userId, subjectId) {
+    if (!userId || !subjectId) return false;
+    const uid = ensureUuid(userId);
+    const sid = ensureUuid(subjectId);
+    return await dbQuery('subjects', { method: 'DELETE', match: { id: sid, user_id: uid } });
+  }
+
+  static async getStudyUnits(userId, subjectId = null) {
+    if (!userId) return [];
+    const uid = ensureUuid(userId);
+    const match = { user_id: uid };
+    if (subjectId) match.subject_id = ensureUuid(subjectId);
+    return await dbQuery('study_units', { method: 'GET', match });
+  }
+
+  static async createStudyUnit(userId, subjectId, unitData) {
+    if (!userId || !subjectId) throw new Error('userId and subjectId are required');
+    const uid = ensureUuid(userId);
+    const sid = ensureUuid(subjectId);
 
     const newUnit = {
-      id: unitId,
-      user_id: userId,
-      userId: userId,
-      subject_id: subId,
-      subjectId: subId,
+      id: ensureUuid(unitData.id),
+      user_id: uid,
+      subject_id: sid,
       unit_number: Number(unitData.unit_number || unitData.order) || 1,
       title: unitData.title || unitData.unit_title || 'Unit',
-      description: unitData.description || '',
-      status: unitData.status || 'pending',
+      status: unitData.is_completed ? 'completed' : 'pending',
       created_at: new Date().toISOString(),
     };
 
-    db.study_units.push(newUnit);
-    saveDatabase(db);
-    syncToSupabase('study_units', newUnit);
-
-    return newUnit;
+    return await dbQuery('study_units', { method: 'POST', body: newUnit, single: true });
   }
 
-  static deleteStudyUnit(userId, unitId) {
+  static async updateStudyUnit(userId, unitId, updates) {
+    if (!userId || !unitId) return null;
+    const uid = ensureUuid(userId);
+    const uid_unit = ensureUuid(unitId);
+
+    const payload = {};
+    if (updates.title !== undefined) payload.title = updates.title;
+    if (updates.unit_number !== undefined) payload.unit_number = Number(updates.unit_number);
+    if (updates.status !== undefined) payload.status = updates.status;
+    if (updates.is_completed !== undefined) payload.is_completed = !!updates.is_completed;
+
+    return await dbQuery('study_units', { method: 'PATCH', match: { id: uid_unit, user_id: uid }, body: payload, single: true });
+  }
+
+  static async deleteStudyUnit(userId, unitId) {
     if (!userId || !unitId) return false;
-    const db = loadDatabase();
-    db.study_units = db.study_units.filter(u => !(u.id === unitId && (u.user_id === userId || u.userId === userId)));
-    saveDatabase(db);
-    deleteFromSupabase('study_units', { id: unitId, user_id: userId });
-    return true;
+    const uid = ensureUuid(userId);
+    const uid_unit = ensureUuid(unitId);
+    return await dbQuery('study_units', { method: 'DELETE', match: { id: uid_unit, user_id: uid } });
   }
 
-  static getStudyItems(userId, subjectId = null) {
+  static async getStudyItems(userId, subjectId = null, unitId = null) {
     if (!userId) return [];
-    const db = loadDatabase();
-    return db.study_items.filter(i => (i.user_id === userId || i.userId === userId) && (!subjectId || i.subject_id === subjectId || i.subjectId === subjectId));
+    const uid = ensureUuid(userId);
+    const match = { user_id: uid };
+    if (subjectId) match.subject_id = ensureUuid(subjectId);
+    if (unitId) match.unit_id = ensureUuid(unitId);
+    return await dbQuery('study_items', { method: 'GET', match });
   }
 
-  static createStudyItem(userId, itemData) {
-    if (!userId) throw new Error('userId is required');
-    const db = loadDatabase();
-    const itemId = ensureUuid(itemData.id);
-    const subId = ensureUuid(itemData.subject_id || itemData.subjectId);
+  static async createStudyItem(userId, subjectId, itemData) {
+    if (!userId || !subjectId) throw new Error('userId and subjectId are required');
+    const uid = ensureUuid(userId);
+    const sid = ensureUuid(subjectId);
 
     const newItem = {
-      id: itemId,
-      user_id: userId,
-      userId: userId,
-      subject_id: subId,
-      subjectId: subId,
+      id: ensureUuid(itemData.id),
+      user_id: uid,
+      subject_id: sid,
+      unit_id: itemData.unit_id ? ensureUuid(itemData.unit_id) : null,
       title: itemData.title || 'Study Task',
-      description: itemData.description || '',
-      status: itemData.status || 'pending',
-      is_completed: itemData.status === 'completed' || !!itemData.isCompleted,
+      type: itemData.type || 'TASK',
+      status: itemData.is_completed ? 'completed' : 'pending',
       created_at: new Date().toISOString(),
     };
 
-    db.study_items.push(newItem);
-    saveDatabase(db);
-    syncToSupabase('study_items', newItem);
-
-    return newItem;
-  }
-
-  static deleteStudyItem(userId, itemId) {
-    if (!userId || !itemId) return false;
-    const db = loadDatabase();
-    db.study_items = db.study_items.filter(i => !(i.id === itemId && (i.user_id === userId || i.userId === userId)));
-    saveDatabase(db);
-    deleteFromSupabase('study_items', { id: itemId, user_id: userId });
-    return true;
+    return await dbQuery('study_items', { method: 'POST', body: newItem, single: true });
   }
 
   // ---------------------------------------------------------------------------
-  // GOALS & MILESTONES (PRO CAREER ROADMAP & HIERARCHY)
+  // GOALS & MILESTONES (DIRECT POSTGRESQL CRUD)
   // ---------------------------------------------------------------------------
-  static getGoals(userId, tierFilter = null) {
+  static async getGoals(userId) {
     if (!userId) return [];
-    const db = loadDatabase();
-    let userGoals = db.goals.filter(g => g.user_id === userId || g.userId === userId);
-    if (tierFilter) {
-      const cleanFilter = tierFilter.toLowerCase();
-      userGoals = userGoals.filter(g => (g.tier || g.timeframe || '').toLowerCase().includes(cleanFilter));
-    }
-    return userGoals;
+    const uid = ensureUuid(userId);
+    return await dbQuery('goals', { method: 'GET', match: { user_id: uid } });
   }
 
-  static createGoal(userId, goalData) {
+  static async createGoal(userId, goalData) {
     if (!userId) throw new Error('userId is required');
-    const db = loadDatabase();
-    const goalId = ensureUuid(goalData.id);
-    const isDone = !!(goalData.is_completed || goalData.isCompleted || goalData.is_achieved || goalData.isAchieved || goalData.status === 'COMPLETED');
+    const uid = ensureUuid(userId);
 
-    const rawTier = (goalData.tier || goalData.timeframe || goalData.section || 'short').toString().toLowerCase().trim();
+    const rawTier = (goalData.tier || goalData.timeframe || 'short').toString().toLowerCase();
     let normalizedTier = 'short';
     if (rawTier.includes('med')) normalizedTier = 'medium';
-    else if (rawTier.includes('long') || rawTier.includes('career') || rawTier.includes('goal') || rawTier.includes('skill') || rawTier.includes('project') || rawTier.includes('learn') || rawTier.includes('exp') || rawTier.includes('opp')) normalizedTier = 'long';
+    else if (rawTier.includes('long') || rawTier.includes('career')) normalizedTier = 'long';
 
     const newGoal = {
-      id: goalId,
-      user_id: userId,
-      userId: userId,
-      title: goalData.title || 'Goal',
-      description: goalData.description || goalData.aligned_purpose || goalData.alignedPurpose || '',
+      id: ensureUuid(goalData.id),
+      user_id: uid,
+      title: goalData.title || 'New Goal',
+      description: goalData.description || goalData.aligned_purpose || null,
       tier: normalizedTier,
-      timeframe: normalizedTier,
-      section: goalData.section || 'GOAL',
+      category: goalData.category || 'General',
+      aligned_purpose: goalData.aligned_purpose || goalData.description || null,
       target_date: goalData.target_date || goalData.targetDate || null,
-      aligned_purpose: goalData.aligned_purpose || goalData.alignedPurpose || '',
-      progress_percentage: Number(goalData.progress_percentage || goalData.progress || 0),
-      is_completed: isDone,
-      isCompleted: isDone,
-      status: isDone ? 'COMPLETED' : 'PLANNED',
+      is_completed: !!(goalData.is_completed || goalData.isCompleted),
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
     };
 
-    db.goals.push(newGoal);
-    saveDatabase(db);
-    syncToSupabase('goals', newGoal);
-
-    return newGoal;
+    return await dbQuery('goals', { method: 'POST', body: newGoal, single: true });
   }
 
-  static updateGoal(userId, goalId, updates) {
+  static async updateGoal(userId, goalId, updates) {
     if (!userId || !goalId) return null;
-    const db = loadDatabase();
-    const idx = db.goals.findIndex(g => (g.id === goalId) && (g.user_id === userId || g.userId === userId));
-    if (idx === -1) return null;
+    const uid = ensureUuid(userId);
+    const gid = ensureUuid(goalId);
 
-    const goal = db.goals[idx];
-    if (updates.title !== undefined) goal.title = updates.title;
-    if (updates.description !== undefined) goal.description = updates.description;
-    if (updates.tier !== undefined || updates.timeframe !== undefined || updates.section !== undefined) {
-      const rawTier = (updates.tier || updates.timeframe || updates.section || goal.tier).toString().toLowerCase().trim();
-      let normalizedTier = 'short';
-      if (rawTier.includes('med')) normalizedTier = 'medium';
-      else if (rawTier.includes('long') || rawTier.includes('career') || rawTier.includes('goal') || rawTier.includes('skill') || rawTier.includes('project') || rawTier.includes('learn') || rawTier.includes('exp') || rawTier.includes('opp')) normalizedTier = 'long';
-      goal.tier = normalizedTier;
-      goal.timeframe = normalizedTier;
+    const payload = {};
+    if (updates.title !== undefined) payload.title = updates.title;
+    if (updates.description !== undefined) payload.description = updates.description;
+    if (updates.tier !== undefined) payload.tier = updates.tier;
+    if (updates.category !== undefined) payload.category = updates.category;
+    if (updates.aligned_purpose !== undefined) payload.aligned_purpose = updates.aligned_purpose;
+    if (updates.target_date || updates.targetDate) payload.target_date = updates.target_date || updates.targetDate;
+    if (updates.is_completed !== undefined || updates.isCompleted !== undefined) {
+      payload.is_completed = !!(updates.is_completed ?? updates.isCompleted);
     }
-    if (updates.is_completed !== undefined || updates.isCompleted !== undefined || updates.status !== undefined) {
-      const isDone = !!(updates.is_completed ?? updates.isCompleted ?? (updates.status === 'COMPLETED'));
-      goal.is_completed = isDone;
-      goal.isCompleted = isDone;
-      goal.status = isDone ? 'COMPLETED' : 'PLANNED';
-      goal.completed_at = isDone ? new Date().toISOString() : null;
-    }
-    if (updates.progress_percentage !== undefined || updates.progress !== undefined) {
-      goal.progress_percentage = Number(updates.progress_percentage || updates.progress || 0);
-    }
-    goal.updated_at = new Date().toISOString();
 
-    saveDatabase(db);
-    syncToSupabase('goals', goal);
-
-    return goal;
+    return await dbQuery('goals', { method: 'PATCH', match: { id: gid, user_id: uid }, body: payload, single: true });
   }
 
-  static deleteGoal(userId, goalId) {
+  static async deleteGoal(userId, goalId) {
     if (!userId || !goalId) return false;
-    const db = loadDatabase();
-    const initialLen = db.goals.length;
-    db.goals = db.goals.filter(g => !(g.id === goalId && (g.user_id === userId || g.userId === userId)));
-    db.milestones = db.milestones.filter(m => !(m.goal_id === goalId && (m.user_id === userId || m.userId === userId)));
-    if (db.goals.length !== initialLen) {
-      saveDatabase(db);
-      deleteFromSupabase('goals', { id: goalId, user_id: userId });
-      deleteFromSupabase('milestones', { goal_id: goalId, user_id: userId });
-      return true;
-    }
-    return false;
+    const uid = ensureUuid(userId);
+    const gid = ensureUuid(goalId);
+    await dbQuery('milestones', { method: 'DELETE', match: { goal_id: gid, user_id: uid } });
+    return await dbQuery('goals', { method: 'DELETE', match: { id: gid, user_id: uid } });
   }
 
-  static getMilestones(userId, goalId = null) {
+  static async getMilestones(userId, goalId = null) {
     if (!userId) return [];
-    const db = loadDatabase();
-    return db.milestones.filter(m => (m.user_id === userId || m.userId === userId) && (!goalId || m.goal_id === goalId || m.goalId === goalId));
+    const uid = ensureUuid(userId);
+    const match = { user_id: uid };
+    if (goalId) match.goal_id = ensureUuid(goalId);
+    return await dbQuery('milestones', { method: 'GET', match });
   }
 
-  static createMilestone(userId, milestoneData) {
-    if (!userId) throw new Error('userId is required');
-    const db = loadDatabase();
-    const msId = ensureUuid(milestoneData.id);
-    const goalId = ensureUuid(milestoneData.goal_id || milestoneData.goalId);
+  static async createMilestone(userId, goalId, milestoneData) {
+    if (!userId || !goalId) throw new Error('userId and goalId are required');
+    const uid = ensureUuid(userId);
+    const gid = ensureUuid(goalId);
 
-    const isDone = !!(milestoneData.is_completed || milestoneData.isCompleted);
-    const newMs = {
-      id: msId,
-      user_id: userId,
-      userId: userId,
-      goal_id: goalId,
-      goalId: goalId,
-      title: milestoneData.title || milestoneData.milestone_title || 'Milestone',
-      description: milestoneData.description || '',
-      is_completed: isDone,
-      isCompleted: isDone,
+    const newMilestone = {
+      id: ensureUuid(milestoneData.id),
+      user_id: uid,
+      goal_id: gid,
+      title: milestoneData.title || milestoneData.milestone_title || 'New Milestone',
+      description: milestoneData.description || null,
       target_date: milestoneData.target_date || milestoneData.targetDate || null,
+      is_completed: !!(milestoneData.is_completed || milestoneData.isCompleted),
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
     };
 
-    db.milestones.push(newMs);
-    saveDatabase(db);
-    syncToSupabase('milestones', newMs);
-
-    return newMs;
-  }
-
-  static deleteMilestone(userId, milestoneId) {
-    if (!userId || !milestoneId) return false;
-    const db = loadDatabase();
-    db.milestones = db.milestones.filter(m => !(m.id === milestoneId && (m.user_id === userId || m.userId === userId)));
-    saveDatabase(db);
-    deleteFromSupabase('milestones', { id: milestoneId, user_id: userId });
-    return true;
+    return await dbQuery('milestones', { method: 'POST', body: newMilestone, single: true });
   }
 
   // ---------------------------------------------------------------------------
-  // CALENDAR EVENTS
+  // CALENDAR EVENTS (DIRECT POSTGRESQL CRUD)
   // ---------------------------------------------------------------------------
-  static getCalendarEvents(userId) {
+  static async getCalendarEvents(userId) {
     if (!userId) return [];
-    const db = loadDatabase();
-    return db.calendar_events.filter(ce => ce.user_id === userId || ce.userId === userId);
+    const uid = ensureUuid(userId);
+    return await dbQuery('calendar_events', { method: 'GET', match: { user_id: uid } });
   }
 
-  static createCalendarEvent(userId, eventData) {
+  static async createCalendarEvent(userId, eventData) {
     if (!userId) throw new Error('userId is required');
-    const db = loadDatabase();
-    const eventId = ensureUuid(eventData.id);
+    const uid = ensureUuid(userId);
+
+    const d = eventData.event_date || eventData.date || new Date().toISOString().split('T')[0];
+    let startTime = eventData.start_time?.includes('T') ? eventData.start_time.split('T')[1].substring(0, 8) : (eventData.start_time || '10:00:00');
+    let endTime = eventData.end_time?.includes('T') ? eventData.end_time.split('T')[1].substring(0, 8) : (eventData.end_time || '11:00:00');
+    if (startTime.length === 5) startTime += ':00';
+    if (endTime.length === 5) endTime += ':00';
 
     const newEvent = {
-      id: eventId,
-      user_id: userId,
-      userId: userId,
-      title: eventData.title || 'Event',
-      description: eventData.description || '',
-      start_time: eventData.start_time || eventData.startTime || new Date().toISOString(),
-      end_time: eventData.end_time || eventData.endTime || new Date().toISOString(),
-      event_date: eventData.event_date || eventData.date || (eventData.start_time ? eventData.start_time.split('T')[0] : new Date().toISOString().split('T')[0]),
-      category: eventData.category || eventData.event_type || eventData.eventType || 'General',
+      id: ensureUuid(eventData.id),
+      user_id: uid,
+      title: eventData.title || 'New Event',
+      description: eventData.description || null,
+      event_date: d,
+      start_time: startTime,
+      end_time: endTime,
+      category: eventData.category || eventData.event_type || 'General',
+      location: eventData.location || 'Workspace A',
       is_all_day: !!(eventData.is_all_day ?? eventData.isAllDay),
       created_at: new Date().toISOString(),
     };
 
-    db.calendar_events.push(newEvent);
-    saveDatabase(db);
-    syncToSupabase('calendar_events', newEvent);
-
-    return newEvent;
+    return await dbQuery('calendar_events', { method: 'POST', body: newEvent, single: true });
   }
 
-  static deleteCalendarEvent(userId, eventId) {
+  static async deleteCalendarEvent(userId, eventId) {
     if (!userId || !eventId) return false;
-    const db = loadDatabase();
-    db.calendar_events = db.calendar_events.filter(ce => !(ce.id === eventId && (ce.user_id === userId || ce.userId === userId)));
-    saveDatabase(db);
-    deleteFromSupabase('calendar_events', { id: eventId, user_id: userId });
-    return true;
+    const uid = ensureUuid(userId);
+    const eid = ensureUuid(eventId);
+    return await dbQuery('calendar_events', { method: 'DELETE', match: { id: eid, user_id: uid } });
   }
 
   // ---------------------------------------------------------------------------
-  // COUPONS & REFERRALS
+  // JOURNAL ENTRIES (DIRECT POSTGRESQL CRUD)
   // ---------------------------------------------------------------------------
-  static applyCoupon(userId, code) {
-    if (!userId || !code) return { success: false, message: 'Invalid coupon code.' };
-    const cleanCode = code.trim().toUpperCase();
-    const db = loadDatabase();
+  static async getJournalEntries(userId) {
+    if (!userId) return [];
+    const uid = ensureUuid(userId);
+    return await dbQuery('journal_entries', { method: 'GET', match: { user_id: uid } });
+  }
 
-    const coupon = db.coupons.find(c => c.code.toUpperCase() === cleanCode && c.active);
-    if (!coupon) {
-      return { success: false, message: 'Invalid or expired coupon code.' };
-    }
+  static async createJournalEntry(userId, entryData) {
+    if (!userId) throw new Error('userId is required');
+    const uid = ensureUuid(userId);
 
-    const sub = this.upgradeSubscription(userId, coupon.plan || 'pro', 'COUPON', `cpn_${cleanCode}`);
-    db.coupon_usages.push({
-      id: ensureUuid(),
-      userId,
-      code: cleanCode,
-      usedAt: new Date().toISOString(),
-    });
-    saveDatabase(db);
-
-    return {
-      success: true,
-      message: `Coupon ${cleanCode} applied! Pro tier unlocked.`,
-      subscription: sub,
+    const newEntry = {
+      id: ensureUuid(entryData.id),
+      user_id: uid,
+      title: entryData.title || 'Journal Entry',
+      content: entryData.content || entryData.content_ciphertext || '',
+      content_ciphertext: entryData.content_ciphertext || entryData.content || '',
+      mood: entryData.mood || 'neutral',
+      entry_date: entryData.entry_date || entryData.date || new Date().toISOString().split('T')[0],
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     };
+
+    return await dbQuery('journal_entries', { method: 'POST', body: newEntry, single: true });
+  }
+
+  static async deleteJournalEntry(userId, entryId) {
+    if (!userId || !entryId) return false;
+    const uid = ensureUuid(userId);
+    const jid = ensureUuid(entryId);
+    return await dbQuery('journal_entries', { method: 'DELETE', match: { id: jid, user_id: uid } });
   }
 }
 
@@ -1226,7 +765,6 @@ module.exports = {
   DatabaseManager,
   hashPassword,
   verifyPassword,
-  loadDatabase,
-  saveDatabase,
   ensureUuid,
 };
+

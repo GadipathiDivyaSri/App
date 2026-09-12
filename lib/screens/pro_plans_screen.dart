@@ -95,10 +95,11 @@ class _ProPlansScreenState extends State<ProPlansScreen> {
                 width: double.infinity,
                 height: 48,
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     Navigator.pop(ctx);
                     final provider = Provider.of<AppProvider>(context, listen: false);
-                    provider.upgradeToPremium();
+                    await provider.upgradeToPremium();
+                    if (!mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text('🎉 WrindhaOS Pro unlocked successfully!'),

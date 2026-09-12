@@ -598,6 +598,7 @@ class ProfileScreen extends StatelessWidget {
               );
 
               final res = await provider.deleteAccount();
+              if (!context.mounted) return;
 
               if (Navigator.canPop(context)) {
                 Navigator.of(context).popUntil((route) => route.isFirst);
