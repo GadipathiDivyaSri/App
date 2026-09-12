@@ -420,12 +420,34 @@ async function handleApiRequest(req, res) {
       return sendJSON(res, 400, { success: false, message: 'Please provide username/email and password.' });
     }
 
-    const user = await DatabaseManager.getUserByEmailOrUsername(loginKey);
+    let user = await DatabaseManager.getUserByEmailOrUsername(loginKey);
+
+    // Fallback: Check if user exists in local OTP cache or active Auth records
+    if (!user) {
+      const storedOtp = await getAuthOtp(loginKey);
+      if (storedOtp) {
+        user = {
+          id: storedOtp.supabaseUserId || 'local_user_' + Date.now(),
+          username: storedOtp.username || loginKey.split('@')[0],
+          email: loginKey,
+          password_hash: storedOtp.passwordHash,
+        };
+      }
+    }
+
     if (!user) {
       return sendJSON(res, 401, { success: false, message: 'Invalid credentials. User not found.' });
     }
 
-    const valid = verifyPassword(password, user.password_hash || user.password);
+    let targetHash = user.password_hash || user.password;
+    if (!targetHash) {
+      const storedOtp = await getAuthOtp(user.email || loginKey);
+      if (storedOtp && storedOtp.passwordHash) {
+        targetHash = storedOtp.passwordHash;
+      }
+    }
+
+    let valid = verifyPassword(password, targetHash);
     if (!valid && password !== 'Admin123!' && password !== 'wrindha2026') {
       return sendJSON(res, 401, { success: false, message: 'Invalid password. Please try again.' });
     }

@@ -124,9 +124,41 @@ class DatabaseManager {
   static async getUserByEmailOrUsername(identifier) {
     if (!identifier) return null;
     const clean = identifier.trim().toLowerCase();
-    const byEmail = await dbQuery('profiles', { method: 'GET', match: { email: clean }, single: true });
-    if (byEmail) return byEmail;
-    return await dbQuery('profiles', { method: 'GET', match: { username: clean }, single: true });
+    let user = await dbQuery('profiles', { method: 'GET', match: { email: clean }, single: true });
+    if (!user) {
+      user = await dbQuery('profiles', { method: 'GET', match: { username: clean }, single: true });
+    }
+
+    // Merge Supabase Auth metadata (passwordHash) if user or password_hash is missing
+    if (isSupabaseConfigured() && supabase) {
+      try {
+        const { data } = await supabase.auth.admin.listUsers();
+        const supUser = (data?.users || []).find(u =>
+          (u.email || '').toLowerCase() === clean ||
+          (u.user_metadata && (u.user_metadata.username || '').toLowerCase() === clean)
+        );
+        if (supUser) {
+          if (!user) {
+            user = {
+              id: supUser.id,
+              user_id: supUser.id,
+              email: supUser.email,
+              username: supUser.user_metadata?.username || clean,
+              name: supUser.user_metadata?.name || supUser.email.split('@')[0],
+              display_name: supUser.user_metadata?.name || supUser.email.split('@')[0],
+              is_premium: false,
+              subscription_plan: 'FREE',
+            };
+          }
+          if (supUser.user_metadata && supUser.user_metadata.passwordHash) {
+            user.password_hash = supUser.user_metadata.passwordHash;
+          }
+        }
+      } catch (supErr) {
+        console.warn('[SUPABASE AUTH USER FETCH NOTICE]:', supErr.message);
+      }
+    }
+    return user;
   }
 
   static async createUser(userData) {
@@ -152,21 +184,27 @@ class DatabaseManager {
     };
 
     const createdProfile = await dbQuery('profiles', { method: 'POST', body: newUser, single: true });
+    const resultUser = createdProfile || newUser;
+
+    // Attach password_hash for caller authentication flows
+    if (userData.password_hash) {
+      resultUser.password_hash = userData.password_hash;
+    }
 
     // Initialize Default Subscription Row
     const newSub = {
       id: ensureUuid(),
       user_id: userId,
-      plan: newUser.is_premium ? 'premium' : 'free',
+      plan: resultUser.is_premium ? 'premium' : 'free',
       status: 'active',
       started_at: new Date().toISOString(),
-      payment_provider: newUser.is_premium ? 'SEED_VIP' : 'NONE',
+      payment_provider: resultUser.is_premium ? 'SEED_VIP' : 'NONE',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
     await dbQuery('subscriptions', { method: 'POST', body: newSub });
 
-    return createdProfile || newUser;
+    return resultUser;
   }
 
   static async updateUser(userId, updates) {
