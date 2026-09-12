@@ -323,7 +323,7 @@ class TodoScreen extends StatelessWidget {
                     children: [
                       Expanded(
                         child: DropdownButtonFormField<String>(
-                          initialValue: category,
+                          value: category,
                           decoration: const InputDecoration(
                             labelText: 'Category',
                             border: OutlineInputBorder(),
@@ -346,7 +346,7 @@ class TodoScreen extends StatelessWidget {
                       const SizedBox(width: 12),
                       Expanded(
                         child: DropdownButtonFormField<String>(
-                          initialValue: dueDateLabel,
+                          value: dueDateLabel,
                           decoration: const InputDecoration(
                             labelText: 'Due Date',
                             border: OutlineInputBorder(),

@@ -16,14 +16,5 @@
   "payment_history": [],
   "coupons": [],
   "coupon_usages": [],
-  "auth_otps": {
-    "test_otp_verify@example.com": {
-      "otp": "486254",
-      "username": "testuser_6574",
-      "passwordHash": "7b3e198788f7f230cb00bb14fcfc63db:a268d3612af366e0c1f9fe7e2b8050c6ec5957da5e415bd36ddb0164327543115604e9d20ff63b17bbc831ee698b6023c17b5b92ed1dc221a0e3c956e9712b0e",
-      "referralCode": null,
-      "expiresAt": 1788672161544
-    }
-  },
-  "career_milestones": []
+  "auth_otps": {}
 }
