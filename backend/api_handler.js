@@ -1,6 +1,6 @@
 const url = require('url');
 const crypto = require('crypto');
-const { DatabaseManager, hashPassword, verifyPassword, loadDatabase, saveDatabase } = require('./db_manager');
+const { DatabaseManager, hashPassword, verifyPassword } = require('./db_manager');
 const { isConfigured: isSupabaseConfigured, supabase } = require('./supabase_client');
 const { sendEmailOtp } = require('./email_service');
 
@@ -225,7 +225,7 @@ async function handleApiRequest(req, res) {
     if (!rawUsername || rawUsername.length < 3) {
       return sendJSON(res, 400, { available: false, message: 'Username must be at least 3 characters.' });
     }
-    const existing = DatabaseManager.getUserByEmailOrUsername(rawUsername);
+    const existing = await DatabaseManager.getUserByEmailOrUsername(rawUsername);
     return sendJSON(res, 200, { available: !existing, message: existing ? 'Username is already taken.' : 'Username available!' });
   }
 
@@ -259,7 +259,7 @@ async function handleApiRequest(req, res) {
       return sendJSON(res, 400, { success: false, message: 'Password must be at least 6 characters long.' });
     }
 
-    const existingUser = DatabaseManager.getUserByEmailOrUsername(cleanUsername) || DatabaseManager.getUserByEmailOrUsername(cleanEmail);
+    const existingUser = await DatabaseManager.getUserByEmailOrUsername(cleanUsername) || await DatabaseManager.getUserByEmailOrUsername(cleanEmail);
     if (existingUser) {
       return sendJSON(res, 400, { success: false, message: 'An account with this email or username already exists.' });
     }
@@ -367,7 +367,7 @@ async function handleApiRequest(req, res) {
       return sendJSON(res, 400, { success: false, message: 'Incorrect OTP. Please enter the valid 6-digit code.' });
     }
 
-    let existingUser = DatabaseManager.getUserByEmailOrUsername(cleanEmail);
+    let existingUser = await DatabaseManager.getUserByEmailOrUsername(cleanEmail);
     let newUser;
     if (existingUser) {
       const targetUsername = stored.username || (username ? username.trim().toLowerCase() : null);
@@ -375,11 +375,11 @@ async function handleApiRequest(req, res) {
         existingUser.username = targetUsername;
         existingUser.name = targetUsername[0].toUpperCase() + targetUsername.slice(1);
         existingUser.display_name = existingUser.name;
-        DatabaseManager.updateUser(existingUser.id, { username: targetUsername, name: existingUser.name });
+        await DatabaseManager.updateUser(existingUser.id, { username: targetUsername, name: existingUser.name });
       }
       newUser = existingUser;
     } else {
-      newUser = DatabaseManager.createUser({
+      newUser = await DatabaseManager.createUser({
         username: stored.username || (username ? username.trim().toLowerCase() : cleanEmail.split('@')[0]),
         email: cleanEmail,
         password_hash: stored.passwordHash || hashPassword('Wrindha2026!'),
@@ -427,7 +427,7 @@ async function handleApiRequest(req, res) {
       return sendJSON(res, 400, { success: false, message: 'Please provide username/email and password.' });
     }
 
-    const user = DatabaseManager.getUserByEmailOrUsername(loginKey);
+    const user = await DatabaseManager.getUserByEmailOrUsername(loginKey);
     if (!user) {
       return sendJSON(res, 401, { success: false, message: 'Invalid credentials. User not found.' });
     }
@@ -437,7 +437,7 @@ async function handleApiRequest(req, res) {
       return sendJSON(res, 401, { success: false, message: 'Invalid password. Please try again.' });
     }
 
-    const sub = DatabaseManager.getUserSubscription(user.id);
+    const sub = await DatabaseManager.getUserSubscription(user.id);
     const token = generateJwtToken({ id: user.id, email: user.email, username: user.username });
 
     return sendJSON(res, 200, {
@@ -459,9 +459,9 @@ async function handleApiRequest(req, res) {
     const cleanEmail = (email || '').trim().toLowerCase() || `user_${Date.now()}@wrindha.app`;
     const cleanUsername = (username || cleanEmail.split('@')[0]).trim().toLowerCase();
 
-    let user = DatabaseManager.getUserByEmailOrUsername(cleanEmail) || DatabaseManager.getUserByEmailOrUsername(cleanUsername);
+    let user = await DatabaseManager.getUserByEmailOrUsername(cleanEmail) || await DatabaseManager.getUserByEmailOrUsername(cleanUsername);
     if (!user) {
-      user = DatabaseManager.createUser({
+      user = await DatabaseManager.createUser({
         username: cleanUsername,
         email: cleanEmail,
         password_hash: hashPassword(accessToken),
@@ -470,7 +470,7 @@ async function handleApiRequest(req, res) {
       });
     }
 
-    const sub = DatabaseManager.getUserSubscription(user.id);
+    const sub = await DatabaseManager.getUserSubscription(user.id);
     const token = generateJwtToken({ id: user.id, email: user.email, username: user.username });
 
     return sendJSON(res, 200, {
@@ -577,9 +577,9 @@ async function handleApiRequest(req, res) {
       return sendJSON(res, 400, { success: false, message: 'Passwords do not match.' });
     }
 
-    const user = DatabaseManager.getUserByEmailOrUsername(cleanEmail);
+    const user = await DatabaseManager.getUserByEmailOrUsername(cleanEmail);
     if (user) {
-      DatabaseManager.updateUser(user.id, {
+      await DatabaseManager.updateUser(user.id, {
         password: newPassword,
         password_hash: hashPassword(newPassword),
       });
@@ -598,7 +598,7 @@ async function handleApiRequest(req, res) {
   const tokenPayload = verifyJwtToken(token);
 
   let userId = tokenPayload ? tokenPayload.id : null;
-  let currentUser = userId ? DatabaseManager.getUserById(userId) : null;
+  let currentUser = userId ? await DatabaseManager.getUserById(userId) : null;
 
   if (!currentUser) {
     const db = loadDatabase();
@@ -610,7 +610,7 @@ async function handleApiRequest(req, res) {
   // 7. USER PROFILE
   // ---------------------------------------------------------------------------
   if ((pathname === '/api/users/me' || pathname === '/api/user/profile') && method === 'GET') {
-    const sub = DatabaseManager.getUserSubscription(userId);
+    const sub = await DatabaseManager.getUserSubscription(userId);
     return sendJSON(res, 200, {
       user: sanitizeUser(currentUser),
       subscription: sub,
@@ -618,7 +618,7 @@ async function handleApiRequest(req, res) {
   }
 
   if ((pathname === '/api/users/me' || pathname === '/api/user/profile') && (method === 'PUT' || method === 'PATCH')) {
-    const updated = DatabaseManager.updateUser(userId, body);
+    const updated = await DatabaseManager.updateUser(userId, body);
     return sendJSON(res, 200, {
       success: true,
       message: 'Profile updated successfully.',
@@ -627,7 +627,7 @@ async function handleApiRequest(req, res) {
   }
 
   if ((pathname === '/api/users/me' || pathname === '/api/account/delete') && method === 'DELETE') {
-    DatabaseManager.deleteUser(userId);
+    await DatabaseManager.deleteUser(userId);
     return sendJSON(res, 200, { success: true, message: 'Account and associated data permanently deleted.' });
   }
 
@@ -635,14 +635,14 @@ async function handleApiRequest(req, res) {
   // 8. SUBSCRIPTION & BILLING
   // ---------------------------------------------------------------------------
   if ((pathname === '/api/subscription/me' || pathname === '/api/subscription') && method === 'GET') {
-    const sub = DatabaseManager.getUserSubscription(userId);
+    const sub = await DatabaseManager.getUserSubscription(userId);
     return sendJSON(res, 200, sub);
   }
 
   if ((pathname === '/api/subscription/upgrade' || pathname === '/api/subscription/verify-play-purchase') && method === 'POST') {
     const provider = body.paymentProvider || body.provider || 'GOOGLE_PLAY';
     const txnId = body.orderId || body.transactionId || `txn_${Date.now()}`;
-    const sub = DatabaseManager.upgradeSubscription(userId, 'pro', provider, txnId);
+    const sub = await DatabaseManager.upgradeSubscription(userId, 'pro', provider, txnId);
     return sendJSON(res, 200, {
       success: true,
       message: 'Subscription upgraded to Pro!',
@@ -654,25 +654,25 @@ async function handleApiRequest(req, res) {
   // 9. TASKS
   // ---------------------------------------------------------------------------
   if (pathname === '/api/tasks' && method === 'GET') {
-    const tasks = DatabaseManager.getTasks(userId);
+    const tasks = await DatabaseManager.getTasks(userId);
     return sendJSON(res, 200, tasks);
   }
 
   if (pathname === '/api/tasks' && method === 'POST') {
-    const newTask = DatabaseManager.createTask(userId, body);
+    const newTask = await DatabaseManager.createTask(userId, body);
     return sendJSON(res, 201, newTask);
   }
 
   if (pathname.startsWith('/api/tasks/') && (method === 'PUT' || method === 'PATCH')) {
     const taskId = pathname.split('/')[3];
-    const updated = DatabaseManager.updateTask(userId, taskId, body);
+    const updated = await DatabaseManager.updateTask(userId, taskId, body);
     if (!updated) return sendJSON(res, 404, { error: 'Task not found or unauthorized' });
     return sendJSON(res, 200, updated);
   }
 
   if (pathname.startsWith('/api/tasks/') && method === 'DELETE') {
     const taskId = pathname.split('/')[3];
-    const deleted = DatabaseManager.deleteTask(userId, taskId);
+    const deleted = await DatabaseManager.deleteTask(userId, taskId);
     return sendJSON(res, 200, { success: deleted });
   }
 
@@ -680,17 +680,17 @@ async function handleApiRequest(req, res) {
   // 10. HABITS
   // ---------------------------------------------------------------------------
   if (pathname === '/api/habits' && method === 'GET') {
-    const habits = DatabaseManager.getHabits(userId);
+    const habits = await DatabaseManager.getHabits(userId);
     return sendJSON(res, 200, habits);
   }
 
   if (pathname === '/api/habits/overview' && method === 'GET') {
-    const overview = DatabaseManager.getHabitOverview(userId, query.date);
+    const overview = await DatabaseManager.getHabitOverview(userId, query.date);
     return sendJSON(res, 200, overview);
   }
 
   if (pathname === '/api/habits' && method === 'POST') {
-    const resHabit = DatabaseManager.createHabit(userId, body);
+    const resHabit = await DatabaseManager.createHabit(userId, body);
     if (resHabit.error) {
       return sendJSON(res, 403, resHabit);
     }
@@ -699,20 +699,20 @@ async function handleApiRequest(req, res) {
 
   if (pathname.startsWith('/api/habits/') && pathname.endsWith('/toggle') && method === 'POST') {
     const habitId = pathname.split('/')[3];
-    const result = DatabaseManager.toggleHabitCompletion(userId, habitId, body.date);
+    const result = await DatabaseManager.toggleHabitCompletion(userId, habitId, body.date);
     return sendJSON(res, 200, result);
   }
 
   if (pathname.startsWith('/api/habits/') && (method === 'PUT' || method === 'PATCH')) {
     const habitId = pathname.split('/')[3];
-    const updated = DatabaseManager.updateHabit(userId, habitId, body);
+    const updated = await DatabaseManager.updateHabit(userId, habitId, body);
     if (!updated) return sendJSON(res, 404, { error: 'Habit not found or unauthorized' });
     return sendJSON(res, 200, updated);
   }
 
   if (pathname.startsWith('/api/habits/') && method === 'DELETE') {
     const habitId = pathname.split('/')[3];
-    const deleted = DatabaseManager.deleteHabit(userId, habitId);
+    const deleted = await DatabaseManager.deleteHabit(userId, habitId);
     return sendJSON(res, 200, { success: deleted });
   }
 
@@ -720,12 +720,12 @@ async function handleApiRequest(req, res) {
   // 11. EXPENSES
   // ---------------------------------------------------------------------------
   if (pathname === '/api/expenses' && method === 'GET') {
-    const expenses = DatabaseManager.getExpenses(userId);
+    const expenses = await DatabaseManager.getExpenses(userId);
     return sendJSON(res, 200, expenses);
   }
 
   if (pathname === '/api/expenses' && method === 'POST') {
-    const resExp = DatabaseManager.createExpense(userId, body);
+    const resExp = await DatabaseManager.createExpense(userId, body);
     if (resExp.error) {
       return sendJSON(res, 403, resExp);
     }
@@ -734,7 +734,7 @@ async function handleApiRequest(req, res) {
 
   if (pathname.startsWith('/api/expenses/') && method === 'DELETE') {
     const expenseId = pathname.split('/')[3];
-    const deleted = DatabaseManager.deleteExpense(userId, expenseId);
+    const deleted = await DatabaseManager.deleteExpense(userId, expenseId);
     return sendJSON(res, 200, { success: deleted });
   }
 
@@ -742,12 +742,12 @@ async function handleApiRequest(req, res) {
   // 12. STUDY SUBJECTS, UNITS & ITEMS
   // ---------------------------------------------------------------------------
   if (pathname === '/api/subjects' && method === 'GET') {
-    const subjects = DatabaseManager.getSubjects(userId);
+    const subjects = await DatabaseManager.getSubjects(userId);
     return sendJSON(res, 200, subjects);
   }
 
   if (pathname === '/api/subjects' && method === 'POST') {
-    const resSubj = DatabaseManager.createSubject(userId, body);
+    const resSubj = await DatabaseManager.createSubject(userId, body);
     if (resSubj.error) {
       return sendJSON(res, 403, resSubj);
     }
@@ -756,39 +756,39 @@ async function handleApiRequest(req, res) {
 
   if (pathname.startsWith('/api/subjects/') && method === 'DELETE') {
     const subjectId = pathname.split('/')[3];
-    const deleted = DatabaseManager.deleteSubject(userId, subjectId);
+    const deleted = await DatabaseManager.deleteSubject(userId, subjectId);
     return sendJSON(res, 200, { success: deleted });
   }
 
   if (pathname === '/api/study-units' && method === 'GET') {
-    const units = DatabaseManager.getStudyUnits(userId, query.subjectId);
+    const units = await DatabaseManager.getStudyUnits(userId, query.subjectId);
     return sendJSON(res, 200, units);
   }
 
   if (pathname === '/api/study-units' && method === 'POST') {
-    const newUnit = DatabaseManager.createStudyUnit(userId, body);
+    const newUnit = await DatabaseManager.createStudyUnit(userId, body);
     return sendJSON(res, 201, newUnit);
   }
 
   if (pathname.startsWith('/api/study-units/') && method === 'DELETE') {
     const unitId = pathname.split('/')[3];
-    const deleted = DatabaseManager.deleteStudyUnit(userId, unitId);
+    const deleted = await DatabaseManager.deleteStudyUnit(userId, unitId);
     return sendJSON(res, 200, { success: deleted });
   }
 
   if (pathname === '/api/study-items' && method === 'GET') {
-    const items = DatabaseManager.getStudyItems(userId, query.subjectId);
+    const items = await DatabaseManager.getStudyItems(userId, query.subjectId);
     return sendJSON(res, 200, items);
   }
 
   if (pathname === '/api/study-items' && method === 'POST') {
-    const newItem = DatabaseManager.createStudyItem(userId, body);
+    const newItem = await DatabaseManager.createStudyItem(userId, body);
     return sendJSON(res, 201, newItem);
   }
 
   if (pathname.startsWith('/api/study-items/') && method === 'DELETE') {
     const itemId = pathname.split('/')[3];
-    const deleted = DatabaseManager.deleteStudyItem(userId, itemId);
+    const deleted = await DatabaseManager.deleteStudyItem(userId, itemId);
     return sendJSON(res, 200, { success: deleted });
   }
 
@@ -796,25 +796,25 @@ async function handleApiRequest(req, res) {
   // 13. GOALS & CAREER ROADMAP
   // ---------------------------------------------------------------------------
   if ((pathname === '/api/goals' || pathname === '/api/career-roadmap') && method === 'GET') {
-    const goals = DatabaseManager.getGoals(userId, query.tier || query.timeframe);
+    const goals = await DatabaseManager.getGoals(userId, query.tier || query.timeframe);
     return sendJSON(res, 200, goals);
   }
 
   if ((pathname === '/api/goals' || pathname === '/api/career-roadmap') && method === 'POST') {
-    const newGoal = DatabaseManager.createGoal(userId, body);
+    const newGoal = await DatabaseManager.createGoal(userId, body);
     return sendJSON(res, 201, newGoal);
   }
 
   if ((pathname.startsWith('/api/goals/') || pathname.startsWith('/api/career-roadmap/')) && (method === 'PUT' || method === 'PATCH')) {
     const goalId = pathname.split('/')[3];
-    const updated = DatabaseManager.updateGoal(userId, goalId, body);
+    const updated = await DatabaseManager.updateGoal(userId, goalId, body);
     if (!updated) return sendJSON(res, 404, { error: 'Goal not found or unauthorized' });
     return sendJSON(res, 200, updated);
   }
 
   if ((pathname.startsWith('/api/goals/') || pathname.startsWith('/api/career-roadmap/')) && method === 'DELETE') {
     const goalId = pathname.split('/')[3];
-    const deleted = DatabaseManager.deleteGoal(userId, goalId);
+    const deleted = await DatabaseManager.deleteGoal(userId, goalId);
     return sendJSON(res, 200, { success: deleted });
   }
 
@@ -822,18 +822,18 @@ async function handleApiRequest(req, res) {
   // 13B. MILESTONES
   // ---------------------------------------------------------------------------
   if (pathname === '/api/milestones' && method === 'GET') {
-    const milestones = DatabaseManager.getMilestones(userId, query.goalId);
+    const milestones = await DatabaseManager.getMilestones(userId, query.goalId);
     return sendJSON(res, 200, milestones);
   }
 
   if (pathname === '/api/milestones' && method === 'POST') {
-    const newMs = DatabaseManager.createMilestone(userId, body);
+    const newMs = await DatabaseManager.createMilestone(userId, body);
     return sendJSON(res, 201, newMs);
   }
 
   if (pathname.startsWith('/api/milestones/') && method === 'DELETE') {
     const msId = pathname.split('/')[3];
-    const deleted = DatabaseManager.deleteMilestone(userId, msId);
+    const deleted = await DatabaseManager.deleteMilestone(userId, msId);
     return sendJSON(res, 200, { success: deleted });
   }
 
@@ -841,18 +841,18 @@ async function handleApiRequest(req, res) {
   // 14. CALENDAR EVENTS
   // ---------------------------------------------------------------------------
   if ((pathname === '/api/calendar' || pathname === '/api/calendar/events') && method === 'GET') {
-    const events = DatabaseManager.getCalendarEvents(userId);
+    const events = await DatabaseManager.getCalendarEvents(userId);
     return sendJSON(res, 200, events);
   }
 
   if ((pathname === '/api/calendar' || pathname === '/api/calendar/events') && method === 'POST') {
-    const newEvent = DatabaseManager.createCalendarEvent(userId, body);
+    const newEvent = await DatabaseManager.createCalendarEvent(userId, body);
     return sendJSON(res, 201, newEvent);
   }
 
   if ((pathname.startsWith('/api/calendar/') || pathname.startsWith('/api/calendar/events/')) && method === 'DELETE') {
     const eventId = pathname.split('/').pop();
-    const deleted = DatabaseManager.deleteCalendarEvent(userId, eventId);
+    const deleted = await DatabaseManager.deleteCalendarEvent(userId, eventId);
     return sendJSON(res, 200, { success: deleted });
   }
 
@@ -860,7 +860,7 @@ async function handleApiRequest(req, res) {
   // 15. COUPONS & PROMOS
   // ---------------------------------------------------------------------------
   if (pathname === '/api/coupons/apply' && method === 'POST') {
-    const result = DatabaseManager.applyCoupon(userId, body.code);
+    const result = await DatabaseManager.applyCoupon(userId, body.code);
     return sendJSON(res, result.success ? 200 : 400, result);
   }
 
@@ -868,7 +868,7 @@ async function handleApiRequest(req, res) {
   // 16. ANALYTICS & SUMMARY (PRO TIER GATED)
   // ---------------------------------------------------------------------------
   if (pathname.startsWith('/api/analytics/')) {
-    const sub = DatabaseManager.getUserSubscription(userId);
+    const sub = await DatabaseManager.getUserSubscription(userId);
     if (!sub.isPro) {
       return sendJSON(res, 403, {
         allowed: false,
@@ -877,10 +877,10 @@ async function handleApiRequest(req, res) {
       });
     }
 
-    const habits = DatabaseManager.getHabits(userId);
-    const tasks = DatabaseManager.getTasks(userId);
-    const expenses = DatabaseManager.getExpenses(userId);
-    const goals = DatabaseManager.getGoals(userId);
+    const habits = await DatabaseManager.getHabits(userId);
+    const tasks = await DatabaseManager.getTasks(userId);
+    const expenses = await DatabaseManager.getExpenses(userId);
+    const goals = await DatabaseManager.getGoals(userId);
 
     return sendJSON(res, 200, {
       focusScore: currentUser.focus_score || 85,
@@ -892,6 +892,26 @@ async function handleApiRequest(req, res) {
       completedGoals: goals.filter(g => g.isCompleted || g.is_completed).length,
       totalExpenses: expenses.reduce((acc, e) => acc + (Number(e.amount) || 0), 0),
     });
+  }
+
+
+  // ---------------------------------------------------------------------------
+  // 17. JOURNAL ENTRIES
+  // ---------------------------------------------------------------------------
+  if (pathname === '/api/journal' && method === 'GET') {
+    const entries = await DatabaseManager.getJournalEntries(userId);
+    return sendJSON(res, 200, entries);
+  }
+
+  if (pathname === '/api/journal' && method === 'POST') {
+    const newEntry = await DatabaseManager.createJournalEntry(userId, body);
+    return sendJSON(res, 201, newEntry);
+  }
+
+  if (pathname.startsWith('/api/journal/') && method === 'DELETE') {
+    const entryId = pathname.split('/').pop();
+    const deleted = await DatabaseManager.deleteJournalEntry(userId, entryId);
+    return sendJSON(res, 200, { success: deleted });
   }
 
   // Default 404
