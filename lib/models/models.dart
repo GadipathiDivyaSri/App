@@ -501,19 +501,21 @@ class JournalEntry {
         'id': id,
         'title': title,
         'content': content,
+        'content_ciphertext': content,
         'date': date.toIso8601String(),
+        'entry_date': date.toIso8601String().split('T')[0],
         'mood': mood,
         'tags': tags,
       };
 
   factory JournalEntry.fromJson(Map<String, dynamic> json) => JournalEntry(
-        id: json['id'] ?? 'j_${DateTime.now().millisecondsSinceEpoch}',
-        title: json['title'] ?? 'Journal Entry',
-        content: json['content'] ?? '',
-        date: json['date'] != null
-            ? (DateTime.tryParse(json['date'].toString()) ?? DateTime.now())
-            : DateTime.now(),
-        mood: json['mood'] ?? 'Reflective',
+        id: json['id']?.toString() ?? 'j_${DateTime.now().millisecondsSinceEpoch}',
+        title: json['title']?.toString() ?? 'Journal Entry',
+        content: json['content']?.toString() ?? json['content_ciphertext']?.toString() ?? '',
+        date: json['entry_date'] != null
+            ? (DateTime.tryParse(json['entry_date'].toString()) ?? DateTime.now())
+            : (json['date'] != null ? (DateTime.tryParse(json['date'].toString()) ?? DateTime.now()) : DateTime.now()),
+        mood: json['mood']?.toString() ?? 'Reflective',
         tags: (json['tags'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
       );
 }

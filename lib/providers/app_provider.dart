@@ -505,6 +505,7 @@ class AppProvider extends ChangeNotifier {
   void addJournalEntry(JournalEntry entry) {
     _journalEntries.insert(0, entry);
     _saveJournalEntries();
+    ApiService.createJournalEntryOnBackend(entry);
     notifyListeners();
   }
 
@@ -513,6 +514,7 @@ class AppProvider extends ChangeNotifier {
     if (idx != -1) {
       _journalEntries[idx] = entry;
       _saveJournalEntries();
+      ApiService.createJournalEntryOnBackend(entry);
       notifyListeners();
     }
   }
@@ -520,6 +522,7 @@ class AppProvider extends ChangeNotifier {
   void deleteJournalEntry(String id) {
     _journalEntries.removeWhere((j) => j.id == id);
     _saveJournalEntries();
+    ApiService.deleteJournalEntryOnBackend(id);
     notifyListeners();
   }
 
@@ -1166,6 +1169,14 @@ class AppProvider extends ChangeNotifier {
     } else {
       _journalEntries = [];
     }
+
+    try {
+      final remoteJournals = await ApiService.fetchJournalEntries();
+      if (remoteJournals.isNotEmpty) {
+        _journalEntries = remoteJournals;
+        _saveJournalEntries();
+      }
+    } catch (_) {}
 
     // 7. Career Roadmap
     final careerJson = prefs.getString('saved_career_$uid');

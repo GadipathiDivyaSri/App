@@ -962,6 +962,48 @@ class ApiService {
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // JOURNAL / NOTES REST APIS (SUPABASE BACKEND SYNC)
+  // ---------------------------------------------------------------------------
+  static Future<List<JournalEntry>> fetchJournalEntries() async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.get(Uri.parse('$baseUrl/journal'), headers: headers);
+      if (response.statusCode == 200) {
+        final List<dynamic> list = jsonDecode(response.body);
+        return list.map((json) => JournalEntry.fromJson(json)).toList();
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  static Future<Map<String, dynamic>> createJournalEntryOnBackend(JournalEntry entry) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.post(
+        Uri.parse('$baseUrl/journal'),
+        headers: headers,
+        body: jsonEncode(entry.toJson()),
+      );
+      return {'statusCode': response.statusCode, 'data': jsonDecode(response.body)};
+    } catch (e) {
+      return {'statusCode': 500, 'data': {'success': false, 'message': '$e'}};
+    }
+  }
+
+  static Future<Map<String, dynamic>> deleteJournalEntryOnBackend(String entryId) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.delete(
+        Uri.parse('$baseUrl/journal/$entryId'),
+        headers: headers,
+      );
+      return {'statusCode': response.statusCode, 'data': jsonDecode(response.body)};
+    } catch (e) {
+      return {'statusCode': 500, 'data': {'success': false, 'message': '$e'}};
+    }
+  }
+
   static Future<Map<String, dynamic>> createExpenseOnBackend(ExpenseTransaction expense) async {
     return createExpense(
       id: expense.id,
