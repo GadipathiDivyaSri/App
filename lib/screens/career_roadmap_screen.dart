@@ -38,9 +38,7 @@ class _CareerRoadmapScreenState extends State<CareerRoadmapScreen> {
     final nodes = provider.careerRoadmap;
     final completedCount = nodes.where((n) => n.isCompleted).length;
 
-    return ProFeatureGuard(
-      feature: AppFeature.careerRoadmap,
-      child: Scaffold(
+    return Scaffold(
         backgroundColor: isDark ? bgDark : bgLight,
         appBar: AppBar(
           backgroundColor: isDark ? bgDark : bgLight,
@@ -58,31 +56,18 @@ class _CareerRoadmapScreenState extends State<CareerRoadmapScreen> {
               fontWeight: FontWeight.w800,
             ),
           ),
-          actions: [
-            IconButton(
-              icon: Icon(Icons.account_circle_outlined, size: 26, color: textDark),
-              onPressed: () {},
-            ),
-            const SizedBox(width: 8),
-          ],
         ),
         floatingActionButton: FloatingActionButton(
           heroTag: 'add_milestone_fab',
           backgroundColor: const Color(0xFF0D5CE5),
           elevation: 6,
-          onPressed: () {
-            if (!isPremium) {
-              ProUpgradeDialog.showFeatureLockedDialog(context, AppFeature.careerRoadmap);
-            } else {
-              _showAddMilestoneNodeDialog(context);
-            }
-          },
+          onPressed: () => _showAddMilestoneNodeDialog(context),
           child: const Icon(Icons.add, color: Colors.white, size: 28),
         ),
         body: Column(
           children: [
             const SizedBox(height: 8),
-            // Top Badge Pill: "Start: Entry Level"
+            // Top Badge Pill: "Roadmap Milestones"
             Center(
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -93,10 +78,10 @@ class _CareerRoadmapScreenState extends State<CareerRoadmapScreen> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.play_arrow_rounded, color: Color(0xFF38BDF8), size: 16),
+                    const Icon(Icons.flag_rounded, color: Color(0xFF38BDF8), size: 16),
                     const SizedBox(width: 6),
                     Text(
-                      'Start: Entry Level',
+                      'Roadmap Milestones',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 12,
@@ -178,23 +163,19 @@ class _CareerRoadmapScreenState extends State<CareerRoadmapScreen> {
                                     top: targetY - 32,
                                     child: GestureDetector(
                                       onTap: () {
-                                        if (!isPremium) {
-                                          ProUpgradeDialog.showFeatureLockedDialog(context, AppFeature.careerRoadmap);
-                                        } else {
-                                          provider.toggleCareerNode(node.id);
-                                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                node.isCompleted
-                                                    ? '✓ Milestone "${node.title}" marked as Completed!'
-                                                    : 'Milestone "${node.title}" marked as Planned',
-                                              ),
-                                              backgroundColor: node.isCompleted ? const Color(0xFF10B981) : const Color(0xFF334155),
-                                              duration: const Duration(seconds: 2),
+                                        provider.toggleCareerNode(node.id);
+                                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              node.isCompleted
+                                                  ? '✓ Milestone "${node.title}" marked as Completed!'
+                                                  : 'Milestone "${node.title}" marked as Planned',
                                             ),
-                                          );
-                                        }
+                                            backgroundColor: node.isCompleted ? const Color(0xFF10B981) : const Color(0xFF334155),
+                                            duration: const Duration(seconds: 2),
+                                          ),
+                                        );
                                       },
                                       onLongPress: () {
                                         _showNodeOptionsModal(context, node);
