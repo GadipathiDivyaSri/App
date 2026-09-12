@@ -140,13 +140,53 @@ class _ExpenseTrackerScreenState extends State<ExpenseTrackerScreen> {
         );
       },
     );
+  void _confirmDeleteExpense(BuildContext context, AppProvider provider, ExpenseTransaction exp) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? AppTheme.darkCardBg : AppTheme.cardSurface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          'Delete Transaction?',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: isDark ? Colors.white : AppTheme.textPrimary,
+          ),
+        ),
+        content: Text(
+          'Are you sure you want to delete "${exp.title}" (₹${exp.amount.toStringAsFixed(2)})?',
+          style: TextStyle(color: isDark ? Colors.white70 : AppTheme.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text('Cancel', style: TextStyle(color: isDark ? Colors.white60 : AppTheme.textSecondary)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            onPressed: () {
+              provider.deleteExpense(exp.id);
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Transaction deleted successfully!')),
+              );
+            },
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final provider = Provider.of<AppProvider>(context);
-    final isPremium = provider.user.isPremium;
     final textPrimary = isDark ? AppTheme.darkTextPrimary : AppTheme.textPrimary;
     final textSecondary = isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary;
     final cardBg = isDark ? AppTheme.darkCardBg : AppTheme.cardSurface;
@@ -155,56 +195,44 @@ class _ExpenseTrackerScreenState extends State<ExpenseTrackerScreen> {
     final filteredExpenses = _filterExpensesForPeriod(provider.expenses);
     final totalSpent = filteredExpenses.where((e) => !e.isIncome).fold(0.0, (sum, e) => sum + e.amount);
     final totalIncome = filteredExpenses.where((e) => e.isIncome).fold(0.0, (sum, e) => sum + e.amount);
+    final availableBalance = (provider.monthlyBudget + totalIncome) - totalSpent;
 
     final Map<String, double> categoryBreakdown = {};
     for (var exp in filteredExpenses.where((e) => !e.isIncome)) {
       categoryBreakdown[exp.category] = (categoryBreakdown[exp.category] ?? 0.0) + exp.amount;
     }
 
-    return ProFeatureGuard(
-      feature: AppFeature.expenseTracker,
-      child: Scaffold(
-        backgroundColor: isDark ? AppTheme.darkBg : AppTheme.background,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: textPrimary),
-            onPressed: () => Navigator.pop(context),
-          ),
-          title: Text(
-            'Expense Tracker',
-            style: TextStyle(color: textPrimary, fontWeight: FontWeight.w800),
-          ),
-          actions: [
-            IconButton(
-              icon: Icon(Icons.add_rounded, color: primaryColor, size: 28),
-              onPressed: () {
-                if (!isPremium) {
-                  ProUpgradeDialog.showFeatureLockedDialog(context, AppFeature.expenseTracker);
-                } else {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const AddExpenseScreen()),
-                  );
-                }
-              },
-            ),
-          ],
+    return Scaffold(
+      backgroundColor: isDark ? AppTheme.darkBg : AppTheme.background,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: textPrimary),
+          onPressed: () => Navigator.pop(context),
         ),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-            // 1. Premium Lock Banner if Free
-            if (!isPremium)
-              const PremiumLockBanner(
-                featureName: 'Expense Tracker',
-                description: 'You are currently viewing Expense Tracker in preview mode. Upgrade to Pro for ₹49/month to manage real-time expense budgets and financial records.',
-              ),
-
-            // 2. View Mode Selector [ Week ] [ Month ]
+        title: Text(
+          'Expense Tracker',
+          style: TextStyle(color: textPrimary, fontWeight: FontWeight.w800),
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.add_rounded, color: primaryColor, size: 28),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AddExpenseScreen()),
+              );
+            },
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // 1. View Mode Selector [ Week ] [ Month ]
             Container(
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
@@ -267,7 +295,7 @@ class _ExpenseTrackerScreenState extends State<ExpenseTrackerScreen> {
             ),
             const SizedBox(height: 16),
 
-            // 3. Period Navigation < Previous  Current  Next >
+            // 2. Period Navigation < Previous  Current  Next >
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
@@ -311,7 +339,7 @@ class _ExpenseTrackerScreenState extends State<ExpenseTrackerScreen> {
             ),
             const SizedBox(height: 18),
 
-            // 4. Period Spending Summary Card
+            // 3. Prominent Net Available Balance & Financial Summary Card
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -325,60 +353,100 @@ class _ExpenseTrackerScreenState extends State<ExpenseTrackerScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'AVAILABLE BALANCE',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.2,
-                          color: isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary,
-                        ),
+                      Row(
+                        children: [
+                          Text(
+                            'NET AVAILABLE BALANCE',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1.2,
+                              color: isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          InkWell(
+                            onTap: () => _showEditBudgetDialog(context, provider),
+                            child: Icon(
+                              Icons.edit_outlined,
+                              size: 16,
+                              color: isDark ? AppTheme.darkIconGlow : AppTheme.primaryAccent,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 6),
-                      InkWell(
-                        onTap: () => _showEditBudgetDialog(context, provider),
-                        child: Icon(
-                          Icons.edit_outlined,
-                          size: 16,
-                          color: isDark ? AppTheme.darkIconGlow : AppTheme.primaryAccent,
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: (availableBalance >= 0 ? const Color(0xFF10B981) : Colors.redAccent).withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          availableBalance >= 0 ? 'In Budget' : 'Over Budget',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: availableBalance >= 0 ? const Color(0xFF10B981) : Colors.redAccent,
+                          ),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '${_selectedView == 'MONTH' ? 'Monthly' : 'Weekly'} Total Spending',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: textSecondary),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    '₹${totalSpent.toStringAsFixed(2)}',
+                    '₹${availableBalance.toStringAsFixed(2)}',
                     style: TextStyle(
-                      fontSize: 30,
+                      fontSize: 32,
                       fontWeight: FontWeight.w900,
-                      color: textPrimary,
+                      color: availableBalance >= 0 ? (isDark ? Colors.white : const Color(0xFF0F172A)) : Colors.redAccent,
                       letterSpacing: -0.5,
                     ),
                   ),
+                  const SizedBox(height: 16),
+                  Divider(height: 1, color: isDark ? Colors.white12 : Colors.black12),
                   const SizedBox(height: 14),
                   Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF10B981).withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          'Income: +₹${totalIncome.toStringAsFixed(0)}',
-                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF10B981)),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Total Income', style: TextStyle(fontSize: 11, color: textSecondary, fontWeight: FontWeight.w600)),
+                            const SizedBox(height: 2),
+                            Text(
+                              '+₹${totalIncome.toStringAsFixed(2)}',
+                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF10B981)),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(width: 10),
-                      Text(
-                        '${filteredExpenses.length} transactions',
-                        style: TextStyle(fontSize: 12, color: textSecondary),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Total Spent', style: TextStyle(fontSize: 11, color: textSecondary, fontWeight: FontWeight.w600)),
+                            const SizedBox(height: 2),
+                            Text(
+                              '-₹${totalSpent.toStringAsFixed(2)}',
+                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.redAccent),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Monthly Budget', style: TextStyle(fontSize: 11, color: textSecondary, fontWeight: FontWeight.w600)),
+                            const SizedBox(height: 2),
+                            Text(
+                              '₹${provider.monthlyBudget.toStringAsFixed(0)}',
+                              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: textPrimary),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -503,13 +571,53 @@ class _ExpenseTrackerScreenState extends State<ExpenseTrackerScreen> {
                             ],
                           ),
                         ),
-                        Text(
-                          '${exp.isIncome ? '+' : '-'}₹${exp.amount.toStringAsFixed(2)}',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w800,
-                            color: exp.isIncome ? const Color(0xFF10B981) : textPrimary,
-                          ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '${exp.isIncome ? '+' : '-'}₹${exp.amount.toStringAsFixed(2)}',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w800,
+                                color: exp.isIncome ? const Color(0xFF10B981) : textPrimary,
+                              ),
+                            ),
+                            PopupMenuButton<String>(
+                              icon: Icon(Icons.more_vert_rounded, size: 20, color: textSecondary),
+                              onSelected: (action) {
+                                if (action == 'edit') {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (_) => AddExpenseScreen(existingExpense: exp)),
+                                  );
+                                } else if (action == 'delete') {
+                                  _confirmDeleteExpense(context, provider, exp);
+                                }
+                              },
+                              itemBuilder: (ctx) => [
+                                const PopupMenuItem(
+                                  value: 'edit',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.edit_outlined, size: 18),
+                                      SizedBox(width: 8),
+                                      Text('Edit Transaction'),
+                                    ],
+                                  ),
+                                ),
+                                const PopupMenuItem(
+                                  value: 'delete',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.delete_outline, color: Colors.redAccent, size: 18),
+                                      SizedBox(width: 8),
+                                      Text('Delete', style: TextStyle(color: Colors.redAccent)),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -520,7 +628,6 @@ class _ExpenseTrackerScreenState extends State<ExpenseTrackerScreen> {
           ],
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 }

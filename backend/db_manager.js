@@ -491,6 +491,30 @@ class DatabaseManager {
     return { ...created, userId: uid, isIncome: isInc };
   }
 
+  static async updateExpense(userId, expenseId, updates) {
+    if (!userId || !expenseId) return null;
+    const uid = ensureUuid(userId);
+    const eid = ensureUuid(expenseId);
+    const isInc = !!(updates.is_income ?? updates.isIncome ?? (updates.transaction_type === 'income'));
+
+    const payload = {};
+    if (updates.title) payload.title = updates.title;
+    if (updates.amount !== undefined) payload.amount = Number(updates.amount);
+    if (updates.category) payload.category = updates.category;
+    if (updates.isIncome !== undefined || updates.is_income !== undefined || updates.transaction_type) {
+      payload.transaction_type = isInc ? 'income' : 'expense';
+    }
+    if (updates.paymentMethod || updates.payment_method) {
+      payload.payment_method = updates.paymentMethod || updates.payment_method;
+    }
+    if (updates.date || updates.occurred_at || updates.expense_date) {
+      payload.occurred_at = updates.date || updates.occurred_at || updates.expense_date;
+    }
+
+    const updated = await dbQuery('expenses', { method: 'PATCH', match: { id: eid, user_id: uid }, body: payload, single: true });
+    return updated ? { ...updated, userId: uid, isIncome: isInc } : null;
+  }
+
   static async deleteExpense(userId, expenseId) {
     if (!userId || !expenseId) return false;
     const uid = ensureUuid(userId);

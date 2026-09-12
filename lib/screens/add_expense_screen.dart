@@ -3,19 +3,32 @@ import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
 import '../theme/app_theme.dart';
 
+import '../models/models.dart';
+
 class AddExpenseScreen extends StatefulWidget {
-  const AddExpenseScreen({super.key});
+  final ExpenseTransaction? existingExpense;
+  const AddExpenseScreen({super.key, this.existingExpense});
 
   @override
   State<AddExpenseScreen> createState() => _AddExpenseScreenState();
 }
 
 class _AddExpenseScreenState extends State<AddExpenseScreen> {
-  final _amountCtrl = TextEditingController();
-  final _descCtrl = TextEditingController();
-  String _category = 'Food & Drinks';
-  String _paymentMethod = 'UPI';
+  late final TextEditingController _amountCtrl;
+  late final TextEditingController _descCtrl;
+  late String _category;
+  late String _paymentMethod;
   bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final exp = widget.existingExpense;
+    _amountCtrl = TextEditingController(text: exp != null ? exp.amount.toStringAsFixed(2) : '');
+    _descCtrl = TextEditingController(text: exp != null ? exp.title : '');
+    _category = exp != null ? (exp.isIncome ? 'Income' : exp.category) : 'Food & Drinks';
+    _paymentMethod = exp?.paymentMethod ?? 'UPI';
+  }
 
   @override
   void dispose() {
@@ -54,17 +67,31 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     final isIncome = _category == 'Income';
     final title = _descCtrl.text.trim().isEmpty ? _category : _descCtrl.text.trim();
 
-    provider.addExpense(
-      title,
-      _category,
-      amount,
-      isIncome: isIncome,
-      paymentMethod: _paymentMethod,
-    );
+    if (widget.existingExpense != null) {
+      provider.editExpense(
+        id: widget.existingExpense!.id,
+        title: title,
+        category: _category,
+        amount: amount,
+        isIncome: isIncome,
+        paymentMethod: _paymentMethod,
+        date: widget.existingExpense!.date,
+      );
+    } else {
+      provider.addExpense(
+        title,
+        _category,
+        amount,
+        isIncome: isIncome,
+        paymentMethod: _paymentMethod,
+      );
+    }
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(isIncome ? 'Income added successfully!' : 'Expense recorded successfully!'),
+        content: Text(widget.existingExpense != null
+            ? 'Transaction updated successfully!'
+            : (isIncome ? 'Income added successfully!' : 'Expense recorded successfully!')),
         backgroundColor: AppTheme.primaryAccent,
       ),
     );

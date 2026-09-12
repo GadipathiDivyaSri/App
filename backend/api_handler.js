@@ -942,6 +942,13 @@ async function handleApiRequest(req, res) {
     return sendJSON(res, 201, resExp);
   }
 
+  if (pathname.startsWith('/api/expenses/') && (method === 'PUT' || method === 'PATCH')) {
+    const expenseId = pathname.split('/')[3];
+    const updated = await DatabaseManager.updateExpense(userId, expenseId, body);
+    if (!updated) return sendJSON(res, 404, { error: 'Expense transaction not found or unauthorized' });
+    return sendJSON(res, 200, updated);
+  }
+
   if (pathname.startsWith('/api/expenses/') && method === 'DELETE') {
     const expenseId = pathname.split('/')[3];
     const deleted = await DatabaseManager.deleteExpense(userId, expenseId);
