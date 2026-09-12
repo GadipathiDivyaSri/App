@@ -1,13 +1,11 @@
 -- =============================================================================
--- WRINDHAOS COMPLETE PRODUCTION-READY SUPABASE DATABASE SCHEMA v4.2.0
+-- WRINDHAOS PRODUCTION SUPABASE DATABASE SCHEMA v4.3.0
 -- Security Architecture: Zero-Admin Data Privacy & User-Isolated Row Level Security (RLS)
--- Key Improvements:
---   1. Flexible String Column Types (No strict CHECK constraints that reject UI strings).
---   2. Deterministic UUID & Backwards-Compatible Views for 100% Table Connectivity.
---   3. All 12 production modules supported (Profiles, Subscriptions, Payments, 
---      Coupons, Redemptions, Tasks, Habits, Habit Completions, Expenses, Budgets, 
---      Subjects, Study Units, Study Items, Goals, Milestones, Calendar Events, 
---      Encrypted Journal Entries, Auth Identities, Audit Logs, Referrals).
+-- Improvements:
+--   1. Clean 1:1 matching for all frontend fields across all 10 core modules.
+--   2. Removed unused/redundant legacy tables.
+--   3. Flexible string types preventing constraint rejections.
+--   4. Backwards-compatible views for seamless table connectivity.
 -- =============================================================================
 
 -- Enable required extensions
@@ -35,32 +33,24 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     display_name VARCHAR(255) DEFAULT 'Student User',
     name VARCHAR(255) DEFAULT 'Student User',
     phone_number VARCHAR(30),
-    contact VARCHAR(30),
     avatar_url TEXT,
-    profile_image TEXT,
     role VARCHAR(30) DEFAULT 'USER',
     is_email_verified BOOLEAN DEFAULT FALSE,
-    is_2fa_enabled BOOLEAN DEFAULT FALSE,
-    two_factor_secret VARCHAR(64),
     is_premium BOOLEAN DEFAULT FALSE,
     subscription_plan VARCHAR(30) DEFAULT 'FREE',
     focus_score INT DEFAULT 0,
     active_streak INT DEFAULT 0,
-    xp INT DEFAULT 0,
     referral_code VARCHAR(50) UNIQUE NOT NULL DEFAULT ('WRINDHA_' || upper(substring(md5(random()::text) from 1 for 6))),
     referred_by_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
     fcm_device_token TEXT,
     account_status VARCHAR(30) DEFAULT 'ACTIVE',
-    deleted_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    last_login_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_profiles_user_id ON public.profiles(user_id);
 CREATE INDEX IF NOT EXISTS idx_profiles_username ON public.profiles(username);
 CREATE INDEX IF NOT EXISTS idx_profiles_email ON public.profiles(email);
-CREATE INDEX IF NOT EXISTS idx_profiles_referral ON public.profiles(referral_code);
 
 -- Backwards-compatibility Views
 CREATE OR REPLACE VIEW public.users AS SELECT * FROM public.profiles;
@@ -84,7 +74,6 @@ CREATE TABLE IF NOT EXISTS public.subscriptions (
 );
 
 CREATE INDEX IF NOT EXISTS idx_subscriptions_user_status ON public.subscriptions(user_id, status);
-
 CREATE OR REPLACE VIEW public.user_subscriptions AS SELECT * FROM public.subscriptions;
 
 -- -----------------------------------------------------------------------------
@@ -101,15 +90,13 @@ CREATE TABLE IF NOT EXISTS public.payments (
     amount NUMERIC(12, 2) NOT NULL DEFAULT 59.00,
     currency VARCHAR(10) DEFAULT 'INR',
     status VARCHAR(30) DEFAULT 'SUCCESS',
-    raw_payload JSONB,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_payments_user ON public.payments(user_id);
-CREATE INDEX IF NOT EXISTS idx_payments_order ON public.payments(order_id);
 
 -- -----------------------------------------------------------------------------
--- 4. COUPONS, DISCOUNTS & REDEMPTIONS MODULE
+-- 4. COUPONS & DISCOUNTS MODULE
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.coupons (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -125,14 +112,6 @@ CREATE TABLE IF NOT EXISTS public.coupons (
 );
 
 CREATE INDEX IF NOT EXISTS idx_coupons_code ON public.coupons(code);
-
-CREATE TABLE IF NOT EXISTS public.coupon_redemptions (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    coupon_id UUID NOT NULL REFERENCES public.coupons(id) ON DELETE CASCADE,
-    user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-    redeemed_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT uq_coupon_user UNIQUE (coupon_id, user_id)
-);
 
 -- -----------------------------------------------------------------------------
 -- 5. TASKS & TODOS MODULE (Eisenhower Matrix Support)
@@ -195,7 +174,6 @@ CREATE TABLE IF NOT EXISTS public.habit_completions (
 );
 
 CREATE INDEX IF NOT EXISTS idx_habit_completions_user_date ON public.habit_completions(user_id, completion_date);
-
 CREATE OR REPLACE VIEW public.habit_logs AS SELECT * FROM public.habit_completions;
 
 -- -----------------------------------------------------------------------------
@@ -237,13 +215,14 @@ CREATE TABLE IF NOT EXISTS public.subjects (
     name TEXT NOT NULL,
     subject_name TEXT,
     code VARCHAR(50),
+    instructor VARCHAR(255),
     color VARCHAR(30) DEFAULT '#0D5CE5',
     color_hex VARCHAR(30) DEFAULT '#0D5CE5',
+    credits INT DEFAULT 3,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_subjects_user ON public.subjects(user_id);
-
 CREATE OR REPLACE VIEW public.study_subjects AS SELECT * FROM public.subjects;
 
 CREATE TABLE IF NOT EXISTS public.study_units (
@@ -292,7 +271,6 @@ CREATE TABLE IF NOT EXISTS public.goals (
 );
 
 CREATE INDEX IF NOT EXISTS idx_goals_user_tier ON public.goals(user_id, tier);
-
 CREATE OR REPLACE VIEW public.career_roadmap AS SELECT * FROM public.goals;
 
 CREATE TABLE IF NOT EXISTS public.milestones (
@@ -347,44 +325,13 @@ CREATE TABLE IF NOT EXISTS public.journal_entries (
 CREATE INDEX IF NOT EXISTS idx_journal_entries_user ON public.journal_entries(user_id);
 
 -- -----------------------------------------------------------------------------
--- 12. AUTH IDENTITIES, AUDIT LOGS & REFERRALS
--- -----------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS public.user_auth_identities (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-    provider VARCHAR(50) DEFAULT 'email',
-    provider_user_id VARCHAR(255),
-    email VARCHAR(255),
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE IF NOT EXISTS public.audit_logs (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
-    action VARCHAR(100) NOT NULL,
-    payload JSONB,
-    ip_address INET,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE IF NOT EXISTS public.referrals (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    referrer_user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-    referred_user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-    code VARCHAR(50),
-    status VARCHAR(30) DEFAULT 'pending',
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
--- -----------------------------------------------------------------------------
--- SECTION 13: ROW LEVEL SECURITY (RLS) POLICIES
+-- 12. ROW LEVEL SECURITY (RLS) POLICIES
 -- Strict Isolation: Users can ONLY access their OWN data. Admins BLOCKED from private user data.
 -- -----------------------------------------------------------------------------
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.subscriptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.coupons ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.coupon_redemptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.tasks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.habits ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.habit_completions ENABLE ROW LEVEL SECURITY;
@@ -397,9 +344,6 @@ ALTER TABLE public.goals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.milestones ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.calendar_events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.journal_entries ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.user_auth_identities ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.referrals ENABLE ROW LEVEL SECURITY;
 
 DO $$ 
 DECLARE
@@ -436,3 +380,4 @@ BEGIN
         );
     END LOOP;
 END $$;
+
