@@ -527,18 +527,20 @@ class DatabaseManager {
     return await dbQuery('study_units', { method: 'GET', match });
   }
 
-  static async createStudyUnit(userId, subjectId, unitData) {
-    if (!userId || !subjectId) throw new Error('userId and subjectId are required');
+  static async createStudyUnit(userId, arg1, arg2) {
+    if (!userId) throw new Error('userId is required');
     const uid = ensureUuid(userId);
-    const sid = ensureUuid(subjectId);
+    const unitData = typeof arg1 === 'object' ? arg1 : (arg2 || {});
+    const sid = ensureUuid(unitData.subject_id || unitData.subjectId || (typeof arg1 === 'string' ? arg1 : ''));
 
     const newUnit = {
       id: ensureUuid(unitData.id),
       user_id: uid,
       subject_id: sid,
-      unit_number: Number(unitData.unit_number || unitData.order) || 1,
+      unit_number: Number(unitData.unit_number || unitData.unitNumber || unitData.order) || 1,
       title: unitData.title || unitData.unit_title || 'Unit',
-      status: unitData.is_completed ? 'completed' : 'pending',
+      description: unitData.description || unitData.desc || '',
+      status: (unitData.is_completed || unitData.isCompleted) ? 'completed' : 'pending',
       created_at: new Date().toISOString(),
     };
 
@@ -552,6 +554,7 @@ class DatabaseManager {
 
     const payload = {};
     if (updates.title !== undefined) payload.title = updates.title;
+    if (updates.description !== undefined) payload.description = updates.description;
     if (updates.unit_number !== undefined) payload.unit_number = Number(updates.unit_number);
     if (updates.status !== undefined) payload.status = updates.status;
     if (updates.is_completed !== undefined) payload.is_completed = !!updates.is_completed;
@@ -563,7 +566,52 @@ class DatabaseManager {
     if (!userId || !unitId) return false;
     const uid = ensureUuid(userId);
     const uid_unit = ensureUuid(unitId);
+    await dbQuery('study_topics', { method: 'DELETE', match: { unit_id: uid_unit, user_id: uid } });
     return await dbQuery('study_units', { method: 'DELETE', match: { id: uid_unit, user_id: uid } });
+  }
+
+  // STUDY TOPICS (TOPICS INSIDE UNITS)
+  static async getStudyTopics(userId, unitId = null) {
+    if (!userId) return [];
+    const uid = ensureUuid(userId);
+    const match = { user_id: uid };
+    if (unitId) match.unit_id = ensureUuid(unitId);
+    return await dbQuery('study_topics', { method: 'GET', match });
+  }
+
+  static async createStudyTopic(userId, topicData) {
+    if (!userId) throw new Error('userId is required');
+    const uid = ensureUuid(userId);
+
+    const newTopic = {
+      id: ensureUuid(topicData.id),
+      user_id: uid,
+      unit_id: ensureUuid(topicData.unit_id || topicData.unitId),
+      subject_id: topicData.subject_id || topicData.subjectId ? ensureUuid(topicData.subject_id || topicData.subjectId) : null,
+      title: topicData.title || 'Topic',
+      description: topicData.description || '',
+      is_completed: !!(topicData.is_completed || topicData.isCompleted),
+      created_at: new Date().toISOString(),
+    };
+
+    return await dbQuery('study_topics', { method: 'POST', body: newTopic, single: true });
+  }
+
+  static async toggleStudyTopic(userId, topicId) {
+    if (!userId || !topicId) return null;
+    const uid = ensureUuid(userId);
+    const tid = ensureUuid(topicId);
+    const existing = await dbQuery('study_topics', { method: 'GET', match: { id: tid, user_id: uid }, single: true });
+    if (!existing) return null;
+    const isCompleted = !existing.is_completed;
+    return await dbQuery('study_topics', { method: 'PATCH', match: { id: tid, user_id: uid }, body: { is_completed: isCompleted }, single: true });
+  }
+
+  static async deleteStudyTopic(userId, topicId) {
+    if (!userId || !topicId) return false;
+    const uid = ensureUuid(userId);
+    const tid = ensureUuid(topicId);
+    return await dbQuery('study_topics', { method: 'DELETE', match: { id: tid, user_id: uid } });
   }
 
   static async getStudyItems(userId, subjectId = null, unitId = null) {
@@ -575,19 +623,20 @@ class DatabaseManager {
     return await dbQuery('study_items', { method: 'GET', match });
   }
 
-  static async createStudyItem(userId, subjectId, itemData) {
-    if (!userId || !subjectId) throw new Error('userId and subjectId are required');
+  static async createStudyItem(userId, arg1, arg2) {
+    if (!userId) throw new Error('userId is required');
     const uid = ensureUuid(userId);
-    const sid = ensureUuid(subjectId);
+    const itemData = typeof arg1 === 'object' ? arg1 : (arg2 || {});
+    const sid = ensureUuid(itemData.subject_id || itemData.subjectId || (typeof arg1 === 'string' ? arg1 : ''));
 
     const newItem = {
       id: ensureUuid(itemData.id),
       user_id: uid,
       subject_id: sid,
-      unit_id: itemData.unit_id ? ensureUuid(itemData.unit_id) : null,
+      unit_id: itemData.unit_id || itemData.unitId ? ensureUuid(itemData.unit_id || itemData.unitId) : null,
       title: itemData.title || 'Study Task',
       type: itemData.type || 'TASK',
-      status: itemData.is_completed ? 'completed' : 'pending',
+      status: (itemData.is_completed || itemData.isCompleted) ? 'completed' : 'pending',
       created_at: new Date().toISOString(),
     };
 

@@ -383,6 +383,119 @@ class AppProvider extends ChangeNotifier {
     }
   }
 
+  // UNITS & TOPICS
+  List<StudyUnit> _studyUnits = [];
+  List<StudyUnit> get studyUnits => _studyUnits;
+
+  List<StudyUnit> getUnitsForSubject(String subjectIdOrName) =>
+      _studyUnits.where((u) => u.subjectId == subjectIdOrName || u.subjectId.toLowerCase() == subjectIdOrName.toLowerCase()).toList();
+
+  List<StudyTopic> _studyTopics = [];
+  List<StudyTopic> get studyTopics => _studyTopics;
+
+  List<StudyTopic> getTopicsForUnit(String unitIdOrTitle) =>
+      _studyTopics.where((t) => t.unitId == unitIdOrTitle || t.unitId.toLowerCase() == unitIdOrTitle.toLowerCase()).toList();
+
+  void addStudyUnit(StudyUnit unit) {
+    _studyUnits.add(unit);
+    _saveStudyUnits();
+    notifyListeners();
+    ApiService.createStudyUnitOnBackend(unit);
+  }
+
+  void updateStudyUnit(String unitId, String title, String description) {
+    final idx = _studyUnits.indexWhere((u) => u.id == unitId);
+    if (idx != -1) {
+      _studyUnits[idx].title = title;
+      _studyUnits[idx].description = description;
+      _saveStudyUnits();
+      notifyListeners();
+      ApiService.createStudyUnitOnBackend(_studyUnits[idx]);
+    }
+  }
+
+  void markUnit100Percent(String unitId) {
+    final idx = _studyUnits.indexWhere((u) => u.id == unitId);
+    if (idx != -1) {
+      _studyUnits[idx].progress = 1.0;
+      _studyUnits[idx].isCompleted = true;
+      for (var t in _studyTopics.where((t) => t.unitId == unitId)) {
+        t.isCompleted = true;
+        ApiService.toggleStudyTopicOnBackend(t.id);
+      }
+      _saveStudyUnits();
+      _saveStudyTopics();
+      notifyListeners();
+      ApiService.createStudyUnitOnBackend(_studyUnits[idx]);
+    }
+  }
+
+  void deleteStudyUnit(String unitId) {
+    _studyUnits.removeWhere((u) => u.id == unitId);
+    _studyTopics.removeWhere((t) => t.unitId == unitId);
+    _saveStudyUnits();
+    _saveStudyTopics();
+    notifyListeners();
+    ApiService.deleteStudyUnitOnBackend(unitId);
+  }
+
+  void addStudyTopic(StudyTopic topic) {
+    _studyTopics.add(topic);
+    _updateUnitProgress(topic.unitId);
+    _saveStudyTopics();
+    notifyListeners();
+    ApiService.createStudyTopicOnBackend(topic);
+  }
+
+  void updateStudyTopic(String topicId, String title) {
+    final idx = _studyTopics.indexWhere((t) => t.id == topicId);
+    if (idx != -1) {
+      _studyTopics[idx].title = title;
+      _saveStudyTopics();
+      notifyListeners();
+      ApiService.createStudyTopicOnBackend(_studyTopics[idx]);
+    }
+  }
+
+  void toggleStudyTopic(String topicId) {
+    final idx = _studyTopics.indexWhere((t) => t.id == topicId);
+    if (idx != -1) {
+      _studyTopics[idx].isCompleted = !_studyTopics[idx].isCompleted;
+      _updateUnitProgress(_studyTopics[idx].unitId);
+      _saveStudyTopics();
+      notifyListeners();
+      ApiService.toggleStudyTopicOnBackend(topicId);
+    }
+  }
+
+  void deleteStudyTopic(String topicId) {
+    final idx = _studyTopics.indexWhere((t) => t.id == topicId);
+    if (idx != -1) {
+      final unitId = _studyTopics[idx].unitId;
+      _studyTopics.removeAt(idx);
+      _updateUnitProgress(unitId);
+      _saveStudyTopics();
+      notifyListeners();
+      ApiService.deleteStudyTopicOnBackend(topicId);
+    }
+  }
+
+  void _updateUnitProgress(String unitId) {
+    final unitIdx = _studyUnits.indexWhere((u) => u.id == unitId);
+    if (unitIdx != -1) {
+      final topics = _studyTopics.where((t) => t.unitId == unitId).toList();
+      if (topics.isEmpty) {
+        _studyUnits[unitIdx].progress = 0.0;
+        _studyUnits[unitIdx].isCompleted = false;
+      } else {
+        final completed = topics.where((t) => t.isCompleted).length;
+        _studyUnits[unitIdx].progress = completed / topics.length;
+        _studyUnits[unitIdx].isCompleted = completed == topics.length;
+      }
+      _saveStudyUnits();
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // 3. Journal / Notes (Diary Experience)
   // ---------------------------------------------------------------------------
@@ -501,6 +614,23 @@ class AppProvider extends ChangeNotifier {
       _saveCareerNodes();
       notifyListeners();
       ApiService.updateCareerNodeOnBackend(node);
+    }
+  }
+
+  void clearPredefinedNodes() {
+    const predefinedTitles = {
+      'Entry Level Goal',
+      'Core Technical Skills',
+      'Portfolio Projects',
+      'System Architecture',
+      'Engineering Leadership',
+      'Senior Offer Target',
+    };
+    final initialCount = _careerNodes.length;
+    _careerNodes.removeWhere((n) => predefinedTitles.contains(n.title));
+    if (_careerNodes.length != initialCount) {
+      _saveCareerNodes();
+      notifyListeners();
     }
   }
 
@@ -1012,6 +1142,22 @@ class AppProvider extends ChangeNotifier {
       _studyItems = [];
     }
 
+    final studyUnitsJson = prefs.getString('saved_study_units_$uid');
+    if (studyUnitsJson != null) {
+      final List decoded = jsonDecode(studyUnitsJson);
+      _studyUnits = decoded.map((item) => StudyUnit.fromJson(item)).toList();
+    } else {
+      _studyUnits = [];
+    }
+
+    final studyTopicsJson = prefs.getString('saved_study_topics_$uid');
+    if (studyTopicsJson != null) {
+      final List decoded = jsonDecode(studyTopicsJson);
+      _studyTopics = decoded.map((item) => StudyTopic.fromJson(item)).toList();
+    } else {
+      _studyTopics = [];
+    }
+
     // 6. Journal / Notes
     final journalJson = prefs.getString('saved_journal_$uid');
     if (journalJson != null) {
@@ -1029,6 +1175,15 @@ class AppProvider extends ChangeNotifier {
     } else {
       _careerNodes = [];
     }
+
+    _careerNodes.removeWhere((n) => {
+      'Entry Level Goal',
+      'Core Technical Skills',
+      'Portfolio Projects',
+      'System Architecture',
+      'Engineering Leadership',
+      'Senior Offer Target',
+    }.contains(n.title));
 
     // 8. Notifications
     final notifsJson = prefs.getString('saved_notifications_$uid') ?? prefs.getString('saved_notifications');
@@ -1079,6 +1234,7 @@ class AppProvider extends ChangeNotifier {
       _tasks[index] = task;
       _saveTasks();
       notifyListeners();
+      ApiService.updateTaskOnBackend(task);
     }
   }
 
@@ -1288,6 +1444,26 @@ class AppProvider extends ChangeNotifier {
       await prefs.setString('saved_study_items_${_user.id}', jsonEncode(jsonList));
     } catch (e) {
       debugPrint('Error saving study items: $e');
+    }
+  }
+
+  Future<void> _saveStudyUnits() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonList = _studyUnits.map((u) => u.toJson()).toList();
+      await prefs.setString('saved_study_units_${_user.id}', jsonEncode(jsonList));
+    } catch (e) {
+      debugPrint('Error saving study units: $e');
+    }
+  }
+
+  Future<void> _saveStudyTopics() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonList = _studyTopics.map((t) => t.toJson()).toList();
+      await prefs.setString('saved_study_topics_${_user.id}', jsonEncode(jsonList));
+    } catch (e) {
+      debugPrint('Error saving study topics: $e');
     }
   }
 

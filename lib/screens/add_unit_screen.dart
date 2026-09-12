@@ -23,12 +23,6 @@ class _AddUnitScreenState extends State<AddUnitScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text('Add Unit'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.more_vert_rounded),
-            onPressed: () {},
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),

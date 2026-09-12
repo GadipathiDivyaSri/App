@@ -1002,6 +1002,9 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                     decoration: const InputDecoration(
                       hintText: 'Optional notes or goal target...',
                       labelText: 'Description (Optional)',
+                      border: UnderlineInputBorder(),
+                      enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF94A3B8))),
+                      focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFFE87552), width: 2)),
                     ),
                   ),
                 ],
@@ -1122,7 +1125,12 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                   TextField(
                     controller: descController,
                     maxLines: 2,
-                    decoration: const InputDecoration(labelText: 'Description'),
+                    decoration: const InputDecoration(
+                      labelText: 'Description (Optional)',
+                      border: UnderlineInputBorder(),
+                      enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF94A3B8))),
+                      focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFFE87552), width: 2)),
+                    ),
                   ),
                 ],
               ),

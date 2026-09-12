@@ -16,40 +16,13 @@ class CareerRoadmapScreen extends StatefulWidget {
 }
 
 class _CareerRoadmapScreenState extends State<CareerRoadmapScreen> {
-  static const List<Map<String, dynamic>> _defaultNodeIcons = [
-    {'icon': Icons.flag_rounded, 'title': 'Entry Level Goal', 'desc': 'Start of career pathway'},
-    {'icon': Icons.code_rounded, 'title': 'Core Technical Skills', 'desc': 'Foundational programming & algorithms'},
-    {'icon': Icons.terminal_rounded, 'title': 'Portfolio Projects', 'desc': 'Production-grade applications & builds'},
-    {'icon': Icons.architecture_rounded, 'title': 'System Architecture', 'desc': 'Scalable systems & cloud design'},
-    {'icon': Icons.bar_chart_rounded, 'title': 'Engineering Leadership', 'desc': 'Team mentoring & project metrics'},
-    {'icon': Icons.emoji_events_rounded, 'title': 'Senior Offer Target', 'desc': 'Target role & career milestone'},
-  ];
-
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _ensureDefaultNodes();
+      final provider = Provider.of<AppProvider>(context, listen: false);
+      provider.clearPredefinedNodes();
     });
-  }
-
-  void _ensureDefaultNodes() {
-    final provider = Provider.of<AppProvider>(context, listen: false);
-    if (provider.careerRoadmap.isEmpty) {
-      for (int i = 0; i < _defaultNodeIcons.length; i++) {
-        final def = _defaultNodeIcons[i];
-        provider.addCareerNode(
-          CareerRoadmapNode(
-            id: 'cr_node_${i + 1}_${DateTime.now().millisecondsSinceEpoch}',
-            section: 'SKILLS',
-            title: def['title'] as String,
-            description: def['desc'] as String,
-            status: i == 0 ? 'COMPLETED' : 'PLANNED',
-            order: i,
-          ),
-        );
-      }
-    }
   }
 
   @override

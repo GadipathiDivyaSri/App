@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../models/models.dart';
+import '../providers/app_provider.dart';
 import 'add_unit_screen.dart';
 import 'unit_details_screen.dart';
 
 class SubjectDetailsScreen extends StatefulWidget {
   final String subjectName;
+  final String subjectId;
 
   const SubjectDetailsScreen({
     super.key,
     required this.subjectName,
+    this.subjectId = '',
   });
 
   @override
@@ -15,17 +20,13 @@ class SubjectDetailsScreen extends StatefulWidget {
 }
 
 class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
-  late List<Map<String, dynamic>> _units;
-
-  @override
-  void initState() {
-    super.initState();
-    _units = [];
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final provider = Provider.of<AppProvider>(context);
+
+    final subKey = widget.subjectId.isNotEmpty ? widget.subjectId : widget.subjectName;
+    final units = provider.getUnitsForSubject(subKey);
 
     return Scaffold(
       appBar: AppBar(
@@ -44,25 +45,7 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
           'Add Unit',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => const AddUnitScreen(),
-            ),
-          ).then((newUnit) {
-            if (newUnit != null && newUnit is Map<String, dynamic>) {
-              setState(() {
-                _units.add({
-                  'title': newUnit['title'] as String,
-                  'progress': 0.0,
-                  'topicsCount': 3,
-                  'description': newUnit['desc'] as String,
-                });
-              });
-            }
-          });
-        },
+        onPressed: () => _navigateAndAddUnit(context, provider, subKey),
       ),
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
@@ -85,7 +68,7 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
           ),
           const SizedBox(height: 20),
 
-          if (_units.isEmpty)
+          if (units.isEmpty)
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 32),
@@ -143,47 +126,52 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
                       'Add First Unit',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const AddUnitScreen(),
-                        ),
-                      ).then((newUnit) {
-                        if (newUnit != null && newUnit is Map<String, dynamic>) {
-                          setState(() {
-                            _units.add({
-                              'title': newUnit['title'] as String,
-                              'progress': 0.0,
-                              'topicsCount': 3,
-                              'description': newUnit['desc'] as String,
-                            });
-                          });
-                        }
-                      });
-                    },
+                    onPressed: () => _navigateAndAddUnit(context, provider, subKey),
                   ),
                 ],
               ),
             )
           else
-            ..._units.map((unit) => _buildUnitCard(context, unit)).toList(),
+            ...units.map((unit) => _buildUnitCard(context, provider, unit)).toList(),
           const SizedBox(height: 80),
         ],
       ),
     );
   }
 
-  Widget _buildUnitCard(BuildContext context, Map<String, dynamic> unit) {
+  void _navigateAndAddUnit(BuildContext context, AppProvider provider, String subKey) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const AddUnitScreen(),
+      ),
+    ).then((newUnit) {
+      if (newUnit != null && newUnit is Map<String, dynamic>) {
+        final u = StudyUnit(
+          id: 'unit_${DateTime.now().millisecondsSinceEpoch}',
+          subjectId: subKey,
+          title: newUnit['title'] as String? ?? 'New Unit',
+          description: newUnit['desc'] as String? ?? '',
+          isCurrentFocus: newUnit['isFocus'] as bool? ?? false,
+        );
+        provider.addStudyUnit(u);
+      }
+    });
+  }
+
+  Widget _buildUnitCard(BuildContext context, AppProvider provider, StudyUnit unit) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final progress = unit['progress'] as double;
+    final progress = unit.progress;
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (_) => UnitDetailsScreen(
-              unitTitle: unit['title'] as String,
+              unitId: unit.id,
+              subjectId: unit.subjectId,
+              unitTitle: unit.title,
               progress: progress,
             ),
           ),
@@ -212,7 +200,7 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
               children: [
                 Expanded(
                   child: Text(
-                    unit['title'] as String,
+                    unit.title,
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -232,15 +220,11 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
                   icon: const Icon(Icons.more_vert_rounded, size: 20, color: Color(0xFF94A3B8)),
                   onSelected: (val) {
                     if (val == 'edit') {
-                      _showEditUnitDialog(context, unit);
+                      _showEditUnitDialog(context, provider, unit);
                     } else if (val == 'complete') {
-                      setState(() {
-                        unit['progress'] = 1.0;
-                      });
+                      provider.markUnit100Percent(unit.id);
                     } else if (val == 'delete') {
-                      setState(() {
-                        _units.remove(unit);
-                      });
+                      provider.deleteStudyUnit(unit.id);
                     }
                   },
                   itemBuilder: (ctx) => [
@@ -280,7 +264,7 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
             ),
             const SizedBox(height: 6),
             Text(
-              unit['description'] as String,
+              unit.description,
               style: const TextStyle(
                 fontSize: 12,
                 color: Color(0xFF64748B),
@@ -304,9 +288,9 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
     );
   }
 
-  void _showEditUnitDialog(BuildContext context, Map<String, dynamic> unit) {
-    final titleCtrl = TextEditingController(text: unit['title'] as String);
-    final descCtrl = TextEditingController(text: unit['description'] as String);
+  void _showEditUnitDialog(BuildContext context, AppProvider provider, StudyUnit unit) {
+    final titleCtrl = TextEditingController(text: unit.title);
+    final descCtrl = TextEditingController(text: unit.description);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -324,10 +308,7 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
           ElevatedButton(
             onPressed: () {
               if (titleCtrl.text.trim().isNotEmpty) {
-                setState(() {
-                  unit['title'] = titleCtrl.text.trim();
-                  unit['description'] = descCtrl.text.trim();
-                });
+                provider.updateStudyUnit(unit.id, titleCtrl.text.trim(), descCtrl.text.trim());
                 Navigator.pop(ctx);
               }
             },
