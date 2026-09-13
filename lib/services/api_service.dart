@@ -610,13 +610,19 @@ class ApiService {
   }
 
   /// Subjects API (Free plan limit: Max 2 Subjects)
-  static Future<Map<String, dynamic>> createSubjectOnBackend(String name, String code) async {
+  static Future<Map<String, dynamic>> createSubjectOnBackend(dynamic nameOrSubject, [String? code]) async {
     try {
       final headers = await _getHeaders();
+      Map<String, dynamic> payload;
+      if (nameOrSubject is StudySubject) {
+        payload = nameOrSubject.toJson();
+      } else {
+        payload = {'name': nameOrSubject.toString(), 'code': code ?? ''};
+      }
       final response = await http.post(
         Uri.parse('$baseUrl/subjects'),
         headers: headers,
-        body: jsonEncode({'name': name, 'code': code}),
+        body: jsonEncode(payload),
       );
       return {
         'statusCode': response.statusCode,
@@ -743,12 +749,23 @@ class ApiService {
       final headers = await _getHeaders();
       final response = await http.delete(
         Uri.parse('$baseUrl/career-roadmap/$nodeId'),
-        headers: headers,
       );
       return {'statusCode': response.statusCode, 'data': jsonDecode(response.body)};
     } catch (e) {
       return {'statusCode': 500, 'data': {'success': false, 'message': '$e'}};
     }
+  }
+
+  static Future<List<CareerRoadmapNode>> fetchCareerRoadmapNodes() async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.get(Uri.parse('$baseUrl/career-roadmap'), headers: headers);
+      if (response.statusCode == 200) {
+        final List<dynamic> list = jsonDecode(response.body);
+        return list.map((json) => CareerRoadmapNode.fromJson(json)).toList();
+      }
+    } catch (_) {}
+    return [];
   }
 
   /// Real Dynamic Analytics Summary
@@ -938,6 +955,79 @@ class ApiService {
     }
   }
 
+  static Future<Map<String, dynamic>> updateSubjectOnBackend(StudySubject subject) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.put(
+        Uri.parse('$baseUrl/subjects/${subject.id}'),
+        headers: headers,
+        body: jsonEncode(subject.toJson()),
+      );
+      return {'statusCode': response.statusCode, 'data': jsonDecode(response.body)};
+    } catch (e) {
+      return {'statusCode': 500, 'data': {'error': e.toString()}};
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // 9B. STUDY ITEMS REST APIS (Production-Ready Cloud Sync)
+  // ---------------------------------------------------------------------------
+  static Future<List<StudyItem>> fetchStudyItems({String? subjectId}) async {
+    try {
+      final headers = await _getHeaders();
+      final uri = Uri.parse('$baseUrl/study-items').replace(
+        queryParameters: subjectId != null ? {'subjectId': subjectId} : null,
+      );
+      final response = await http.get(uri, headers: headers);
+      if (response.statusCode == 200) {
+        final List<dynamic> list = jsonDecode(response.body);
+        return list.map((json) => StudyItem.fromJson(json)).toList();
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  static Future<Map<String, dynamic>> createStudyItemOnBackend(StudyItem item) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.post(
+        Uri.parse('$baseUrl/study-items'),
+        headers: headers,
+        body: jsonEncode(item.toJson()),
+      );
+      return {'statusCode': response.statusCode, 'data': jsonDecode(response.body)};
+    } catch (e) {
+      return {'statusCode': 500, 'data': {'error': e.toString()}};
+    }
+  }
+
+  static Future<Map<String, dynamic>> updateStudyItemOnBackend(StudyItem item) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.put(
+        Uri.parse('$baseUrl/study-items/${item.id}'),
+        headers: headers,
+        body: jsonEncode(item.toJson()),
+      );
+      return {'statusCode': response.statusCode, 'data': jsonDecode(response.body)};
+    } catch (e) {
+      return {'statusCode': 500, 'data': {'error': e.toString()}};
+    }
+  }
+
+  static Future<Map<String, dynamic>> deleteStudyItemOnBackend(String itemId) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.delete(
+        Uri.parse('$baseUrl/study-items/$itemId'),
+        headers: headers,
+      );
+      return {'statusCode': response.statusCode, 'data': jsonDecode(response.body)};
+    } catch (e) {
+      return {'statusCode': 500, 'data': {'error': e.toString()}};
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // 10. CALENDAR EVENTS REST APIS (Production-Ready Cloud Sync)
   // ---------------------------------------------------------------------------
@@ -990,4 +1080,89 @@ class ApiService {
       return {'statusCode': 500, 'data': {'error': e.toString()}};
     }
   }
+
+  // ---------------------------------------------------------------------------
+  // 11. JOURNAL ENTRIES REST APIS (Production-Ready Cloud Sync)
+  // ---------------------------------------------------------------------------
+  static Future<List<JournalEntry>> fetchJournalEntries() async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.get(Uri.parse('$baseUrl/journal'), headers: headers);
+      if (response.statusCode == 200) {
+        final List<dynamic> list = jsonDecode(response.body);
+        return list.map((json) => JournalEntry.fromJson(json)).toList();
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  static Future<Map<String, dynamic>> createJournalEntryOnBackend(JournalEntry entry) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.post(
+        Uri.parse('$baseUrl/journal'),
+        headers: headers,
+        body: jsonEncode(entry.toJson()),
+      );
+      return {'statusCode': response.statusCode, 'data': jsonDecode(response.body)};
+    } catch (e) {
+      return {'statusCode': 500, 'data': {'error': e.toString()}};
+    }
+  }
+
+  static Future<Map<String, dynamic>> updateJournalEntryOnBackend(JournalEntry entry) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.put(
+        Uri.parse('$baseUrl/journal/${entry.id}'),
+        headers: headers,
+        body: jsonEncode(entry.toJson()),
+      );
+      return {'statusCode': response.statusCode, 'data': jsonDecode(response.body)};
+    } catch (e) {
+      return {'statusCode': 500, 'data': {'error': e.toString()}};
+    }
+  }
+
+  static Future<Map<String, dynamic>> deleteJournalEntryOnBackend(String journalId) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.delete(
+        Uri.parse('$baseUrl/journal/$journalId'),
+        headers: headers,
+      );
+      return {'statusCode': response.statusCode, 'data': jsonDecode(response.body)};
+    } catch (e) {
+      return {'statusCode': 500, 'data': {'error': e.toString()}};
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // 12. USER PROFILE CLOUD SYNC
+  // ---------------------------------------------------------------------------
+  static Future<Map<String, dynamic>> fetchUserProfileFromBackend() async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.get(Uri.parse('$baseUrl/users/me'), headers: headers);
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
+
+  static Future<Map<String, dynamic>> updateUserProfileOnBackend(Map<String, dynamic> updates) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.put(
+        Uri.parse('$baseUrl/users/me'),
+        headers: headers,
+        body: jsonEncode(updates),
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {'success': false, 'message': e.toString()};
+    }
+  }
 }
+

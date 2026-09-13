@@ -512,6 +512,23 @@ class DatabaseManager {
     return await dbQuery('subjects', { method: 'POST', body: newSubject, single: true });
   }
 
+  static async updateSubject(userId, subjectId, updates) {
+    if (!userId || !subjectId) return null;
+    const uid = ensureUuid(userId);
+    const sid = ensureUuid(subjectId);
+
+    const payload = {};
+    if (updates.name !== undefined) {
+      payload.name = updates.name;
+    }
+    if (updates.code !== undefined) payload.code = updates.code;
+    if (updates.color || updates.colorHex || updates.color_hex) {
+      payload.color = updates.color || updates.colorHex || updates.color_hex;
+    }
+
+    return await dbQuery('subjects', { method: 'PATCH', match: { id: sid, user_id: uid }, body: payload, single: true });
+  }
+
   static async deleteSubject(userId, subjectId) {
     if (!userId || !subjectId) return false;
     const uid = ensureUuid(userId);
@@ -572,35 +589,124 @@ class DatabaseManager {
     const match = { user_id: uid };
     if (subjectId) match.subject_id = ensureUuid(subjectId);
     if (unitId) match.unit_id = ensureUuid(unitId);
-    return await dbQuery('study_items', { method: 'GET', match });
+    const items = await dbQuery('study_items', { method: 'GET', match });
+    const subjects = await dbQuery('subjects', { method: 'GET', match: { user_id: uid } });
+    const subMap = {};
+    (subjects || []).forEach(s => { subMap[s.id] = s.name; });
+
+    return (items || []).map(it => ({
+      ...it,
+      subjectId: it.subject_id,
+      subjectName: subMap[it.subject_id] || 'Study Subject',
+      dueDate: it.due_at || it.due_date,
+      isCompleted: it.status === 'completed' || !!it.is_completed,
+    }));
   }
 
-  static async createStudyItem(userId, subjectId, itemData) {
-    if (!userId || !subjectId) throw new Error('userId and subjectId are required');
+  static async createStudyItem(userId, subjectIdOrData, itemDataParam = null) {
+    if (!userId) throw new Error('userId is required');
     const uid = ensureUuid(userId);
-    const sid = ensureUuid(subjectId);
+    const itemData = (typeof subjectIdOrData === 'object' && subjectIdOrData !== null) ? subjectIdOrData : (itemDataParam || {});
+    const rawSubId = (typeof subjectIdOrData === 'string') ? subjectIdOrData : (itemData.subject_id || itemData.subjectId);
+    
+    let sid = rawSubId ? ensureUuid(rawSubId) : null;
+    if (!sid) {
+      const existingSubjs = await dbQuery('subjects', { method: 'GET', match: { user_id: uid } });
+      if (existingSubjs && existingSubjs.length > 0) {
+        sid = existingSubjs[0].id;
+      } else {
+        const defaultSubj = await dbQuery('subjects', {
+          method: 'POST',
+          body: {
+            id: ensureUuid(),
+            user_id: uid,
+            name: itemData.subjectName || 'General Studies',
+            code: 'GEN',
+            color: '#0D5CE5',
+            created_at: new Date().toISOString(),
+          },
+          single: true,
+        });
+        sid = defaultSubj?.id || ensureUuid();
+      }
+    }
 
+    const isDone = !!(itemData.is_completed ?? itemData.isCompleted ?? (itemData.status === 'completed'));
+    const dueAt = itemData.due_at || itemData.due_date || itemData.dueDate || new Date().toISOString();
     const newItem = {
       id: ensureUuid(itemData.id),
       user_id: uid,
       subject_id: sid,
       unit_id: itemData.unit_id ? ensureUuid(itemData.unit_id) : null,
       title: itemData.title || 'Study Task',
-      type: itemData.type || 'TASK',
-      status: itemData.is_completed ? 'completed' : 'pending',
+      type: (itemData.type || 'TASK').toUpperCase(),
+      status: isDone ? 'completed' : 'pending',
+      due_at: dueAt,
       created_at: new Date().toISOString(),
     };
 
-    return await dbQuery('study_items', { method: 'POST', body: newItem, single: true });
+    const created = await dbQuery('study_items', { method: 'POST', body: newItem, single: true });
+    return {
+      ...(created || newItem),
+      subjectId: sid,
+      dueDate: (created || newItem).due_at,
+      isCompleted: isDone,
+    };
+  }
+
+  static async updateStudyItem(userId, itemId, updates) {
+    if (!userId || !itemId) return null;
+    const uid = ensureUuid(userId);
+    const iid = ensureUuid(itemId);
+
+    const payload = {};
+    if (updates.title !== undefined) payload.title = updates.title;
+    if (updates.type !== undefined) payload.type = updates.type.toUpperCase();
+    if (updates.due_at || updates.due_date || updates.dueDate) {
+      payload.due_at = updates.due_at || updates.due_date || updates.dueDate;
+    }
+    if (updates.is_completed !== undefined || updates.isCompleted !== undefined || updates.status !== undefined) {
+      const isDone = !!(updates.is_completed ?? updates.isCompleted ?? (updates.status === 'completed'));
+      payload.status = isDone ? 'completed' : 'pending';
+    }
+
+    const updated = await dbQuery('study_items', { method: 'PATCH', match: { id: iid, user_id: uid }, body: payload, single: true });
+    return updated ? {
+      ...updated,
+      subjectId: updated.subject_id,
+      dueDate: updated.due_at,
+      isCompleted: updated.status === 'completed',
+    } : null;
+  }
+
+  static async deleteStudyItem(userId, itemId) {
+    if (!userId || !itemId) return false;
+    const uid = ensureUuid(userId);
+    const iid = ensureUuid(itemId);
+    return await dbQuery('study_items', { method: 'DELETE', match: { id: iid, user_id: uid } });
   }
 
   // ---------------------------------------------------------------------------
   // GOALS & MILESTONES (DIRECT POSTGRESQL CRUD)
   // ---------------------------------------------------------------------------
-  static async getGoals(userId) {
+  static async getGoals(userId, tier = null) {
     if (!userId) return [];
     const uid = ensureUuid(userId);
-    return await dbQuery('goals', { method: 'GET', match: { user_id: uid } });
+    const match = { user_id: uid };
+    if (tier) match.tier = tier.toLowerCase();
+    const goals = await dbQuery('goals', { method: 'GET', match });
+    return (goals || []).map(g => ({
+      ...g,
+      userId: g.user_id,
+      user_id: g.user_id,
+      targetDate: g.target_date,
+      target_date: g.target_date,
+      isCompleted: !!g.is_completed,
+      is_completed: !!g.is_completed,
+      alignedPurpose: g.aligned_purpose,
+      aligned_purpose: g.aligned_purpose,
+      section: g.section || 'GOAL',
+    }));
   }
 
   static async createGoal(userId, goalData) {
@@ -618,6 +724,7 @@ class DatabaseManager {
       title: goalData.title || 'New Goal',
       description: goalData.description || goalData.aligned_purpose || null,
       tier: normalizedTier,
+      section: goalData.section || 'GOAL',
       category: goalData.category || 'General',
       aligned_purpose: goalData.aligned_purpose || goalData.description || null,
       target_date: goalData.target_date || goalData.targetDate || null,
@@ -625,7 +732,14 @@ class DatabaseManager {
       created_at: new Date().toISOString(),
     };
 
-    return await dbQuery('goals', { method: 'POST', body: newGoal, single: true });
+    const created = await dbQuery('goals', { method: 'POST', body: newGoal, single: true });
+    return {
+      ...(created || newGoal),
+      userId: uid,
+      targetDate: (created || newGoal).target_date,
+      isCompleted: !!(created || newGoal).is_completed,
+      section: (created || newGoal).section || 'GOAL',
+    };
   }
 
   static async updateGoal(userId, goalId, updates) {
@@ -637,6 +751,7 @@ class DatabaseManager {
     if (updates.title !== undefined) payload.title = updates.title;
     if (updates.description !== undefined) payload.description = updates.description;
     if (updates.tier !== undefined) payload.tier = updates.tier;
+    if (updates.section !== undefined) payload.section = updates.section;
     if (updates.category !== undefined) payload.category = updates.category;
     if (updates.aligned_purpose !== undefined) payload.aligned_purpose = updates.aligned_purpose;
     if (updates.target_date || updates.targetDate) payload.target_date = updates.target_date || updates.targetDate;
@@ -644,7 +759,14 @@ class DatabaseManager {
       payload.is_completed = !!(updates.is_completed ?? updates.isCompleted);
     }
 
-    return await dbQuery('goals', { method: 'PATCH', match: { id: gid, user_id: uid }, body: payload, single: true });
+    const updated = await dbQuery('goals', { method: 'PATCH', match: { id: gid, user_id: uid }, body: payload, single: true });
+    return updated ? {
+      ...updated,
+      userId: uid,
+      targetDate: updated.target_date,
+      isCompleted: !!updated.is_completed,
+      section: updated.section || 'GOAL',
+    } : null;
   }
 
   static async deleteGoal(userId, goalId) {
@@ -731,7 +853,17 @@ class DatabaseManager {
   static async getJournalEntries(userId) {
     if (!userId) return [];
     const uid = ensureUuid(userId);
-    return await dbQuery('journal_entries', { method: 'GET', match: { user_id: uid } });
+    const entries = await dbQuery('journal_entries', { method: 'GET', match: { user_id: uid } });
+    return (entries || []).map(j => ({
+      ...j,
+      userId: j.user_id,
+      date: j.entry_date || j.date || j.created_at,
+      entry_date: j.entry_date || j.date || j.created_at,
+      content: j.content || j.content_ciphertext || '',
+      content_ciphertext: j.content_ciphertext || j.content || '',
+      mood: j.mood || 'neutral',
+      title: j.title || 'Journal Entry',
+    }));
   }
 
   static async createJournalEntry(userId, entryData) {
@@ -750,7 +882,35 @@ class DatabaseManager {
       updated_at: new Date().toISOString(),
     };
 
-    return await dbQuery('journal_entries', { method: 'POST', body: newEntry, single: true });
+    const created = await dbQuery('journal_entries', { method: 'POST', body: newEntry, single: true });
+    return {
+      ...(created || newEntry),
+      userId: uid,
+      date: (created || newEntry).entry_date,
+    };
+  }
+
+  static async updateJournalEntry(userId, entryId, updates) {
+    if (!userId || !entryId) return null;
+    const uid = ensureUuid(userId);
+    const jid = ensureUuid(entryId);
+
+    const payload = { updated_at: new Date().toISOString() };
+    if (updates.title !== undefined) payload.title = updates.title;
+    if (updates.content !== undefined) {
+      payload.content = updates.content;
+      payload.content_ciphertext = updates.content_ciphertext || updates.content;
+    }
+    if (updates.content_ciphertext !== undefined) payload.content_ciphertext = updates.content_ciphertext;
+    if (updates.mood !== undefined) payload.mood = updates.mood;
+    if (updates.entry_date || updates.date) payload.entry_date = updates.entry_date || updates.date;
+
+    const updated = await dbQuery('journal_entries', { method: 'PATCH', match: { id: jid, user_id: uid }, body: payload, single: true });
+    return updated ? {
+      ...updated,
+      userId: uid,
+      date: updated.entry_date,
+    } : null;
   }
 
   static async deleteJournalEntry(userId, entryId) {

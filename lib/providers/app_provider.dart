@@ -315,7 +315,7 @@ class AppProvider extends ChangeNotifier {
     _subjects.add(subject);
     _saveSubjects();
     notifyListeners();
-    ApiService.createSubjectOnBackend(subject.name, subject.code);
+    ApiService.createSubjectOnBackend(subject);
   }
 
   void editSubject(String id, String name, String code, int colorHex) {
@@ -326,6 +326,7 @@ class AppProvider extends ChangeNotifier {
       _subjects[idx].colorHex = colorHex;
       _saveSubjects();
       notifyListeners();
+      ApiService.updateSubjectOnBackend(_subjects[idx]);
     }
   }
 
@@ -346,6 +347,7 @@ class AppProvider extends ChangeNotifier {
     _updateSubjectProgress(item.subjectId);
     _saveStudyItems();
     notifyListeners();
+    ApiService.createStudyItemOnBackend(item);
   }
 
   void toggleStudyItem(String id) {
@@ -355,6 +357,7 @@ class AppProvider extends ChangeNotifier {
       _updateSubjectProgress(_studyItems[idx].subjectId);
       _saveStudyItems();
       notifyListeners();
+      ApiService.updateStudyItemOnBackend(_studyItems[idx]);
     }
   }
 
@@ -366,6 +369,7 @@ class AppProvider extends ChangeNotifier {
       _updateSubjectProgress(subId);
       _saveStudyItems();
       notifyListeners();
+      ApiService.deleteStudyItemOnBackend(id);
     }
   }
 
@@ -393,6 +397,7 @@ class AppProvider extends ChangeNotifier {
     _journalEntries.insert(0, entry);
     _saveJournalEntries();
     notifyListeners();
+    ApiService.createJournalEntryOnBackend(entry);
   }
 
   void updateJournalEntry(JournalEntry entry) {
@@ -401,6 +406,7 @@ class AppProvider extends ChangeNotifier {
       _journalEntries[idx] = entry;
       _saveJournalEntries();
       notifyListeners();
+      ApiService.updateJournalEntryOnBackend(entry);
     }
   }
 
@@ -408,6 +414,7 @@ class AppProvider extends ChangeNotifier {
     _journalEntries.removeWhere((j) => j.id == id);
     _saveJournalEntries();
     notifyListeners();
+    ApiService.deleteJournalEntryOnBackend(id);
   }
 
   // ---------------------------------------------------------------------------
@@ -1044,9 +1051,9 @@ class AppProvider extends ChangeNotifier {
   }
 
   // Task Operations
-  void addTask(String title, String category, String dueDateLabel, {int priority = 1, DateTime? dueDate, String? dueTime}) {
+  void addTask(String title, String category, String dueDateLabel, {int priority = 1, DateTime? dueDate, String? dueTime, String? id}) {
     final newTask = Task(
-      id: generateUuidV4(),
+      id: id ?? generateUuidV4(),
       title: title,
       category: category,
       dueDateLabel: dueDateLabel,
@@ -1079,6 +1086,7 @@ class AppProvider extends ChangeNotifier {
       _tasks[index] = task;
       _saveTasks();
       notifyListeners();
+      ApiService.updateTaskOnBackend(_tasks[index]);
     }
   }
 
@@ -1198,6 +1206,13 @@ class AppProvider extends ChangeNotifier {
     _user.name = newName;
     _saveSession();
     notifyListeners();
+    if (_isLoggedIn) {
+      ApiService.updateUserProfileOnBackend({
+        'name': newName,
+        'display_name': newName,
+        'full_name': newName,
+      });
+    }
   }
 
   void _recalculateMetrics() {
@@ -1210,6 +1225,12 @@ class AppProvider extends ChangeNotifier {
     final total = _tasks.length;
     _user.focusScore = ((completed / total) * 100).round();
     _user.activeStreak = completed;
+    if (_isLoggedIn) {
+      ApiService.updateUserProfileOnBackend({
+        'focus_score': _user.focusScore,
+        'active_streak': _user.activeStreak,
+      });
+    }
   }
 
   // Persistence helpers
@@ -1336,8 +1357,12 @@ class AppProvider extends ChangeNotifier {
         syncHabitsFromCloud(),
         syncExpensesFromCloud(),
         syncSubjectsFromCloud(),
+        syncStudyItemsFromCloud(),
         syncCalendarEventsFromCloud(),
         fetchGoalsFromBackend(),
+        syncCareerRoadmapFromCloud(),
+        syncJournalEntriesFromCloud(),
+        syncUserProfileFromCloud(),
       ]);
     } catch (e) {
       debugPrint('[AppProvider] Error during syncAllDataFromCloud: $e');
@@ -1403,6 +1428,22 @@ class AppProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> syncStudyItemsFromCloud() async {
+    try {
+      final remoteItems = await ApiService.fetchStudyItems();
+      if (remoteItems.isNotEmpty) {
+        _studyItems = remoteItems;
+        for (final s in _subjects) {
+          _updateSubjectProgress(s.id);
+        }
+        _saveStudyItems();
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('[AppProvider] syncStudyItemsFromCloud error: $e');
+    }
+  }
+
   Future<void> syncCalendarEventsFromCloud() async {
     try {
       final remoteEvents = await ApiService.fetchCalendarEvents();
@@ -1413,6 +1454,61 @@ class AppProvider extends ChangeNotifier {
       }
     } catch (e) {
       debugPrint('[AppProvider] syncCalendarEventsFromCloud error: $e');
+    }
+  }
+
+  Future<void> syncCareerRoadmapFromCloud() async {
+    try {
+      final remoteNodes = await ApiService.fetchCareerRoadmapNodes();
+      if (remoteNodes.isNotEmpty) {
+        _careerNodes = remoteNodes;
+        _saveCareerNodes();
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('[AppProvider] syncCareerRoadmapFromCloud error: $e');
+    }
+  }
+
+  Future<void> syncJournalEntriesFromCloud() async {
+    try {
+      final remoteEntries = await ApiService.fetchJournalEntries();
+      if (remoteEntries.isNotEmpty) {
+        _journalEntries = remoteEntries;
+        _saveJournalEntries();
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('[AppProvider] syncJournalEntriesFromCloud error: $e');
+    }
+  }
+
+  Future<void> syncUserProfileFromCloud() async {
+    try {
+      final res = await ApiService.fetchUserProfileFromBackend();
+      if (res['user'] != null && res['user'] is Map) {
+        final Map<String, dynamic> u = Map<String, dynamic>.from(res['user']);
+        bool changed = false;
+        final remoteName = u['display_name'] ?? u['full_name'] ?? u['name'];
+        if (remoteName != null && remoteName.toString().isNotEmpty && remoteName != _user.name) {
+          _user.name = remoteName.toString();
+          changed = true;
+        }
+        if (u['focus_score'] != null && u['focus_score'] is num) {
+          _user.focusScore = (u['focus_score'] as num).toInt();
+          changed = true;
+        }
+        if (u['active_streak'] != null && u['active_streak'] is num) {
+          _user.activeStreak = (u['active_streak'] as num).toInt();
+          changed = true;
+        }
+        if (changed) {
+          _saveSession();
+          notifyListeners();
+        }
+      }
+    } catch (e) {
+      debugPrint('[AppProvider] syncUserProfileFromCloud error: $e');
     }
   }
 }

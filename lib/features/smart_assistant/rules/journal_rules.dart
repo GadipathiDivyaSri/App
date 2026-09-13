@@ -27,7 +27,7 @@ class JournalRules {
     final mood = entities.mood ?? 'Productive';
 
     final newEntry = JournalEntry(
-      id: 'j_${DateTime.now().millisecondsSinceEpoch}',
+      id: generateUuidV4(),
       title: title,
       content: content,
       date: DateTime.now(),

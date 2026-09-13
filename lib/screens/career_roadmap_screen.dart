@@ -40,7 +40,7 @@ class _CareerRoadmapScreenState extends State<CareerRoadmapScreen> {
         final def = _defaultNodeIcons[i];
         provider.addCareerNode(
           CareerRoadmapNode(
-            id: 'cr_node_${i + 1}_${DateTime.now().millisecondsSinceEpoch}',
+            id: generateUuidV4(),
             section: 'SKILLS',
             title: def['title'] as String,
             description: def['desc'] as String,
@@ -632,7 +632,7 @@ class _CareerRoadmapScreenState extends State<CareerRoadmapScreen> {
 
                             provider.addCareerNode(
                               CareerRoadmapNode(
-                                id: 'cr_${DateTime.now().millisecondsSinceEpoch}',
+                                id: generateUuidV4(),
                                 section: 'SKILLS',
                                 title: title,
                                 description: fullDesc,

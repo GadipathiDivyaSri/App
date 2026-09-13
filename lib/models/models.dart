@@ -501,21 +501,33 @@ class JournalEntry {
         'id': id,
         'title': title,
         'content': content,
+        'content_ciphertext': content,
+        'entry_date': date.toIso8601String().split('T')[0],
         'date': date.toIso8601String(),
         'mood': mood,
         'tags': tags,
       };
 
-  factory JournalEntry.fromJson(Map<String, dynamic> json) => JournalEntry(
-        id: json['id'] ?? 'j_${DateTime.now().millisecondsSinceEpoch}',
-        title: json['title'] ?? 'Journal Entry',
-        content: json['content'] ?? '',
-        date: json['date'] != null
-            ? (DateTime.tryParse(json['date'].toString()) ?? DateTime.now())
-            : DateTime.now(),
-        mood: json['mood'] ?? 'Reflective',
-        tags: (json['tags'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
-      );
+  factory JournalEntry.fromJson(Map<String, dynamic> json) {
+    final rawDate = json['entry_date'] ?? json['date'] ?? json['created_at'];
+    DateTime parsedDate = DateTime.now();
+    if (rawDate != null) {
+      parsedDate = DateTime.tryParse(rawDate.toString()) ?? DateTime.now();
+    }
+    final rawId = json['id']?.toString();
+    final cleanId = (rawId != null && rawId.isNotEmpty && !rawId.startsWith('j_'))
+        ? rawId
+        : (rawId != null && rawId.isNotEmpty ? rawId : generateUuidV4());
+
+    return JournalEntry(
+      id: cleanId,
+      title: json['title'] ?? 'Journal Entry',
+      content: json['content'] ?? json['content_ciphertext'] ?? '',
+      date: parsedDate,
+      mood: json['mood'] ?? 'Reflective',
+      tags: (json['tags'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
+    );
+  }
 }
 
 class StudySubject {
@@ -595,24 +607,42 @@ class StudyItem {
   Map<String, dynamic> toJson() => {
         'id': id,
         'subjectId': subjectId,
+        'subject_id': subjectId,
         'subjectName': subjectName,
         'title': title,
         'type': type,
         'dueDate': dueDate.toIso8601String(),
+        'due_date': dueDate.toIso8601String(),
+        'due_at': dueDate.toIso8601String(),
         'isCompleted': isCompleted,
+        'is_completed': isCompleted,
       };
 
-  factory StudyItem.fromJson(Map<String, dynamic> json) => StudyItem(
-        id: json['id'] ?? 'item_${DateTime.now().millisecondsSinceEpoch}',
-        subjectId: json['subjectId'] ?? '',
-        subjectName: json['subjectName'] ?? '',
-        title: json['title'] ?? 'Task',
-        type: json['type'] ?? 'TASK',
-        dueDate: json['dueDate'] != null
-            ? (DateTime.tryParse(json['dueDate'].toString()) ?? DateTime.now())
-            : DateTime.now(),
-        isCompleted: json['isCompleted'] ?? false,
-      );
+  factory StudyItem.fromJson(Map<String, dynamic> json) {
+    final rawDue = json['dueDate'] ?? json['due_date'] ?? json['due_at'];
+    DateTime parsedDue = DateTime.now().add(const Duration(days: 3));
+    if (rawDue != null) {
+      parsedDue = DateTime.tryParse(rawDue.toString()) ?? parsedDue;
+    }
+    final rawId = json['id']?.toString();
+    final cleanId = (rawId != null && rawId.isNotEmpty && !rawId.startsWith('item_'))
+        ? rawId
+        : (rawId != null && rawId.isNotEmpty ? rawId : generateUuidV4());
+
+    final isDone = json['isCompleted'] == true ||
+        json['is_completed'] == true ||
+        json['status'] == 'completed';
+
+    return StudyItem(
+      id: cleanId,
+      subjectId: json['subjectId'] ?? json['subject_id'] ?? '',
+      subjectName: json['subjectName'] ?? json['subject_name'] ?? 'Subject',
+      title: json['title'] ?? 'Task',
+      type: (json['type'] ?? 'TASK').toString().toUpperCase(),
+      dueDate: parsedDue,
+      isCompleted: isDone,
+    );
+  }
 }
 
 class CareerRoadmapNode {
@@ -651,15 +681,25 @@ class CareerRoadmapNode {
         'order': order,
       };
 
-  factory CareerRoadmapNode.fromJson(Map<String, dynamic> json) =>
-      CareerRoadmapNode(
-        id: json['id'] ?? 'cr_${DateTime.now().millisecondsSinceEpoch}',
-        section: json['section'] ?? 'SKILLS',
-        title: json['title'] ?? 'Career Item',
-        description: json['description'] ?? '',
-        status: json['status'] ?? 'PLANNED',
-        order: json['order'] != null ? int.tryParse(json['order'].toString()) ?? 0 : 0,
-      );
+  factory CareerRoadmapNode.fromJson(Map<String, dynamic> json) {
+    final rawId = json['id']?.toString();
+    final cleanId = (rawId != null && rawId.isNotEmpty && !rawId.startsWith('cr_'))
+        ? rawId
+        : (rawId != null && rawId.isNotEmpty ? rawId : generateUuidV4());
+    final isDone = json['isCompleted'] == true ||
+        json['is_completed'] == true ||
+        json['status'] == 'COMPLETED';
+
+    return CareerRoadmapNode(
+      id: cleanId,
+      section: json['section'] ?? 'SKILLS',
+      title: json['title'] ?? 'Career Item',
+      description: json['description'] ?? json['aligned_purpose'] ?? '',
+      status: isDone ? 'COMPLETED' : (json['status'] ?? 'PLANNED'),
+      order: json['order'] != null ? int.tryParse(json['order'].toString()) ?? 0 : 0,
+      isCompleted: isDone,
+    );
+  }
 }
 
 class Goal {
