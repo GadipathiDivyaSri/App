@@ -118,7 +118,16 @@ class DatabaseManager {
   static async getUserById(userId) {
     if (!userId) return null;
     const uid = ensureUuid(userId);
-    return await dbQuery('profiles', { method: 'GET', match: { id: uid }, single: true });
+    let user = await dbQuery('profiles', { method: 'GET', match: { id: uid }, single: true });
+    if (!user) {
+      user = await dbQuery('profiles', { method: 'GET', match: { user_id: uid }, single: true });
+    }
+    return user;
+  }
+
+  static async getUserByReferralCode(code) {
+    if (!code) return null;
+    return await dbQuery('profiles', { method: 'GET', match: { referral_code: code.trim().toUpperCase() }, single: true });
   }
 
   static async getUserByEmailOrUsername(identifier) {
@@ -962,8 +971,12 @@ class DatabaseManager {
   // ---------------------------------------------------------------------------
   static async getJournalEntries(userId) {
     if (!userId) return [];
-    const uid = ensureUuid(userId);
-    const entries = await dbQuery('journal_entries', { method: 'GET', match: { user_id: uid } });
+    const user = await DatabaseManager.getUserById(userId);
+    const uid = user ? user.id : ensureUuid(userId);
+    let entries = await dbQuery('journal_entries', { method: 'GET', match: { user_id: uid } });
+    if ((!entries || entries.length === 0) && user && user.user_id && user.user_id !== uid) {
+      entries = await dbQuery('journal_entries', { method: 'GET', match: { user_id: user.user_id } });
+    }
     return (entries || []).map(j => ({
       ...j,
       userId: j.user_id,
@@ -978,7 +991,8 @@ class DatabaseManager {
 
   static async createJournalEntry(userId, entryData) {
     if (!userId) throw new Error('userId is required');
-    const uid = ensureUuid(userId);
+    const user = await DatabaseManager.getUserById(userId);
+    const uid = user ? user.id : ensureUuid(userId);
 
     const newEntry = {
       id: ensureUuid(entryData.id),
@@ -1002,7 +1016,8 @@ class DatabaseManager {
 
   static async updateJournalEntry(userId, entryId, updates) {
     if (!userId || !entryId) return null;
-    const uid = ensureUuid(userId);
+    const user = await DatabaseManager.getUserById(userId);
+    const uid = user ? user.id : ensureUuid(userId);
     const jid = ensureUuid(entryId);
 
     const payload = { updated_at: new Date().toISOString() };
@@ -1015,7 +1030,10 @@ class DatabaseManager {
     if (updates.mood !== undefined) payload.mood = updates.mood;
     if (updates.entry_date || updates.date) payload.entry_date = updates.entry_date || updates.date;
 
-    const updated = await dbQuery('journal_entries', { method: 'PATCH', match: { id: jid, user_id: uid }, body: payload, single: true });
+    let updated = await dbQuery('journal_entries', { method: 'PATCH', match: { id: jid, user_id: uid }, body: payload, single: true });
+    if (!updated && user && user.user_id && user.user_id !== uid) {
+      updated = await dbQuery('journal_entries', { method: 'PATCH', match: { id: jid, user_id: user.user_id }, body: payload, single: true });
+    }
     return updated ? {
       ...updated,
       userId: uid,
@@ -1025,9 +1043,14 @@ class DatabaseManager {
 
   static async deleteJournalEntry(userId, entryId) {
     if (!userId || !entryId) return false;
-    const uid = ensureUuid(userId);
+    const user = await DatabaseManager.getUserById(userId);
+    const uid = user ? user.id : ensureUuid(userId);
     const jid = ensureUuid(entryId);
-    return await dbQuery('journal_entries', { method: 'DELETE', match: { id: jid, user_id: uid } });
+    let deleted = await dbQuery('journal_entries', { method: 'DELETE', match: { id: jid, user_id: uid } });
+    if (!deleted && user && user.user_id && user.user_id !== uid) {
+      deleted = await dbQuery('journal_entries', { method: 'DELETE', match: { id: jid, user_id: user.user_id } });
+    }
+    return deleted;
   }
 }
 
