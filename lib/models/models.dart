@@ -502,8 +502,8 @@ class JournalEntry {
         'title': title,
         'content': content,
         'content_ciphertext': content,
-        'entry_date': date.toIso8601String().split('T')[0],
         'date': date.toIso8601String(),
+        'entry_date': date.toIso8601String().split('T')[0],
         'mood': mood,
         'tags': tags,
       };
@@ -583,6 +583,104 @@ class StudySubject {
             : double.tryParse(json['progress']?.toString() ?? '0.0') ?? 0.0,
         topics: (json['topics'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
       );
+}
+
+class StudyUnit {
+  final String id;
+  String subjectId;
+  String title;
+  String description;
+  int unitNumber;
+  bool isCompleted;
+  double progress;
+
+  StudyUnit({
+    required this.id,
+    required this.subjectId,
+    required this.title,
+    this.description = '',
+    this.unitNumber = 1,
+    this.isCompleted = false,
+    this.progress = 0.0,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'subject_id': subjectId,
+        'subjectId': subjectId,
+        'title': title,
+        'description': description,
+        'unit_number': unitNumber,
+        'unitNumber': unitNumber,
+        'is_completed': isCompleted,
+        'isCompleted': isCompleted,
+        'progress': progress,
+      };
+
+  factory StudyUnit.fromJson(Map<String, dynamic> json) => StudyUnit(
+        id: json['id'] ?? 'u_${DateTime.now().millisecondsSinceEpoch}',
+        subjectId: json['subject_id'] ?? json['subjectId'] ?? '',
+        title: json['title'] ?? 'Unit',
+        description: json['description'] ?? json['desc'] ?? '',
+        unitNumber: json['unit_number'] != null
+            ? int.tryParse(json['unit_number'].toString()) ?? 1
+            : (json['unitNumber'] != null ? int.tryParse(json['unitNumber'].toString()) ?? 1 : 1),
+        isCompleted: !!(json['is_completed'] ?? json['isCompleted'] ?? (json['status'] == 'completed')),
+        progress: (json['progress'] is num) ? (json['progress'] as num).toDouble() : 0.0,
+      );
+
+  Map<String, dynamic> toMap() => toJson();
+  factory StudyUnit.fromMap(Map<String, dynamic> map) => StudyUnit.fromJson(map);
+}
+
+class StudyTopic {
+  final String id;
+  String unitId;
+  String subjectId;
+  String title;
+  String description;
+  bool isCompleted;
+
+  String get subtitle => description;
+  set subtitle(String val) => description = val;
+
+  StudyTopic({
+    required this.id,
+    required this.unitId,
+    this.subjectId = '',
+    required this.title,
+    this.description = '',
+    String? subtitle,
+    this.isCompleted = false,
+  }) {
+    if (subtitle != null && subtitle.isNotEmpty && description.isEmpty) {
+      description = subtitle;
+    }
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'unit_id': unitId,
+        'unitId': unitId,
+        'subject_id': subjectId,
+        'subjectId': subjectId,
+        'title': title,
+        'description': description,
+        'is_completed': isCompleted,
+        'isCompleted': isCompleted,
+      };
+
+  factory StudyTopic.fromJson(Map<String, dynamic> json) => StudyTopic(
+        id: json['id'] ?? 'top_${DateTime.now().millisecondsSinceEpoch}',
+        unitId: json['unit_id'] ?? json['unitId'] ?? '',
+        subjectId: json['subject_id'] ?? json['subjectId'] ?? '',
+        title: json['title'] ?? 'Topic',
+        description: json['description'] ?? '',
+        isCompleted: !!(json['is_completed'] ?? json['isCompleted'] ?? (json['status'] == 'completed')),
+      );
+
+  Map<String, dynamic> toMap() => toJson();
+  factory StudyTopic.fromMap(Map<String, dynamic> map) => StudyTopic.fromJson(map);
 }
 
 class StudyItem {

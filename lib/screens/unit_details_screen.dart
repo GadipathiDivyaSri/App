@@ -1,14 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../models/models.dart';
+import '../providers/app_provider.dart';
 import 'focus_timer_screen.dart';
 
 class UnitDetailsScreen extends StatefulWidget {
+  final String unitId;
+  final String subjectId;
   final String unitTitle;
   final double progress;
 
   const UnitDetailsScreen({
     super.key,
-    this.unitTitle = 'Unit 2: Algebra',
-    this.progress = 0.60,
+    this.unitId = '',
+    this.subjectId = '',
+    this.unitTitle = 'Unit Details',
+    this.progress = 0.0,
   });
 
   @override
@@ -16,24 +23,22 @@ class UnitDetailsScreen extends StatefulWidget {
 }
 
 class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
-  late List<Map<String, dynamic>> _topics;
-
-  @override
-  void initState() {
-    super.initState();
-    _topics = [];
-  }
-
-  double get _currentProgress {
-    if (_topics.isEmpty) return 0.0;
-    final completed = _topics.where((t) => t['isCompleted'] == true).length;
-    return completed / _topics.length;
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final pPct = (_currentProgress * 100).toInt();
+    final provider = Provider.of<AppProvider>(context);
+
+    final uKey = widget.unitId.isNotEmpty ? widget.unitId : widget.unitTitle;
+    final topics = provider.getTopicsForUnit(uKey);
+
+    final double currentProgress;
+    if (topics.isEmpty) {
+      currentProgress = widget.progress;
+    } else {
+      final completedCount = topics.where((t) => t.isCompleted).length;
+      currentProgress = completedCount / topics.length;
+    }
+    final pPct = (currentProgress * 100).toInt();
 
     return Scaffold(
       appBar: AppBar(
@@ -49,7 +54,7 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
         elevation: 4,
         child: const Icon(Icons.add, color: Colors.white, size: 28),
         onPressed: () {
-          _showAddTopicDialog(context);
+          _showAddTopicDialog(context, provider, uKey);
         },
       ),
       body: ListView(
@@ -91,7 +96,7 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(6),
                   child: LinearProgressIndicator(
-                    value: _currentProgress,
+                    value: currentProgress,
                     minHeight: 8,
                     backgroundColor: Colors.white,
                     valueColor: const AlwaysStoppedAnimation<Color>(
@@ -131,7 +136,7 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
           const SizedBox(height: 24),
 
           // Topics List
-          if (_topics.isEmpty)
+          if (topics.isEmpty)
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 32),
@@ -189,17 +194,13 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
                       'Add First Topic',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    onPressed: () => _showAddTopicDialog(context),
+                    onPressed: () => _showAddTopicDialog(context, provider, uKey),
                   ),
                 ],
               ),
             )
           else
-            ..._topics.asMap().entries.map((entry) {
-              final idx = entry.key;
-              final topic = entry.value;
-              return _buildTopicCard(context, idx, topic);
-            }).toList(),
+            ...topics.map((topic) => _buildTopicCard(context, provider, topic)).toList(),
           const SizedBox(height: 80),
         ],
       ),
@@ -207,9 +208,9 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
   }
 
   Widget _buildTopicCard(
-      BuildContext context, int index, Map<String, dynamic> topic) {
+      BuildContext context, AppProvider provider, StudyTopic topic) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final isCompleted = topic['isCompleted'] == true;
+    final isCompleted = topic.isCompleted;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -230,9 +231,7 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
         children: [
           GestureDetector(
             onTap: () {
-              setState(() {
-                _topics[index]['isCompleted'] = !isCompleted;
-              });
+              provider.toggleStudyTopic(topic.id);
             },
             child: Container(
               width: 26,
@@ -258,7 +257,7 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  topic['title'] as String,
+                  topic.title,
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
@@ -268,15 +267,17 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
                         : (isDark ? Colors.white : const Color(0xFF1E293B)),
                   ),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  topic['sub'] as String,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFF94A3B8),
+                if (topic.subtitle.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    topic.subtitle,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF94A3B8),
+                    ),
                   ),
-                ),
+                ],
               ],
             ),
           ),
@@ -284,15 +285,11 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
             icon: const Icon(Icons.more_vert_rounded, size: 20, color: Color(0xFF94A3B8)),
             onSelected: (val) {
               if (val == 'toggle') {
-                setState(() {
-                  _topics[index]['isCompleted'] = !isCompleted;
-                });
+                provider.toggleStudyTopic(topic.id);
               } else if (val == 'edit') {
-                _showEditTopicDialog(context, index);
+                _showEditTopicDialog(context, provider, topic);
               } else if (val == 'delete') {
-                setState(() {
-                  _topics.removeAt(index);
-                });
+                provider.deleteStudyTopic(topic.id);
               }
             },
             itemBuilder: (ctx) => [
@@ -333,8 +330,8 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
     );
   }
 
-  void _showEditTopicDialog(BuildContext context, int index) {
-    final titleCtrl = TextEditingController(text: _topics[index]['title'] as String);
+  void _showEditTopicDialog(BuildContext context, AppProvider provider, StudyTopic topic) {
+    final titleCtrl = TextEditingController(text: topic.title);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -345,9 +342,7 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
           ElevatedButton(
             onPressed: () {
               if (titleCtrl.text.trim().isNotEmpty) {
-                setState(() {
-                  _topics[index]['title'] = titleCtrl.text.trim();
-                });
+                provider.updateStudyTopic(topic.id, titleCtrl.text.trim());
                 Navigator.pop(ctx);
               }
             },
@@ -358,7 +353,7 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
     );
   }
 
-  void _showAddTopicDialog(BuildContext context) {
+  void _showAddTopicDialog(BuildContext context, AppProvider provider, String uKey) {
     final titleCtrl = TextEditingController();
 
     showModalBottomSheet(
@@ -404,13 +399,14 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
                 ),
                 onPressed: () {
                   if (titleCtrl.text.trim().isNotEmpty) {
-                    setState(() {
-                      _topics.add({
-                        'title': titleCtrl.text.trim(),
-                        'sub': 'Added just now',
-                        'isCompleted': false,
-                      });
-                    });
+                    final newTopic = StudyTopic(
+                      id: 'topic_${DateTime.now().millisecondsSinceEpoch}',
+                      unitId: uKey,
+                      subjectId: widget.subjectId,
+                      title: titleCtrl.text.trim(),
+                      subtitle: 'Added just now',
+                    );
+                    provider.addStudyTopic(newTopic);
                     Navigator.pop(ctx);
                   }
                 },

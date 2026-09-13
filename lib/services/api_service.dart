@@ -780,7 +780,103 @@ class ApiService {
   }
 
   // ---------------------------------------------------------------------------
-  // 7. TASKS REST APIS (Production-Ready Cloud Sync)
+  // STUDY UNITS & TOPICS API (SUPABASE BACKEND SYNC)
+  // ---------------------------------------------------------------------------
+  static Future<List<StudyUnit>> fetchStudyUnits({String? subjectId}) async {
+    try {
+      final headers = await _getHeaders();
+      final uri = Uri.parse('$baseUrl/study-units').replace(queryParameters: subjectId != null ? {'subjectId': subjectId} : null);
+      final response = await http.get(uri, headers: headers);
+      if (response.statusCode == 200) {
+        final List<dynamic> list = jsonDecode(response.body);
+        return list.map((json) => StudyUnit.fromMap(json)).toList();
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  static Future<Map<String, dynamic>> createStudyUnitOnBackend(StudyUnit unit) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.post(
+        Uri.parse('$baseUrl/study-units'),
+        headers: headers,
+        body: jsonEncode(unit.toMap()),
+      );
+      return {'statusCode': response.statusCode, 'data': jsonDecode(response.body)};
+    } catch (e) {
+      return {'statusCode': 500, 'data': {'success': false, 'message': '$e'}};
+    }
+  }
+
+  static Future<Map<String, dynamic>> deleteStudyUnitOnBackend(String unitId) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.delete(
+        Uri.parse('$baseUrl/study-units/$unitId'),
+        headers: headers,
+      );
+      return {'statusCode': response.statusCode, 'data': jsonDecode(response.body)};
+    } catch (e) {
+      return {'statusCode': 500, 'data': {'success': false, 'message': '$e'}};
+    }
+  }
+
+  static Future<List<StudyTopic>> fetchStudyTopics({String? unitId}) async {
+    try {
+      final headers = await _getHeaders();
+      final uri = Uri.parse('$baseUrl/study-topics').replace(queryParameters: unitId != null ? {'unitId': unitId} : null);
+      final response = await http.get(uri, headers: headers);
+      if (response.statusCode == 200) {
+        final List<dynamic> list = jsonDecode(response.body);
+        return list.map((json) => StudyTopic.fromMap(json)).toList();
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  static Future<Map<String, dynamic>> createStudyTopicOnBackend(StudyTopic topic) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.post(
+        Uri.parse('$baseUrl/study-topics'),
+        headers: headers,
+        body: jsonEncode(topic.toMap()),
+      );
+      return {'statusCode': response.statusCode, 'data': jsonDecode(response.body)};
+    } catch (e) {
+      return {'statusCode': 500, 'data': {'success': false, 'message': '$e'}};
+    }
+  }
+
+  static Future<Map<String, dynamic>> toggleStudyTopicOnBackend(String topicId) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.post(
+        Uri.parse('$baseUrl/study-topics/$topicId/toggle'),
+        headers: headers,
+      );
+      return {'statusCode': response.statusCode, 'data': jsonDecode(response.body)};
+    } catch (e) {
+      return {'statusCode': 500, 'data': {'success': false, 'message': '$e'}};
+    }
+  }
+
+  static Future<Map<String, dynamic>> deleteStudyTopicOnBackend(String topicId) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.delete(
+        Uri.parse('$baseUrl/study-topics/$topicId'),
+        headers: headers,
+      );
+      return {'statusCode': response.statusCode, 'data': jsonDecode(response.body)};
+    } catch (e) {
+      return {'statusCode': 500, 'data': {'success': false, 'message': '$e'}};
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // TASKS API (SUPABASE BACKEND SYNC)
   // ---------------------------------------------------------------------------
   static Future<List<Task>> fetchTasks() async {
     try {
@@ -800,44 +896,25 @@ class ApiService {
       final response = await http.post(
         Uri.parse('$baseUrl/tasks'),
         headers: headers,
-        body: jsonEncode({
-          'id': task.id,
-          'title': task.title,
-          'category': task.category,
-          'priority': task.priority,
-          'dueDate': task.dueDate.toIso8601String(),
-          'due_date': task.dueDate.toIso8601String(),
-          'dueDateLabel': task.dueDateLabel,
-          'isCompleted': task.isCompleted,
-          'is_completed': task.isCompleted,
-        }),
+        body: jsonEncode(task.toJson()),
       );
       return {'statusCode': response.statusCode, 'data': jsonDecode(response.body)};
     } catch (e) {
-      return {'statusCode': 500, 'data': {'error': e.toString()}};
+      return {'statusCode': 500, 'data': {'success': false, 'message': '$e'}};
     }
   }
 
   static Future<Map<String, dynamic>> updateTaskOnBackend(Task task) async {
     try {
       final headers = await _getHeaders();
-      final response = await http.put(
+      final response = await http.patch(
         Uri.parse('$baseUrl/tasks/${task.id}'),
         headers: headers,
-        body: jsonEncode({
-          'title': task.title,
-          'category': task.category,
-          'priority': task.priority,
-          'dueDate': task.dueDate.toIso8601String(),
-          'due_date': task.dueDate.toIso8601String(),
-          'dueDateLabel': task.dueDateLabel,
-          'isCompleted': task.isCompleted,
-          'is_completed': task.isCompleted,
-        }),
+        body: jsonEncode(task.toJson()),
       );
       return {'statusCode': response.statusCode, 'data': jsonDecode(response.body)};
     } catch (e) {
-      return {'statusCode': 500, 'data': {'error': e.toString()}};
+      return {'statusCode': 500, 'data': {'success': false, 'message': '$e'}};
     }
   }
 
@@ -850,7 +927,7 @@ class ApiService {
       );
       return {'statusCode': response.statusCode, 'data': jsonDecode(response.body)};
     } catch (e) {
-      return {'statusCode': 500, 'data': {'error': e.toString()}};
+      return {'statusCode': 500, 'data': {'success': false, 'message': '$e'}};
     }
   }
 
@@ -901,6 +978,7 @@ class ApiService {
       return {'statusCode': 500, 'data': {'error': e.toString()}};
     }
   }
+
 
   static Future<Map<String, dynamic>> createExpenseOnBackend(ExpenseTransaction expense) async {
     return createExpense(

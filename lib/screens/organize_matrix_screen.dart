@@ -213,13 +213,13 @@ class _OrganizeMatrixScreenState extends State<OrganizeMatrixScreen> {
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: iconColor.withOpacity(0.2),
+                  color: isDark ? iconColor.withOpacity(0.2) : Colors.white.withOpacity(0.25),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(icon, size: 16, color: iconColor),
+                child: Icon(icon, size: 16, color: isDark ? iconColor : Colors.white),
               ),
               IconButton(
-                icon: const Icon(Icons.add_rounded, size: 20),
+                icon: Icon(Icons.add_rounded, size: 22, color: isDark ? Colors.white70 : Colors.white),
                 onPressed: () {
                   if (!isPremium) {
                     ProUpgradeDialog.showFeatureLockedDialog(context, AppFeature.eisenhowerMatrix);
@@ -234,21 +234,21 @@ class _OrganizeMatrixScreenState extends State<OrganizeMatrixScreen> {
           Text(
             title,
             style: TextStyle(
-              fontSize: 16,
+              fontSize: 17,
               fontWeight: FontWeight.w800,
-              color: isDark ? Colors.white : const Color(0xFF1E293B),
+              color: isDark ? Colors.white : Colors.white,
             ),
           ),
           Text(
             subtitle,
             style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-              color: isDark ? AppTheme.darkTextSecondary : const Color(0xFF64748B),
+              fontSize: 11.5,
+              fontWeight: FontWeight.w600,
+              color: isDark ? AppTheme.darkTextSecondary : Colors.white.withOpacity(0.88),
             ),
           ),
           const SizedBox(height: 12),
-          const Divider(height: 1),
+          Divider(height: 1, color: isDark ? Colors.white12 : Colors.white.withOpacity(0.35)),
           const SizedBox(height: 8),
 
           if (tasks.isEmpty)
@@ -258,8 +258,9 @@ class _OrganizeMatrixScreenState extends State<OrganizeMatrixScreen> {
                 child: Text(
                   'No tasks here',
                   style: TextStyle(
-                    fontSize: 12,
-                    color: isDark ? AppTheme.darkTextSecondary : const Color(0xFF94A3B8),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? AppTheme.darkTextSecondary : Colors.white.withOpacity(0.95),
                   ),
                 ),
               ),

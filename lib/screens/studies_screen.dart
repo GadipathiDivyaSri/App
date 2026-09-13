@@ -322,7 +322,10 @@ class _StudiesScreenState extends State<StudiesScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => SubjectDetailsScreen(subjectName: sub.name),
+                          builder: (_) => SubjectDetailsScreen(
+                            subjectName: sub.name,
+                            subjectId: sub.id,
+                          ),
                         ),
                       );
                     },

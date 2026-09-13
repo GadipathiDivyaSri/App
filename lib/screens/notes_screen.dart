@@ -53,9 +53,7 @@ class _NotesScreenState extends State<NotesScreen> {
             return e.title.toLowerCase().contains(q) || e.content.toLowerCase().contains(q);
           }).toList();
 
-    return ProFeatureGuard(
-      feature: AppFeature.notes,
-      child: Scaffold(
+    return Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.background,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -72,13 +70,7 @@ class _NotesScreenState extends State<NotesScreen> {
           Padding(
             padding: const EdgeInsets.only(right: 12.0),
             child: TextButton.icon(
-              onPressed: () {
-                if (!isPremium) {
-                  ProUpgradeDialog.showFeatureLockedDialog(context, AppFeature.notes);
-                } else {
-                  _showEntryEditor(context, null);
-                }
-              },
+              onPressed: () => _showEntryEditor(context, null),
               icon: const Icon(Icons.add_rounded, size: 18),
               label: const Text('New Entry', style: TextStyle(fontWeight: FontWeight.w700)),
               style: TextButton.styleFrom(
@@ -93,22 +85,12 @@ class _NotesScreenState extends State<NotesScreen> {
         backgroundColor: primaryColor,
         shape: const CircleBorder(),
         elevation: 4,
-        child: Icon(
-          !isPremium ? Icons.lock_rounded : Icons.edit_note_rounded,
+        child: const Icon(
+          Icons.edit_note_rounded,
           color: Colors.white,
           size: 26,
         ),
-        onPressed: () {
-          if (!isPremium) {
-            showUpgradeProModal(
-              context,
-              featureTitle: 'Journal & Notes',
-              limitExplanation: 'Free plan includes read-only preview of Journal. Upgrade to Pro for ₹49/month to write unlimited personal diary entries.',
-            );
-          } else {
-            _showEntryEditor(context, null);
-          }
-        },
+        onPressed: () => _showEntryEditor(context, null),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
@@ -290,11 +272,7 @@ class _NotesScreenState extends State<NotesScreen> {
                                     icon: Icon(Icons.more_horiz_rounded, size: 20, color: textSecondary),
                                     onSelected: (action) {
                                       if (action == 'edit') {
-                                        if (!isPremium) {
-                                          showUpgradeProModal(context, featureTitle: 'Journal Editing', limitExplanation: 'Upgrade to Pro for ₹49/month to edit past journal logs.');
-                                        } else {
-                                          _showEntryEditor(context, entry);
-                                        }
+                                        _showEntryEditor(context, entry);
                                       } else if (action == 'delete') {
                                         provider.deleteJournalEntry(entry.id);
                                       }
@@ -324,9 +302,8 @@ class _NotesScreenState extends State<NotesScreen> {
           ],
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   // --- ENTRY READER MODAL ---
   void _showEntryReader(BuildContext context, JournalEntry entry, bool isPremium) {
@@ -365,11 +342,7 @@ class _NotesScreenState extends State<NotesScreen> {
                     icon: const Icon(Icons.edit_outlined, size: 20),
                     onPressed: () {
                       Navigator.pop(ctx);
-                      if (!isPremium) {
-                        showUpgradeProModal(context, featureTitle: 'Journal Editing', limitExplanation: 'Upgrade to Pro for ₹49/month to edit past journal logs.');
-                      } else {
-                        _showEntryEditor(context, entry);
-                      }
+                      _showEntryEditor(context, entry);
                     },
                   ),
                 ],
