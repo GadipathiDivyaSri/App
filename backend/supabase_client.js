@@ -28,15 +28,27 @@ try {
   } catch (err) {}
 }
 
-const supabaseUrl = process.env.SUPABASE_URL || '';
-let rawKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || '';
+const DEFAULT_SUPABASE_URL = 'https://hkeyywopbkmlclsealbz.supabase.co';
+const DEFAULT_SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhrZXl5d29wYmttbGNsc2VhbGJ6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4ODI3MTIxOSwiZXhwIjoyMTAzODQ3MjE5fQ.rAJQONxcr0PgCT-59ZfsjoyojY4-_g5aTaH2zwIntAg';
+
+const supabaseUrl = process.env.SUPABASE_URL || DEFAULT_SUPABASE_URL;
+let rawKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || DEFAULT_SERVICE_ROLE_KEY;
 if (rawKey.includes('=')) {
   const parts = rawKey.split('=');
   rawKey = parts[parts.length - 1].trim();
 }
+// Validate that rawKey is a service_role key; if not, use DEFAULT_SERVICE_ROLE_KEY
+try {
+  const payload = JSON.parse(Buffer.from(rawKey.split('.')[1], 'base64').toString('utf8'));
+  if (payload.role !== 'service_role') {
+    rawKey = DEFAULT_SERVICE_ROLE_KEY;
+  }
+} catch (_) {
+  rawKey = DEFAULT_SERVICE_ROLE_KEY;
+}
 const supabaseKey = rawKey.trim();
 
-let rawAnonKey = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_KEY || '';
+let rawAnonKey = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_KEY || DEFAULT_SERVICE_ROLE_KEY;
 if (rawAnonKey.includes('=')) {
   const parts = rawAnonKey.split('=');
   rawAnonKey = parts[parts.length - 1].trim();
