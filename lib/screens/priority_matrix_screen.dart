@@ -15,16 +15,83 @@ class PriorityMatrixScreen extends StatefulWidget {
 }
 
 class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
-  final List<Map<String, dynamic>> _p1Tasks = [];
-  final List<Map<String, dynamic>> _p2Tasks = [];
-  final List<Map<String, dynamic>> _p3Tasks = [];
+  List<Map<String, dynamic>> _p1Tasks = [];
+  List<Map<String, dynamic>> _p2Tasks = [];
+  List<Map<String, dynamic>> _p3Tasks = [];
 
-  final List<Map<String, dynamic>> _completedTasks = [];
+  List<Map<String, dynamic>> _completedTasks = [];
   bool _sortByUrgentTime = false;
+
+  TimeOfDay _parseTimeOfDay(String? timeStr) {
+    if (timeStr == null || timeStr.isEmpty) return const TimeOfDay(hour: 18, minute: 0);
+    try {
+      final parts = timeStr.trim().split(' ');
+      final timeParts = parts[0].split(':');
+      int hour = int.parse(timeParts[0]);
+      final minute = int.parse(timeParts[1]);
+      if (parts.length > 1 && parts[1].toUpperCase() == 'PM' && hour < 12) {
+        hour += 12;
+      } else if (parts.length > 1 && parts[1].toUpperCase() == 'AM' && hour == 12) {
+        hour = 0;
+      }
+      return TimeOfDay(hour: hour, minute: minute);
+    } catch (_) {
+      return const TimeOfDay(hour: 18, minute: 0);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<AppProvider>(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    _p1Tasks = provider.tasks
+        .where((t) => !t.isCompleted && t.priority == 1)
+        .map((t) => {
+              'id': t.id,
+              'title': t.title,
+              'tag': t.category,
+              'dueDate': t.dueDate,
+              'dueTime': _parseTimeOfDay(t.dueTime),
+              'priority': t.priority,
+            })
+        .toList();
+
+    _p2Tasks = provider.tasks
+        .where((t) => !t.isCompleted && t.priority == 2)
+        .map((t) => {
+              'id': t.id,
+              'title': t.title,
+              'tag': t.category,
+              'dueDate': t.dueDate,
+              'dueTime': _parseTimeOfDay(t.dueTime),
+              'priority': t.priority,
+            })
+        .toList();
+
+    _p3Tasks = provider.tasks
+        .where((t) => !t.isCompleted && (t.priority >= 3 || t.priority <= 0))
+        .map((t) => {
+              'id': t.id,
+              'title': t.title,
+              'tag': t.category,
+              'dueDate': t.dueDate,
+              'dueTime': _parseTimeOfDay(t.dueTime),
+              'priority': t.priority,
+            })
+        .toList();
+
+    _completedTasks = provider.tasks
+        .where((t) => t.isCompleted)
+        .map((t) => {
+              'id': t.id,
+              'title': t.title,
+              'tag': t.category,
+              'dueDate': t.dueDate,
+              'dueTime': _parseTimeOfDay(t.dueTime),
+              'priority': t.priority,
+            })
+        .toList();
 
     return ProFeatureGuard(
       feature: AppFeature.priorityMatrix,
@@ -671,17 +738,15 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                             if (val == 'edit') {
                               _showEditTaskDialog(context, task, priorityLevel);
                             } else if (val == 'complete') {
-                              setState(() {
-                                _removeTaskFromList(task, priorityLevel);
-                                _completedTasks.insert(0, {
-                                  'title': task['title'],
-                                  'tag': task['tag'],
-                                });
-                              });
+                              final p = Provider.of<AppProvider>(context, listen: false);
+                              if (task['id'] != null) {
+                                p.toggleTaskCompletion(task['id'] as String);
+                              }
                             } else if (val == 'delete') {
-                              setState(() {
-                                _removeTaskFromList(task, priorityLevel);
-                              });
+                              final p = Provider.of<AppProvider>(context, listen: false);
+                              if (task['id'] != null) {
+                                p.deleteTask(task['id'] as String);
+                              }
                             }
                           },
                           itemBuilder: (ctx) => [
@@ -1109,19 +1174,14 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                       ),
                       onPressed: () {
                         if (titleCtrl.text.trim().isNotEmpty) {
-                          setState(() {
-                            final newTask = {
-                              'id': 't_${DateTime.now().millisecondsSinceEpoch}',
-                              'title': titleCtrl.text.trim(),
-                              'tag': selectedTag,
-                              'dueDate': selectedDate,
-                              'dueTime': selectedTime,
-                              'priority': assignedPriority,
-                            };
-                            if (assignedPriority == 1) _p1Tasks.add(newTask);
-                            if (assignedPriority == 2) _p2Tasks.add(newTask);
-                            if (assignedPriority == 3) _p3Tasks.add(newTask);
-                          });
+                          provider.addTask(
+                            titleCtrl.text.trim(),
+                            selectedTag,
+                            dateFormatted,
+                            priority: assignedPriority,
+                            dueDate: selectedDate,
+                            dueTime: timeFormatted,
+                          );
                           Navigator.pop(ctx);
                         }
                       },
@@ -1322,17 +1382,15 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
             ElevatedButton(
               onPressed: () {
                 if (titleCtrl.text.trim().isNotEmpty) {
-                  setState(() {
-                    _removeTaskFromList(task, currentPriority);
-                    task['title'] = titleCtrl.text.trim();
-                    task['dueDate'] = selectedDate;
-                    task['dueTime'] = selectedTime;
-                    task['priority'] = selectedPriority;
-
-                    if (selectedPriority == 1) _p1Tasks.add(task);
-                    if (selectedPriority == 2) _p2Tasks.add(task);
-                    if (selectedPriority == 3) _p3Tasks.add(task);
-                  });
+                  final p = Provider.of<AppProvider>(context, listen: false);
+                  if (task['id'] != null) {
+                    p.editTask(
+                      task['id'] as String,
+                      titleCtrl.text.trim(),
+                      selectedPriority,
+                      task['tag'] as String? ?? 'STUDY',
+                    );
+                  }
                   Navigator.pop(ctx);
                 }
               },

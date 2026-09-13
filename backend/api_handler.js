@@ -747,6 +747,13 @@ async function handleApiRequest(req, res) {
     return sendJSON(res, 201, resSubj);
   }
 
+  if (pathname.startsWith('/api/subjects/') && (method === 'PUT' || method === 'PATCH')) {
+    const subjectId = pathname.split('/')[3];
+    const updated = await DatabaseManager.updateSubject(userId, subjectId, body);
+    if (!updated) return sendJSON(res, 404, { error: 'Subject not found or unauthorized' });
+    return sendJSON(res, 200, updated);
+  }
+
   if (pathname.startsWith('/api/subjects/') && method === 'DELETE') {
     const subjectId = pathname.split('/')[3];
     const deleted = await DatabaseManager.deleteSubject(userId, subjectId);
@@ -777,6 +784,13 @@ async function handleApiRequest(req, res) {
   if (pathname === '/api/study-items' && method === 'POST') {
     const newItem = await DatabaseManager.createStudyItem(userId, body);
     return sendJSON(res, 201, newItem);
+  }
+
+  if (pathname.startsWith('/api/study-items/') && (method === 'PUT' || method === 'PATCH')) {
+    const itemId = pathname.split('/')[3];
+    const updated = await DatabaseManager.updateStudyItem(userId, itemId, body);
+    if (!updated) return sendJSON(res, 404, { error: 'Study item not found or unauthorized' });
+    return sendJSON(res, 200, updated);
   }
 
   if (pathname.startsWith('/api/study-items/') && method === 'DELETE') {
@@ -899,6 +913,13 @@ async function handleApiRequest(req, res) {
   if (pathname === '/api/journal' && method === 'POST') {
     const newEntry = await DatabaseManager.createJournalEntry(userId, body);
     return sendJSON(res, 201, newEntry);
+  }
+
+  if (pathname.startsWith('/api/journal/') && (method === 'PUT' || method === 'PATCH')) {
+    const entryId = pathname.split('/').pop();
+    const updated = await DatabaseManager.updateJournalEntry(userId, entryId, body);
+    if (!updated) return sendJSON(res, 404, { error: 'Journal entry not found or unauthorized' });
+    return sendJSON(res, 200, updated);
   }
 
   if (pathname.startsWith('/api/journal/') && method === 'DELETE') {

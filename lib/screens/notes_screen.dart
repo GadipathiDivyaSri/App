@@ -466,7 +466,7 @@ class _NotesScreenState extends State<NotesScreen> {
                         if (existing == null) {
                           provider.addJournalEntry(
                             JournalEntry(
-                              id: 'j_${DateTime.now().millisecondsSinceEpoch}',
+                              id: generateUuidV4(),
                               title: title,
                               content: content,
                               date: DateTime.now(),

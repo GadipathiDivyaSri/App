@@ -575,7 +575,7 @@ class _StudiesScreenState extends State<StudiesScreen> {
                   }
                   provider.addSubject(
                     StudySubject(
-                      id: 'sub_${DateTime.now().millisecondsSinceEpoch}',
+                      id: generateUuidV4(),
                       name: name,
                       colorValue: colorValue,
                     ),
@@ -644,7 +644,7 @@ class _StudiesScreenState extends State<StudiesScreen> {
                   final chosenSub = subjects.firstWhere((s) => s.id == selectedSubId);
                   provider.addStudyItem(
                     StudyItem(
-                      id: 'item_${DateTime.now().millisecondsSinceEpoch}',
+                      id: generateUuidV4(),
                       subjectId: chosenSub.id,
                       subjectName: chosenSub.name,
                       title: title,
