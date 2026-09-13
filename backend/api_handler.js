@@ -77,6 +77,12 @@ const JWT_SECRET = process.env.JWT_SECRET || 'wrindha_os_secure_production_secre
 // 1. UTILITY FUNCTIONS & CORS HEADERS
 // -----------------------------------------------------------------------------
 function sendJSON(res, statusCode, data) {
+  if (res.headersSent) {
+    try {
+      res.end(typeof data === 'string' ? data : JSON.stringify(data));
+    } catch (_) {}
+    return;
+  }
   res.writeHead(statusCode, {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
@@ -150,19 +156,74 @@ function verifyJwtToken(token) {
 }
 
 function parseRequestBody(req) {
+  const method = (req.method || 'GET').toUpperCase();
+  if (method === 'GET' || method === 'HEAD' || method === 'OPTIONS') {
+    return Promise.resolve({});
+  }
+
+  // 1. If Vercel or Express already parsed req.body
+  if (req.body !== undefined && req.body !== null) {
+    if (typeof req.body === 'object') {
+      return Promise.resolve(req.body);
+    }
+    if (typeof req.body === 'string') {
+      try {
+        return Promise.resolve(req.body.trim() ? JSON.parse(req.body) : {});
+      } catch (_) {
+        return Promise.resolve({});
+      }
+    }
+  }
+
+  // 2. If the request stream has already ended or is closed
+  if (req.readableEnded || req.complete || req.destroyed) {
+    return Promise.resolve({});
+  }
+
+  // 3. Fallback: stream reader with 1.5-second safety timeout
   return new Promise((resolve) => {
     let body = '';
+    let settled = false;
+
+    const timer = setTimeout(() => {
+      if (!settled) {
+        settled = true;
+        try {
+          resolve(body.trim() ? JSON.parse(body) : {});
+        } catch (_) {
+          resolve({});
+        }
+      }
+    }, 1500);
+
     req.on('data', (chunk) => {
       body += chunk;
-      if (body.length > 10 * 1024 * 1024) { // 10MB limit
+      if (body.length > 10 * 1024 * 1024) {
         req.destroy();
-        resolve({});
+        if (!settled) {
+          settled = true;
+          clearTimeout(timer);
+          resolve({});
+        }
       }
     });
+
     req.on('end', () => {
-      try {
-        resolve(body ? JSON.parse(body) : {});
-      } catch (e) {
+      if (!settled) {
+        settled = true;
+        clearTimeout(timer);
+        try {
+          resolve(body.trim() ? JSON.parse(body) : {});
+        } catch (_) {
+          resolve({});
+        }
+      }
+    });
+
+    req.on('error', () => {
+      if (!settled) {
+        settled = true;
+        clearTimeout(timer);
         resolve({});
       }
     });
@@ -190,10 +251,27 @@ async function handleApiRequest(req, res) {
     return res.end();
   }
 
-  const parsedUrl = url.parse(req.url, true);
-  const pathname = parsedUrl.pathname.replace(/\/+$/, '') || '/';
-  const method = req.method.toUpperCase();
-  const query = parsedUrl.query;
+  const parsedUrl = url.parse(req.url || '/', true);
+  let pathname = parsedUrl.pathname ? parsedUrl.pathname.replace(/\/+$/, '') : '/';
+  const method = (req.method || 'GET').toUpperCase();
+  const query = { ...(parsedUrl.query || {}), ...(req.query || {}) };
+
+  // Support Vercel serverless catch-all routing
+  if (pathname === '/api/[...path]' || pathname === '/api' || pathname === '' || pathname === '/') {
+    const rawPath = req.query?.path || parsedUrl.query?.path;
+    if (rawPath) {
+      const subPath = Array.isArray(rawPath) ? rawPath.join('/') : String(rawPath);
+      pathname = '/api/' + subPath.replace(/^\/+/, '');
+    } else if (req.headers['x-matched-path']) {
+      pathname = req.headers['x-matched-path'];
+    } else if (req.headers['x-vercel-matched-path']) {
+      pathname = req.headers['x-vercel-matched-path'];
+    } else if (req.headers['x-forwarded-uri']) {
+      pathname = req.headers['x-forwarded-uri'].split('?')[0];
+    }
+  }
+  pathname = (pathname || '/').replace(/\/+$/, '') || '/';
+
   const body = sanitizeInput(await parseRequestBody(req));
 
   console.log(`[${method}] ${pathname}`);
