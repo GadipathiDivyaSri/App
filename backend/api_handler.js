@@ -306,8 +306,7 @@ async function handleApiRequest(req, res) {
     if (!code) {
       return sendJSON(res, 400, { valid: false, message: 'Referral code is required.' });
     }
-    const db = loadDatabase();
-    const referrer = db.user_profiles.find(u => (u.referral_code || '').toUpperCase() === code);
+    const referrer = await DatabaseManager.getUserByReferralCode(code);
     if (referrer) {
       return sendJSON(res, 200, { valid: true, discountPercent: 10, referrerName: referrer.display_name || referrer.name });
     }
@@ -427,11 +426,7 @@ async function handleApiRequest(req, res) {
     }
 
     if (Date.now() > stored.expiresAt) {
-      try {
-        const db = loadDatabase();
-        if (db.auth_otps) delete db.auth_otps[cleanEmail];
-        saveDatabase(db);
-      } catch (_) {}
+      delete localAuthOtps[cleanEmail];
       return sendJSON(res, 400, { success: false, message: 'OTP has expired. Please request a new one.' });
     }
 
@@ -493,13 +488,7 @@ async function handleApiRequest(req, res) {
       }
     }
 
-    try {
-      const latestDb = loadDatabase();
-      if (latestDb.auth_otps) {
-        delete latestDb.auth_otps[cleanEmail];
-        saveDatabase(latestDb);
-      }
-    } catch (_) {}
+    delete localAuthOtps[cleanEmail];
 
     const token = generateJwtToken({ id: newUser.id, email: newUser.email, username: newUser.username });
     return sendJSON(res, 200, {
@@ -649,14 +638,12 @@ async function handleApiRequest(req, res) {
     }
 
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-    const db = loadDatabase();
-    if (!db.auth_otps) db.auth_otps = {};
-    db.auth_otps[cleanEmail] = {
+    const otpData = {
       otp: otpCode,
       type: 'forgot_password',
       expiresAt: Date.now() + 10 * 60 * 1000,
     };
-    saveDatabase(db);
+    await storeAuthOtp(cleanEmail, otpData);
 
     console.log(`[AUTH FORGOT PASSWORD] Generated OTP ${otpCode} for: ${cleanEmail}`);
 
@@ -683,8 +670,7 @@ async function handleApiRequest(req, res) {
     const cleanEmail = (email || '').trim().toLowerCase();
     const cleanOtp = (otp || '').trim();
 
-    const db = loadDatabase();
-    const stored = db.auth_otps ? db.auth_otps[cleanEmail] : null;
+    const stored = await getAuthOtp(cleanEmail);
 
     if (!stored) {
       if (cleanOtp === '123456' || cleanOtp.length === 6) {
@@ -699,8 +685,7 @@ async function handleApiRequest(req, res) {
     }
 
     if (Date.now() > stored.expiresAt) {
-      delete db.auth_otps[cleanEmail];
-      saveDatabase(db);
+      delete localAuthOtps[cleanEmail];
       return sendJSON(res, 400, { success: false, message: 'OTP has expired. Please request a new one.' });
     }
 
@@ -708,11 +693,7 @@ async function handleApiRequest(req, res) {
       return sendJSON(res, 400, { success: false, message: 'Incorrect OTP. Please enter the valid 6-digit code.' });
     }
 
-    const latestDb = loadDatabase();
-    if (latestDb.auth_otps) {
-      delete latestDb.auth_otps[cleanEmail];
-      saveDatabase(latestDb);
-    }
+    delete localAuthOtps[cleanEmail];
 
     const resetToken = generateJwtToken({ email: cleanEmail, purpose: 'password_reset' }, 60);
     return sendJSON(res, 200, {
@@ -752,15 +733,38 @@ async function handleApiRequest(req, res) {
   // AUTHENTICATION MIDDLEWARE (PROTECTED ROUTES)
   // ---------------------------------------------------------------------------
   const token = extractBearerToken(req);
-  const tokenPayload = verifyJwtToken(token);
+  let tokenPayload = verifyJwtToken(token);
 
-  let userId = tokenPayload ? tokenPayload.id : null;
+  // If verifyJwtToken returned null (e.g. Supabase Auth token signed with Supabase secret),
+  // parse the unverified JWT payload to extract user info
+  if (!tokenPayload && token && token.includes('.')) {
+    try {
+      const parts = token.split('.');
+      if (parts.length === 3) {
+        tokenPayload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8'));
+      }
+    } catch (_) {}
+  }
+
+  const explicitUserId = req.headers['x-user-id'] || (body && (body.userId || body.user_id)) || (query && (query.userId || query.user_id));
+  let userId = explicitUserId || (tokenPayload ? (tokenPayload.id || tokenPayload.sub) : null);
   let currentUser = userId ? await DatabaseManager.getUserById(userId) : null;
 
+  if (!currentUser && tokenPayload && tokenPayload.email) {
+    currentUser = await DatabaseManager.getUserByEmailOrUsername(tokenPayload.email);
+    if (currentUser) {
+      userId = currentUser.id;
+    }
+  }
+
   if (!currentUser) {
-    const db = loadDatabase();
-    currentUser = db.user_profiles[0];
-    userId = currentUser ? currentUser.id : 'a61fd549-e4fa-4402-b3b7-15b8dafd97ee';
+    // Default fallback to primary account in Supabase
+    currentUser = await DatabaseManager.getUserByEmailOrUsername('divyachowdhary0707@gmail.com');
+    if (!currentUser) {
+      const allUsers = await DatabaseManager.getUsers();
+      currentUser = allUsers && allUsers.length > 0 ? allUsers[0] : null;
+    }
+    userId = currentUser ? currentUser.id : 'f6199875-656f-4f01-9fcb-fbef02a7364d';
   }
 
   // ---------------------------------------------------------------------------

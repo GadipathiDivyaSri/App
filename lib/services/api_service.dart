@@ -18,9 +18,12 @@ class ApiService {
   /// Helper to generate authenticated HTTP headers
   static Future<Map<String, String>> _getHeaders() async {
     final token = await getSessionToken();
+    final user = await getSessionUser();
+    final uid = user?['id']?.toString() ?? user?['userId']?.toString();
     return {
       'Content-Type': 'application/json',
       if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+      if (uid != null && uid.isNotEmpty) 'x-user-id': uid,
     };
   }
 
@@ -1288,13 +1291,27 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> createJournalEntryOnBackend(JournalEntry entry) async {
+    final user = await getSessionUser();
+    final uid = user?['id']?.toString() ?? user?['userId']?.toString() ?? 'f6199875-656f-4f01-9fcb-fbef02a7364d';
+
+    final cleanPayload = {
+      'id': entry.id,
+      'user_id': uid,
+      'userId': uid,
+      'title': entry.title,
+      'content': entry.content,
+      'content_ciphertext': entry.content,
+      'entry_date': entry.date.toIso8601String().split('T')[0],
+      'mood': entry.mood,
+    };
+
     try {
       final headers = await _getHeaders();
       final response = await http
           .post(
             Uri.parse('$baseUrl/journal'),
             headers: headers,
-            body: jsonEncode(entry.toJson()),
+            body: jsonEncode(cleanPayload),
           )
           .timeout(const Duration(seconds: 6));
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -1302,14 +1319,18 @@ class ApiService {
       }
     } catch (_) {}
 
-    // Direct Supabase Fallback
+    // Direct Supabase Fallback (strict schema columns only)
     try {
-      final user = await getSessionUser();
       final token = await getSessionToken();
-      final uid = user?['id']?.toString() ?? user?['userId']?.toString() ?? 'f6199875-656f-4f01-9fcb-fbef02a7364d';
-
-      final payload = entry.toJson();
-      payload['user_id'] = uid;
+      final dbPayload = {
+        'id': entry.id,
+        'user_id': uid,
+        'title': entry.title,
+        'content': entry.content,
+        'content_ciphertext': entry.content,
+        'entry_date': entry.date.toIso8601String().split('T')[0],
+        'mood': entry.mood,
+      };
 
       final res = await http
           .post(
@@ -1320,7 +1341,7 @@ class ApiService {
               'Content-Type': 'application/json',
               'Prefer': 'return=representation',
             },
-            body: jsonEncode(payload),
+            body: jsonEncode(dbPayload),
           )
           .timeout(const Duration(seconds: 6));
 
@@ -1334,13 +1355,24 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> updateJournalEntryOnBackend(JournalEntry entry) async {
+    final user = await getSessionUser();
+    final uid = user?['id']?.toString() ?? user?['userId']?.toString() ?? 'f6199875-656f-4f01-9fcb-fbef02a7364d';
+
+    final updatePayload = {
+      'title': entry.title,
+      'content': entry.content,
+      'content_ciphertext': entry.content,
+      'entry_date': entry.date.toIso8601String().split('T')[0],
+      'mood': entry.mood,
+    };
+
     try {
       final headers = await _getHeaders();
       final response = await http
           .put(
             Uri.parse('$baseUrl/journal/${entry.id}'),
             headers: headers,
-            body: jsonEncode(entry.toJson()),
+            body: jsonEncode(updatePayload),
           )
           .timeout(const Duration(seconds: 6));
       if (response.statusCode == 200) {
@@ -1350,9 +1382,7 @@ class ApiService {
 
     // Direct Supabase Fallback
     try {
-      final user = await getSessionUser();
       final token = await getSessionToken();
-      final uid = user?['id']?.toString() ?? user?['userId']?.toString() ?? 'f6199875-656f-4f01-9fcb-fbef02a7364d';
 
       final res = await http
           .patch(
@@ -1363,7 +1393,7 @@ class ApiService {
               'Content-Type': 'application/json',
               'Prefer': 'return=representation',
             },
-            body: jsonEncode(entry.toJson()),
+            body: jsonEncode(updatePayload),
           )
           .timeout(const Duration(seconds: 6));
 

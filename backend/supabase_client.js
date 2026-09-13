@@ -93,4 +93,7 @@ module.exports = {
   supabase,
   anonClient: anonClient || supabase,
   isConfigured: () => !!supabase,
+  supabaseUrl,
+  supabaseKey,
+  supabaseAnonKey,
 };
