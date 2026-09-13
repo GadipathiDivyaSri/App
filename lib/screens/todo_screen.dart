@@ -280,10 +280,12 @@ class TodoScreen extends StatelessWidget {
     final titleController = TextEditingController();
     String category = 'Career Roadmap';
     String dueDateLabel = 'Today';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: isDark ? AppTheme.darkCardBg : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -301,17 +303,24 @@ class TodoScreen extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Add New Task',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : AppTheme.textPrimary,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   TextField(
                     controller: titleController,
                     autofocus: true,
+                    style: TextStyle(color: isDark ? Colors.white : AppTheme.textPrimary),
                     decoration: InputDecoration(
                       hintText: 'Task Title',
+                      hintStyle: TextStyle(color: isDark ? Colors.white60 : Colors.black45),
                       filled: true,
+                      fillColor: isDark ? const Color(0xFF1E2235) : const Color(0xFFF1F5F9),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide.none,
@@ -324,6 +333,7 @@ class TodoScreen extends StatelessWidget {
                       Expanded(
                         child: DropdownButtonFormField<String>(
                           value: category,
+                          dropdownColor: isDark ? AppTheme.darkCardBg : Colors.white,
                           decoration: const InputDecoration(
                             labelText: 'Category',
                             border: OutlineInputBorder(),
@@ -347,6 +357,7 @@ class TodoScreen extends StatelessWidget {
                       Expanded(
                         child: DropdownButtonFormField<String>(
                           value: dueDateLabel,
+                          dropdownColor: isDark ? AppTheme.darkCardBg : Colors.white,
                           decoration: const InputDecoration(
                             labelText: 'Due Date',
                             border: OutlineInputBorder(),

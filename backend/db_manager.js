@@ -124,9 +124,41 @@ class DatabaseManager {
   static async getUserByEmailOrUsername(identifier) {
     if (!identifier) return null;
     const clean = identifier.trim().toLowerCase();
-    const byEmail = await dbQuery('profiles', { method: 'GET', match: { email: clean }, single: true });
-    if (byEmail) return byEmail;
-    return await dbQuery('profiles', { method: 'GET', match: { username: clean }, single: true });
+    let user = await dbQuery('profiles', { method: 'GET', match: { email: clean }, single: true });
+    if (!user) {
+      user = await dbQuery('profiles', { method: 'GET', match: { username: clean }, single: true });
+    }
+
+    // Merge Supabase Auth metadata (passwordHash) if user or password_hash is missing
+    if (isSupabaseConfigured() && supabase) {
+      try {
+        const { data } = await supabase.auth.admin.listUsers();
+        const supUser = (data?.users || []).find(u =>
+          (u.email || '').toLowerCase() === clean ||
+          (u.user_metadata && (u.user_metadata.username || '').toLowerCase() === clean)
+        );
+        if (supUser) {
+          if (!user) {
+            user = {
+              id: supUser.id,
+              user_id: supUser.id,
+              email: supUser.email,
+              username: supUser.user_metadata?.username || clean,
+              name: supUser.user_metadata?.name || supUser.email.split('@')[0],
+              display_name: supUser.user_metadata?.name || supUser.email.split('@')[0],
+              is_premium: false,
+              subscription_plan: 'FREE',
+            };
+          }
+          if (supUser.user_metadata && supUser.user_metadata.passwordHash) {
+            user.password_hash = supUser.user_metadata.passwordHash;
+          }
+        }
+      } catch (supErr) {
+        console.warn('[SUPABASE AUTH USER FETCH NOTICE]:', supErr.message);
+      }
+    }
+    return user;
   }
 
   static async createUser(userData) {
@@ -152,21 +184,27 @@ class DatabaseManager {
     };
 
     const createdProfile = await dbQuery('profiles', { method: 'POST', body: newUser, single: true });
+    const resultUser = createdProfile || newUser;
+
+    // Attach password_hash for caller authentication flows
+    if (userData.password_hash) {
+      resultUser.password_hash = userData.password_hash;
+    }
 
     // Initialize Default Subscription Row
     const newSub = {
       id: ensureUuid(),
       user_id: userId,
-      plan: newUser.is_premium ? 'premium' : 'free',
+      plan: resultUser.is_premium ? 'premium' : 'free',
       status: 'active',
       started_at: new Date().toISOString(),
-      payment_provider: newUser.is_premium ? 'SEED_VIP' : 'NONE',
+      payment_provider: resultUser.is_premium ? 'SEED_VIP' : 'NONE',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
     await dbQuery('subscriptions', { method: 'POST', body: newSub });
 
-    return createdProfile || newUser;
+    return resultUser;
   }
 
   static async updateUser(userId, updates) {
@@ -453,6 +491,30 @@ class DatabaseManager {
     return { ...created, userId: uid, isIncome: isInc };
   }
 
+  static async updateExpense(userId, expenseId, updates) {
+    if (!userId || !expenseId) return null;
+    const uid = ensureUuid(userId);
+    const eid = ensureUuid(expenseId);
+    const isInc = !!(updates.is_income ?? updates.isIncome ?? (updates.transaction_type === 'income'));
+
+    const payload = {};
+    if (updates.title) payload.title = updates.title;
+    if (updates.amount !== undefined) payload.amount = Number(updates.amount);
+    if (updates.category) payload.category = updates.category;
+    if (updates.isIncome !== undefined || updates.is_income !== undefined || updates.transaction_type) {
+      payload.transaction_type = isInc ? 'income' : 'expense';
+    }
+    if (updates.paymentMethod || updates.payment_method) {
+      payload.payment_method = updates.paymentMethod || updates.payment_method;
+    }
+    if (updates.date || updates.occurred_at || updates.expense_date) {
+      payload.occurred_at = updates.date || updates.occurred_at || updates.expense_date;
+    }
+
+    const updated = await dbQuery('expenses', { method: 'PATCH', match: { id: eid, user_id: uid }, body: payload, single: true });
+    return updated ? { ...updated, userId: uid, isIncome: isInc } : null;
+  }
+
   static async deleteExpense(userId, expenseId) {
     if (!userId || !expenseId) return false;
     const uid = ensureUuid(userId);
@@ -544,18 +606,20 @@ class DatabaseManager {
     return await dbQuery('study_units', { method: 'GET', match });
   }
 
-  static async createStudyUnit(userId, subjectId, unitData) {
-    if (!userId || !subjectId) throw new Error('userId and subjectId are required');
+  static async createStudyUnit(userId, arg1, arg2) {
+    if (!userId) throw new Error('userId is required');
     const uid = ensureUuid(userId);
-    const sid = ensureUuid(subjectId);
+    const unitData = typeof arg1 === 'object' ? arg1 : (arg2 || {});
+    const sid = ensureUuid(unitData.subject_id || unitData.subjectId || (typeof arg1 === 'string' ? arg1 : ''));
 
     const newUnit = {
       id: ensureUuid(unitData.id),
       user_id: uid,
       subject_id: sid,
-      unit_number: Number(unitData.unit_number || unitData.order) || 1,
+      unit_number: Number(unitData.unit_number || unitData.unitNumber || unitData.order) || 1,
       title: unitData.title || unitData.unit_title || 'Unit',
-      status: unitData.is_completed ? 'completed' : 'pending',
+      description: unitData.description || unitData.desc || '',
+      status: (unitData.is_completed || unitData.isCompleted) ? 'completed' : 'pending',
       created_at: new Date().toISOString(),
     };
 
@@ -569,6 +633,7 @@ class DatabaseManager {
 
     const payload = {};
     if (updates.title !== undefined) payload.title = updates.title;
+    if (updates.description !== undefined) payload.description = updates.description;
     if (updates.unit_number !== undefined) payload.unit_number = Number(updates.unit_number);
     if (updates.status !== undefined) payload.status = updates.status;
     if (updates.is_completed !== undefined) payload.is_completed = !!updates.is_completed;
@@ -580,7 +645,52 @@ class DatabaseManager {
     if (!userId || !unitId) return false;
     const uid = ensureUuid(userId);
     const uid_unit = ensureUuid(unitId);
+    await dbQuery('study_topics', { method: 'DELETE', match: { unit_id: uid_unit, user_id: uid } });
     return await dbQuery('study_units', { method: 'DELETE', match: { id: uid_unit, user_id: uid } });
+  }
+
+  // STUDY TOPICS (TOPICS INSIDE UNITS)
+  static async getStudyTopics(userId, unitId = null) {
+    if (!userId) return [];
+    const uid = ensureUuid(userId);
+    const match = { user_id: uid };
+    if (unitId) match.unit_id = ensureUuid(unitId);
+    return await dbQuery('study_topics', { method: 'GET', match });
+  }
+
+  static async createStudyTopic(userId, topicData) {
+    if (!userId) throw new Error('userId is required');
+    const uid = ensureUuid(userId);
+
+    const newTopic = {
+      id: ensureUuid(topicData.id),
+      user_id: uid,
+      unit_id: ensureUuid(topicData.unit_id || topicData.unitId),
+      subject_id: topicData.subject_id || topicData.subjectId ? ensureUuid(topicData.subject_id || topicData.subjectId) : null,
+      title: topicData.title || 'Topic',
+      description: topicData.description || '',
+      is_completed: !!(topicData.is_completed || topicData.isCompleted),
+      created_at: new Date().toISOString(),
+    };
+
+    return await dbQuery('study_topics', { method: 'POST', body: newTopic, single: true });
+  }
+
+  static async toggleStudyTopic(userId, topicId) {
+    if (!userId || !topicId) return null;
+    const uid = ensureUuid(userId);
+    const tid = ensureUuid(topicId);
+    const existing = await dbQuery('study_topics', { method: 'GET', match: { id: tid, user_id: uid }, single: true });
+    if (!existing) return null;
+    const isCompleted = !existing.is_completed;
+    return await dbQuery('study_topics', { method: 'PATCH', match: { id: tid, user_id: uid }, body: { is_completed: isCompleted }, single: true });
+  }
+
+  static async deleteStudyTopic(userId, topicId) {
+    if (!userId || !topicId) return false;
+    const uid = ensureUuid(userId);
+    const tid = ensureUuid(topicId);
+    return await dbQuery('study_topics', { method: 'DELETE', match: { id: tid, user_id: uid } });
   }
 
   static async getStudyItems(userId, subjectId = null, unitId = null) {
@@ -637,7 +747,7 @@ class DatabaseManager {
       id: ensureUuid(itemData.id),
       user_id: uid,
       subject_id: sid,
-      unit_id: itemData.unit_id ? ensureUuid(itemData.unit_id) : null,
+      unit_id: itemData.unit_id || itemData.unitId ? ensureUuid(itemData.unit_id || itemData.unitId) : null,
       title: itemData.title || 'Study Task',
       type: (itemData.type || 'TASK').toUpperCase(),
       status: isDone ? 'completed' : 'pending',
