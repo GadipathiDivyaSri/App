@@ -148,11 +148,10 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
     ).then((newUnit) {
       if (newUnit != null && newUnit is Map<String, dynamic>) {
         final u = StudyUnit(
-          id: 'unit_${DateTime.now().millisecondsSinceEpoch}',
+          id: generateUuidV4(),
           subjectId: subKey,
           title: newUnit['title'] as String? ?? 'New Unit',
           description: newUnit['desc'] as String? ?? '',
-          isCurrentFocus: newUnit['isFocus'] as bool? ?? false,
         );
         provider.addStudyUnit(u);
       }

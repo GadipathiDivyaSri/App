@@ -302,9 +302,8 @@ class _NotesScreenState extends State<NotesScreen> {
           ],
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   // --- ENTRY READER MODAL ---
   void _showEntryReader(BuildContext context, JournalEntry entry, bool isPremium) {

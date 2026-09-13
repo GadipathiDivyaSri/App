@@ -281,14 +281,10 @@ class _CareerRoadmapScreenState extends State<CareerRoadmapScreen> {
             ),
           ],
         ),
-      ),
-    );
+      );
   }
 
   IconData _getNodeIconForIndex(int index) {
-    if (index < _defaultNodeIcons.length) {
-      return _defaultNodeIcons[index]['icon'] as IconData;
-    }
     const icons = [
       Icons.star_rounded,
       Icons.rocket_launch_rounded,

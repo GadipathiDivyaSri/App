@@ -140,6 +140,8 @@ class _ExpenseTrackerScreenState extends State<ExpenseTrackerScreen> {
         );
       },
     );
+  }
+
   void _confirmDeleteExpense(BuildContext context, AppProvider provider, ExpenseTransaction exp) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     showDialog(

@@ -928,13 +928,14 @@ class AppProvider extends ChangeNotifier {
     ApiService.createExpenseOnBackend(newExp);
   }
 
-  void editExpense(
-    String id,
-    String title,
-    String category,
-    double amount, {
+  void editExpense({
+    required String id,
+    required String title,
+    required String category,
+    required double amount,
     bool isIncome = false,
     String paymentMethod = 'UPI',
+    DateTime? date,
   }) {
     if (amount <= 0) return;
     final index = _expenses.indexWhere((e) => e.id == id);
@@ -945,7 +946,7 @@ class AppProvider extends ChangeNotifier {
         category: category,
         amount: amount,
         isIncome: isIncome,
-        date: _expenses[index].date,
+        date: date ?? _expenses[index].date,
         paymentMethod: paymentMethod,
       );
       _saveExpenses();

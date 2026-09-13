@@ -628,6 +628,9 @@ class StudyUnit {
         isCompleted: !!(json['is_completed'] ?? json['isCompleted'] ?? (json['status'] == 'completed')),
         progress: (json['progress'] is num) ? (json['progress'] as num).toDouble() : 0.0,
       );
+
+  Map<String, dynamic> toMap() => toJson();
+  factory StudyUnit.fromMap(Map<String, dynamic> map) => StudyUnit.fromJson(map);
 }
 
 class StudyTopic {
@@ -638,14 +641,22 @@ class StudyTopic {
   String description;
   bool isCompleted;
 
+  String get subtitle => description;
+  set subtitle(String val) => description = val;
+
   StudyTopic({
     required this.id,
     required this.unitId,
     this.subjectId = '',
     required this.title,
     this.description = '',
+    String? subtitle,
     this.isCompleted = false,
-  });
+  }) {
+    if (subtitle != null && subtitle.isNotEmpty && description.isEmpty) {
+      description = subtitle;
+    }
+  }
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -667,6 +678,9 @@ class StudyTopic {
         description: json['description'] ?? '',
         isCompleted: !!(json['is_completed'] ?? json['isCompleted'] ?? (json['status'] == 'completed')),
       );
+
+  Map<String, dynamic> toMap() => toJson();
+  factory StudyTopic.fromMap(Map<String, dynamic> map) => StudyTopic.fromJson(map);
 }
 
 class StudyItem {
