@@ -509,7 +509,6 @@ class AppProvider extends ChangeNotifier {
   void addJournalEntry(JournalEntry entry) {
     _journalEntries.insert(0, entry);
     _saveJournalEntries();
-    ApiService.createJournalEntryOnBackend(entry);
     notifyListeners();
     ApiService.createJournalEntryOnBackend(entry);
   }
@@ -519,7 +518,6 @@ class AppProvider extends ChangeNotifier {
     if (idx != -1) {
       _journalEntries[idx] = entry;
       _saveJournalEntries();
-      ApiService.createJournalEntryOnBackend(entry);
       notifyListeners();
       ApiService.updateJournalEntryOnBackend(entry);
     }
@@ -528,7 +526,6 @@ class AppProvider extends ChangeNotifier {
   void deleteJournalEntry(String id) {
     _journalEntries.removeWhere((j) => j.id == id);
     _saveJournalEntries();
-    ApiService.deleteJournalEntryOnBackend(id);
     notifyListeners();
     ApiService.deleteJournalEntryOnBackend(id);
   }

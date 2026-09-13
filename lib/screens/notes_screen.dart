@@ -30,6 +30,14 @@ class _NotesScreenState extends State<NotesScreen> {
   String _searchQuery = '';
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<AppProvider>(context, listen: false).syncJournalEntriesFromCloud();
+    });
+  }
+
+  @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
@@ -92,8 +100,11 @@ class _NotesScreenState extends State<NotesScreen> {
         ),
         onPressed: () => _showEntryEditor(context, null),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
+      body: RefreshIndicator(
+        onRefresh: () => provider.syncJournalEntriesFromCloud(),
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -302,8 +313,9 @@ class _NotesScreenState extends State<NotesScreen> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   // --- ENTRY READER MODAL ---
   void _showEntryReader(BuildContext context, JournalEntry entry, bool isPremium) {
