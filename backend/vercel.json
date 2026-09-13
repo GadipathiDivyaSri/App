@@ -1,9 +1,1 @@
-{
-  "version": 2,
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/[...path]"
-    }
-  ]
-}
+{"version": 2, "ignoreCommand": "exit 0"}
