@@ -258,16 +258,21 @@ async function handleApiRequest(req, res) {
 
   // Support Vercel serverless catch-all routing
   if (pathname === '/api/[...path]' || pathname === '/api' || pathname === '' || pathname === '/') {
-    const rawPath = req.query?.path || parsedUrl.query?.path;
-    if (rawPath) {
-      const subPath = Array.isArray(rawPath) ? rawPath.join('/') : String(rawPath);
-      pathname = '/api/' + subPath.replace(/^\/+/, '');
-    } else if (req.headers['x-matched-path']) {
-      pathname = req.headers['x-matched-path'];
-    } else if (req.headers['x-vercel-matched-path']) {
-      pathname = req.headers['x-vercel-matched-path'];
-    } else if (req.headers['x-forwarded-uri']) {
-      pathname = req.headers['x-forwarded-uri'].split('?')[0];
+    if (req.headers['x-invoke-path'] && req.headers['x-invoke-path'] !== '/api/[...path]') {
+      pathname = req.headers['x-invoke-path'];
+    } else {
+      const rawPath = req.query?.path || parsedUrl.query?.path;
+      if (rawPath) {
+        const subPath = Array.isArray(rawPath) ? rawPath.join('/') : String(rawPath);
+        pathname = '/api/' + subPath.replace(/^\/+/, '');
+      } else if (req.headers['x-now-route-matches']) {
+        const match = req.headers['x-now-route-matches'].match(/(?:^|&)1=([^&]+)/);
+        if (match) {
+          pathname = '/api/' + decodeURIComponent(match[1]).replace(/^\/+/, '');
+        }
+      } else if (req.headers['x-forwarded-uri']) {
+        pathname = req.headers['x-forwarded-uri'].split('?')[0];
+      }
     }
   }
   pathname = (pathname || '/').replace(/\/+$/, '') || '/';
