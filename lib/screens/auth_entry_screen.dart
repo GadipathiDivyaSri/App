@@ -34,21 +34,33 @@ class _AuthEntryScreenState extends State<AuthEntryScreen> {
       try {
         final userMap = await ApiService.getSessionUser();
         final token = await ApiService.getSessionToken();
-        if (userMap != null && mounted) {
-          final provider = Provider.of<AppProvider>(context, listen: false);
-          final user = UserProfile.fromJson(userMap);
-          if (token != null) user.token = token;
-          provider.setUser(user);
-        }
-      } catch (_) {}
+        // Disallow guest user or missing session token
+        if (userMap != null &&
+            userMap['id'] != 'guest_user' &&
+            token != null &&
+            token.isNotEmpty) {
+          final res = await ApiService.getCurrentUser();
+          if (res['success'] == true && res['user'] != null && mounted) {
+            final validUser = res['user'];
+            final provider = Provider.of<AppProvider>(context, listen: false);
+            final user = UserProfile.fromJson(validUser);
+            user.token = token;
+            provider.setUser(user);
 
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
-        );
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
+            );
+            return;
+          }
+        }
+        await ApiService.clearSession();
+      } catch (_) {
+        await ApiService.clearSession();
       }
-    } else {
+    }
+
+    if (mounted) {
       setState(() {
         _isCheckingSession = false;
       });
@@ -209,46 +221,6 @@ class _AuthEntryScreenState extends State<AuthEntryScreen> {
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
                         ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // [ Explore Dashboard as Guest ] Button
-                  SizedBox(
-                    height: 46,
-                    child: TextButton(
-                      style: TextButton.styleFrom(
-                        foregroundColor: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                      ),
-                      onPressed: () {
-                        final provider = Provider.of<AppProvider>(context, listen: false);
-                        provider.setUser(UserProfile(
-                          id: 'guest_user',
-                          name: 'Guest Explorer',
-                          contact: '',
-                          focusScore: 85,
-                          activeStreak: 1,
-                          isPremium: false,
-                        ));
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
-                        );
-                      },
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Explore Dashboard as Guest',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          SizedBox(width: 4),
-                          Icon(Icons.arrow_forward_rounded, size: 16),
-                        ],
                       ),
                     ),
                   ),

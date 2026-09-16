@@ -1,13 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../models/models.dart';
-import '../providers/app_provider.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
-import 'forgot_password_screen.dart';
 import 'signup_screen.dart';
 import 'email_otp_screen.dart';
-import 'main_navigation.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -19,26 +14,22 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _usernameCtrl = TextEditingController();
-  final _passwordCtrl = TextEditingController();
 
-  bool _obscurePassword = true;
   bool _isLoading = false;
   String? _errorMessage;
 
   @override
   void dispose() {
     _usernameCtrl.dispose();
-    _passwordCtrl.dispose();
     super.dispose();
   }
 
   Future<void> _handleLogin() async {
-    final username = _usernameCtrl.text.trim();
-    final password = _passwordCtrl.text;
+    final email = _usernameCtrl.text.trim().toLowerCase();
 
-    if (username.isEmpty || password.isEmpty) {
+    if (email.isEmpty || !email.contains('@')) {
       setState(() {
-        _errorMessage = 'Please enter both your email address and password.';
+        _errorMessage = 'Please enter your registered email address.';
       });
       return;
     }
@@ -48,53 +39,25 @@ class _LoginScreenState extends State<LoginScreen> {
       _errorMessage = null;
     });
 
-    final res = await ApiService.login(
-      username: username,
-      password: password,
-    );
+    final res = await ApiService.loginInitiate(email);
 
     if (!mounted) return;
+    setState(() => _isLoading = false);
 
     if (res['success'] == true) {
-      final userMap = res['user'];
-      final token = res['token'] ?? res['sessionToken'];
-      if (userMap != null) {
-        final provider = Provider.of<AppProvider>(context, listen: false);
-        provider.setUser(UserProfile(
-          id: userMap['id'] ?? 'u_1',
-          name: userMap['name'] ?? username,
-          contact: userMap['email'] ?? userMap['username'] ?? '',
-          focusScore: userMap['focusScore'] ?? 85,
-          activeStreak: userMap['activeStreak'] ?? 1,
-          isPremium: userMap['isPremium'] ?? false,
-          referralCode: userMap['referralCode'] ?? 'WRINDHA2026',
-          token: token,
-        ));
-      }
-
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
-        (route) => false,
-      );
-    } else if (res['isVerified'] == false && res['email'] != null) {
-      // Email verification required before login
-      setState(() => _isLoading = false);
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (_) => EmailOtpScreen(
-            email: res['email'],
-            username: username,
-            isForgotPassword: false,
+            email: res['email'] ?? email,
+            username: res['username'] ?? email.split('@')[0],
+            isLogin: true,
           ),
         ),
       );
     } else {
       setState(() {
-        _isLoading = false;
-        // Generic error message as required for security
-        _errorMessage = res['message'] ?? 'Incorrect username or password.';
+        _errorMessage = res['message'] ?? 'No account found with this email.';
       });
     }
   }
@@ -229,25 +192,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   controller: _usernameCtrl,
                   autocorrect: false,
                   keyboardType: TextInputType.emailAddress,
-                  textInputAction: TextInputAction.next,
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: isDark ? Colors.white : AppTheme.lightTextPrimary,
-                  ),
-                  decoration: _buildInputDecoration(
-                    hintText: 'Enter your email address',
-                    prefixIcon: Icons.mail_outline_rounded,
-                    isDark: isDark,
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // Password Field
-                _buildFieldLabel('Password', isDark),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _passwordCtrl,
-                  obscureText: _obscurePassword,
                   textInputAction: TextInputAction.done,
                   onFieldSubmitted: (_) => _handleLogin(),
                   style: TextStyle(
@@ -255,42 +199,39 @@ class _LoginScreenState extends State<LoginScreen> {
                     color: isDark ? Colors.white : AppTheme.lightTextPrimary,
                   ),
                   decoration: _buildInputDecoration(
-                    hintText: 'Enter your password',
-                    prefixIcon: Icons.lock_outline_rounded,
+                    hintText: 'Enter your registered email',
+                    prefixIcon: Icons.mail_outline_rounded,
                     isDark: isDark,
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                        color: isDark ? Colors.white54 : Colors.black45,
-                        size: 20,
-                      ),
-                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-                    ),
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 20),
 
-                // Forgot Password Link
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
-                      );
-                    },
-                    child: Text(
-                      'Forgot Password?',
-                      style: TextStyle(
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w600,
-                        color: primaryColor,
+                // Security Note
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: primaryColor.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: primaryColor.withOpacity(0.2)),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.shield_outlined, color: primaryColor, size: 20),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'A secure 6-digit verification code will be sent to your email to authenticate your login.',
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
+                            height: 1.35,
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 28),
 
                 // Primary Login Button
                 SizedBox(
@@ -314,12 +255,19 @@ class _LoginScreenState extends State<LoginScreen> {
                               valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                             ),
                           )
-                        : const Text(
-                            'Login',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                            ),
+                        : const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Send Verification Code',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              SizedBox(width: 8),
+                              Icon(Icons.arrow_forward_rounded, size: 18),
+                            ],
                           ),
                   ),
                 ),
