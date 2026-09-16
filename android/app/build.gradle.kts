@@ -59,3 +59,15 @@ android {
 flutter {
     source = "../.."
 }
+
+configurations.all {
+    resolutionStrategy {
+        force("com.android.billingclient:billing:8.0.0")
+        force("com.android.billingclient:billing-ktx:8.0.0")
+    }
+}
+
+dependencies {
+    implementation("com.android.billingclient:billing:8.0.0")
+    implementation("com.android.billingclient:billing-ktx:8.0.0")
+}
