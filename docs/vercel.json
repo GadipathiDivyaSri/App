@@ -1,9 +1,4 @@
 {
   "version": 2,
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/[...path]?path=$1"
-    }
-  ]
+  "ignoreCommand": "exit 0"
 }

@@ -8,7 +8,11 @@ const localAuthOtps = {};
 
 // Persistent OTP Storage Engine (Shared across serverless instances via Supabase)
 async function storeAuthOtp(cleanEmail, otpData) {
-  localAuthOtps[cleanEmail] = otpData;
+  localAuthOtps[cleanEmail] = {
+    ...otpData,
+    createdAt: otpData.createdAt || Date.now(),
+    attempts: otpData.attempts || 0,
+  };
 
   if (isSupabaseConfigured() && supabase) {
     try {
@@ -20,9 +24,12 @@ async function storeAuthOtp(cleanEmail, otpData) {
             ...(existing.user_metadata || {}),
             otp: otpData.otp,
             expiresAt: otpData.expiresAt,
+            attempts: otpData.attempts || 0,
+            type: otpData.type,
             username: otpData.username,
             passwordHash: otpData.passwordHash,
             referralCode: otpData.referralCode,
+            createdAt: otpData.createdAt || Date.now(),
           }
         });
       } else {
@@ -33,9 +40,12 @@ async function storeAuthOtp(cleanEmail, otpData) {
           user_metadata: {
             otp: otpData.otp,
             expiresAt: otpData.expiresAt,
+            attempts: otpData.attempts || 0,
+            type: otpData.type,
             username: otpData.username,
             passwordHash: otpData.passwordHash,
             referralCode: otpData.referralCode,
+            createdAt: otpData.createdAt || Date.now(),
           }
         });
       }
@@ -57,7 +67,10 @@ async function getAuthOtp(cleanEmail) {
       if (existing && existing.user_metadata && existing.user_metadata.otp) {
         return {
           otp: String(existing.user_metadata.otp),
-          expiresAt: Number(existing.user_metadata.expiresAt) || (Date.now() + 10 * 60 * 1000),
+          expiresAt: Number(existing.user_metadata.expiresAt) || 0,
+          attempts: Number(existing.user_metadata.attempts) || 0,
+          createdAt: Number(existing.user_metadata.createdAt) || Date.now(),
+          type: existing.user_metadata.type,
           username: existing.user_metadata.username || cleanEmail.split('@')[0],
           passwordHash: existing.user_metadata.passwordHash,
           referralCode: existing.user_metadata.referralCode,
@@ -69,6 +82,29 @@ async function getAuthOtp(cleanEmail) {
     }
   }
   return null;
+}
+
+async function clearAuthOtp(cleanEmail) {
+  delete localAuthOtps[cleanEmail];
+  if (isSupabaseConfigured() && supabase) {
+    try {
+      const { data } = await supabase.auth.admin.listUsers();
+      const existing = (data?.users || []).find(u => (u.email || '').toLowerCase() === cleanEmail.toLowerCase());
+      if (existing) {
+        await supabase.auth.admin.updateUserById(existing.id, {
+          user_metadata: {
+            ...(existing.user_metadata || {}),
+            otp: null,
+            expiresAt: 0,
+            attempts: 0,
+            usedAt: Date.now(),
+          }
+        });
+      }
+    } catch (supErr) {
+      console.warn('[SUPABASE OTP CLEAR NOTICE]:', supErr.message);
+    }
+  }
 }
 
 const JWT_SECRET = process.env.JWT_SECRET || 'wrindha_os_secure_production_secret_2026_key_super_secure';
@@ -318,7 +354,7 @@ async function handleApiRequest(req, res) {
     return sendJSON(res, 200, { valid: false, message: 'Invalid referral code.' });
   }
 
-  // 3. Register Initiate (Send OTP)
+  // 3. Register Initiate (Send Real Email OTP)
   if (pathname === '/api/auth/register-initiate' && method === 'POST') {
     const { username, email, password, confirmPassword, referralCode } = body;
     const cleanUsername = (username || '').trim().toLowerCase();
@@ -339,18 +375,21 @@ async function handleApiRequest(req, res) {
       return sendJSON(res, 400, { success: false, message: 'An account with this email or username already exists.' });
     }
 
-    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpCode = crypto.randomInt(100000, 1000000).toString();
     const otpData = {
       otp: otpCode,
+      type: 'register',
       username: cleanUsername,
       passwordHash: hashPassword(password),
       plainPassword: password,
       referralCode: referralCode ? referralCode.trim().toUpperCase() : null,
       expiresAt: Date.now() + 10 * 60 * 1000,
+      createdAt: Date.now(),
+      attempts: 0,
     };
     await storeAuthOtp(cleanEmail, otpData);
 
-    console.log(`[AUTH OTP] Generated OTP ${otpCode} for registration: ${cleanEmail}`);
+    console.log(`[AUTH OTP] Generated real OTP for registration: ${cleanEmail}`);
 
     // Dispatch real email via MSG91
     try {
@@ -366,7 +405,6 @@ async function handleApiRequest(req, res) {
     return sendJSON(res, 200, {
       success: true,
       message: `6-digit verification code sent to ${cleanEmail}`,
-      testOtp: otpCode,
     });
   }
 
@@ -380,15 +418,17 @@ async function handleApiRequest(req, res) {
     }
 
     const existing = await getAuthOtp(cleanEmail);
-    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpCode = crypto.randomInt(100000, 1000000).toString();
     const otpData = {
       ...(existing || {}),
       otp: otpCode,
       expiresAt: Date.now() + 10 * 60 * 1000,
+      createdAt: Date.now(),
+      attempts: 0,
     };
     await storeAuthOtp(cleanEmail, otpData);
 
-    console.log(`[AUTH RESEND OTP] Generated new OTP ${otpCode} for: ${cleanEmail}`);
+    console.log(`[AUTH RESEND OTP] Generated new OTP for: ${cleanEmail}`);
 
     try {
       await sendEmailOtp({
@@ -403,41 +443,45 @@ async function handleApiRequest(req, res) {
     return sendJSON(res, 200, {
       success: true,
       message: `New verification code sent to ${cleanEmail}`,
-      testOtp: otpCode,
     });
   }
 
-  // 4. Register Verify (Complete Registration)
+  // 4. Register Verify (Complete Registration - Strict Server-Side OTP Verification)
   if (pathname === '/api/auth/register-verify' && method === 'POST') {
     const { email, otp, username } = body;
     const cleanEmail = (email || '').trim().toLowerCase();
     const cleanOtp = (otp || '').trim();
 
-    let stored = await getAuthOtp(cleanEmail);
+    if (!cleanEmail || !cleanOtp) {
+      return sendJSON(res, 400, { success: false, message: 'Email and verification code are required.' });
+    }
 
-    if (!stored) {
-      // Resilient fallback: If user enters a valid 6-digit code received via MSG91 email
-      if (cleanOtp && cleanOtp.length === 6) {
-        stored = {
-          otp: cleanOtp,
-          username: username ? username.trim().toLowerCase() : cleanEmail.split('@')[0],
-          passwordHash: hashPassword('Wrindha2026!'),
-          referralCode: null,
-          expiresAt: Date.now() + 10 * 60 * 1000,
-        };
-      } else {
-        return sendJSON(res, 400, { success: false, message: 'Invalid or expired OTP session. Please click "Send OTP" to receive a verification code.' });
-      }
+    const stored = await getAuthOtp(cleanEmail);
+    if (!stored || !stored.otp) {
+      return sendJSON(res, 400, {
+        success: false,
+        message: 'Invalid or expired verification session. Please click "Send OTP" to receive a verification code.',
+      });
     }
 
     if (Date.now() > stored.expiresAt) {
-      delete localAuthOtps[cleanEmail];
-      return sendJSON(res, 400, { success: false, message: 'OTP has expired. Please request a new one.' });
+      await clearAuthOtp(cleanEmail);
+      return sendJSON(res, 400, { success: false, message: 'Verification code has expired. Please request a new code.' });
     }
 
-    if (stored.otp !== cleanOtp && cleanOtp !== '123456' && cleanOtp !== 'wrindha2026') {
-      return sendJSON(res, 400, { success: false, message: 'Incorrect OTP. Please enter the valid 6-digit code.' });
+    if ((stored.attempts || 0) >= 5) {
+      await clearAuthOtp(cleanEmail);
+      return sendJSON(res, 429, { success: false, message: 'Too many failed verification attempts. Please request a new code.' });
     }
+
+    if (stored.otp !== cleanOtp) {
+      stored.attempts = (stored.attempts || 0) + 1;
+      await storeAuthOtp(cleanEmail, stored);
+      return sendJSON(res, 400, { success: false, message: 'Incorrect verification code. Please enter the valid 6-digit code.' });
+    }
+
+    // OTP Verified! Invalidate immediately so code can never be reused
+    await clearAuthOtp(cleanEmail);
 
     let existingUser = await DatabaseManager.getUserByEmailOrUsername(cleanEmail);
     let newUser;
@@ -493,8 +537,6 @@ async function handleApiRequest(req, res) {
       }
     }
 
-    delete localAuthOtps[cleanEmail];
-
     const token = generateJwtToken({ id: newUser.id, email: newUser.email, username: newUser.username });
     return sendJSON(res, 200, {
       success: true,
@@ -504,88 +546,103 @@ async function handleApiRequest(req, res) {
     });
   }
 
-  // 5. Standard Login
-  if (pathname === '/api/auth/login' && method === 'POST') {
-    const { identifier, email, username, password } = body;
-    const loginKey = (identifier || email || username || '').trim().toLowerCase();
+  // 5a. Login Initiate (Send Real OTP to Registered User's Email)
+  if (pathname === '/api/auth/login-initiate' && method === 'POST') {
+    const { email, identifier } = body;
+    const cleanEmail = (email || identifier || '').trim().toLowerCase();
 
-    if (!loginKey || !password) {
-      return sendJSON(res, 400, { success: false, message: 'Please provide username/email and password.' });
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      return sendJSON(res, 400, { success: false, message: 'Please provide a valid email address.' });
     }
 
-    let user = await DatabaseManager.getUserByEmailOrUsername(loginKey);
-
-    // Fallback: Check if user exists in local OTP cache or active Auth records
+    const user = await DatabaseManager.getUserByEmailOrUsername(cleanEmail);
     if (!user) {
-      const storedOtp = await getAuthOtp(loginKey);
-      if (storedOtp) {
-        user = {
-          id: storedOtp.supabaseUserId || 'local_user_' + Date.now(),
-          username: storedOtp.username || loginKey.split('@')[0],
-          email: loginKey,
-          password_hash: storedOtp.passwordHash,
-        };
-      }
+      return sendJSON(res, 404, {
+        success: false,
+        message: 'No account found with this email. Please create an account first.',
+      });
     }
 
+    // Cooldown check: prevent rapid repeated requests within 20 seconds
+    const existing = await getAuthOtp(cleanEmail);
+    if (existing && existing.createdAt && (Date.now() - existing.createdAt < 20 * 1000)) {
+      return sendJSON(res, 429, {
+        success: false,
+        message: 'A code was recently sent. Please check your inbox or wait a moment before requesting another.',
+      });
+    }
+
+    const otpCode = crypto.randomInt(100000, 1000000).toString();
+    const otpData = {
+      otp: otpCode,
+      type: 'login',
+      email: cleanEmail,
+      username: user.username,
+      userId: user.id,
+      expiresAt: Date.now() + 10 * 60 * 1000,
+      createdAt: Date.now(),
+      attempts: 0,
+    };
+    await storeAuthOtp(cleanEmail, otpData);
+
+    console.log(`[AUTH LOGIN OTP] Dispatched real OTP for login: ${cleanEmail}`);
+
+    try {
+      await sendEmailOtp({
+        email: cleanEmail,
+        otpCode: otpCode,
+        type: 'Login Verification',
+      });
+    } catch (e) {
+      console.error('[LOGIN EMAIL ERROR]:', e.message);
+    }
+
+    return sendJSON(res, 200, {
+      success: true,
+      message: `6-digit verification code sent to ${cleanEmail}`,
+    });
+  }
+
+  // 5b. Login Verify (Strict Server-Side OTP Verification & Session Issuance)
+  if (pathname === '/api/auth/login-verify' && method === 'POST') {
+    const { email, identifier, otp } = body;
+    const cleanEmail = (email || identifier || '').trim().toLowerCase();
+    const cleanOtp = (otp || '').trim();
+
+    if (!cleanEmail || !cleanOtp) {
+      return sendJSON(res, 400, { success: false, message: 'Email and verification code are required.' });
+    }
+
+    const stored = await getAuthOtp(cleanEmail);
+    if (!stored || !stored.otp) {
+      return sendJSON(res, 400, {
+        success: false,
+        message: 'No active login verification session found. Please request a verification code.',
+      });
+    }
+
+    if (Date.now() > stored.expiresAt) {
+      await clearAuthOtp(cleanEmail);
+      return sendJSON(res, 400, { success: false, message: 'Verification code has expired. Please request a new code.' });
+    }
+
+    if ((stored.attempts || 0) >= 5) {
+      await clearAuthOtp(cleanEmail);
+      return sendJSON(res, 429, { success: false, message: 'Too many failed verification attempts. Please request a new code.' });
+    }
+
+    if (stored.otp !== cleanOtp) {
+      stored.attempts = (stored.attempts || 0) + 1;
+      await storeAuthOtp(cleanEmail, stored);
+      return sendJSON(res, 400, { success: false, message: 'Incorrect verification code. Please check your email and try again.' });
+    }
+
+    // OTP Verified! Immediately invalidate OTP so it cannot be reused
+    await clearAuthOtp(cleanEmail);
+
+    const user = await DatabaseManager.getUserByEmailOrUsername(cleanEmail);
     if (!user) {
-      return sendJSON(res, 401, { success: false, message: 'Invalid credentials. User not found.' });
-    }
-
-    let targetHash = user.password_hash || user.password;
-    if (!targetHash) {
-      const storedOtp = await getAuthOtp(user.email || loginKey);
-      if (storedOtp && storedOtp.passwordHash) {
-        targetHash = storedOtp.passwordHash;
-      }
-    }
-
-    let valid = verifyPassword(password, targetHash);
-
-    // Resilient fallback 1: Native Supabase Auth signInWithPassword
-    if (!valid && isSupabaseConfigured() && supabase) {
-      try {
-        const { data: authData, error: authErr } = await supabase.auth.signInWithPassword({
-          email: user.email || loginKey,
-          password: password,
-        });
-        if (!authErr && authData?.user) {
-          valid = true;
-          try {
-            const newHash = hashPassword(password);
-            await supabase.auth.admin.updateUserById(authData.user.id, {
-              user_metadata: { ...(authData.user.user_metadata || {}), passwordHash: newHash },
-            });
-          } catch (_) {}
-        }
-      } catch (authErr) {
-        console.warn('[SUPABASE SIGNIN NOTICE]:', authErr.message);
-      }
-    }
-
-    // Resilient fallback 2: Check Supabase Auth admin user_metadata directly
-    if (!valid && isSupabaseConfigured() && supabase) {
-      try {
-        const { data } = await supabase.auth.admin.listUsers({ perPage: 1000 });
-        const supUser = (data?.users || []).find(u =>
-          (u.email || '').toLowerCase() === loginKey ||
-          (u.user_metadata && (u.user_metadata.username || '').toLowerCase() === loginKey)
-        );
-        if (supUser && supUser.user_metadata && supUser.user_metadata.passwordHash) {
-          valid = verifyPassword(password, supUser.user_metadata.passwordHash);
-          if (valid) {
-            try {
-              await supabase.auth.admin.updateUserById(supUser.id, { password });
-            } catch (_) {}
-          }
-        }
-      } catch (supErr) {
-        console.warn('[SUPABASE ADMIN METADATA CHECK NOTICE]:', supErr.message);
-      }
-    }
-
-    if (!valid && password !== 'Admin123!' && password !== 'wrindha2026') {
-      return sendJSON(res, 401, { success: false, message: 'Invalid password. Please try again.' });
+      return sendJSON(res, 404, { success: false, message: 'User account not found.' });
     }
 
     const sub = await DatabaseManager.getUserSubscription(user.id);
@@ -597,6 +654,80 @@ async function handleApiRequest(req, res) {
       token,
       user: sanitizeUser(user),
       subscription: sub,
+    });
+  }
+
+  // 5c. Standard Login (Enforces OTP Verification - No Password-Only or Backdoor Bypass)
+  if (pathname === '/api/auth/login' && method === 'POST') {
+    const { identifier, email, username, otp } = body;
+    const loginKey = (identifier || email || username || '').trim().toLowerCase();
+
+    if (!loginKey) {
+      return sendJSON(res, 400, { success: false, message: 'Please provide your email address.' });
+    }
+
+    const user = await DatabaseManager.getUserByEmailOrUsername(loginKey);
+    if (!user) {
+      return sendJSON(res, 404, { success: false, message: 'No account found with these credentials.' });
+    }
+
+    // If an OTP is provided, verify it directly
+    if (otp) {
+      const cleanOtp = String(otp).trim();
+      const stored = await getAuthOtp(user.email || loginKey);
+      if (!stored || !stored.otp) {
+        return sendJSON(res, 400, { success: false, message: 'No active OTP session found. Please request a code.' });
+      }
+      if (Date.now() > stored.expiresAt) {
+        await clearAuthOtp(user.email || loginKey);
+        return sendJSON(res, 400, { success: false, message: 'Verification code has expired. Please request a new code.' });
+      }
+      if (stored.otp !== cleanOtp) {
+        stored.attempts = (stored.attempts || 0) + 1;
+        await storeAuthOtp(user.email || loginKey, stored);
+        return sendJSON(res, 400, { success: false, message: 'Incorrect verification code. Please enter the valid code sent to your email.' });
+      }
+
+      await clearAuthOtp(user.email || loginKey);
+      const sub = await DatabaseManager.getUserSubscription(user.id);
+      const token = generateJwtToken({ id: user.id, email: user.email, username: user.username });
+
+      return sendJSON(res, 200, {
+        success: true,
+        message: 'Login successful.',
+        token,
+        user: sanitizeUser(user),
+        subscription: sub,
+      });
+    }
+
+    // If no OTP provided, trigger email OTP dispatch and require OTP verification
+    const otpCode = crypto.randomInt(100000, 1000000).toString();
+    await storeAuthOtp(user.email, {
+      otp: otpCode,
+      type: 'login',
+      email: user.email,
+      expiresAt: Date.now() + 10 * 60 * 1000,
+      createdAt: Date.now(),
+      attempts: 0,
+    });
+
+    console.log(`[AUTH LOGIN OTP] Dispatched OTP for login: ${user.email}`);
+    try {
+      await sendEmailOtp({
+        email: user.email,
+        otpCode: otpCode,
+        type: 'Login Verification',
+      });
+    } catch (e) {
+      console.error('[LOGIN EMAIL ERROR]:', e.message);
+    }
+
+    return sendJSON(res, 200, {
+      success: true,
+      requiresOtp: true,
+      email: user.email,
+      message: `Verification code sent to ${user.email}. Please enter the code to complete login.`,
     });
   }
 
@@ -642,15 +773,18 @@ async function handleApiRequest(req, res) {
       return sendJSON(res, 400, { success: false, message: 'Please provide a valid email address.' });
     }
 
-    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpCode = crypto.randomInt(100000, 1000000).toString();
     const otpData = {
       otp: otpCode,
       type: 'forgot_password',
+      email: cleanEmail,
+      attempts: 0,
+      createdAt: Date.now(),
       expiresAt: Date.now() + 10 * 60 * 1000,
     };
     await storeAuthOtp(cleanEmail, otpData);
 
-    console.log(`[AUTH FORGOT PASSWORD] Generated OTP ${otpCode} for: ${cleanEmail}`);
+    console.log(`[AUTH FORGOT PASSWORD] Generated secure OTP for: ${cleanEmail}`);
 
     try {
       await sendEmailOtp({
@@ -665,7 +799,6 @@ async function handleApiRequest(req, res) {
     return sendJSON(res, 200, {
       success: true,
       message: `Password reset code sent to ${cleanEmail}`,
-      testOtp: otpCode,
     });
   }
 
@@ -675,30 +808,33 @@ async function handleApiRequest(req, res) {
     const cleanEmail = (email || '').trim().toLowerCase();
     const cleanOtp = (otp || '').trim();
 
+    if (!cleanEmail || !cleanOtp) {
+      return sendJSON(res, 400, { success: false, message: 'Email and verification code are required.' });
+    }
+
     const stored = await getAuthOtp(cleanEmail);
 
-    if (!stored) {
-      if (cleanOtp === '123456' || cleanOtp.length === 6) {
-        const resetToken = generateJwtToken({ email: cleanEmail, purpose: 'password_reset' }, 60);
-        return sendJSON(res, 200, {
-          success: true,
-          message: 'OTP verified successfully.',
-          resetToken,
-        });
-      }
+    if (!stored || !stored.otp) {
       return sendJSON(res, 400, { success: false, message: 'Invalid or expired OTP session. Please request a new code.' });
     }
 
     if (Date.now() > stored.expiresAt) {
-      delete localAuthOtps[cleanEmail];
+      await clearAuthOtp(cleanEmail);
       return sendJSON(res, 400, { success: false, message: 'OTP has expired. Please request a new one.' });
     }
 
-    if (stored.otp !== cleanOtp && cleanOtp !== '123456') {
-      return sendJSON(res, 400, { success: false, message: 'Incorrect OTP. Please enter the valid 6-digit code.' });
+    if ((stored.attempts || 0) >= 5) {
+      await clearAuthOtp(cleanEmail);
+      return sendJSON(res, 429, { success: false, message: 'Too many failed attempts. Please request a new verification code.' });
     }
 
-    delete localAuthOtps[cleanEmail];
+    if (stored.otp !== cleanOtp) {
+      stored.attempts = (stored.attempts || 0) + 1;
+      await storeAuthOtp(cleanEmail, stored);
+      return sendJSON(res, 400, { success: false, message: 'Incorrect OTP. Please enter the valid 6-digit code sent to your email.' });
+    }
+
+    await clearAuthOtp(cleanEmail);
 
     const resetToken = generateJwtToken({ email: cleanEmail, purpose: 'password_reset' }, 60);
     return sendJSON(res, 200, {
@@ -1142,4 +1278,7 @@ module.exports = {
   handleApiRequest,
   generateJwtToken,
   verifyJwtToken,
+  getAuthOtp,
+  storeAuthOtp,
+  clearAuthOtp,
 };

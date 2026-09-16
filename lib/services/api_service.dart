@@ -258,106 +258,105 @@ class ApiService {
     }
   }
 
+  /// Initiate Login via Email OTP
+  static Future<Map<String, dynamic>> loginInitiate(String email) async {
+    final clean = email.trim().toLowerCase();
+    try {
+      final response = await http
+          .post(
+            Uri.parse('$baseUrl/auth/login-initiate'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'email': clean}),
+          )
+          .timeout(const Duration(seconds: 10));
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: Unable to connect to server ($e)'};
+    }
+  }
+
+  /// Verify Login OTP and establish session
+  static Future<Map<String, dynamic>> loginVerify({
+    required String email,
+    required String otp,
+  }) async {
+    final cleanEmail = email.trim().toLowerCase();
+    final cleanOtp = otp.trim();
+    try {
+      final response = await http
+          .post(
+            Uri.parse('$baseUrl/auth/login-verify'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'email': cleanEmail,
+              'otp': cleanOtp,
+            }),
+          )
+          .timeout(const Duration(seconds: 10));
+      final data = jsonDecode(response.body);
+      if (data['success'] == true && data['token'] != null) {
+        await saveSession(data['token'], data['user']);
+      }
+      return data;
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: Unable to verify OTP ($e)'};
+    }
+  }
+
+  /// Validate active session and fetch current authenticated profile
+  static Future<Map<String, dynamic>> getCurrentUser() async {
+    final token = await getSessionToken();
+    if (token == null || token.isEmpty) {
+      return {'success': false, 'message': 'No session token found.'};
+    }
+    try {
+      final response = await http
+          .get(
+            Uri.parse('$baseUrl/users/me'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $token',
+            },
+          )
+          .timeout(const Duration(seconds: 8));
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {'success': false, 'message': 'Failed to validate session: $e'};
+    }
+  }
+
   static Future<Map<String, dynamic>> login({
     required String username,
-    required String password,
+    String? password,
+    String? otp,
   }) async {
     final clean = username.trim().toLowerCase();
 
-    // 1. Try Vercel Backend with 6-second timeout
+    // Enforce OTP-backed authentication through backend authority
     try {
       final response = await http
           .post(
             Uri.parse('$baseUrl/auth/login'),
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode({
-              'username': clean,
-              'password': password,
+              'identifier': clean,
+              'email': clean,
+              if (password != null && password.isNotEmpty) 'password': password,
+              if (otp != null && otp.isNotEmpty) 'otp': otp.trim(),
             }),
           )
-          .timeout(const Duration(seconds: 6));
+          .timeout(const Duration(seconds: 10));
       final data = jsonDecode(response.body);
       if (data['success'] == true && data['token'] != null) {
         await saveSession(data['token'], data['user']);
-        return data;
       }
-      if (response.statusCode == 400) {
-        return data;
-      }
-    } catch (_) {
-      // Backend timeout, offline, or cold start - proceed to Supabase Auth fallback
+      return data;
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Unable to connect to authentication server: $e',
+      };
     }
-
-    // 2. Direct Supabase Auth Fallback
-    try {
-      final authRes = await http
-          .post(
-            Uri.parse('$supabaseUrl/auth/v1/token?grant_type=password'),
-            headers: {
-              'apikey': supabaseAnonKey,
-              'Content-Type': 'application/json',
-            },
-            body: jsonEncode({
-              'email': clean.contains('@') ? clean : '$clean@wrindhaos.in',
-              'password': password,
-            }),
-          )
-          .timeout(const Duration(seconds: 6));
-
-      if (authRes.statusCode == 200) {
-        final authData = jsonDecode(authRes.body);
-        final accessToken = authData['access_token'] ?? '';
-        final authUser = authData['user'] ?? {};
-
-        Map<String, dynamic> userMap = {
-          'id': authUser['id'] ?? 'u_${DateTime.now().millisecondsSinceEpoch}',
-          'username': clean.split('@')[0],
-          'name': authUser['user_metadata']?['name'] ?? clean.split('@')[0],
-          'email': authUser['email'] ?? clean,
-          'isPremium': true,
-          'focusScore': 85,
-          'activeStreak': 1,
-          'referralCode': 'WRINDHA2026',
-        };
-
-        try {
-          final profileRes = await http
-              .get(
-                Uri.parse('$supabaseUrl/rest/v1/profiles?email=eq.${Uri.encodeComponent(clean)}&select=*'),
-                headers: {
-                  'apikey': supabaseAnonKey,
-                  'Authorization': 'Bearer $accessToken',
-                },
-              )
-              .timeout(const Duration(seconds: 4));
-
-          if (profileRes.statusCode == 200) {
-            final List profiles = jsonDecode(profileRes.body);
-            if (profiles.isNotEmpty) {
-              final p = profiles.first;
-              userMap['id'] = p['id'] ?? userMap['id'];
-              userMap['name'] = p['name'] ?? p['display_name'] ?? userMap['name'];
-              userMap['username'] = p['username'] ?? userMap['username'];
-              userMap['isPremium'] = p['is_premium'] ?? true;
-              userMap['referralCode'] = p['referral_code'] ?? userMap['referralCode'];
-            }
-          }
-        } catch (_) {}
-
-        await saveSession(accessToken, userMap);
-        return {
-          'success': true,
-          'message': 'Login successful.',
-          'token': accessToken,
-          'user': userMap,
-        };
-      }
-    } catch (_) {}
-
-    return {
-      'success': false,
-      'message': 'Invalid credentials. Please verify your email and password.',
-    };
   }
 
   static Future<Map<String, dynamic>> googleLogin({

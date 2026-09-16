@@ -12,11 +12,13 @@ class EmailOtpScreen extends StatefulWidget {
   final String email;
   final String? username;
   final bool isForgotPassword;
+  final bool isLogin;
   const EmailOtpScreen({
     super.key,
     required this.email,
     this.username,
     this.isForgotPassword = false,
+    this.isLogin = false,
   });
 
   @override
@@ -101,11 +103,19 @@ class _EmailOtpScreenState extends State<EmailOtpScreen> {
       _errorMessage = null;
     });
 
-    final res = await ApiService.registerVerify(
-      email: widget.email,
-      otp: otp,
-      username: widget.username,
-    );
+    final Map<String, dynamic> res;
+    if (widget.isLogin) {
+      res = await ApiService.loginVerify(
+        email: widget.email,
+        otp: otp,
+      );
+    } else {
+      res = await ApiService.registerVerify(
+        email: widget.email,
+        otp: otp,
+        username: widget.username,
+      );
+    }
 
     if (!mounted) return;
 
@@ -150,7 +160,12 @@ class _EmailOtpScreenState extends State<EmailOtpScreen> {
       _errorMessage = null;
     });
 
-    final res = await ApiService.resendRegistrationOtp(widget.email);
+    final Map<String, dynamic> res;
+    if (widget.isLogin) {
+      res = await ApiService.loginInitiate(widget.email);
+    } else {
+      res = await ApiService.resendRegistrationOtp(widget.email);
+    }
 
     if (!mounted) return;
     setState(() => _isResending = false);
@@ -202,7 +217,7 @@ class _EmailOtpScreenState extends State<EmailOtpScreen> {
 
               // Title
               Text(
-                'Verify your email',
+                widget.isLogin ? 'Sign in to Wrindha OS' : 'Verify your email',
                 style: TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.w800,
@@ -221,7 +236,11 @@ class _EmailOtpScreenState extends State<EmailOtpScreen> {
                     height: 1.4,
                   ),
                   children: [
-                    const TextSpan(text: "We've sent a 6-digit verification code to \n"),
+                    TextSpan(
+                      text: widget.isLogin
+                          ? "We've sent a 6-digit login verification code to \n"
+                          : "We've sent a 6-digit verification code to \n",
+                    ),
                     TextSpan(
                       text: _getMaskedEmail(widget.email),
                       style: TextStyle(
@@ -344,9 +363,9 @@ class _EmailOtpScreenState extends State<EmailOtpScreen> {
                             valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                           ),
                         )
-                      : const Text(
-                          'Verify Email',
-                          style: TextStyle(
+                      : Text(
+                          widget.isLogin ? 'Verify & Sign In' : 'Verify Email',
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
                           ),
