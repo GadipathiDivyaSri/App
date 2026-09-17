@@ -33,10 +33,15 @@ jobs:
         run: flutter pub get
 
       - name: Build Universal Android Release APK
-        run: flutter build apk --release --android-skip-build-dependency-validation
+        run: |
+          flutter build apk --release --android-skip-build-dependency-validation
+          mkdir -p build_saved
+          cp build/app/outputs/flutter-apk/app-release.apk build_saved/
 
       - name: Build Split-per-ABI Android Release APKs
-        run: flutter build apk --release --split-per-abi --android-skip-build-dependency-validation
+        run: |
+          flutter build apk --release --split-per-abi --android-skip-build-dependency-validation
+          cp build_saved/app-release.apk build/app/outputs/flutter-apk/
 
       - name: Upload APK artifacts
         uses: actions/upload-artifact@v4
@@ -49,14 +54,12 @@ jobs:
         with:
           tag_name: v1.0.4-apk
           name: Wrindha OS v1.0.4 Release APK
+          overwrite: true
           body: |
             ### Wrindha OS v1.0.4 Release APKs
             - **`app-arm64-v8a-release.apk` (~19 MB)**: Recommended for all modern Android smartphones (ARM64).
             - **`app-release.apk` (~58 MB)**: Universal APK containing all CPU architectures.
             - **`app-armeabi-v7a-release.apk` (~17 MB)**: For legacy 32-bit Android devices.
-          files: |
-            build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
-            build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
-            build/app/outputs/flutter-apk/app-release.apk
+          files: build/app/outputs/flutter-apk/*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
