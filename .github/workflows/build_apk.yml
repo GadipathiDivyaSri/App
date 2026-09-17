@@ -49,17 +49,9 @@ jobs:
           name: WrindhaOS-release-apks
           path: build/app/outputs/flutter-apk/*.apk
 
-      - name: Create or update Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v1.0.4-apk
-          name: Wrindha OS v1.0.4 Release APK
-          overwrite: true
-          body: |
-            ### Wrindha OS v1.0.4 Release APKs
-            - **`app-arm64-v8a-release.apk` (~19 MB)**: Recommended for all modern Android smartphones (ARM64).
-            - **`app-release.apk` (~58 MB)**: Universal APK containing all CPU architectures.
-            - **`app-armeabi-v7a-release.apk` (~17 MB)**: For legacy 32-bit Android devices.
-          files: build/app/outputs/flutter-apk/*.apk
+      - name: Upload to GitHub Release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release view v1.0.4-apk || gh release create v1.0.4-apk --title "Wrindha OS v1.0.4 Release APK" --notes "Release APKs for Wrindha OS"
+          gh release upload v1.0.4-apk build/app/outputs/flutter-apk/*.apk --clobber
