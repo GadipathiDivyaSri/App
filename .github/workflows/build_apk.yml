@@ -32,10 +32,11 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build Android Release APKs
-        run: |
-          flutter build apk --release --android-skip-build-dependency-validation
-          flutter build apk --release --android-skip-build-dependency-validation --split-per-abi
+      - name: Build Universal Android Release APK
+        run: flutter build apk --release --android-skip-build-dependency-validation
+
+      - name: Build Split-per-ABI Android Release APKs
+        run: flutter build apk --release --split-per-abi --android-skip-build-dependency-validation
 
       - name: Upload APK artifacts
         uses: actions/upload-artifact@v4
