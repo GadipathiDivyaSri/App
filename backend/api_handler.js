@@ -418,9 +418,13 @@ async function handleApiRequest(req, res) {
     }
 
     const existing = await getAuthOtp(cleanEmail);
+    if (!existing || !existing.type) {
+      return sendJSON(res, 400, { success: false, message: 'No active verification session found. Please enter your credentials to request a code.' });
+    }
+
     const otpCode = crypto.randomInt(100000, 1000000).toString();
     const otpData = {
-      ...(existing || {}),
+      ...existing,
       otp: otpCode,
       expiresAt: Date.now() + 10 * 60 * 1000,
       createdAt: Date.now(),
@@ -457,10 +461,10 @@ async function handleApiRequest(req, res) {
     }
 
     const stored = await getAuthOtp(cleanEmail);
-    if (!stored || !stored.otp) {
+    if (!stored || !stored.otp || stored.type !== 'register') {
       return sendJSON(res, 400, {
         success: false,
-        message: 'Invalid or expired verification session. Please click "Send OTP" to receive a verification code.',
+        message: 'Invalid or expired registration session. Please click "Send OTP" to receive a verification code.',
       });
     }
 
@@ -546,20 +550,47 @@ async function handleApiRequest(req, res) {
     });
   }
 
-  // 5a. Login Initiate (Send Real OTP to Registered User's Email)
+  // 5a. Login Initiate (Validate Credentials & Send Real OTP to Registered User's Email)
   if (pathname === '/api/auth/login-initiate' && method === 'POST') {
-    const { email, identifier } = body;
-    const cleanEmail = (email || identifier || '').trim().toLowerCase();
+    const { email, identifier, username, password } = body;
+    const cleanEmail = (email || identifier || username || '').trim().toLowerCase();
 
     if (!cleanEmail || !cleanEmail.includes('@')) {
-      return sendJSON(res, 400, { success: false, message: 'Please provide a valid email address.' });
+      return sendJSON(res, 400, { success: false, message: 'Please provide your registered email address.' });
+    }
+
+    if (!password) {
+      return sendJSON(res, 400, { success: false, message: 'Password is required to authenticate.' });
     }
 
     const user = await DatabaseManager.getUserByEmailOrUsername(cleanEmail);
     if (!user) {
-      return sendJSON(res, 404, {
+      return sendJSON(res, 401, {
         success: false,
-        message: 'No account found with this email. Please create an account first.',
+        message: 'Invalid email or password.',
+      });
+    }
+
+    // Validate credentials: verify user password against stored password_hash or Supabase Auth
+    let isPasswordCorrect = false;
+    if (user.password_hash && verifyPassword(password, user.password_hash)) {
+      isPasswordCorrect = true;
+    } else if (isSupabaseConfigured() && supabase) {
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: cleanEmail,
+          password: password,
+        });
+        if (data && data.user && !error) {
+          isPasswordCorrect = true;
+        }
+      } catch (_) {}
+    }
+
+    if (!isPasswordCorrect) {
+      return sendJSON(res, 401, {
+        success: false,
+        message: 'Invalid email or password.',
       });
     }
 
@@ -585,7 +616,7 @@ async function handleApiRequest(req, res) {
     };
     await storeAuthOtp(cleanEmail, otpData);
 
-    console.log(`[AUTH LOGIN OTP] Dispatched real OTP for login: ${cleanEmail}`);
+    console.log(`[AUTH LOGIN OTP] Credentials verified. Dispatched real OTP for login: ${cleanEmail}`);
 
     try {
       await sendEmailOtp({
@@ -599,7 +630,9 @@ async function handleApiRequest(req, res) {
 
     return sendJSON(res, 200, {
       success: true,
-      message: `6-digit verification code sent to ${cleanEmail}`,
+      requiresOtp: true,
+      email: cleanEmail,
+      message: `Credentials verified. A 6-digit verification code has been sent to ${cleanEmail}.`,
     });
   }
 
@@ -614,10 +647,10 @@ async function handleApiRequest(req, res) {
     }
 
     const stored = await getAuthOtp(cleanEmail);
-    if (!stored || !stored.otp) {
+    if (!stored || !stored.otp || stored.type !== 'login') {
       return sendJSON(res, 400, {
         success: false,
-        message: 'No active login verification session found. Please request a verification code.',
+        message: 'No active login verification session found. Please sign in with your email and password.',
       });
     }
 
@@ -668,15 +701,41 @@ async function handleApiRequest(req, res) {
 
     const user = await DatabaseManager.getUserByEmailOrUsername(loginKey);
     if (!user) {
-      return sendJSON(res, 404, { success: false, message: 'No account found with these credentials.' });
+      return sendJSON(res, 401, { success: false, message: 'Invalid email or password.' });
+    }
+
+    const { password } = body;
+    if (!otp && !password) {
+      return sendJSON(res, 400, { success: false, message: 'Password is required to authenticate.' });
+    }
+
+    if (password) {
+      let isPasswordCorrect = false;
+      if (user.password_hash && verifyPassword(password, user.password_hash)) {
+        isPasswordCorrect = true;
+      } else if (isSupabaseConfigured() && supabase) {
+        try {
+          const { data, error } = await supabase.auth.signInWithPassword({
+            email: user.email || loginKey,
+            password: password,
+          });
+          if (data && data.user && !error) {
+            isPasswordCorrect = true;
+          }
+        } catch (_) {}
+      }
+
+      if (!isPasswordCorrect) {
+        return sendJSON(res, 401, { success: false, message: 'Invalid email or password.' });
+      }
     }
 
     // If an OTP is provided, verify it directly
     if (otp) {
       const cleanOtp = String(otp).trim();
       const stored = await getAuthOtp(user.email || loginKey);
-      if (!stored || !stored.otp) {
-        return sendJSON(res, 400, { success: false, message: 'No active OTP session found. Please request a code.' });
+      if (!stored || !stored.otp || stored.type !== 'login') {
+        return sendJSON(res, 400, { success: false, message: 'No active OTP session found. Please enter your credentials to request a code.' });
       }
       if (Date.now() > stored.expiresAt) {
         await clearAuthOtp(user.email || loginKey);

@@ -162,7 +162,7 @@ class _EmailOtpScreenState extends State<EmailOtpScreen> {
 
     final Map<String, dynamic> res;
     if (widget.isLogin) {
-      res = await ApiService.loginInitiate(widget.email);
+      res = await ApiService.resendLoginOtp(widget.email);
     } else {
       res = await ApiService.resendRegistrationOtp(widget.email);
     }

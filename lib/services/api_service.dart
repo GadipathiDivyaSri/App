@@ -258,20 +258,44 @@ class ApiService {
     }
   }
 
-  /// Initiate Login via Email OTP
-  static Future<Map<String, dynamic>> loginInitiate(String email) async {
+  /// Initiate Login via Email + Password credentials verification
+  /// Validates password first, then dispatches real OTP to user's registered email
+  static Future<Map<String, dynamic>> loginInitiate({
+    required String email,
+    required String password,
+  }) async {
     final clean = email.trim().toLowerCase();
     try {
       final response = await http
           .post(
             Uri.parse('$baseUrl/auth/login-initiate'),
             headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({'email': clean}),
+            body: jsonEncode({
+              'email': clean,
+              'password': password,
+            }),
           )
           .timeout(const Duration(seconds: 10));
       return jsonDecode(response.body);
     } catch (e) {
       return {'success': false, 'message': 'Network error: Unable to connect to server ($e)'};
+    }
+  }
+
+  /// Resend Login OTP to the user's verified login email session
+  static Future<Map<String, dynamic>> resendLoginOtp(String email) async {
+    final clean = email.trim().toLowerCase();
+    try {
+      final response = await http
+          .post(
+            Uri.parse('$baseUrl/auth/resend-otp'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'email': clean, 'type': 'login'}),
+          )
+          .timeout(const Duration(seconds: 10));
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: Unable to resend OTP ($e)'};
     }
   }
 
@@ -833,6 +857,7 @@ class ApiService {
       final headers = await _getHeaders();
       final response = await http.delete(
         Uri.parse('$baseUrl/career-roadmap/$nodeId'),
+        headers: headers,
       );
       return {'statusCode': response.statusCode, 'data': jsonDecode(response.body)};
     } catch (e) {
