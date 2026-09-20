@@ -86,7 +86,7 @@ if (isConfigured && createClient) {
     console.warn('⚠️ Could not initialize Supabase anon client:', err.message);
   }
 } else {
-  console.log('ℹ️ Supabase not yet configured. Using local persistent JSON storage (backend/data/db.json).');
+  console.error('❌ ERROR: Supabase Cloud Database credentials are missing or unconfigured.');
 }
 
 module.exports = {
