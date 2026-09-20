@@ -144,6 +144,11 @@ function sanitizeInput(obj) {
 function sanitizeUser(user) {
   if (!user) return null;
   const { password, password_hash, ...safe } = user;
+  const isPro = !!(safe.is_premium || safe.isPremium || (safe.subscription_plan && safe.subscription_plan.toUpperCase() === 'PRO') || (safe.subscriptionPlan && safe.subscriptionPlan.toUpperCase() === 'PRO'));
+  safe.is_premium = isPro;
+  safe.isPremium = isPro;
+  safe.subscription_plan = isPro ? 'PRO' : 'FREE';
+  safe.subscriptionPlan = isPro ? 'PRO' : 'FREE';
   return safe;
 }
 
@@ -1004,6 +1009,7 @@ async function handleApiRequest(req, res) {
   if ((pathname === '/api/users/me' || pathname === '/api/user/profile') && method === 'GET') {
     const sub = await DatabaseManager.getUserSubscription(userId);
     return sendJSON(res, 200, {
+      success: true,
       user: sanitizeUser(currentUser),
       subscription: sub,
     });

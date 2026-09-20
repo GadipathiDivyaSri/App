@@ -124,16 +124,17 @@ class _EmailOtpScreenState extends State<EmailOtpScreen> {
       final token = res['token'];
       if (userMap != null) {
         final provider = Provider.of<AppProvider>(context, listen: false);
-        provider.setUser(UserProfile(
-          id: userMap['id'] ?? 'u_1',
-          name: userMap['name'] ?? widget.username ?? 'Student',
-          contact: userMap['email'] ?? widget.email,
-          focusScore: userMap['focusScore'] ?? 85,
-          activeStreak: userMap['activeStreak'] ?? 1,
-          isPremium: userMap['isPremium'] ?? false,
-          referralCode: userMap['referral_code'] ?? userMap['referralCode'] ?? 'WRINDHA2026',
-          token: token,
-        ));
+        final profile = UserProfile.fromJson(userMap);
+        profile.token = token;
+        if (res['subscription'] != null) {
+          final subMap = res['subscription'];
+          final isProSub = (subMap['isPro'] == true || subMap['isPremium'] == true || (subMap['plan'] ?? '').toString().toLowerCase() == 'pro' || (subMap['plan'] ?? '').toString().toLowerCase() == 'premium');
+          if (isProSub) {
+            profile.isPremium = true;
+            profile.subscriptionPlan = 'PRO';
+          }
+        }
+        provider.setUser(profile);
       }
 
       Navigator.pushAndRemoveUntil(

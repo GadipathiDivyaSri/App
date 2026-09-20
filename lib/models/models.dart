@@ -962,24 +962,30 @@ class UserProfile {
         'activeDiscountPercent': activeDiscountPercent,
       };
 
-  factory UserProfile.fromJson(Map<String, dynamic> json) => UserProfile(
-        id: json['id'] ?? 'u_1',
-        username: json['username'] ?? (json['name'] ?? 'user').toString().toLowerCase().replaceAll(' ', '_'),
-        email: json['email'] ?? json['contact'] ?? '',
-        name: json['name'] ?? 'Alex Johnson',
-        contact: json['contact'] ?? json['email'] ?? '',
-        isEmailVerified: json['isEmailVerified'] ?? true,
-        focusScore: json['focusScore'] ?? 92,
-        activeStreak: json['activeStreak'] ?? 14,
-        isPremium: json['isPremium'] == true || (json['subscriptionPlan'] ?? '').toString().toUpperCase() == 'PRO',
-        subscriptionPlan: json['subscriptionPlan'] ?? (json['isPremium'] == true ? 'PRO' : 'FREE'),
-        token: json['token'],
-        referralCode: json['referralCode'] ?? 'WRINDHA7K92',
-        referredByCode: json['referredByCode'],
-        successfulReferrals: json['successfulReferrals'] ?? 3,
-        pendingReferrals: json['pendingReferrals'] ?? 1,
-        activeDiscountPercent: json['activeDiscountPercent'] ?? 10,
-      );
+  factory UserProfile.fromJson(Map<String, dynamic> json) {
+    final isPro = json['isPremium'] == true ||
+        json['is_premium'] == true ||
+        (json['subscriptionPlan'] ?? json['subscription_plan'] ?? '').toString().toUpperCase() == 'PRO' ||
+        (json['subscriptionPlan'] ?? json['subscription_plan'] ?? '').toString().toUpperCase() == 'PREMIUM';
+    return UserProfile(
+      id: json['id']?.toString() ?? 'u_1',
+      username: json['username'] ?? (json['name'] ?? 'user').toString().toLowerCase().replaceAll(' ', '_'),
+      email: json['email'] ?? json['contact'] ?? '',
+      name: json['name'] ?? 'Alex Johnson',
+      contact: json['contact'] ?? json['email'] ?? '',
+      isEmailVerified: json['isEmailVerified'] ?? json['is_email_verified'] ?? true,
+      focusScore: json['focusScore'] ?? json['focus_score'] ?? 92,
+      activeStreak: json['activeStreak'] ?? json['active_streak'] ?? 14,
+      isPremium: isPro,
+      subscriptionPlan: isPro ? 'PRO' : 'FREE',
+      token: json['token'],
+      referralCode: json['referralCode'] ?? json['referral_code'] ?? 'WRINDHA7K92',
+      referredByCode: json['referredByCode'] ?? json['referred_by_code'],
+      successfulReferrals: json['successfulReferrals'] ?? json['successful_referrals'] ?? 0,
+      pendingReferrals: json['pendingReferrals'] ?? json['pending_referrals'] ?? 0,
+      activeDiscountPercent: json['activeDiscountPercent'] ?? json['active_discount_percent'] ?? 0,
+    );
+  }
 }
 
 class UserSubscription {
