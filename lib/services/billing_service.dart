@@ -60,7 +60,33 @@ class BillingService extends ChangeNotifier {
 
   /// Query Google Play Store for the wrindha_pro_monthly product
   Future<void> queryProducts() async {
-    if (!isAvailable) return;
+    try {
+      isAvailable = await _iap.isAvailable();
+    } catch (e) {
+      isAvailable = false;
+    }
+
+    if (!isAvailable) {
+      errorMessage = 'Google Play Store billing is unavailable on this device.';
+      if (kDebugMode) {
+        print('[BILLING SERVICE] Google Play Store Billing is not available on this device/environment.');
+      }
+      notifyListeners();
+      return;
+    }
+
+    // Subscribe to continuous purchase updates if not already subscribed
+    if (_purchaseSubscription == null) {
+      _purchaseSubscription = _iap.purchaseStream.listen(
+        _handlePurchaseUpdates,
+        onDone: () => _purchaseSubscription?.cancel(),
+        onError: (error) {
+          errorMessage = error.toString();
+          notifyListeners();
+        },
+      );
+    }
+
     try {
       final ProductDetailsResponse response = await _iap.queryProductDetails({proSubscriptionId});
       if (response.error != null) {
@@ -70,15 +96,18 @@ class BillingService extends ChangeNotifier {
         }
       } else if (response.productDetails.isNotEmpty) {
         proProduct = response.productDetails.first;
+        errorMessage = null;
         if (kDebugMode) {
           print('[BILLING SERVICE] Found Product: ${proProduct!.id} - Price: ${proProduct!.price}');
         }
       } else {
+        errorMessage = 'Product "$proSubscriptionId" pending Play Console activation or app download via Play Store link.';
         if (kDebugMode) {
           print('[BILLING SERVICE] Product "$proSubscriptionId" not found in Google Play Console.');
         }
       }
     } catch (e) {
+      errorMessage = e.toString();
       if (kDebugMode) {
         print('[BILLING SERVICE] Exception querying products: $e');
       }
@@ -88,7 +117,21 @@ class BillingService extends ChangeNotifier {
 
   /// Trigger live Google Play purchase flow
   Future<bool> buyProSubscription() async {
-    if (!isAvailable || proProduct == null) {
+    if (!isAvailable) {
+      errorMessage = 'Google Play Store billing is not available on this device.';
+      notifyListeners();
+      return false;
+    }
+
+    if (proProduct == null) {
+      await queryProducts();
+    }
+
+    if (proProduct == null) {
+      if (errorMessage == null || errorMessage!.isEmpty) {
+        errorMessage = 'Subscription product "$proSubscriptionId" details not returned by Google Play.';
+      }
+      notifyListeners();
       return false;
     }
 

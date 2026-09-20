@@ -55,12 +55,10 @@ class _ProPlansScreenState extends State<ProPlansScreen> {
 
     bool launched = false;
     try {
-      if (_billingService.isAvailable && _billingService.proProduct != null) {
-        launched = await _billingService.buyProSubscription().timeout(
-          const Duration(seconds: 3),
-          onTimeout: () => false,
-        );
+      if (!_billingService.isAvailable || _billingService.proProduct == null) {
+        await _billingService.queryProducts();
       }
+      launched = await _billingService.buyProSubscription();
     } catch (e) {
       launched = false;
     } finally {
@@ -70,6 +68,16 @@ class _ProPlansScreenState extends State<ProPlansScreen> {
     }
 
     if (launched || !mounted) return;
+
+    if (_billingService.errorMessage != null && _billingService.errorMessage!.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_billingService.errorMessage!),
+          backgroundColor: const Color(0xFFE11D48),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
 
     showModalBottomSheet(
       context: context,
