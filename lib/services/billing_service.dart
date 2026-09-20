@@ -61,7 +61,10 @@ class BillingService extends ChangeNotifier {
   /// Query Google Play Store for the wrindha_pro_monthly product
   Future<void> queryProducts() async {
     try {
-      isAvailable = await _iap.isAvailable();
+      isAvailable = await _iap.isAvailable().timeout(
+        const Duration(seconds: 5),
+        onTimeout: () => false,
+      );
     } catch (e) {
       isAvailable = false;
     }
@@ -88,7 +91,13 @@ class BillingService extends ChangeNotifier {
     }
 
     try {
-      final ProductDetailsResponse response = await _iap.queryProductDetails({proSubscriptionId});
+      final ProductDetailsResponse response = await _iap.queryProductDetails({proSubscriptionId}).timeout(
+        const Duration(seconds: 8),
+        onTimeout: () => ProductDetailsResponse(
+          productDetails: [],
+          notFoundIDs: [proSubscriptionId],
+        ),
+      );
       if (response.error != null) {
         errorMessage = response.error!.message;
         if (kDebugMode) {
@@ -141,10 +150,13 @@ class BillingService extends ChangeNotifier {
 
     try {
       final PurchaseParam purchaseParam = PurchaseParam(productDetails: proProduct!);
-      final bool success = await _iap.buyNonConsumable(purchaseParam: purchaseParam);
+      final bool success = await _iap.buyNonConsumable(purchaseParam: purchaseParam).timeout(
+        const Duration(seconds: 8),
+        onTimeout: () => false,
+      );
       if (!success) {
         isProcessing = false;
-        errorMessage = 'Failed to launch Google Play purchase sheet.';
+        errorMessage = 'Google Play Store did not launch purchase sheet (timeout or unavailable).';
         notifyListeners();
       }
       return success;
