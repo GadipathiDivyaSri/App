@@ -382,20 +382,11 @@ class _ProPlansScreenState extends State<ProPlansScreen> {
                             textBaseline: TextBaseline.alphabetic,
                             children: [
                               Text(
-                                '₹49',
+                                _billingService.formattedPrice,
                                 style: TextStyle(
-                                  fontSize: 32,
+                                  fontSize: 26,
                                   fontWeight: FontWeight.w900,
                                   color: textPrimary,
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                '/ month',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: textSecondary,
                                 ),
                               ),
                             ],
