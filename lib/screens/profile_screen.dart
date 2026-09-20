@@ -4,7 +4,6 @@ import '../providers/app_provider.dart';
 import '../theme/app_theme.dart';
 import 'pricing_screen.dart';
 import 'payment_history_screen.dart';
-import 'referral_screen.dart';
 import 'about_us_screen.dart';
 import 'terms_conditions_screen.dart';
 import 'auth_entry_screen.dart';
@@ -291,17 +290,6 @@ class ProfileScreen extends StatelessWidget {
                     title: 'Support & Care',
                     onTap: () => _showDialog(context, 'Support & Care',
                         'For support, inquiries, or feedback, please contact us at wrindhaos@gmail.com')),
-                _MenuItemData(
-                    icon: Icons.share_outlined,
-                    title: 'Referral Page',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const ReferralScreen(),
-                        ),
-                      );
-                    }),
               ],
             ),
             const SizedBox(height: 24),
