@@ -1097,8 +1097,8 @@ class AppProvider extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     final uid = _user.id;
 
-    // 1. Habits
-    final habitsJson = prefs.getString('saved_habits_$uid') ?? prefs.getString('saved_habits');
+    // 1. Habits (User-Isolated)
+    final habitsJson = prefs.getString('saved_habits_$uid');
     if (habitsJson != null) {
       final List decoded = jsonDecode(habitsJson);
       _habits = decoded.map((item) => Habit.fromJson(item)).toList();
@@ -1106,8 +1106,8 @@ class AppProvider extends ChangeNotifier {
       _habits = [];
     }
 
-    // 2. Tasks
-    final tasksJson = prefs.getString('saved_tasks_$uid') ?? prefs.getString('saved_tasks');
+    // 2. Tasks (User-Isolated)
+    final tasksJson = prefs.getString('saved_tasks_$uid');
     if (tasksJson != null) {
       final List decoded = jsonDecode(tasksJson);
       _tasks = decoded.map((item) => Task.fromJson(item)).toList();
@@ -1115,8 +1115,8 @@ class AppProvider extends ChangeNotifier {
       _tasks = [];
     }
 
-    // 3. Calendar Events
-    final eventsJson = prefs.getString('saved_events_$uid') ?? prefs.getString('saved_events');
+    // 3. Calendar Events (User-Isolated)
+    final eventsJson = prefs.getString('saved_events_$uid');
     if (eventsJson != null) {
       final List decoded = jsonDecode(eventsJson);
       _calendarEvents = decoded.map((item) => CalendarEvent.fromJson(item)).toList();
@@ -1124,8 +1124,8 @@ class AppProvider extends ChangeNotifier {
       _calendarEvents = [];
     }
 
-    // 4. Expenses
-    final expensesJson = prefs.getString('saved_expenses_$uid') ?? prefs.getString('saved_expenses');
+    // 4. Expenses (User-Isolated)
+    final expensesJson = prefs.getString('saved_expenses_$uid');
     if (expensesJson != null) {
       final List decoded = jsonDecode(expensesJson);
       _expenses = decoded.map((item) => ExpenseTransaction.fromJson(item)).toList();
@@ -1201,8 +1201,8 @@ class AppProvider extends ChangeNotifier {
       'Senior Offer Target',
     }.contains(n.title));
 
-    // 8. Notifications
-    final notifsJson = prefs.getString('saved_notifications_$uid') ?? prefs.getString('saved_notifications');
+    // 8. Notifications (User-Isolated)
+    final notifsJson = prefs.getString('saved_notifications_$uid');
     if (notifsJson != null) {
       final List decoded = jsonDecode(notifsJson);
       _notifications = decoded.map((item) => AppNotification.fromJson(item)).toList();
