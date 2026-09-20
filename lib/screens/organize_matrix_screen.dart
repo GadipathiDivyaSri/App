@@ -322,6 +322,11 @@ class _OrganizeMatrixScreenState extends State<OrganizeMatrixScreen> {
   }
 
   void _showAddTaskDialog(BuildContext context, int priority) {
+    final provider = Provider.of<AppProvider>(context, listen: false);
+    if (!provider.user.isPremium) {
+      ProUpgradeDialog.showFeatureLockedDialog(context, AppFeature.eisenhowerMatrix);
+      return;
+    }
     final titleCtrl = TextEditingController();
     showDialog(
       context: context,

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../config/subscription_config.dart';
 import '../providers/app_provider.dart';
 import '../theme/app_theme.dart';
+import '../widgets/pro_upgrade_dialog.dart';
 
 import '../models/models.dart';
 
@@ -39,6 +41,11 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
   void _handleSave(AppProvider provider) {
     if (_isSaving) return; // Prevent duplicate submissions
+
+    if (!provider.user.isPremium) {
+      ProUpgradeDialog.showFeatureLockedDialog(context, AppFeature.expenseTracker);
+      return;
+    }
 
     final amountText = _amountCtrl.text.trim();
     if (amountText.isEmpty) {

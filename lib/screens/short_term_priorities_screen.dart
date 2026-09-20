@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../config/subscription_config.dart';
 import '../providers/app_provider.dart';
 import '../models/models.dart';
 import '../theme/app_theme.dart';
+import '../widgets/pro_upgrade_dialog.dart';
 import 'goal_achieved_screen.dart';
 
 class ShortTermPrioritiesScreen extends StatefulWidget {
@@ -195,6 +197,11 @@ class _ShortTermPrioritiesScreenState extends State<ShortTermPrioritiesScreen> {
   }
 
   void _showAddShortGoalDialog(BuildContext context) {
+    final provider = Provider.of<AppProvider>(context, listen: false);
+    if (!provider.user.isPremium) {
+      ProUpgradeDialog.showFeatureLockedDialog(context, AppFeature.priorityMatrix);
+      return;
+    }
     final titleCtrl = TextEditingController();
     final descCtrl = TextEditingController();
 

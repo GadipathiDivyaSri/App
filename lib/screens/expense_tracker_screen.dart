@@ -85,6 +85,10 @@ class _ExpenseTrackerScreenState extends State<ExpenseTrackerScreen> {
   }
 
   void _showEditBudgetDialog(BuildContext context, AppProvider provider) {
+    if (!provider.user.isPremium) {
+      ProUpgradeDialog.showFeatureLockedDialog(context, AppFeature.expenseTracker);
+      return;
+    }
     final controller = TextEditingController(
       text: provider.monthlyBudget.toStringAsFixed(0),
     );
@@ -221,6 +225,10 @@ class _ExpenseTrackerScreenState extends State<ExpenseTrackerScreen> {
           IconButton(
             icon: Icon(Icons.add_rounded, color: primaryColor, size: 28),
             onPressed: () {
+              if (!provider.user.isPremium) {
+                ProUpgradeDialog.showFeatureLockedDialog(context, AppFeature.expenseTracker);
+                return;
+              }
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const AddExpenseScreen()),

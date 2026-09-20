@@ -353,6 +353,11 @@ class _GoalPyramidScreenState extends State<GoalPyramidScreen> {
   }
 
   void _showAddGoalDialog(BuildContext context, {String initialTier = 'Short'}) {
+    final provider = Provider.of<AppProvider>(context, listen: false);
+    if (!provider.user.isPremium) {
+      ProUpgradeDialog.showFeatureLockedDialog(context, AppFeature.goals);
+      return;
+    }
     final titleCtrl = TextEditingController();
     final descCtrl = TextEditingController();
     String selectedTerm = initialTier.toLowerCase() == 'medium' ? 'Medium' : (initialTier.toLowerCase() == 'long' ? 'Long Term' : 'Short');
