@@ -832,6 +832,14 @@ async function handleApiRequest(req, res) {
       return sendJSON(res, 400, { success: false, message: 'Please provide a valid email address.' });
     }
 
+    const user = await DatabaseManager.getUserByEmailOrUsername(cleanEmail);
+    if (!user) {
+      return sendJSON(res, 404, {
+        success: false,
+        message: 'No account registered with this email address. Please check your email or sign up.',
+      });
+    }
+
     const otpCode = crypto.randomInt(100000, 1000000).toString();
     const otpData = {
       otp: otpCode,
@@ -916,11 +924,34 @@ async function handleApiRequest(req, res) {
     }
 
     const user = await DatabaseManager.getUserByEmailOrUsername(cleanEmail);
-    if (user) {
-      await DatabaseManager.updateUser(user.id, {
-        password: newPassword,
-        password_hash: hashPassword(newPassword),
-      });
+    if (!user) {
+      return sendJSON(res, 404, { success: false, message: 'User account not found.' });
+    }
+
+    const updatedPassHash = hashPassword(newPassword);
+    await DatabaseManager.updateUser(user.id, {
+      password: newPassword,
+      password_hash: updatedPassHash,
+    });
+
+    if (isSupabaseConfigured() && supabase) {
+      try {
+        const { data } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+        let supUser = (data?.users || []).find(u => (u.email || '').toLowerCase() === cleanEmail);
+        if (supUser) {
+          await supabase.auth.admin.updateUserById(supUser.id, {
+            password: newPassword,
+            email_confirm: true,
+            user_metadata: {
+              ...(supUser.user_metadata || {}),
+              passwordHash: updatedPassHash,
+            },
+          });
+          console.log(`[SUPABASE FORGOT PASSWORD] Updated Supabase password for: ${cleanEmail}`);
+        }
+      } catch (supErr) {
+        console.warn('[SUPABASE PASSWORD RESET NOTICE]:', supErr.message);
+      }
     }
 
     return sendJSON(res, 200, {

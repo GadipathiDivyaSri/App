@@ -39,25 +39,30 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     if (!mounted) return;
     setState(() => _isLoading = false);
 
-    // Generic confirmation message for security
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          res['message'] ??
-              'If an account exists with this email, a verification code has been sent.',
+    if (res['success'] == true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            res['message'] ??
+                'A verification code has been sent to your registered email.',
+          ),
+          backgroundColor: const Color(0xFF10B981),
         ),
-        backgroundColor: const Color(0xFF10B981),
-      ),
-    );
+      );
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => PasswordResetOtpScreen(
-          email: email,
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => PasswordResetOtpScreen(
+            email: email,
+          ),
         ),
-      ),
-    );
+      );
+    } else {
+      setState(() {
+        _errorMessage = res['message'] ?? 'Failed to initiate password reset. Please try again.';
+      });
+    }
   }
 
   @override
