@@ -42,14 +42,23 @@ class _ProPlansScreenState extends State<ProPlansScreen> {
   void _handleUpgradeToPro(BuildContext context) async {
     setState(() => _isProcessing = true);
 
-    if (_billingService.isAvailable && _billingService.proProduct != null) {
-      final launched = await _billingService.buyProSubscription();
-      if (mounted) setState(() => _isProcessing = false);
-      if (launched) return;
+    bool launched = false;
+    try {
+      if (_billingService.isAvailable && _billingService.proProduct != null) {
+        launched = await _billingService.buyProSubscription().timeout(
+          const Duration(seconds: 3),
+          onTimeout: () => false,
+        );
+      }
+    } catch (e) {
+      launched = false;
+    } finally {
+      if (mounted) {
+        setState(() => _isProcessing = false);
+      }
     }
 
-    if (!mounted) return;
-    setState(() => _isProcessing = false);
+    if (launched || !mounted) return;
 
     showModalBottomSheet(
       context: context,
