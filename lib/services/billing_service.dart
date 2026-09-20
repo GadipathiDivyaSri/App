@@ -19,8 +19,8 @@ class BillingService extends ChangeNotifier {
   String? errorMessage;
   Function(bool)? _onProStatusChanged;
 
-  /// Returns localized price string directly from Google Play Store
-  String get formattedPrice => proProduct?.price ?? '';
+  /// Returns localized price string directly from Google Play Store or default fallback
+  String get formattedPrice => proProduct?.price ?? '₹49 / month';
 
   /// Initialize early in app lifecycle (AppProvider / main)
   Future<void> initialize({Function(bool)? onProStatusChanged}) async {

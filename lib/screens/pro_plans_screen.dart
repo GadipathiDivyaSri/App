@@ -22,6 +22,7 @@ class _ProPlansScreenState extends State<ProPlansScreen> {
   @override
   void initState() {
     super.initState();
+    _billingService.addListener(_onBillingUpdated);
     _billingService.initialize(
       onProStatusChanged: (isPro) {
         if (isPro && mounted) {
@@ -37,6 +38,16 @@ class _ProPlansScreenState extends State<ProPlansScreen> {
         }
       },
     );
+  }
+
+  void _onBillingUpdated() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _billingService.removeListener(_onBillingUpdated);
+    super.dispose();
   }
 
   void _handleUpgradeToPro(BuildContext context) async {
