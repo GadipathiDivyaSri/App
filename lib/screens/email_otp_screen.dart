@@ -131,7 +131,7 @@ class _EmailOtpScreenState extends State<EmailOtpScreen> {
           focusScore: userMap['focusScore'] ?? 85,
           activeStreak: userMap['activeStreak'] ?? 1,
           isPremium: userMap['isPremium'] ?? false,
-          referralCode: userMap['referralCode'] ?? 'WRINDHA2026',
+          referralCode: userMap['referral_code'] ?? userMap['referralCode'] ?? 'WRINDHA2026',
           token: token,
         ));
       }

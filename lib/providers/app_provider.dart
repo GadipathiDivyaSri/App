@@ -740,6 +740,7 @@ class AppProvider extends ChangeNotifier {
     String? email,
     bool isPremium = false,
     String subscriptionPlan = 'FREE',
+    String? referralCode,
   }) {
     _isLoggedIn = true;
     final isPro = isPremium || subscriptionPlan.toUpperCase() == 'PRO' || subscriptionPlan.toUpperCase() == 'PREMIUM';
@@ -754,7 +755,7 @@ class AppProvider extends ChangeNotifier {
       isPremium: isPro,
       subscriptionPlan: isPro ? 'PRO' : 'FREE',
       token: token,
-      referralCode: 'WRINDHA7K92',
+      referralCode: referralCode ?? 'WRINDHA',
       referredByCode: refCode,
     );
     _subscription = UserSubscription(
