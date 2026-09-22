@@ -2,11 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
-import '../models/models.dart';
 import '../theme/app_theme.dart';
 
-class ReferralScreen extends StatelessWidget {
+class ReferralScreen extends StatefulWidget {
   const ReferralScreen({super.key});
+
+  @override
+  State<ReferralScreen> createState() => _ReferralScreenState();
+}
+
+class _ReferralScreenState extends State<ReferralScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<AppProvider>().syncReferralsFromCloud();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,6 +32,8 @@ class ReferralScreen extends StatelessWidget {
     final pendingCount = user.pendingReferrals;
     final discountPercent = user.activeDiscountPercent;
     final activities = provider.referralActivities;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final horizontalPadding = screenWidth < 360 ? 12.0 : 20.0;
 
     final shareMessage =
         'Try WrindhaOS — an all-in-one productivity and life management app. Use my referral code $referralCode when you join.';
@@ -41,8 +57,13 @@ class ReferralScreen extends StatelessWidget {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          await provider.syncReferralsFromCloud();
+        },
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 12.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -113,13 +134,16 @@ class ReferralScreen extends StatelessWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          referralCode,
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 1.5,
-                            color: isDark ? AppTheme.darkIconGlow : AppTheme.primaryAccent,
+                        Expanded(
+                          child: Text(
+                            referralCode,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 1.5,
+                              color: isDark ? AppTheme.darkIconGlow : AppTheme.primaryAccent,
+                            ),
                           ),
                         ),
                         IconButton(
@@ -146,10 +170,11 @@ class ReferralScreen extends StatelessWidget {
                   SizedBox(
                     width: double.infinity,
                     height: 48,
-                    child: ElevatedButton.icon(
+                    child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: isDark ? AppTheme.darkPrimary : AppTheme.primaryAccent,
                         foregroundColor: Colors.white,
+                        elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
                         ),
@@ -164,13 +189,23 @@ class ReferralScreen extends StatelessWidget {
                           ),
                         );
                       },
-                      icon: const Icon(Icons.share_outlined, color: Colors.white, size: 18),
-                      label: const Text(
-                        'Share Referral Link',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
+                      child: const FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.share_outlined, color: Colors.white, size: 18),
+                            SizedBox(width: 8),
+                            Text(
+                              'Share Referral Link',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -305,14 +340,19 @@ class ReferralScreen extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'Reward History',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : const Color(0xFF1E293B),
+                      Expanded(
+                        child: Text(
+                          'Reward History',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : const Color(0xFF1E293B),
+                          ),
                         ),
                       ),
+                      const SizedBox(width: 8),
                       const Text(
                         '10% Max / Cycle',
                         style: TextStyle(
@@ -362,8 +402,9 @@ class ReferralScreen extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildMetricTile(
     BuildContext context, {
@@ -386,14 +427,19 @@ class ReferralScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF94A3B8),
+              Expanded(
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF94A3B8),
+                  ),
                 ),
               ),
+              const SizedBox(width: 4),
               Icon(icon, size: 16, color: color),
             ],
           ),

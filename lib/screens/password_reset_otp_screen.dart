@@ -128,6 +128,13 @@ class _PasswordResetOtpScreenState extends State<PasswordResetOtpScreen> {
     if (!mounted) return;
     setState(() => _isResending = false);
 
+    if (res['success'] != true) {
+      setState(() {
+        _errorMessage = res['message'] ?? 'Failed to resend verification code.';
+      });
+      return;
+    }
+
     for (var c in _otpControllers) {
       c.clear();
     }
@@ -147,6 +154,9 @@ class _PasswordResetOtpScreenState extends State<PasswordResetOtpScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryColor = isDark ? AppTheme.darkPrimary : AppTheme.lightPrimary;
 
+    final screenWidth = MediaQuery.of(context).size.width;
+    final horizontalPadding = screenWidth < 360 ? 12.0 : (screenWidth < 400 ? 20.0 : 28.0);
+
     return Scaffold(
       backgroundColor: isDark ? AppTheme.darkBackground : AppTheme.lightBackground,
       appBar: AppBar(
@@ -162,7 +172,7 @@ class _PasswordResetOtpScreenState extends State<PasswordResetOtpScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 28.0, vertical: 12.0),
+          padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 12.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -235,10 +245,12 @@ class _PasswordResetOtpScreenState extends State<PasswordResetOtpScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: List.generate(6, (index) {
-                  return SizedBox(
-                    width: 46,
-                    height: 56,
-                    child: TextField(
+                  return Flexible(
+                    child: Container(
+                      constraints: const BoxConstraints(maxWidth: 46, minWidth: 32),
+                      margin: const EdgeInsets.symmetric(horizontal: 2),
+                      height: 56,
+                      child: TextField(
                       controller: _otpControllers[index],
                       focusNode: _otpFocusNodes[index],
                       keyboardType: TextInputType.number,
@@ -285,8 +297,9 @@ class _PasswordResetOtpScreenState extends State<PasswordResetOtpScreen> {
                         }
                       },
                     ),
-                  );
-                }),
+                  ),
+                );
+              }),
               ),
               const SizedBox(height: 32),
 

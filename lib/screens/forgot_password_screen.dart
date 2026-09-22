@@ -39,31 +39,38 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     if (!mounted) return;
     setState(() => _isLoading = false);
 
-    // Generic confirmation message for security
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          res['message'] ??
-              'If an account exists with this email, a verification code has been sent.',
+    if (res['success'] == true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            res['message'] ??
+                'If an account exists with this email, a verification code has been sent.',
+          ),
+          backgroundColor: const Color(0xFF10B981),
         ),
-        backgroundColor: const Color(0xFF10B981),
-      ),
-    );
+      );
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => PasswordResetOtpScreen(
-          email: email,
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => PasswordResetOtpScreen(
+            email: email,
+          ),
         ),
-      ),
-    );
+      );
+    } else {
+      setState(() {
+        _errorMessage = res['message'] ?? 'Failed to send verification code. Please try again.';
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryColor = isDark ? AppTheme.darkPrimary : AppTheme.lightPrimary;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final horizontalPadding = screenWidth < 360 ? 16.0 : 28.0;
 
     return Scaffold(
       backgroundColor: isDark ? AppTheme.darkBackground : AppTheme.lightBackground,
@@ -80,7 +87,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 28.0, vertical: 12.0),
+          padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 12.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [

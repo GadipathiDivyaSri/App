@@ -370,9 +370,16 @@ async function handleApiRequest(req, res) {
       return sendJSON(res, 400, { success: false, message: 'Password must be at least 6 characters long.' });
     }
 
-    const existingUser = await DatabaseManager.getUserByEmailOrUsername(cleanUsername) || await DatabaseManager.getUserByEmailOrUsername(cleanEmail);
-    if (existingUser) {
-      return sendJSON(res, 400, { success: false, message: 'An account with this email or username already exists.' });
+    // Check if email is already registered to an existing confirmed account
+    const existingByEmail = await DatabaseManager.getUserByEmailOrUsername(cleanEmail);
+    if (existingByEmail) {
+      return sendJSON(res, 400, { success: false, message: 'An account with this email address already exists. Please log in.' });
+    }
+
+    // Check if username is already taken by an existing confirmed account
+    const existingByUsername = await DatabaseManager.getUserByEmailOrUsername(cleanUsername);
+    if (existingByUsername) {
+      return sendJSON(res, 400, { success: false, message: 'This username is already taken. Please choose another.' });
     }
 
     const otpCode = crypto.randomInt(100000, 1000000).toString();
@@ -503,9 +510,25 @@ async function handleApiRequest(req, res) {
         username: stored.username || (username ? username.trim().toLowerCase() : cleanEmail.split('@')[0]),
         email: cleanEmail,
         password_hash: stored.passwordHash || hashPassword('Wrindha2026!'),
-        referral_code: stored.referralCode,
         is_email_verified: true,
       });
+
+      // If registered with a referral code, link the referral in referrals table
+      if (stored.referralCode) {
+        try {
+          const referrer = await DatabaseManager.getUserByReferralCode(stored.referralCode);
+          if (referrer && referrer.id !== newUser.id) {
+            await DatabaseManager.createReferral({
+              referrerId: referrer.id,
+              referredId: newUser.id,
+              code: stored.referralCode,
+              status: 'pending',
+            });
+          }
+        } catch (refErr) {
+          console.warn('[REFERRAL LINK NOTICE]:', refErr.message);
+        }
+      }
     }
 
     // In Supabase, mark user email as confirmed and provision credentials
@@ -915,13 +938,22 @@ async function handleApiRequest(req, res) {
       return sendJSON(res, 400, { success: false, message: 'Passwords do not match.' });
     }
 
-    const user = await DatabaseManager.getUserByEmailOrUsername(cleanEmail);
-    if (user) {
-      await DatabaseManager.updateUser(user.id, {
-        password: newPassword,
-        password_hash: hashPassword(newPassword),
-      });
+    if (!resetToken) {
+      return sendJSON(res, 401, { success: false, message: 'Password reset authorization token is required.' });
     }
+
+    const tokenPayload = verifyJwtToken(resetToken);
+    if (!tokenPayload || tokenPayload.purpose !== 'password_reset' || (tokenPayload.email || '').toLowerCase() !== cleanEmail) {
+      return sendJSON(res, 401, { success: false, message: 'Invalid or expired password reset session. Please request a new verification code.' });
+    }
+
+    const user = await DatabaseManager.getUserByEmailOrUsername(cleanEmail);
+    if (!user) {
+      return sendJSON(res, 404, { success: false, message: 'User account not found.' });
+    }
+
+    await DatabaseManager.updateUserPassword(user.id, newPassword, hashPassword(newPassword));
+    await clearAuthOtp(cleanEmail);
 
     return sendJSON(res, 200, {
       success: true,
@@ -1008,6 +1040,44 @@ async function handleApiRequest(req, res) {
       success: true,
       message: 'Subscription upgraded to Pro!',
       subscription: sub,
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // 8b. REFERRALS & REWARDS
+  // ---------------------------------------------------------------------------
+  if ((pathname === '/api/referrals/summary' || pathname === '/api/referrals/me' || pathname === '/api/referrals') && method === 'GET') {
+    const summary = await DatabaseManager.getUserReferralSummary(userId);
+    return sendJSON(res, 200, {
+      success: true,
+      ...summary,
+      data: summary,
+    });
+  }
+
+  if ((pathname === '/api/referrals/apply' || pathname === '/api/referrals/apply-code') && method === 'POST') {
+    const { code } = body || {};
+    const cleanCode = (code || '').trim().toUpperCase();
+    if (!cleanCode) {
+      return sendJSON(res, 400, { success: false, message: 'Referral code is required.' });
+    }
+    const referrer = await DatabaseManager.getUserByReferralCode(cleanCode);
+    if (!referrer) {
+      return sendJSON(res, 400, { success: false, message: 'Invalid referral code.' });
+    }
+    if (referrer.id === userId) {
+      return sendJSON(res, 400, { success: false, message: 'You cannot use your own referral code.' });
+    }
+    await DatabaseManager.createReferral({
+      referrerId: referrer.id,
+      referredId: userId,
+      code: cleanCode,
+      status: 'qualified',
+    });
+    return sendJSON(res, 200, {
+      success: true,
+      message: 'Referral code applied! 10% discount applied to your next billing cycle.',
+      discountPercent: 10,
     });
   }
 

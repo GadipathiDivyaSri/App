@@ -566,6 +566,19 @@ class ApiService {
   // ---------------------------------------------------------------------------
   // 5. REFERRAL SYSTEM
   // ---------------------------------------------------------------------------
+  static Future<Map<String, dynamic>> fetchReferralSummary() async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.get(Uri.parse('$baseUrl/referrals/summary'), headers: headers);
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return {'success': false, 'message': 'Failed to fetch referral summary: ${response.statusCode}'};
+    } catch (e) {
+      return {'success': false, 'message': 'Fetching referral summary failed: $e'};
+    }
+  }
+
   static Future<Map<String, dynamic>> fetchMyReferralCode() async {
     try {
       final headers = await _getHeaders();

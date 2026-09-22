@@ -35,6 +35,8 @@ function ensureUuid(id) {
   return `${hash.substring(0, 8)}-${hash.substring(8, 12)}-4${hash.substring(13, 16)}-a${hash.substring(17, 20)}-${hash.substring(20, 32)}`;
 }
 
+const localPasswordCache = {};
+
 // -----------------------------------------------------------------------------
 // 2. DIRECT SUPABASE POSTGRES HTTP REST FALLBACK CLIENT
 // -----------------------------------------------------------------------------
@@ -142,12 +144,18 @@ class DatabaseManager {
     if (isSupabaseConfigured() && supabase) {
       try {
         const { data } = await supabase.auth.admin.listUsers();
-        const supUser = (data?.users || []).find(u =>
-          (u.email || '').toLowerCase() === clean ||
-          (u.user_metadata && (u.user_metadata.username || '').toLowerCase() === clean)
-        );
+        const supUser = (data?.users || []).find(u => {
+          const emailMatch = (u.email || '').toLowerCase() === clean;
+          const userMetaMatch = (u.user_metadata && (u.user_metadata.username || '').toLowerCase() === clean);
+          if (!emailMatch && !userMetaMatch) return false;
+          // IMPORTANT: Only match confirmed users OR users who already have a row in profiles table.
+          // Temporary unconfirmed registration OTP holders (email_confirm: false with no profile) must NOT count as registered accounts.
+          const isConfirmed = !!(u.email_confirmed_at || u.confirmed_at);
+          return user || isConfirmed;
+        });
+
         if (supUser) {
-          if (!user) {
+          if (!user && (supUser.email_confirmed_at || supUser.confirmed_at)) {
             user = {
               id: supUser.id,
               user_id: supUser.id,
@@ -159,7 +167,7 @@ class DatabaseManager {
               subscription_plan: 'FREE',
             };
           }
-          if (supUser.user_metadata && supUser.user_metadata.passwordHash) {
+          if (user && supUser.user_metadata && supUser.user_metadata.passwordHash) {
             user.password_hash = supUser.user_metadata.passwordHash;
           }
         }
@@ -167,6 +175,13 @@ class DatabaseManager {
         console.warn('[SUPABASE AUTH USER FETCH NOTICE]:', supErr.message);
       }
     }
+
+    if (user && !user.password_hash) {
+      if (localPasswordCache[clean]) user.password_hash = localPasswordCache[clean];
+      else if (user.id && localPasswordCache[user.id]) user.password_hash = localPasswordCache[user.id];
+      else if (user.email && localPasswordCache[user.email.toLowerCase()]) user.password_hash = localPasswordCache[user.email.toLowerCase()];
+    }
+
     return user;
   }
 
@@ -198,6 +213,9 @@ class DatabaseManager {
     // Attach password_hash for caller authentication flows
     if (userData.password_hash) {
       resultUser.password_hash = userData.password_hash;
+      localPasswordCache[cleanEmail] = userData.password_hash;
+      localPasswordCache[cleanUsername] = userData.password_hash;
+      localPasswordCache[userId] = userData.password_hash;
     }
 
     // Initialize Default Subscription Row
@@ -228,14 +246,73 @@ class DatabaseManager {
     if (updates.active_streak !== undefined) payload.active_streak = updates.active_streak;
     if (updates.is_premium !== undefined) payload.is_premium = !!updates.is_premium;
     if (updates.subscription_plan) payload.subscription_plan = updates.subscription_plan.toUpperCase();
+    if (updates.password_hash) {
+      payload.password_hash = updates.password_hash;
+      localPasswordCache[uid] = updates.password_hash;
+    }
 
     return await dbQuery('profiles', { method: 'PATCH', match: { id: uid }, body: payload, single: true });
+  }
+
+  static async updateUserPassword(userId, newPassword, newPasswordHash) {
+    if (!userId) return null;
+    const uid = ensureUuid(userId);
+    let updated = null;
+    try {
+      updated = await this.updateUser(uid, { password_hash: newPasswordHash });
+    } catch (err) {
+      console.warn('[PROFILES PASSWORD UPDATE NOTICE]:', err.message);
+    }
+
+    localPasswordCache[uid] = newPasswordHash;
+
+    if (isSupabaseConfigured() && supabase) {
+      try {
+        const user = await this.getUserById(uid);
+        const cleanEmail = (user?.email || '').toLowerCase();
+        if (cleanEmail) {
+          localPasswordCache[cleanEmail] = newPasswordHash;
+        }
+        const { data } = await supabase.auth.admin.listUsers();
+        const supUser = (data?.users || []).find(u =>
+          u.id === uid || (cleanEmail && (u.email || '').toLowerCase() === cleanEmail)
+        );
+        if (supUser) {
+          await supabase.auth.admin.updateUserById(supUser.id, {
+            password: newPassword,
+            user_metadata: {
+              ...(supUser.user_metadata || {}),
+              passwordHash: newPasswordHash,
+            },
+          });
+        } else if (cleanEmail) {
+          await supabase.auth.admin.createUser({
+            email: cleanEmail,
+            password: newPassword,
+            email_confirm: true,
+            user_metadata: {
+              username: user?.username || cleanEmail.split('@')[0],
+              passwordHash: newPasswordHash,
+            },
+          });
+        }
+      } catch (supErr) {
+        console.warn('[SUPABASE PASSWORD SYNC NOTICE]:', supErr.message);
+      }
+    }
+    return updated || { id: uid, password_hash: newPasswordHash };
   }
 
   static async deleteUser(userId) {
     if (!userId) return false;
     const uid = ensureUuid(userId);
-    return await dbQuery('profiles', { method: 'DELETE', match: { id: uid } });
+    const res = await dbQuery('profiles', { method: 'DELETE', match: { id: uid } });
+    if (isSupabaseConfigured() && supabase) {
+      try {
+        await supabase.auth.admin.deleteUser(uid);
+      } catch (_) {}
+    }
+    return res;
   }
 
   // ---------------------------------------------------------------------------
@@ -1051,6 +1128,128 @@ class DatabaseManager {
       deleted = await dbQuery('journal_entries', { method: 'DELETE', match: { id: jid, user_id: user.user_id } });
     }
     return deleted;
+  }
+
+  // ---------------------------------------------------------------------------
+  // REFERRALS SYSTEM
+  // ---------------------------------------------------------------------------
+  static async createReferral({ referrerId, referredId, code, status = 'pending' }) {
+    if (!referrerId || !referredId) return null;
+    const rid = ensureUuid(referrerId);
+    const rfid = ensureUuid(referredId);
+    const cleanCode = code ? code.trim().toUpperCase() : null;
+
+    let res = null;
+    try {
+      res = await dbQuery('referrals', {
+        method: 'POST',
+        body: {
+          id: ensureUuid(),
+          referrer_id: rid,
+          referred_user_id: rfid,
+          referral_code: cleanCode,
+          status: status.toLowerCase(),
+          created_at: new Date().toISOString(),
+        },
+        single: true,
+      });
+    } catch (err) {
+      try {
+        res = await dbQuery('referrals', {
+          method: 'POST',
+          body: {
+            id: ensureUuid(),
+            referrer_user_id: rid,
+            referred_user_id: rfid,
+            code: cleanCode,
+            status: status.toLowerCase(),
+            created_at: new Date().toISOString(),
+          },
+          single: true,
+        });
+      } catch (err2) {
+        console.warn('[CREATE REFERRAL NOTICE]:', err2.message);
+      }
+    }
+    return res;
+  }
+
+  static async getUserReferralSummary(userId) {
+    if (!userId) {
+      return {
+        referralCode: 'WRINDHA',
+        successfulReferrals: 0,
+        pendingReferrals: 0,
+        activeDiscountPercent: 0,
+        activities: [],
+      };
+    }
+    const uid = ensureUuid(userId);
+    const user = await this.getUserById(uid);
+    const referralCode = user?.referral_code || 'WRINDHA';
+
+    let referralsList = [];
+    try {
+      referralsList = (await dbQuery('referrals', {
+        method: 'GET',
+        match: { referrer_id: uid },
+      })) || [];
+    } catch (_) {
+      try {
+        referralsList = (await dbQuery('referrals', {
+          method: 'GET',
+          match: { referrer_user_id: uid },
+        })) || [];
+      } catch (_) {
+        referralsList = [];
+      }
+    }
+
+    if (!Array.isArray(referralsList)) {
+      referralsList = [];
+    }
+
+    const activities = [];
+    let successfulCount = 0;
+    let pendingCount = 0;
+
+    for (const ref of referralsList) {
+      const isQual = (ref.status || '').toLowerCase() === 'qualified' || (ref.status || '').toLowerCase() === 'successful' || (ref.status || '').toLowerCase() === 'paid';
+      if (isQual) {
+        successfulCount++;
+      } else {
+        pendingCount++;
+      }
+
+      let refereeName = 'Friend';
+      if (ref.referred_user_id) {
+        const referee = await this.getUserById(ref.referred_user_id);
+        if (referee) {
+          refereeName = referee.display_name || referee.name || referee.username || 'Friend';
+        }
+      }
+
+      const dateStr = ref.created_at ? new Date(ref.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recently';
+
+      activities.push({
+        id: ref.id,
+        name: refereeName,
+        status: isQual ? 'QUALIFIED' : 'PENDING',
+        date: dateStr,
+        discountPercent: 10,
+        isApplied: isQual,
+      });
+    }
+
+    const discountPercent = Math.min(10 * successfulCount, 10);
+
+    return {
+      referralCode,
+      successfulReferrals: successfulCount,
+      pendingReferrals: pendingCount,
+      activeDiscountPercent: discountPercent,
+      activities,
+    };
   }
 }
 

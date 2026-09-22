@@ -53,6 +53,7 @@ class AppProvider extends ChangeNotifier {
 
   bool _isLoggedIn = false;
   bool get isLoggedIn => _isLoggedIn;
+  bool _isExplicitlyLoggedOut = false;
 
   bool _isInitialized = false;
   bool get isInitialized => _isInitialized;
@@ -143,6 +144,7 @@ class AppProvider extends ChangeNotifier {
   }
 
   Future<void> logout() async {
+    _isExplicitlyLoggedOut = true;
     _isLoggedIn = false;
     _user = UserProfile(
       id: 'u_guest',
@@ -698,6 +700,7 @@ class AppProvider extends ChangeNotifier {
     required Map<String, dynamic> userMap,
     required String token,
   }) {
+    _isExplicitlyLoggedOut = false;
     _isLoggedIn = true;
     final plan = (userMap['subscriptionPlan'] ?? userMap['subscription_plan'] ?? '').toString().toUpperCase();
     final isPro = userMap['isPremium'] == true || plan == 'PRO' || plan == 'PREMIUM';
@@ -741,6 +744,7 @@ class AppProvider extends ChangeNotifier {
     bool isPremium = false,
     String subscriptionPlan = 'FREE',
   }) {
+    _isExplicitlyLoggedOut = false;
     _isLoggedIn = true;
     final isPro = isPremium || subscriptionPlan.toUpperCase() == 'PRO' || subscriptionPlan.toUpperCase() == 'PREMIUM';
     _user = UserProfile(
@@ -775,6 +779,7 @@ class AppProvider extends ChangeNotifier {
   }
 
   void loginWithUser(UserProfile user, [String? token]) {
+    _isExplicitlyLoggedOut = false;
     _isLoggedIn = true;
     _user = user;
     if (token != null) _user.token = token;
@@ -813,6 +818,7 @@ class AppProvider extends ChangeNotifier {
   }
 
   void signup(String name, String contact, {String? id, String? token, String? refCode, String? username, String? email}) {
+    _isExplicitlyLoggedOut = false;
     _isLoggedIn = true;
     _user = UserProfile(
       id: id ?? 'u_1',
@@ -958,9 +964,14 @@ class AppProvider extends ChangeNotifier {
     ApiService.deleteExpenseOnBackend(id);
   }
 
-  void applyReferralCode(String code) {
+  Future<Map<String, dynamic>> applyReferralCode(String code) async {
     _user.referredByCode = code;
     notifyListeners();
+    final res = await ApiService.applyReferralCode(code);
+    if (res['success'] == true) {
+      await syncReferralsFromCloud();
+    }
+    return res;
   }
 
   Future<void> checkoutSubscription(String plan, double basePrice) async {
@@ -1059,28 +1070,30 @@ class AppProvider extends ChangeNotifier {
           prefs.getString('wrindha_auth_token') ??
           prefs.getString('wrindha_secure_jwt_token');
 
-      if (sessionUserJson != null && sessionUserJson.isNotEmpty) {
-        try {
-          final Map<String, dynamic> userMap = jsonDecode(sessionUserJson);
-          _user = UserProfile.fromJson(userMap);
-          if (sessionToken != null && sessionToken.isNotEmpty) {
-            _user.token = sessionToken;
+      if (!_isExplicitlyLoggedOut && !_isLoggedIn) {
+        if (sessionUserJson != null && sessionUserJson.isNotEmpty) {
+          try {
+            final Map<String, dynamic> userMap = jsonDecode(sessionUserJson);
+            _user = UserProfile.fromJson(userMap);
+            if (sessionToken != null && sessionToken.isNotEmpty) {
+              _user.token = sessionToken;
+            }
+            _isLoggedIn = true;
+            await _loadUserIsolatedData();
+            syncSubscription();
+            syncAllDataFromCloud();
+          } catch (err) {
+            _isLoggedIn = false;
           }
+        } else if (sessionToken != null && sessionToken.isNotEmpty) {
           _isLoggedIn = true;
+          _user.token = sessionToken;
           await _loadUserIsolatedData();
           syncSubscription();
           syncAllDataFromCloud();
-        } catch (err) {
+        } else {
           _isLoggedIn = false;
         }
-      } else if (sessionToken != null && sessionToken.isNotEmpty) {
-        _isLoggedIn = true;
-        _user.token = sessionToken;
-        await _loadUserIsolatedData();
-        syncSubscription();
-        syncAllDataFromCloud();
-      } else {
-        _isLoggedIn = false;
       }
 
       _recalculateMetrics();
@@ -1398,14 +1411,6 @@ class AppProvider extends ChangeNotifier {
   }
 
   // Persistence helpers
-  Future<void> _saveTheme() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('isDarkTheme', _themeMode == ThemeMode.dark);
-    } catch (e) {
-      debugPrint('Error saving theme: $e');
-    }
-  }
   Future<void> _saveHabits() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -1547,12 +1552,42 @@ class AppProvider extends ChangeNotifier {
         syncCareerRoadmapFromCloud(),
         syncJournalEntriesFromCloud(),
         syncUserProfileFromCloud(),
+        syncReferralsFromCloud(),
       ]);
     } catch (e) {
       debugPrint('[AppProvider] Error during syncAllDataFromCloud: $e');
     } finally {
       _isSyncing = false;
       notifyListeners();
+    }
+  }
+
+  Future<void> syncReferralsFromCloud() async {
+    try {
+      final res = await ApiService.fetchReferralSummary();
+      if (res['success'] == true) {
+        if (res['referralCode'] != null && res['referralCode'].toString().isNotEmpty) {
+          _user.referralCode = res['referralCode'].toString();
+        }
+        _user.successfulReferrals = res['successfulReferrals'] ?? 0;
+        _user.pendingReferrals = res['pendingReferrals'] ?? 0;
+        _user.activeDiscountPercent = res['activeDiscountPercent'] ?? 0;
+
+        if (res['activities'] != null && res['activities'] is List) {
+          final List actList = res['activities'];
+          _referralActivities = actList
+              .map((a) => ReferralActivity.fromJson(Map<String, dynamic>.from(a)))
+              .toList();
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString(
+              'saved_referrals',
+              jsonEncode(_referralActivities.map((a) => a.toJson()).toList()));
+        }
+        _saveSession();
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('[AppProvider] Error syncing referrals: $e');
     }
   }
 

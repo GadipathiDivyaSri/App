@@ -244,14 +244,6 @@ class SubscriptionRegistry {
       AppFeature.calendar,
       AppFeature.habits,
       AppFeature.subjects,
-      AppFeature.goals,
-      AppFeature.priorityMatrix,
-      AppFeature.eisenhowerMatrix,
-      AppFeature.expenseTracker,
-      AppFeature.notes,
-      AppFeature.milestones,
-      AppFeature.careerRoadmap,
-      AppFeature.focusTimer,
     },
   );
 

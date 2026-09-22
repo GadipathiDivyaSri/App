@@ -37,8 +37,8 @@ class _CreateNewPasswordScreenState extends State<CreateNewPasswordScreen> {
     final newPass = _newPasswordCtrl.text;
     final confirmPass = _confirmPasswordCtrl.text;
 
-    if (newPass.length < 8) {
-      setState(() => _errorMessage = 'Password must be at least 8 characters long.');
+    if (newPass.length < 6) {
+      setState(() => _errorMessage = 'Password must be at least 6 characters long.');
       return;
     }
 
@@ -87,6 +87,8 @@ class _CreateNewPasswordScreenState extends State<CreateNewPasswordScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryColor = isDark ? AppTheme.darkPrimary : AppTheme.lightPrimary;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final horizontalPadding = screenWidth < 360 ? 16.0 : 28.0;
 
     return Scaffold(
       backgroundColor: isDark ? AppTheme.darkBackground : AppTheme.lightBackground,
@@ -103,7 +105,7 @@ class _CreateNewPasswordScreenState extends State<CreateNewPasswordScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 28.0, vertical: 12.0),
+          padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 12.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [

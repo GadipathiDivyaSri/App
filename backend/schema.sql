@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     is_email_verified BOOLEAN DEFAULT FALSE,
     is_2fa_enabled BOOLEAN DEFAULT FALSE,
     two_factor_secret VARCHAR(64),
+    password_hash TEXT,
     is_premium BOOLEAN DEFAULT FALSE,
     subscription_plan VARCHAR(30) DEFAULT 'FREE',
     focus_score INT DEFAULT 0,
@@ -428,7 +429,13 @@ BEGIN
     CREATE POLICY coupons_read_policy ON public.coupons
         FOR SELECT USING (true);
 
-    -- 4. User Data Isolation for all user tables
+    -- 4. Referrals Table RLS
+    DROP POLICY IF EXISTS referrals_user_isolation_policy ON public.referrals;
+    CREATE POLICY referrals_user_isolation_policy ON public.referrals
+        FOR ALL USING (auth.uid() = referrer_user_id OR auth.uid() = referred_user_id OR auth.role() = 'service_role')
+        WITH CHECK (auth.uid() = referrer_user_id OR auth.uid() = referred_user_id OR auth.role() = 'service_role');
+
+    -- 5. User Data Isolation for all user tables
     FOREACH tbl IN ARRAY user_tables LOOP
         EXECUTE format('DROP POLICY IF EXISTS %I_user_isolation_policy ON public.%I', tbl, tbl);
         EXECUTE format(
