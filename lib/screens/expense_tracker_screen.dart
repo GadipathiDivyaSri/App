@@ -5,10 +5,7 @@ import '../config/subscription_config.dart';
 import '../providers/app_provider.dart';
 import '../models/models.dart';
 import '../theme/app_theme.dart';
-import '../widgets/pro_feature_guard.dart';
 import '../widgets/pro_upgrade_dialog.dart';
-import '../widgets/premium_lock_banner.dart';
-import '../widgets/upgrade_pro_modal.dart';
 import 'add_expense_screen.dart';
 
 /// Expense Tracker Screen for WrindhaOS
@@ -84,68 +81,6 @@ class _ExpenseTrackerScreenState extends State<ExpenseTrackerScreen> {
     }
   }
 
-  void _showEditBudgetDialog(BuildContext context, AppProvider provider) {
-    if (!provider.user.isPremium) {
-      ProUpgradeDialog.showFeatureLockedDialog(context, AppFeature.expenseTracker);
-      return;
-    }
-    final controller = TextEditingController(
-      text: provider.monthlyBudget.toStringAsFixed(0),
-    );
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    showDialog(
-      context: context,
-      builder: (ctx) {
-        return AlertDialog(
-          backgroundColor: isDark ? AppTheme.darkCardBg : AppTheme.cardSurface,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: Text(
-            'Edit Monthly Budget',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white : AppTheme.textPrimary,
-            ),
-          ),
-          content: TextField(
-            controller: controller,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(
-              labelText: 'Monthly Budget Amount (₹)',
-              border: OutlineInputBorder(),
-              prefixText: '₹ ',
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: Text('Cancel', style: TextStyle(color: isDark ? Colors.white60 : AppTheme.textSecondary)),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: isDark ? AppTheme.darkPrimary : AppTheme.primaryAccent,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              onPressed: () {
-                final newAmount = double.tryParse(controller.text.trim());
-                if (newAmount != null && newAmount > 0) {
-                  provider.editMonthlyBudget(newAmount);
-                  Navigator.pop(ctx);
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Please enter a valid positive budget amount.')),
-                  );
-                }
-              },
-              child: const Text('Save'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   void _confirmDeleteExpense(BuildContext context, AppProvider provider, ExpenseTransaction exp) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     showDialog(
@@ -200,8 +135,6 @@ class _ExpenseTrackerScreenState extends State<ExpenseTrackerScreen> {
 
     final filteredExpenses = _filterExpensesForPeriod(provider.expenses);
     final totalSpent = filteredExpenses.where((e) => !e.isIncome).fold(0.0, (sum, e) => sum + e.amount);
-    final totalIncome = filteredExpenses.where((e) => e.isIncome).fold(0.0, (sum, e) => sum + e.amount);
-    final availableBalance = (provider.monthlyBudget + totalIncome) - totalSpent;
 
     final Map<String, double> categoryBreakdown = {};
     for (var exp in filteredExpenses.where((e) => !e.isIncome)) {
@@ -349,9 +282,9 @@ class _ExpenseTrackerScreenState extends State<ExpenseTrackerScreen> {
             ),
             const SizedBox(height: 18),
 
-            // 3. Prominent Net Available Balance & Financial Summary Card
+            // 3. Prominent Total Expenses Summary Card
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(22),
               decoration: BoxDecoration(
                 color: isDark ? AppTheme.darkCardBg : const Color(0xFFFFFBEB),
                 borderRadius: BorderRadius.circular(22),
@@ -365,98 +298,50 @@ class _ExpenseTrackerScreenState extends State<ExpenseTrackerScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        children: [
-                          Text(
-                            'NET AVAILABLE BALANCE',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1.2,
-                              color: isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          InkWell(
-                            onTap: () => _showEditBudgetDialog(context, provider),
-                            child: Icon(
-                              Icons.edit_outlined,
-                              size: 16,
-                              color: isDark ? AppTheme.darkIconGlow : AppTheme.primaryAccent,
-                            ),
-                          ),
-                        ],
+                      Text(
+                        _selectedView == 'MONTH' ? 'TOTAL MONTHLY EXPENSES' : 'TOTAL WEEKLY EXPENSES',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.2,
+                          color: isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary,
+                        ),
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: (availableBalance >= 0 ? const Color(0xFF10B981) : Colors.redAccent).withOpacity(0.15),
+                          color: Colors.redAccent.withOpacity(0.12),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          availableBalance >= 0 ? 'In Budget' : 'Over Budget',
-                          style: TextStyle(
+                          '${filteredExpenses.where((e) => !e.isIncome).length} ${filteredExpenses.where((e) => !e.isIncome).length == 1 ? 'Expense' : 'Expenses'}',
+                          style: const TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
-                            color: availableBalance >= 0 ? const Color(0xFF10B981) : Colors.redAccent,
+                            color: Colors.redAccent,
                           ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 10),
                   Text(
-                    '₹${availableBalance.toStringAsFixed(2)}',
+                    '₹${totalSpent.toStringAsFixed(2)}',
                     style: TextStyle(
-                      fontSize: 32,
+                      fontSize: 34,
                       fontWeight: FontWeight.w900,
-                      color: availableBalance >= 0 ? (isDark ? Colors.white : const Color(0xFF0F172A)) : Colors.redAccent,
+                      color: isDark ? Colors.white : const Color(0xFF0F172A),
                       letterSpacing: -0.5,
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  Divider(height: 1, color: isDark ? Colors.white12 : Colors.black12),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 12),
                   Row(
                     children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Total Income', style: TextStyle(fontSize: 11, color: textSecondary, fontWeight: FontWeight.w600)),
-                            const SizedBox(height: 2),
-                            Text(
-                              '+₹${totalIncome.toStringAsFixed(2)}',
-                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF10B981)),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Total Spent', style: TextStyle(fontSize: 11, color: textSecondary, fontWeight: FontWeight.w600)),
-                            const SizedBox(height: 2),
-                            Text(
-                              '-₹${totalSpent.toStringAsFixed(2)}',
-                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.redAccent),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Monthly Budget', style: TextStyle(fontSize: 11, color: textSecondary, fontWeight: FontWeight.w600)),
-                            const SizedBox(height: 2),
-                            Text(
-                              '₹${provider.monthlyBudget.toStringAsFixed(0)}',
-                              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: textPrimary),
-                            ),
-                          ],
-                        ),
+                      Icon(Icons.calendar_today_rounded, size: 14, color: textSecondary),
+                      const SizedBox(width: 6),
+                      Text(
+                        _getPeriodLabel(),
+                        style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: textSecondary),
                       ),
                     ],
                   ),
