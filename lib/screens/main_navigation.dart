@@ -60,7 +60,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 index: 0,
                 icon: Icons.menu_rounded,
                 activeIcon: Icons.menu_rounded,
-                label: 'Menu',
+                label: 'To Do',
                 isDark: isDark,
               ),
               // Center Tab: Home (Floating round button)

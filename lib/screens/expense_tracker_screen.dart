@@ -53,6 +53,21 @@ class _ExpenseTrackerScreenState extends State<ExpenseTrackerScreen> {
     });
   }
 
+  Future<void> _pickCustomPeriodDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _currentPeriodDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+      helpText: _selectedView == 'MONTH' ? 'SELECT MONTH TO VIEW' : 'SELECT WEEK TO VIEW',
+    );
+    if (picked != null) {
+      setState(() {
+        _currentPeriodDate = picked;
+      });
+    }
+  }
+
   String _getPeriodLabel() {
     if (_selectedView == 'MONTH') {
       return DateFormat('MMMM yyyy').format(_currentPeriodDate);
@@ -249,26 +264,43 @@ class _ExpenseTrackerScreenState extends State<ExpenseTrackerScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  IconButton(
-                    icon: Icon(Icons.chevron_left_rounded, color: textPrimary),
-                    onPressed: _goToPreviousPeriod,
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: Icon(Icons.chevron_left_rounded, color: textPrimary),
+                        onPressed: _goToPreviousPeriod,
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.calendar_month_rounded, color: primaryColor, size: 20),
+                        onPressed: _pickCustomPeriodDate,
+                        tooltip: 'Select Week or Month',
+                      ),
+                    ],
                   ),
                   GestureDetector(
-                    onTap: _resetToCurrent,
+                    onTap: _pickCustomPeriodDate,
+                    onLongPress: _resetToCurrent,
                     child: Column(
                       children: [
-                        Text(
-                          _getPeriodLabel(),
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w800,
-                            color: textPrimary,
-                          ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              _getPeriodLabel(),
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w800,
+                                color: textPrimary,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Icon(Icons.arrow_drop_down_rounded, color: textSecondary, size: 20),
+                          ],
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'Tap to return to today',
-                          style: TextStyle(fontSize: 11, color: primaryColor, fontWeight: FontWeight.w500),
+                          'Tap to change date • Hold for Today',
+                          style: TextStyle(fontSize: 10.5, color: primaryColor, fontWeight: FontWeight.w500),
                         ),
                       ],
                     ),

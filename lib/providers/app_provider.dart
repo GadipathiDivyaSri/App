@@ -211,6 +211,7 @@ class AppProvider extends ChangeNotifier {
   void addHabit(Habit habit) {
     _habits.add(habit);
     _saveHabits();
+    _recalculateMetrics();
     notifyListeners();
     ApiService.createHabitOnBackend(habit);
   }
@@ -279,6 +280,7 @@ class AppProvider extends ChangeNotifier {
 
       habit.recalculateStreaks(DateTime.now());
       _saveHabits();
+      _recalculateMetrics();
       notifyListeners();
 
       ApiService.toggleHabitCompletionOnBackend(
@@ -292,6 +294,7 @@ class AppProvider extends ChangeNotifier {
   void deleteHabit(String id) {
     _habits.removeWhere((h) => h.id == id);
     _saveHabits();
+    _recalculateMetrics();
     notifyListeners();
     ApiService.deleteHabitOnBackend(id);
   }
@@ -1381,15 +1384,35 @@ class AppProvider extends ChangeNotifier {
   }
 
   void _recalculateMetrics() {
-    if (_tasks.isEmpty) {
-      _user.focusScore = 0;
+    // 1. Calculate Active Streak STRICTLY from Habits (independent of Tasks)
+    if (_habits.isEmpty) {
       _user.activeStreak = 0;
-      return;
+    } else {
+      _user.activeStreak = _habits.fold<int>(
+        0,
+        (maxStreak, h) => h.streakDay > maxStreak ? h.streakDay : maxStreak,
+      );
     }
-    final completed = _tasks.where((t) => t.isCompleted).length;
-    final total = _tasks.length;
-    _user.focusScore = ((completed / total) * 100).round();
-    _user.activeStreak = completed;
+
+    // 2. Calculate Focus Score based on Task completion & Habit consistency
+    final taskTotal = _tasks.length;
+    final taskCompleted = _tasks.where((t) => t.isCompleted).length;
+    final taskRatio = taskTotal > 0 ? (taskCompleted / taskTotal) : 0.0;
+
+    final habitTotal = _habits.length;
+    final habitCompleted = _habits.where((h) => h.isCompleted).length;
+    final habitRatio = habitTotal > 0 ? (habitCompleted / habitTotal) : 0.0;
+
+    if (taskTotal == 0 && habitTotal == 0) {
+      _user.focusScore = 0;
+    } else if (habitTotal == 0) {
+      _user.focusScore = (taskRatio * 100).round();
+    } else if (taskTotal == 0) {
+      _user.focusScore = (habitRatio * 100).round();
+    } else {
+      _user.focusScore = ((taskRatio * 0.6 + habitRatio * 0.4) * 100).round();
+    }
+
     if (_isLoggedIn) {
       ApiService.updateUserProfileOnBackend({
         'focus_score': _user.focusScore,
