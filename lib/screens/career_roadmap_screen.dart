@@ -6,6 +6,7 @@ import '../providers/app_provider.dart';
 import '../widgets/pro_feature_guard.dart';
 import '../widgets/pro_upgrade_dialog.dart';
 import '../theme/app_theme.dart';
+import 'goal_pyramid_screen.dart';
 
 /// Serpentine S-Curve Career Roadmap Screen matching exact user UI & interactions
 class CareerRoadmapScreen extends StatefulWidget {
@@ -57,6 +58,27 @@ class _CareerRoadmapScreenState extends State<CareerRoadmapScreen> {
               fontWeight: FontWeight.w800,
             ),
           ),
+          actions: [
+            IconButton(
+              tooltip: 'Goal Pyramid',
+              icon: const Icon(Icons.military_tech_outlined, color: Color(0xFF0D5CE5)),
+              onPressed: () {
+                if (!provider.hasAccess(AppFeature.goals)) {
+                  ProUpgradeDialog.showFeatureLockedDialog(
+                    context,
+                    AppFeature.goals,
+                  );
+                } else {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const GoalPyramidScreen(),
+                    ),
+                  );
+                }
+              },
+            ),
+          ],
         ),
         floatingActionButton: FloatingActionButton(
           heroTag: 'add_milestone_fab',
