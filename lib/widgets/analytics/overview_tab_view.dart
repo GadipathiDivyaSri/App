@@ -155,7 +155,7 @@ class OverviewTabView extends StatelessWidget {
                 child: AnalyticsMetricCard(
                   title: 'Total Expenses',
                   value: '₹${data.totalExpenses.toStringAsFixed(0)}',
-                  subtitle: data.remainingBudget > 0 ? '₹${data.remainingBudget.toStringAsFixed(0)} left' : 'No budget set',
+                  subtitle: 'Recorded spending',
                   icon: Icons.account_balance_wallet_rounded,
                   iconColor: const Color(0xFF10B981),
                 ),

@@ -54,10 +54,10 @@ class ExpensesTabView extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: AnalyticsMetricCard(
-                title: 'Budget Remaining',
-                value: data.monthlyBudget > 0 ? '₹${data.remainingBudget.toStringAsFixed(0)}' : 'No Budget',
-                subtitle: data.monthlyBudget > 0 ? '${(data.budgetUtilization * 100).round()}% utilized' : 'Set in Finance',
-                icon: Icons.savings_rounded,
+                title: 'Logged Transactions',
+                value: '${data.categoryBreakdown.length} Categories',
+                subtitle: 'Active expense ledger',
+                icon: Icons.receipt_long_rounded,
                 iconColor: const Color(0xFF10B981),
               ),
             ),

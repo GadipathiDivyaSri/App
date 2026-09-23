@@ -377,14 +377,31 @@ class AppProvider extends ChangeNotifier {
   }
 
   void _updateSubjectProgress(String subjectId) {
-    final items = _studyItems.where((i) => i.subjectId == subjectId).toList();
-    final subIdx = _subjects.indexWhere((s) => s.id == subjectId);
+    final subIdx = _subjects.indexWhere((s) => s.id == subjectId || s.id.toLowerCase() == subjectId.toLowerCase());
     if (subIdx != -1) {
-      if (items.isEmpty) {
-        _subjects[subIdx].progress = 0.0;
+      final sId = _subjects[subIdx].id;
+      final units = _studyUnits.where((u) => u.subjectId == sId || u.subjectId.toLowerCase() == sId.toLowerCase()).toList();
+
+      if (units.isNotEmpty) {
+        final allTopics = _studyTopics.where((t) {
+          return units.any((u) => u.id == t.unitId || u.id.toLowerCase() == t.unitId.toLowerCase());
+        }).toList();
+
+        if (allTopics.isNotEmpty) {
+          final completedTopics = allTopics.where((t) => t.isCompleted).length;
+          _subjects[subIdx].progress = completedTopics / allTopics.length;
+        } else {
+          final totalProg = units.fold<double>(0.0, (sum, u) => sum + u.progress);
+          _subjects[subIdx].progress = totalProg / units.length;
+        }
       } else {
-        final completed = items.where((i) => i.isCompleted).length;
-        _subjects[subIdx].progress = completed / items.length;
+        final items = _studyItems.where((i) => i.subjectId == sId).toList();
+        if (items.isEmpty) {
+          _subjects[subIdx].progress = 0.0;
+        } else {
+          final completed = items.where((i) => i.isCompleted).length;
+          _subjects[subIdx].progress = completed / items.length;
+        }
       }
       _saveSubjects();
     }
@@ -500,6 +517,7 @@ class AppProvider extends ChangeNotifier {
         _studyUnits[unitIdx].isCompleted = completed == topics.length;
       }
       _saveStudyUnits();
+      _updateSubjectProgress(_studyUnits[unitIdx].subjectId);
     }
   }
 

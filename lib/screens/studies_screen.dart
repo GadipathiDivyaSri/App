@@ -517,7 +517,7 @@ class _StudiesScreenState extends State<StudiesScreen> {
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
-                                    '${item.subjectName} • Due ${DateFormat('MMM d').format(item.dueDate)}',
+                                    '${item.subjectName} • Due ${DateFormat('MMM d, h:mm a').format(item.dueDate)}',
                                     style: TextStyle(
                                       fontSize: 11,
                                       color: isOverdue ? Colors.redAccent : (isDueSoon ? const Color(0xFFF59E0B) : textSecondary),
@@ -634,6 +634,57 @@ class _StudiesScreenState extends State<StudiesScreen> {
                 onChanged: (val) {
                   if (val != null) setDlgState(() => type = val);
                 },
+              ),
+              const SizedBox(height: 12),
+              // Due Date & Time Picker Selector
+              InkWell(
+                onTap: () async {
+                  final pickedDate = await showDatePicker(
+                    context: context,
+                    initialDate: dueDate,
+                    firstDate: DateTime.now().subtract(const Duration(days: 30)),
+                    lastDate: DateTime.now().add(const Duration(days: 365)),
+                  );
+                  if (pickedDate != null) {
+                    if (!context.mounted) return;
+                    final pickedTime = await showTimePicker(
+                      context: context,
+                      initialTime: TimeOfDay.fromDateTime(dueDate),
+                    );
+                    setDlgState(() {
+                      dueDate = DateTime(
+                        pickedDate.year,
+                        pickedDate.month,
+                        pickedDate.day,
+                        pickedTime?.hour ?? dueDate.hour,
+                        pickedTime?.minute ?? dueDate.minute,
+                      );
+                    });
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey.shade400),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.event_available_rounded, size: 20, color: Color(0xFF0D5CE5)),
+                          const SizedBox(width: 8),
+                          Text(
+                            DateFormat('MMM d, yyyy • h:mm a').format(dueDate),
+                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                          ),
+                        ],
+                      ),
+                      const Icon(Icons.arrow_drop_down_rounded),
+                    ],
+                  ),
+                ),
               ),
             ],
           ),
