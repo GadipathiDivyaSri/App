@@ -17,6 +17,8 @@ class CareerRoadmapScreen extends StatefulWidget {
 }
 
 class _CareerRoadmapScreenState extends State<CareerRoadmapScreen> {
+  String _activeSubModule = 'ROADMAP'; // 'ROADMAP' or 'GOALS'
+
   @override
   void initState() {
     super.initState();
@@ -40,6 +42,30 @@ class _CareerRoadmapScreenState extends State<CareerRoadmapScreen> {
     final nodes = provider.careerRoadmap;
     final completedCount = nodes.where((n) => n.isCompleted).length;
 
+    if (_activeSubModule == 'GOALS') {
+      return Scaffold(
+        backgroundColor: isDark ? bgDark : bgLight,
+        appBar: AppBar(
+          backgroundColor: isDark ? bgDark : bgLight,
+          elevation: 0,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: textDark),
+            onPressed: () => Navigator.pop(context),
+          ),
+          title: Text(
+            'Career & Strategic Goals',
+            style: TextStyle(color: textDark, fontSize: 18, fontWeight: FontWeight.w800),
+          ),
+        ),
+        body: Column(
+          children: [
+            _buildSubModuleSwitcher(context, isDark),
+            const Expanded(child: GoalPyramidScreen()),
+          ],
+        ),
+      );
+    }
+
     return Scaffold(
         backgroundColor: isDark ? bgDark : bgLight,
         appBar: AppBar(
@@ -58,27 +84,6 @@ class _CareerRoadmapScreenState extends State<CareerRoadmapScreen> {
               fontWeight: FontWeight.w800,
             ),
           ),
-          actions: [
-            IconButton(
-              tooltip: 'Goal Pyramid',
-              icon: const Icon(Icons.military_tech_outlined, color: Color(0xFF0D5CE5)),
-              onPressed: () {
-                if (!provider.hasAccess(AppFeature.goals)) {
-                  ProUpgradeDialog.showFeatureLockedDialog(
-                    context,
-                    AppFeature.goals,
-                  );
-                } else {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const GoalPyramidScreen(),
-                    ),
-                  );
-                }
-              },
-            ),
-          ],
         ),
         floatingActionButton: FloatingActionButton(
           heroTag: 'add_milestone_fab',
@@ -89,6 +94,7 @@ class _CareerRoadmapScreenState extends State<CareerRoadmapScreen> {
         ),
         body: Column(
           children: [
+            _buildSubModuleSwitcher(context, isDark),
             const SizedBox(height: 8),
             // Top Badge Pill: "Roadmap Milestones"
             Center(
@@ -642,6 +648,113 @@ class _CareerRoadmapScreenState extends State<CareerRoadmapScreen> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildSubModuleSwitcher(BuildContext context, bool isDark) {
+    final provider = Provider.of<AppProvider>(context);
+    final cardBg = isDark ? const Color(0xFF1E2433) : const Color(0xFFF1F5F9);
+    final selectedColor = const Color(0xFF0D5CE5);
+    final textSecondary = isDark ? Colors.white60 : const Color(0xFF64748B);
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: isDark ? AppTheme.darkCardBorder : AppTheme.borderLight),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: GestureDetector(
+              onTap: () => setState(() => _activeSubModule = 'ROADMAP'),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: _activeSubModule == 'ROADMAP'
+                      ? (isDark ? AppTheme.darkCardBg : Colors.white)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: _activeSubModule == 'ROADMAP'
+                      ? [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 6, offset: const Offset(0, 2))]
+                      : null,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.alt_route_rounded,
+                      size: 16,
+                      color: _activeSubModule == 'ROADMAP' ? selectedColor : textSecondary,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Career Roadmap',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: _activeSubModule == 'ROADMAP' ? FontWeight.w800 : FontWeight.w600,
+                        color: _activeSubModule == 'ROADMAP'
+                            ? (isDark ? Colors.white : selectedColor)
+                            : textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                if (!provider.hasAccess(AppFeature.goals)) {
+                  ProUpgradeDialog.showFeatureLockedDialog(context, AppFeature.goals);
+                } else {
+                  setState(() => _activeSubModule = 'GOALS');
+                }
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: _activeSubModule == 'GOALS'
+                      ? (isDark ? AppTheme.darkCardBg : Colors.white)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: _activeSubModule == 'GOALS'
+                      ? [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 6, offset: const Offset(0, 2))]
+                      : null,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.military_tech_outlined,
+                      size: 16,
+                      color: _activeSubModule == 'GOALS' ? selectedColor : textSecondary,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Goal Pyramid',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: _activeSubModule == 'GOALS' ? FontWeight.w800 : FontWeight.w600,
+                        color: _activeSubModule == 'GOALS'
+                            ? (isDark ? Colors.white : selectedColor)
+                            : textSecondary,
+                      ),
+                    ),
+                    if (!provider.hasAccess(AppFeature.goals)) ...[
+                      const SizedBox(width: 4),
+                      const Icon(Icons.lock_rounded, size: 12, color: Colors.amber),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

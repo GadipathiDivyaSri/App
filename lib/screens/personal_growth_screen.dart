@@ -8,7 +8,6 @@ import '../widgets/upgrade_pro_modal.dart';
 import '../theme/app_theme.dart';
 import 'habit_tracker_screen.dart';
 import 'expense_tracker_screen.dart';
-import 'goal_pyramid_screen.dart';
 
 import 'organize_matrix_screen.dart';
 import 'notes_screen.dart';
@@ -138,26 +137,7 @@ class PersonalGrowthScreen extends StatelessWidget {
                 );
               },
             ),
-            // 3. Goal Pyramid Management (Pro Only)
-            _buildMenuCard(
-              context,
-              category: 'STRATEGIC VISION',
-              title: 'Goal Pyramid Management',
-              icon: Icons.military_tech_outlined,
-              isDark: isDark,
-              isLocked: !provider.hasAccess(AppFeature.goals),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const GoalPyramidScreen(),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 14),
-
-            // 4. Organize Matrix (Pro Only)
+            // 3. Organize Matrix (Pro Only)
             _buildMenuCard(
               context,
               category: 'ORGANIZATION',

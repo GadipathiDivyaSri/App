@@ -12,7 +12,6 @@ import 'studies_screen.dart';
 import 'calendar_screen.dart';
 import 'priority_matrix_screen.dart';
 import 'analytics_screen.dart';
-import 'goal_pyramid_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   final Function(int) onTabChange;
@@ -185,33 +184,6 @@ class HomeScreen extends StatelessWidget {
                             context,
                             MaterialPageRoute(
                               builder: (_) => const AnalyticsScreen(),
-                            ),
-                          );
-                        }
-                      },
-                    ),
-
-                    // 7. Goal Pyramid (PRO ONLY: AppFeature.goals)
-                    _buildModuleCard(
-                      context,
-                      isDark: isDark,
-                      icon: Icons.military_tech_outlined,
-                      title: 'Goal Pyramid',
-                      subtitle: 'Hierarchy & Vision',
-                      lightCardBg: const Color(0xFFEFF6FF),
-                      lightIconContainerColor: const Color(0xFF3B82F6),
-                      isLocked: !provider.hasAccess(AppFeature.goals),
-                      onTap: () {
-                        if (!provider.hasAccess(AppFeature.goals)) {
-                          ProUpgradeDialog.showFeatureLockedDialog(
-                            context,
-                            AppFeature.goals,
-                          );
-                        } else {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const GoalPyramidScreen(),
                             ),
                           );
                         }

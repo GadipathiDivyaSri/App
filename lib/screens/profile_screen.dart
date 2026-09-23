@@ -80,27 +80,12 @@ class ProfileScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
-            // Stat Cards (Focus Score & Active Streak)
-            Row(
-              children: [
-                Expanded(
-                  child: _buildStatCard(
-                    context,
-                    title: 'FOCUS SCORE',
-                    value: '${user.focusScore}',
-                    valueColor: isDark ? AppTheme.darkIconGlow : AppTheme.primaryAccent,
-                  ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: _buildStatCard(
-                    context,
-                    title: 'ACTIVE STREAK',
-                    value: '${user.activeStreak} Days',
-                    valueColor: isDark ? Colors.white : AppTheme.textPrimary,
-                  ),
-                ),
-              ],
+            // Stat Card (Focus Score)
+            _buildStatCard(
+              context,
+              title: 'FOCUS SCORE',
+              value: '${user.focusScore}',
+              valueColor: isDark ? AppTheme.darkIconGlow : AppTheme.primaryAccent,
             ),
             const SizedBox(height: 24),
 

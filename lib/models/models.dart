@@ -509,7 +509,7 @@ class JournalEntry {
       };
 
   factory JournalEntry.fromJson(Map<String, dynamic> json) {
-    final rawDate = json['entry_date'] ?? json['date'] ?? json['created_at'];
+    final rawDate = json['created_at'] ?? json['date'] ?? json['entry_date'];
     DateTime parsedDate = DateTime.now();
     if (rawDate != null) {
       parsedDate = DateTime.tryParse(rawDate.toString()) ?? DateTime.now();

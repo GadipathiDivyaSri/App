@@ -787,35 +787,42 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                       ],
                     ),
                     const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        const Icon(Icons.access_alarm_rounded, size: 14, color: Color(0xFF6366F1)),
-                        const SizedBox(width: 5),
-                        Text(
-                          'Deadline: $dateLabel at $timeStr',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: isDark ? Colors.white70 : const Color(0xFF475569),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: urgencyColor.withOpacity(0.12),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            urgencyBadge,
-                            style: TextStyle(
-                              fontSize: 9.5,
-                              fontWeight: FontWeight.bold,
-                              color: urgencyColor,
+                    InkWell(
+                      onTap: () => _showEditTaskDialog(context, task, priorityLevel),
+                      borderRadius: BorderRadius.circular(8),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 2.0),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.access_alarm_rounded, size: 14, color: Color(0xFF6366F1)),
+                            const SizedBox(width: 5),
+                            Text(
+                              'Deadline: $dateLabel at $timeStr',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: isDark ? Colors.white70 : const Color(0xFF475569),
+                              ),
                             ),
-                          ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: urgencyColor.withOpacity(0.12),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                urgencyBadge,
+                                style: TextStyle(
+                                  fontSize: 9.5,
+                                  fontWeight: FontWeight.bold,
+                                  color: urgencyColor,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Row(
@@ -849,6 +856,33 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                               fontSize: 10,
                               fontWeight: FontWeight.w800,
                               color: Color(0xFF64748B),
+                            ),
+                          ),
+                        ),
+                        const Spacer(),
+                        InkWell(
+                          onTap: () => _showEditTaskDialog(context, task, priorityLevel),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: isDark ? const Color(0xFF2A2B3D) : const Color(0xFFEEF2FF),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: const Color(0xFFC7D2FE)),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.edit_calendar_outlined, size: 13, color: Color(0xFF0D5CE5)),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Reschedule',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF0D5CE5),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),

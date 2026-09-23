@@ -25,6 +25,7 @@ class HabitTrackerScreen extends StatefulWidget {
 
 class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
   DateTime _weekStartDate = DateTime.now().subtract(Duration(days: (DateTime.now().weekday - 1)));
+  String _habitFilter = 'ACTIVE'; // 'ACTIVE' or 'PAUSED'
 
   String _getHabitEmoji(Habit habit) {
     final titleLower = habit.title.toLowerCase();
@@ -378,6 +379,10 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
     required Color cardBg,
     required Color cardBorder,
   }) {
+    final pausedHabits = provider.habits.where((h) => h.status == 'paused').toList();
+    final activeScheduled = scheduledHabits.where((h) => h.status != 'paused').toList();
+    final displayHabits = _habitFilter == 'PAUSED' ? pausedHabits : scheduledHabits;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -395,14 +400,46 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                   color: textSecondary,
                 ),
               ),
-              Text(
-                '${scheduledHabits.length} ACTIVE',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.8,
-                  color: primaryColor,
-                ),
+              Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => setState(() => _habitFilter = 'ACTIVE'),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: _habitFilter == 'ACTIVE' ? primaryColor : (isDark ? const Color(0xFF242321) : const Color(0xFFF1F5F9)),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        'ACTIVE (${activeScheduled.length})',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          color: _habitFilter == 'ACTIVE' ? Colors.white : textSecondary,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: () => setState(() => _habitFilter = 'PAUSED'),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: _habitFilter == 'PAUSED' ? Colors.amber.shade800 : (isDark ? const Color(0xFF242321) : const Color(0xFFF1F5F9)),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        'PAUSED (${pausedHabits.length})',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          color: _habitFilter == 'PAUSED' ? Colors.white : textSecondary,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -432,7 +469,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
               ),
             ),
           )
-        else if (scheduledHabits.isEmpty)
+        else if (displayHabits.isEmpty)
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(24),
@@ -443,7 +480,9 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
             ),
             child: Center(
               child: Text(
-                'No habits scheduled for this day.\nEnjoy your rest or pick another date!',
+                _habitFilter == 'PAUSED'
+                    ? 'No paused habits.\nAll your habits are active!'
+                    : 'No habits scheduled for this day.\nEnjoy your rest or pick another date!',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: textSecondary, height: 1.4, fontSize: 13.5),
               ),
@@ -451,7 +490,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
           )
         else
           Column(
-            children: scheduledHabits.map((habit) {
+            children: displayHabits.map((habit) {
               final isDone = habit.isCompletedOnDate(selectedDateStr);
               final isPaused = habit.status == 'paused';
               final emoji = _getHabitEmoji(habit);
@@ -482,8 +521,9 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                     borderRadius: BorderRadius.circular(16),
                     onTap: isPaused
                         ? () {
+                            provider.resumeHabit(habit.id);
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Resume this habit to mark it complete.')),
+                              SnackBar(content: Text('"${cleanTitle}" resumed successfully!')),
                             );
                           }
                         : () => provider.toggleHabit(habit.id, targetDate: selectedDate),
@@ -517,7 +557,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                           Text(emoji, style: const TextStyle(fontSize: 20)),
                           const SizedBox(width: 10),
 
-                          // Title
+                          // Title & Resume Button
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -534,11 +574,34 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                                   ),
                                 ),
                                 if (isPaused)
-                                  const Padding(
-                                    padding: EdgeInsets.only(top: 2.0),
-                                    child: Text(
-                                      'PAUSED',
-                                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.amber),
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 4.0),
+                                    child: InkWell(
+                                      onTap: () {
+                                        provider.resumeHabit(habit.id);
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text('"${cleanTitle}" resumed successfully!')),
+                                        );
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                        decoration: BoxDecoration(
+                                          color: Colors.green.withOpacity(0.15),
+                                          borderRadius: BorderRadius.circular(6),
+                                          border: Border.all(color: Colors.green.withOpacity(0.4)),
+                                        ),
+                                        child: const Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(Icons.play_arrow_rounded, size: 14, color: Colors.green),
+                                            SizedBox(width: 3),
+                                            Text(
+                                              'Resume Habit',
+                                              style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Colors.green),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
                                     ),
                                   ),
                               ],
