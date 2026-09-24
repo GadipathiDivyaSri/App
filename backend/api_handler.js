@@ -182,7 +182,7 @@ function verifyJwtToken(token) {
       .update(`${b64Header}.${b64Payload}`)
       .digest('base64url');
 
-    if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSig))) {
+    if (signature.length !== expectedSig.length || !crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSig))) {
       return null;
     }
 
@@ -192,6 +192,7 @@ function verifyJwtToken(token) {
     }
     return payload;
   } catch (err) {
+    console.error('[JWT VERIFY ERROR]:', err);
     return null;
   }
 }
@@ -459,7 +460,7 @@ async function handleApiRequest(req, res) {
   if (pathname === '/api/auth/register-verify' && method === 'POST') {
     const { email, otp, username } = body;
     const cleanEmail = (email || '').trim().toLowerCase();
-    const cleanOtp = (otp || '').trim();
+    const cleanOtp = String(otp || '').trim();
 
     if (!cleanEmail || !cleanOtp) {
       return sendJSON(res, 400, { success: false, message: 'Email and verification code are required.' });
@@ -645,7 +646,7 @@ async function handleApiRequest(req, res) {
   if (pathname === '/api/auth/login-verify' && method === 'POST') {
     const { email, identifier, otp } = body;
     const cleanEmail = (email || identifier || '').trim().toLowerCase();
-    const cleanOtp = (otp || '').trim();
+    const cleanOtp = String(otp || '').trim();
 
     if (!cleanEmail || !cleanOtp) {
       return sendJSON(res, 400, { success: false, message: 'Email and verification code are required.' });
