@@ -234,9 +234,40 @@ class DatabaseManager {
     return await dbQuery('profiles', { method: 'PATCH', match: { id: uid }, body: payload, single: true });
   }
 
+  static async isEmailTombstoned(email) {
+    if (!email) return false;
+    const cleanEmail = email.trim().toLowerCase();
+    try {
+      const tombstone = await dbQuery('deleted_account_tombstones', {
+        method: 'GET',
+        match: { email: cleanEmail },
+        single: true,
+      });
+      return !!tombstone;
+    } catch (e) {
+      return false;
+    }
+  }
+
   static async deleteUser(userId) {
     if (!userId) return false;
     const uid = ensureUuid(userId);
+    const user = await this.getUserById(uid);
+    if (user && user.email) {
+      const cleanEmail = user.email.trim().toLowerCase();
+      try {
+        await dbQuery('deleted_account_tombstones', {
+          method: 'POST',
+          body: {
+            id: ensureUuid(),
+            email: cleanEmail,
+            deleted_at: new Date().toISOString(),
+          },
+        });
+      } catch (tombErr) {
+        console.warn('[TOMBSTONE STORE NOTICE]:', tombErr.message);
+      }
+    }
     return await dbQuery('profiles', { method: 'DELETE', match: { id: uid } });
   }
 

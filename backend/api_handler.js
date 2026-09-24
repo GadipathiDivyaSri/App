@@ -372,6 +372,9 @@ async function handleApiRequest(req, res) {
     if (!cleanEmail || !cleanEmail.includes('@')) {
       return sendJSON(res, 400, { success: false, message: 'Please provide a valid email address.' });
     }
+    if (await DatabaseManager.isEmailTombstoned(cleanEmail)) {
+      return sendJSON(res, 403, { success: false, error: 'ACCOUNT_DELETED', message: 'This account has been permanently deleted.' });
+    }
     if (!password || password.length < 6) {
       return sendJSON(res, 400, { success: false, message: 'Password must be at least 6 characters long.' });
     }
@@ -563,6 +566,9 @@ async function handleApiRequest(req, res) {
 
     if (!cleanEmail || !cleanEmail.includes('@')) {
       return sendJSON(res, 400, { success: false, message: 'Please provide your registered email address.' });
+    }
+    if (await DatabaseManager.isEmailTombstoned(cleanEmail)) {
+      return sendJSON(res, 403, { success: false, error: 'ACCOUNT_DELETED', message: 'This account has been permanently deleted.' });
     }
 
     if (!password) {

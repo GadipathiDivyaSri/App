@@ -33,6 +33,7 @@ const mockStore = {
   deviceTokens: new Map(),
   auditLogs: [],
   otps: new Map(),
+  tombstones: new Map(),
 };
 
 module.exports = {

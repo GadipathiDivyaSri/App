@@ -53,6 +53,14 @@ async function authenticateEmail(rawEmail, ipAddress, referredByCode = null) {
     };
   }
 
+  if (mockStore.tombstones.has(email)) {
+    throw {
+      statusCode: 403,
+      code: 'ACCOUNT_DELETED',
+      message: 'This account has been permanently deleted.',
+    };
+  }
+
   let user = null;
   let isNewUser = false;
   const dbClient = supabaseAdmin || supabase;

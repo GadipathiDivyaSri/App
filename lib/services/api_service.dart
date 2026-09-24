@@ -122,8 +122,10 @@ class ApiService {
         }),
       );
       final data = jsonDecode(response.body);
-      if (data['success'] == true && data['token'] != null) {
-        await saveSession(data['token'], data['user']);
+      final token = data['token'] ?? data['data']?['token'];
+      final user = data['user'] ?? data['data']?['user'];
+      if (data['success'] == true && token != null) {
+        await saveSession(token.toString(), user is Map<String, dynamic> ? user : null);
       }
       return data;
     } catch (e) {
@@ -177,8 +179,10 @@ class ApiService {
         }),
       );
       final data = jsonDecode(response.body);
-      if (data['success'] == true && data['token'] != null) {
-        await saveSession(data['token'], data['user']);
+      final token = data['token'] ?? data['data']?['token'];
+      final user = data['user'] ?? data['data']?['user'];
+      if (data['success'] == true && token != null) {
+        await saveSession(token.toString(), user is Map<String, dynamic> ? user : null);
       }
       return data;
     } catch (e) {
@@ -382,8 +386,10 @@ class ApiService {
           )
           .timeout(const Duration(seconds: 10));
       final data = jsonDecode(response.body);
-      if (data['success'] == true && data['token'] != null) {
-        await saveSession(data['token'], data['user']);
+      final token = data['token'] ?? data['data']?['token'];
+      final user = data['user'] ?? data['data']?['user'];
+      if (data['success'] == true && token != null) {
+        await saveSession(token.toString(), user is Map<String, dynamic> ? user : null);
       }
       return data;
     } catch (e) {
@@ -435,8 +441,10 @@ class ApiService {
           )
           .timeout(const Duration(seconds: 10));
       final data = jsonDecode(response.body);
-      if (data['success'] == true && data['token'] != null) {
-        await saveSession(data['token'], data['user']);
+      final token = data['token'] ?? data['data']?['token'];
+      final user = data['user'] ?? data['data']?['user'];
+      if (data['success'] == true && token != null) {
+        await saveSession(token.toString(), user is Map<String, dynamic> ? user : null);
       }
       return data;
     } catch (e) {

@@ -24,6 +24,14 @@ async function updateUserProfile(userId, updates) {
 async function deleteUserAccount(userId, ipAddress) {
   const user = await getUserById(userId);
 
+  if (user && user.email) {
+    const cleanEmail = user.email.trim().toLowerCase();
+    mockStore.tombstones.set(cleanEmail, {
+      email: cleanEmail,
+      deleted_at: new Date().toISOString(),
+    });
+  }
+
   // Clean up user-owned data
   mockStore.users.delete(userId);
 
