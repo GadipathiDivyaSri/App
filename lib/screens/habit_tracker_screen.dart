@@ -681,6 +681,109 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
               );
             }).toList(),
           ),
+
+        // 5. PAUSED HABITS QUICK RESUME SECTION (WHEN IN ACTIVE FILTER MODE)
+        if (_habitFilter == 'ACTIVE' && pausedHabits.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.amber.withOpacity(isDark ? 0.12 : 0.06),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: Colors.amber.withOpacity(0.3)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.pause_circle_outline, size: 18, color: Colors.amber),
+                        const SizedBox(width: 8),
+                        Text(
+                          'PAUSED HABITS (${pausedHabits.length})',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.8,
+                            color: isDark ? Colors.amber.shade300 : Colors.amber.shade900,
+                          ),
+                        ),
+                      ],
+                    ),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      onPressed: () => setState(() => _habitFilter = 'PAUSED'),
+                      child: Text(
+                        'View All',
+                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: primaryColor),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                ...pausedHabits.map((pHabit) {
+                  final pTitle = _cleanHabitTitle(pHabit);
+                  final pEmoji = _getHabitEmoji(pHabit);
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: cardBg,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: cardBorder),
+                    ),
+                    child: Row(
+                      children: [
+                        Text(pEmoji, style: const TextStyle(fontSize: 18)),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            pTitle,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: textPrimary,
+                            ),
+                          ),
+                        ),
+                        ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          icon: const Icon(Icons.play_arrow_rounded, size: 16),
+                          label: const Text(
+                            'Resume',
+                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                          ),
+                          onPressed: () {
+                            provider.resumeHabit(pHabit.id);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('"$pTitle" resumed successfully!')),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+              ],
+            ),
+          ),
+        ],
       ],
     );
   }

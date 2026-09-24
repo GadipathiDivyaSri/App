@@ -503,6 +503,7 @@ class JournalEntry {
         'content': content,
         'content_ciphertext': content,
         'date': date.toIso8601String(),
+        'created_at': date.toIso8601String(),
         'entry_date': date.toIso8601String().split('T')[0],
         'mood': mood,
         'tags': tags,
@@ -512,7 +513,25 @@ class JournalEntry {
     final rawDate = json['created_at'] ?? json['date'] ?? json['entry_date'];
     DateTime parsedDate = DateTime.now();
     if (rawDate != null) {
-      parsedDate = DateTime.tryParse(rawDate.toString()) ?? DateTime.now();
+      final str = rawDate.toString();
+      if (!str.contains('T') && RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(str)) {
+        final alt = json['created_at'] ?? json['updated_at'];
+        if (alt != null && alt.toString().contains('T')) {
+          parsedDate = DateTime.tryParse(alt.toString())?.toLocal() ?? DateTime.now();
+        } else {
+          final d = DateTime.tryParse(str);
+          if (d != null) {
+            final now = DateTime.now();
+            if (d.year == now.year && d.month == now.month && d.day == now.day) {
+              parsedDate = DateTime(d.year, d.month, d.day, now.hour, now.minute, now.second);
+            } else {
+              parsedDate = DateTime(d.year, d.month, d.day, 12, 0);
+            }
+          }
+        }
+      } else {
+        parsedDate = DateTime.tryParse(str)?.toLocal() ?? DateTime.now();
+      }
     }
     final rawId = json['id']?.toString();
     final cleanId = (rawId != null && rawId.isNotEmpty && !rawId.startsWith('j_'))

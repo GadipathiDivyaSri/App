@@ -255,6 +255,7 @@ class AppProvider extends ChangeNotifier {
     final idx = _habits.indexWhere((h) => h.id == id);
     if (idx != -1) {
       _habits[idx].status = 'active';
+      _habits[idx].recalculateStreaks(DateTime.now());
       _saveHabits();
       notifyListeners();
       ApiService.updateHabitStatusOnBackend(id, 'active');
@@ -1254,12 +1255,15 @@ class AppProvider extends ChangeNotifier {
     ApiService.createTaskOnBackend(newTask);
   }
 
-  void editTask(String taskId, String newTitle, int priority, String category) {
+  void editTask(String taskId, String newTitle, int priority, String category, {DateTime? dueDate, String? dueTime, String? dueDateLabel}) {
     final index = _tasks.indexWhere((t) => t.id == taskId);
     if (index != -1) {
       _tasks[index].title = newTitle;
       _tasks[index].priority = priority;
       _tasks[index].category = category;
+      if (dueDate != null) _tasks[index].dueDate = dueDate;
+      if (dueTime != null) _tasks[index].dueTime = dueTime;
+      if (dueDateLabel != null) _tasks[index].dueDateLabel = dueDateLabel;
       _saveTasks();
       notifyListeners();
       ApiService.updateTaskOnBackend(_tasks[index]);

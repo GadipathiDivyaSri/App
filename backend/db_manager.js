@@ -980,22 +980,30 @@ class DatabaseManager {
     if ((!entries || entries.length === 0) && user && user.user_id && user.user_id !== uid) {
       entries = await dbQuery('journal_entries', { method: 'GET', match: { user_id: user.user_id } });
     }
-    return (entries || []).map(j => ({
-      ...j,
-      userId: j.user_id,
-      date: j.entry_date || j.date || j.created_at,
-      entry_date: j.entry_date || j.date || j.created_at,
-      content: j.content || j.content_ciphertext || '',
-      content_ciphertext: j.content_ciphertext || j.content || '',
-      mood: j.mood || 'neutral',
-      title: j.title || 'Journal Entry',
-    }));
+    return (entries || []).map(j => {
+      const fullDate = j.created_at || (j.date && j.date.includes('T') ? j.date : null) || (j.entry_date ? `${j.entry_date}T12:00:00.000Z` : new Date().toISOString());
+      return {
+        ...j,
+        userId: j.user_id,
+        date: fullDate,
+        created_at: fullDate,
+        entry_date: j.entry_date || fullDate.split('T')[0],
+        content: j.content || j.content_ciphertext || '',
+        content_ciphertext: j.content_ciphertext || j.content || '',
+        mood: j.mood || 'neutral',
+        title: j.title || 'Journal Entry',
+      };
+    });
   }
 
   static async createJournalEntry(userId, entryData) {
     if (!userId) throw new Error('userId is required');
     const user = await DatabaseManager.getUserById(userId);
     const uid = user ? user.id : ensureUuid(userId);
+
+    const fullDate = (entryData.created_at && entryData.created_at.includes('T'))
+      ? entryData.created_at
+      : ((entryData.date && entryData.date.includes('T')) ? entryData.date : new Date().toISOString());
 
     const newEntry = {
       id: ensureUuid(entryData.id),
@@ -1004,8 +1012,8 @@ class DatabaseManager {
       content: entryData.content || entryData.content_ciphertext || '',
       content_ciphertext: entryData.content_ciphertext || entryData.content || '',
       mood: entryData.mood || 'neutral',
-      entry_date: entryData.entry_date || entryData.date || new Date().toISOString().split('T')[0],
-      created_at: new Date().toISOString(),
+      entry_date: fullDate.split('T')[0],
+      created_at: fullDate,
       updated_at: new Date().toISOString(),
     };
 
@@ -1013,7 +1021,8 @@ class DatabaseManager {
     return {
       ...(created || newEntry),
       userId: uid,
-      date: (created || newEntry).entry_date,
+      date: fullDate,
+      created_at: fullDate,
     };
   }
 

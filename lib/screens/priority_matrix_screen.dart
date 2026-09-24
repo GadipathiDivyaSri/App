@@ -1207,17 +1207,24 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                         ),
                       ),
                       onPressed: () {
-                        if (titleCtrl.text.trim().isNotEmpty) {
-                          provider.addTask(
-                            titleCtrl.text.trim(),
-                            selectedTag,
-                            dateFormatted,
-                            priority: assignedPriority,
-                            dueDate: selectedDate,
-                            dueTime: timeFormatted,
+                        if (titleCtrl.text.trim().isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Please enter a task title before setting deadline.'),
+                              backgroundColor: Colors.redAccent,
+                            ),
                           );
-                          Navigator.pop(ctx);
+                          return;
                         }
+                        provider.addTask(
+                          titleCtrl.text.trim(),
+                          selectedTag,
+                          dateFormatted,
+                          priority: assignedPriority,
+                          dueDate: selectedDate,
+                          dueTime: timeFormatted,
+                        );
+                        Navigator.pop(ctx);
                       },
                       child: const Text(
                         'Set Deadline & Save Task',
@@ -1415,18 +1422,44 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
             TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
             ElevatedButton(
               onPressed: () {
-                if (titleCtrl.text.trim().isNotEmpty) {
-                  final p = Provider.of<AppProvider>(context, listen: false);
-                  if (task['id'] != null) {
-                    p.editTask(
-                      task['id'] as String,
-                      titleCtrl.text.trim(),
-                      selectedPriority,
-                      task['tag'] as String? ?? 'STUDY',
-                    );
-                  }
-                  Navigator.pop(ctx);
+                final trimmedTitle = titleCtrl.text.trim();
+                if (trimmedTitle.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Please enter a task title.'),
+                      backgroundColor: Colors.redAccent,
+                    ),
+                  );
+                  return;
                 }
+                final p = Provider.of<AppProvider>(context, listen: false);
+                if (task['id'] != null) {
+                  final now = DateTime.now();
+                  final isToday = selectedDate.year == now.year && selectedDate.month == now.month && selectedDate.day == now.day;
+                  final isTomorrow = selectedDate.year == now.add(const Duration(days: 1)).year &&
+                      selectedDate.month == now.add(const Duration(days: 1)).month &&
+                      selectedDate.day == now.add(const Duration(days: 1)).day;
+
+                  String dateFormatted;
+                  if (isToday) {
+                    dateFormatted = 'Today (${_monthName(selectedDate.month)} ${selectedDate.day})';
+                  } else if (isTomorrow) {
+                    dateFormatted = 'Tomorrow (${_monthName(selectedDate.month)} ${selectedDate.day})';
+                  } else {
+                    dateFormatted = '${_monthName(selectedDate.month)} ${selectedDate.day}, ${selectedDate.year}';
+                  }
+
+                  p.editTask(
+                    task['id'] as String,
+                    trimmedTitle,
+                    selectedPriority,
+                    task['tag'] as String? ?? 'STUDY',
+                    dueDate: selectedDate,
+                    dueTime: _formatTimeOfDay(selectedTime),
+                    dueDateLabel: dateFormatted,
+                  );
+                }
+                Navigator.pop(ctx);
               },
               child: const Text('Save Changes'),
             ),

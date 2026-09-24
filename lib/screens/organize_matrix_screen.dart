@@ -328,29 +328,110 @@ class _OrganizeMatrixScreenState extends State<OrganizeMatrixScreen> {
       return;
     }
     final titleCtrl = TextEditingController();
+    DateTime selectedDate = DateTime.now();
+    TimeOfDay selectedTime = TimeOfDay.now();
+
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('Add Quadrant $priority Task', style: const TextStyle(fontWeight: FontWeight.w800)),
-        content: TextField(
-          controller: titleCtrl,
-          autofocus: true,
-          decoration: const InputDecoration(hintText: 'Enter task title'),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          ElevatedButton(
-            onPressed: () {
-              final text = titleCtrl.text.trim();
-              if (text.isNotEmpty) {
-                final provider = Provider.of<AppProvider>(context, listen: false);
-                provider.addTask(text, 'Eisenhower Matrix', 'Today', priority: priority);
-                Navigator.pop(ctx);
-              }
-            },
-            child: const Text('Add Task'),
-          ),
-        ],
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) {
+          final now = DateTime.now();
+          final isToday = selectedDate.year == now.year && selectedDate.month == now.month && selectedDate.day == now.day;
+          final dateStr = isToday
+              ? 'Today'
+              : '${selectedDate.month}/${selectedDate.day}/${selectedDate.year}';
+          final hour = selectedTime.hourOfPeriod == 0 ? 12 : selectedTime.hourOfPeriod;
+          final minute = selectedTime.minute.toString().padLeft(2, '0');
+          final period = selectedTime.period == DayPeriod.am ? 'AM' : 'PM';
+          final timeStr = '$hour:$minute $period';
+
+          return AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: Text('Add Quadrant $priority Task & Deadline', style: const TextStyle(fontWeight: FontWeight.w800)),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextField(
+                    controller: titleCtrl,
+                    autofocus: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Task Title *',
+                      hintText: 'Enter task description or goal...',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  const Text('REQUIRED DEADLINE DATE & TIME', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF94A3B8))),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          icon: const Icon(Icons.calendar_month, size: 14),
+                          label: Text(dateStr, style: const TextStyle(fontSize: 12)),
+                          onPressed: () async {
+                            final picked = await showDatePicker(
+                              context: context,
+                              initialDate: selectedDate,
+                              firstDate: DateTime.now().subtract(const Duration(days: 1)),
+                              lastDate: DateTime.now().add(const Duration(days: 365)),
+                            );
+                            if (picked != null) {
+                              setDialogState(() => selectedDate = picked);
+                            }
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          icon: const Icon(Icons.access_time, size: 14),
+                          label: Text(timeStr, style: const TextStyle(fontSize: 12)),
+                          onPressed: () async {
+                            final picked = await showTimePicker(
+                              context: context,
+                              initialTime: selectedTime,
+                            );
+                            if (picked != null) {
+                              setDialogState(() => selectedTime = picked);
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+              ElevatedButton(
+                onPressed: () {
+                  final text = titleCtrl.text.trim();
+                  if (text.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Task title and deadline are required.'), backgroundColor: Colors.redAccent),
+                    );
+                    return;
+                  }
+                  final provider = Provider.of<AppProvider>(context, listen: false);
+                  provider.addTask(
+                    text,
+                    'Eisenhower Matrix',
+                    dateStr,
+                    priority: priority,
+                    dueDate: selectedDate,
+                    dueTime: timeStr,
+                  );
+                  Navigator.pop(ctx);
+                },
+                child: const Text('Set Deadline & Save'),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
