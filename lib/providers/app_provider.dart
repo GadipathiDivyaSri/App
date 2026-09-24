@@ -604,11 +604,9 @@ class AppProvider extends ChangeNotifier {
   Future<void> fetchGoalsFromBackend() async {
     try {
       final remote = await ApiService.fetchGoals();
-      if (remote.isNotEmpty) {
-        _goals = remote;
-        _saveGoals();
-        notifyListeners();
-      }
+      _goals = remote;
+      _saveGoals();
+      notifyListeners();
     } catch (_) {}
   }
 
@@ -1605,12 +1603,10 @@ class AppProvider extends ChangeNotifier {
   Future<void> syncTasksFromCloud() async {
     try {
       final remoteTasks = await ApiService.fetchTasks();
-      if (remoteTasks.isNotEmpty) {
-        _tasks = remoteTasks;
-        _saveTasks();
-        _recalculateMetrics();
-        notifyListeners();
-      }
+      _tasks = remoteTasks;
+      _saveTasks();
+      _recalculateMetrics();
+      notifyListeners();
     } catch (e) {
       debugPrint('[AppProvider] syncTasksFromCloud error: $e');
     }
@@ -1619,14 +1615,12 @@ class AppProvider extends ChangeNotifier {
   Future<void> syncHabitsFromCloud() async {
     try {
       final remoteHabits = await ApiService.fetchHabits();
-      if (remoteHabits.isNotEmpty) {
-        _habits = remoteHabits;
-        for (final h in _habits) {
-          h.recalculateStreaks(DateTime.now());
-        }
-        _saveHabits();
-        notifyListeners();
+      _habits = remoteHabits;
+      for (final h in _habits) {
+        h.recalculateStreaks(DateTime.now());
       }
+      _saveHabits();
+      notifyListeners();
     } catch (e) {
       debugPrint('[AppProvider] syncHabitsFromCloud error: $e');
     }
@@ -1635,11 +1629,9 @@ class AppProvider extends ChangeNotifier {
   Future<void> syncExpensesFromCloud() async {
     try {
       final remoteExpenses = await ApiService.fetchExpenses();
-      if (remoteExpenses.isNotEmpty) {
-        _expenses = remoteExpenses;
-        _saveExpenses();
-        notifyListeners();
-      }
+      _expenses = remoteExpenses;
+      _saveExpenses();
+      notifyListeners();
     } catch (e) {
       debugPrint('[AppProvider] syncExpensesFromCloud error: $e');
     }
@@ -1648,11 +1640,9 @@ class AppProvider extends ChangeNotifier {
   Future<void> syncSubjectsFromCloud() async {
     try {
       final remoteSubjects = await ApiService.fetchSubjects();
-      if (remoteSubjects.isNotEmpty) {
-        _subjects = remoteSubjects;
-        _saveSubjects();
-        notifyListeners();
-      }
+      _subjects = remoteSubjects;
+      _saveSubjects();
+      notifyListeners();
     } catch (e) {
       debugPrint('[AppProvider] syncSubjectsFromCloud error: $e');
     }
@@ -1661,14 +1651,12 @@ class AppProvider extends ChangeNotifier {
   Future<void> syncStudyItemsFromCloud() async {
     try {
       final remoteItems = await ApiService.fetchStudyItems();
-      if (remoteItems.isNotEmpty) {
-        _studyItems = remoteItems;
-        for (final s in _subjects) {
-          _updateSubjectProgress(s.id);
-        }
-        _saveStudyItems();
-        notifyListeners();
+      _studyItems = remoteItems;
+      for (final s in _subjects) {
+        _updateSubjectProgress(s.id);
       }
+      _saveStudyItems();
+      notifyListeners();
     } catch (e) {
       debugPrint('[AppProvider] syncStudyItemsFromCloud error: $e');
     }
@@ -1677,11 +1665,9 @@ class AppProvider extends ChangeNotifier {
   Future<void> syncCalendarEventsFromCloud() async {
     try {
       final remoteEvents = await ApiService.fetchCalendarEvents();
-      if (remoteEvents.isNotEmpty) {
-        _calendarEvents = remoteEvents;
-        _saveEvents();
-        notifyListeners();
-      }
+      _calendarEvents = remoteEvents;
+      _saveEvents();
+      notifyListeners();
     } catch (e) {
       debugPrint('[AppProvider] syncCalendarEventsFromCloud error: $e');
     }
@@ -1690,11 +1676,9 @@ class AppProvider extends ChangeNotifier {
   Future<void> syncCareerRoadmapFromCloud() async {
     try {
       final remoteNodes = await ApiService.fetchCareerRoadmapNodes();
-      if (remoteNodes.isNotEmpty) {
-        _careerNodes = remoteNodes;
-        _saveCareerNodes();
-        notifyListeners();
-      }
+      _careerNodes = remoteNodes;
+      _saveCareerNodes();
+      notifyListeners();
     } catch (e) {
       debugPrint('[AppProvider] syncCareerRoadmapFromCloud error: $e');
     }
@@ -1703,11 +1687,9 @@ class AppProvider extends ChangeNotifier {
   Future<void> syncJournalEntriesFromCloud() async {
     try {
       final remoteEntries = await ApiService.fetchJournalEntries();
-      if (remoteEntries.isNotEmpty) {
-        _journalEntries = remoteEntries;
-        _saveJournalEntries();
-        notifyListeners();
-      }
+      _journalEntries = remoteEntries;
+      _saveJournalEntries();
+      notifyListeners();
     } catch (e) {
       debugPrint('[AppProvider] syncJournalEntriesFromCloud error: $e');
     }
