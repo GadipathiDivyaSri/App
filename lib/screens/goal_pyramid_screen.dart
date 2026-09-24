@@ -33,6 +33,7 @@ class _GoalPyramidScreenState extends State<GoalPyramidScreen> {
     final shortGoals = provider.shortGoals;
     final mediumGoals = provider.mediumGoals;
     final longGoals = provider.longGoals;
+    final completedGoals = provider.goals.where((g) => g.isCompleted).toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -40,6 +41,14 @@ class _GoalPyramidScreenState extends State<GoalPyramidScreen> {
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
+        title: const Text('Goal Pyramid', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.history_rounded, color: Color(0xFF0D5CE5)),
+            tooltip: 'Goal History',
+            onPressed: () => _showGoalHistoryModal(context),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         heroTag: 'goal_pyramid_fab',
@@ -56,13 +65,27 @@ class _GoalPyramidScreenState extends State<GoalPyramidScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Container(
-                  width: 24,
-                  height: 24,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF0D5CE5),
-                    shape: BoxShape.circle,
+                Row(
+                  children: [
+                    Container(
+                      width: 24,
+                      height: 24,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF0D5CE5),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ],
+                ),
+                OutlinedButton.icon(
+                  onPressed: () => _showGoalHistoryModal(context),
+                  icon: const Icon(Icons.history_rounded, size: 16, color: Color(0xFF0D5CE5)),
+                  label: Text('Goal History (${completedGoals.length})', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0D5CE5))),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Color(0xFF0D5CE5)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                 ),
               ],
@@ -245,34 +268,51 @@ class _GoalPyramidScreenState extends State<GoalPyramidScreen> {
                 border: isDark ? Border.all(color: AppTheme.darkCardBorder) : null,
               ),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   IconButton(
                     icon: Icon(
                       isDone ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
                       color: isDone ? const Color(0xFF10B981) : const Color(0xFF94A3B8),
-                      size: 20,
+                      size: 22,
                     ),
                     onPressed: () {
                       provider.toggleGoal(g.id);
                     },
                   ),
+                  const SizedBox(width: 4),
                   Expanded(
-                    child: Text(
-                      g.title,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        decoration: isDone ? TextDecoration.lineThrough : null,
-                        color: isDark ? Colors.white : const Color(0xFF1E293B),
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          g.title,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            decoration: isDone ? TextDecoration.lineThrough : null,
+                            color: isDark ? Colors.white : const Color(0xFF1E293B),
+                          ),
+                        ),
+                        if (g.description.toString().trim().isNotEmpty) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            g.description,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
                   IconButton(
+                    icon: const Icon(Icons.edit_outlined, size: 18, color: Color(0xFF0D5CE5)),
+                    onPressed: () => _showEditGoalDialog(context, g),
+                  ),
+                  IconButton(
                     icon: const Icon(Icons.delete_outline_rounded, size: 18, color: Color(0xFFEF4444)),
-                    onPressed: () {
-                      provider.deleteGoal(g.id);
-                    },
+                    onPressed: () => provider.deleteGoal(g.id),
                   ),
                 ],
               ),
@@ -307,25 +347,47 @@ class _GoalPyramidScreenState extends State<GoalPyramidScreen> {
                     child: Center(child: Text('No goals added to this tier yet.', style: TextStyle(color: Color(0xFF94A3B8)))),
                   )
                 else
-                  ...currentGoals.map((g) => ListTile(
-                        leading: IconButton(
-                          icon: Icon(
-                            g.isCompleted ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
-                            color: g.isCompleted ? const Color(0xFF10B981) : const Color(0xFF0D5CE5),
-                          ),
-                          onPressed: () => provider.toggleGoal(g.id),
+                  ...currentGoals.map((g) => Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2A2B3D) : const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        title: Text(
-                          g.title,
-                          style: TextStyle(
-                            decoration: g.isCompleted ? TextDecoration.lineThrough : null,
-                            fontWeight: FontWeight.w600,
+                        child: ListTile(
+                          leading: IconButton(
+                            icon: Icon(
+                              g.isCompleted ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
+                              color: g.isCompleted ? const Color(0xFF10B981) : const Color(0xFF0D5CE5),
+                            ),
+                            onPressed: () => provider.toggleGoal(g.id),
                           ),
-                        ),
-                        subtitle: Text(g.description.isNotEmpty ? g.description : 'Tier: ${g.tier.toUpperCase()}'),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent),
-                          onPressed: () => provider.deleteGoal(g.id),
+                          title: Text(
+                            g.title,
+                            style: TextStyle(
+                              decoration: g.isCompleted ? TextDecoration.lineThrough : null,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          subtitle: Text(
+                            g.description.isNotEmpty ? g.description : 'Tier: ${g.tier.toUpperCase()}',
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.edit_outlined, size: 18, color: Color(0xFF0D5CE5)),
+                                onPressed: () {
+                                  Navigator.pop(ctx);
+                                  _showEditGoalDialog(context, g);
+                                },
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete_outline_rounded, size: 18, color: Colors.redAccent),
+                                onPressed: () => provider.deleteGoal(g.id),
+                              ),
+                            ],
+                          ),
                         ),
                       )),
                 const SizedBox(height: 16),
@@ -348,6 +410,236 @@ class _GoalPyramidScreenState extends State<GoalPyramidScreen> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  void _showGoalHistoryModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => Consumer<AppProvider>(
+        builder: (context, provider, _) {
+          final completedGoals = provider.goals.where((g) => g.isCompleted).toList();
+          return Container(
+            padding: const EdgeInsets.all(24.0),
+            constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.75),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.history_rounded, color: Color(0xFF10B981)),
+                        const SizedBox(width: 8),
+                        Text('Goal History (${completedGoals.length})', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(ctx),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                if (completedGoals.isEmpty)
+                  const Expanded(
+                    child: Center(
+                      child: Text('No completed goals in history yet.', style: TextStyle(color: Color(0xFF94A3B8))),
+                    ),
+                  )
+                else
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: completedGoals.length,
+                      itemBuilder: (context, index) {
+                        final g = completedGoals[index];
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 10),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2A2B3D) : const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: const Color(0xFF10B981).withOpacity(0.3)),
+                          ),
+                          child: Row(
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 22),
+                                onPressed: () => provider.toggleGoal(g.id),
+                              ),
+                              const SizedBox(width: 4),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      g.title,
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        decoration: TextDecoration.lineThrough,
+                                      ),
+                                    ),
+                                    if (g.description.isNotEmpty) ...[
+                                      const SizedBox(height: 2),
+                                      Text(g.description, style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                                    ],
+                                    const SizedBox(height: 4),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF10B981).withOpacity(0.12),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text(
+                                        'Completed Tier: ${g.tier.toUpperCase()}',
+                                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF10B981)),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.edit_outlined, size: 18, color: Color(0xFF0D5CE5)),
+                                onPressed: () {
+                                  Navigator.pop(ctx);
+                                  _showEditGoalDialog(context, g);
+                                },
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete_outline_rounded, size: 18, color: Colors.redAccent),
+                                onPressed: () => provider.deleteGoal(g.id),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  void _showEditGoalDialog(BuildContext context, dynamic goal) {
+    final titleCtrl = TextEditingController(text: goal.title);
+    final descCtrl = TextEditingController(text: goal.description);
+    String selectedTerm = goal.tier.toString().toLowerCase() == 'medium' ? 'Medium' : (goal.tier.toString().toLowerCase() == 'long' ? 'Long Term' : 'Short');
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setModalState) => Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+            top: 24,
+            left: 20,
+            right: 20,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Edit Goal',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              const Text('SELECT TIER', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF94A3B8))),
+              const SizedBox(height: 8),
+              Row(
+                children: ['Short', 'Medium', 'Long Term'].map((tier) {
+                  final isSel = selectedTerm == tier;
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8.0),
+                    child: ChoiceChip(
+                      label: Text(tier),
+                      selected: isSel,
+                      selectedColor: const Color(0xFF0D5CE5),
+                      labelStyle: TextStyle(
+                        color: isSel ? Colors.white : const Color(0xFF64748B),
+                        fontWeight: FontWeight.bold,
+                      ),
+                      onSelected: (val) {
+                        if (val) setModalState(() => selectedTerm = tier);
+                      },
+                    ),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: titleCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Goal Title',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: descCtrl,
+                maxLines: 2,
+                decoration: const InputDecoration(
+                  labelText: 'Description / Purpose',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF0D5CE5),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  onPressed: () {
+                    if (titleCtrl.text.trim().isNotEmpty) {
+                      final provider = Provider.of<AppProvider>(context, listen: false);
+                      String normalizedTier = 'short';
+                      if (selectedTerm == 'Medium') normalizedTier = 'medium';
+                      else if (selectedTerm == 'Long Term') normalizedTier = 'long';
+
+                      goal.title = titleCtrl.text.trim();
+                      goal.description = descCtrl.text.trim();
+                      goal.tier = normalizedTier;
+
+                      provider.updateGoal(goal);
+                      Navigator.pop(ctx);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Goal updated successfully!')),
+                      );
+                    }
+                  },
+                  child: const Text(
+                    'Save Changes',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -474,3 +766,4 @@ class _GoalPyramidScreenState extends State<GoalPyramidScreen> {
     );
   }
 }
+

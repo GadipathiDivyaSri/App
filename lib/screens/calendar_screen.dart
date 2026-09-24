@@ -343,8 +343,8 @@ class CalendarScreen extends StatelessWidget {
   Widget _buildAgendaCard(
       BuildContext context, AppProvider provider, dynamic event) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final startTimeStr = DateFormat('HH:mm').format(event.startTime);
-    final endTimeStr = DateFormat('HH:mm').format(event.endTime);
+    final startTimeStr = DateFormat('h:mm a').format(event.startTime);
+    final endTimeStr = DateFormat('h:mm a').format(event.endTime);
 
     // Indicator color according to type / priority
     Color borderAccentColor = const Color(0xFF0D5CE5);
@@ -358,12 +358,13 @@ class CalendarScreen extends StatelessWidget {
     }
 
     return GestureDetector(
-      onTap: () => provider.toggleEventCompletion(event.id),
+      onTap: () => _showEventDetailsModal(context, provider, event),
       child: Container(
         margin: const EdgeInsets.only(bottom: 14),
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF1E1F2B) : Colors.white,
           borderRadius: BorderRadius.circular(16),
+          border: isDark ? Border.all(color: AppTheme.darkCardBorder) : null,
           boxShadow: [
             if (!isDark)
               BoxShadow(
@@ -387,35 +388,62 @@ class CalendarScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 14),
-              Icon(
-                leadingIcon,
-                color: borderAccentColor,
-                size: 24,
+              IconButton(
+                icon: Icon(
+                  leadingIcon,
+                  color: borderAccentColor,
+                  size: 24,
+                ),
+                onPressed: () => provider.toggleEventCompletion(event.id),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 14.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        event.title,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          decoration: event.isCompleted
-                              ? TextDecoration.lineThrough
-                              : TextDecoration.none,
-                          color: isDark ? Colors.white : const Color(0xFF1E293B),
-                        ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              event.title,
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                decoration: event.isCompleted
+                                    ? TextDecoration.lineThrough
+                                    : TextDecoration.none,
+                                color: isDark ? Colors.white : const Color(0xFF1E293B),
+                              ),
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            margin: const EdgeInsets.only(right: 8),
+                            decoration: BoxDecoration(
+                              color: borderAccentColor.withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              event.type,
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: borderAccentColor,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        event.description,
-                        style: const TextStyle(
+                        event.description.toString().trim().isNotEmpty
+                            ? event.description
+                            : 'No description added.',
+                        style: TextStyle(
                           fontSize: 12,
-                          color: Color(0xFF64748B),
+                          color: isDark ? Colors.white60 : const Color(0xFF64748B),
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -454,7 +482,9 @@ class CalendarScreen extends StatelessWidget {
               PopupMenuButton<String>(
                 icon: const Icon(Icons.more_vert_rounded, size: 20, color: Color(0xFF94A3B8)),
                 onSelected: (val) {
-                  if (val == 'toggle') {
+                  if (val == 'details') {
+                    _showEventDetailsModal(context, provider, event);
+                  } else if (val == 'toggle') {
                     provider.toggleEventCompletion(event.id);
                   } else if (val == 'edit') {
                     _showEditEventDialog(context, provider, event);
@@ -463,6 +493,16 @@ class CalendarScreen extends StatelessWidget {
                   }
                 },
                 itemBuilder: (ctx) => [
+                  const PopupMenuItem(
+                    value: 'details',
+                    child: Row(
+                      children: [
+                        Icon(Icons.info_outline_rounded, size: 18, color: Color(0xFF0D5CE5)),
+                        SizedBox(width: 8),
+                        Text('View Details'),
+                      ],
+                    ),
+                  ),
                   PopupMenuItem(
                     value: 'toggle',
                     child: Row(
@@ -497,6 +537,110 @@ class CalendarScreen extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  void _showEventDetailsModal(BuildContext context, AppProvider provider, dynamic event) {
+    final startTimeStr = DateFormat('EEEE, MMM d, yyyy · h:mm a').format(event.startTime);
+    final endTimeStr = DateFormat('h:mm a').format(event.endTime);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    event.title,
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0D5CE5).withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    event.type,
+                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF0D5CE5)),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                const Icon(Icons.access_time_rounded, size: 16, color: Color(0xFF64748B)),
+                const SizedBox(width: 8),
+                Text('$startTimeStr - $endTimeStr', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+              ],
+            ),
+            if (event.location.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  const Icon(Icons.location_on_outlined, size: 16, color: Color(0xFF0D5CE5)),
+                  const SizedBox(width: 8),
+                  Text(event.location, style: const TextStyle(fontSize: 13, color: Color(0xFF0D5CE5))),
+                ],
+              ),
+            ],
+            const SizedBox(height: 16),
+            const Text('DESCRIPTION', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF94A3B8), letterSpacing: 1.0)),
+            const SizedBox(height: 6),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF2A2B3D) : const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                event.description.toString().trim().isNotEmpty ? event.description : 'No description provided.',
+                style: const TextStyle(fontSize: 13.5, height: 1.4),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    icon: const Icon(Icons.edit_outlined, size: 18),
+                    label: const Text('Edit'),
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      _showEditEventDialog(context, provider, event);
+                    },
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    icon: Icon(event.isCompleted ? Icons.undo_rounded : Icons.check_circle_outline, color: Colors.white),
+                    label: Text(event.isCompleted ? 'Mark Pending' : 'Mark Complete', style: const TextStyle(color: Colors.white)),
+                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0D5CE5)),
+                    onPressed: () {
+                      provider.toggleEventCompletion(event.id);
+                      Navigator.pop(ctx);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

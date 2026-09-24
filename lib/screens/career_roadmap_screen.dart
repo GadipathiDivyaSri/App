@@ -192,19 +192,7 @@ class _CareerRoadmapScreenState extends State<CareerRoadmapScreen> {
                                     top: targetY - 32,
                                     child: GestureDetector(
                                       onTap: () {
-                                        provider.toggleCareerNode(node.id);
-                                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              node.isCompleted
-                                                  ? '✓ Milestone "${node.title}" marked as Completed!'
-                                                  : 'Milestone "${node.title}" marked as Planned',
-                                            ),
-                                            backgroundColor: node.isCompleted ? const Color(0xFF10B981) : const Color(0xFF334155),
-                                            duration: const Duration(seconds: 2),
-                                          ),
-                                        );
+                                        _showNodeOptionsModal(context, node);
                                       },
                                       onLongPress: () {
                                         _showNodeOptionsModal(context, node);
@@ -329,13 +317,16 @@ class _CareerRoadmapScreenState extends State<CareerRoadmapScreen> {
       ProUpgradeDialog.showFeatureLockedDialog(context, AppFeature.careerRoadmap);
       return;
     }
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (ctx) => Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -346,17 +337,17 @@ class _CareerRoadmapScreenState extends State<CareerRoadmapScreen> {
                 Expanded(
                   child: Text(
                     node.title,
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: node.isCompleted ? const Color(0xFFD1FAE5) : const Color(0xFFFEF3C7),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    node.isCompleted ? 'Completed ✓' : 'In Progress',
+                    node.isCompleted ? 'Completed ✓' : 'Planned',
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
@@ -366,20 +357,47 @@ class _CareerRoadmapScreenState extends State<CareerRoadmapScreen> {
                 ),
               ],
             ),
-            if (node.description.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Text(
-                node.description,
-                style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+            const SizedBox(height: 16),
+            const Text(
+              'DESCRIPTION & DEADLINE',
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF94A3B8), letterSpacing: 1.0),
+            ),
+            const SizedBox(height: 6),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF2A2B3D) : const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFCBD5E1).withOpacity(0.4)),
               ),
-            ],
+              child: Text(
+                node.description.isNotEmpty ? node.description : 'No description specified for this milestone.',
+                style: TextStyle(
+                  fontSize: 13.5,
+                  height: 1.4,
+                  color: isDark ? Colors.white70 : const Color(0xFF334155),
+                ),
+              ),
+            ),
             const SizedBox(height: 20),
+            ListTile(
+              leading: const Icon(Icons.edit_outlined, color: Color(0xFF0D5CE5)),
+              title: const Text('Edit Node Details', style: TextStyle(fontWeight: FontWeight.w600)),
+              onTap: () {
+                Navigator.pop(ctx);
+                _showEditMilestoneNodeDialog(context, node);
+              },
+            ),
             ListTile(
               leading: Icon(
                 node.isCompleted ? Icons.radio_button_unchecked : Icons.check_circle_rounded,
                 color: node.isCompleted ? Colors.grey : const Color(0xFF10B981),
               ),
-              title: Text(node.isCompleted ? 'Mark as Incomplete' : 'Mark as Completed'),
+              title: Text(
+                node.isCompleted ? 'Mark as Incomplete' : 'Mark as Completed',
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
               onTap: () {
                 Navigator.pop(ctx);
                 Provider.of<AppProvider>(context, listen: false).toggleCareerNode(node.id);
@@ -387,7 +405,7 @@ class _CareerRoadmapScreenState extends State<CareerRoadmapScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent),
-              title: const Text('Delete Node', style: TextStyle(color: Colors.redAccent)),
+              title: const Text('Delete Node', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.w600)),
               onTap: () {
                 Navigator.pop(ctx);
                 Provider.of<AppProvider>(context, listen: false).deleteCareerNode(node.id);
@@ -395,6 +413,69 @@ class _CareerRoadmapScreenState extends State<CareerRoadmapScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showEditMilestoneNodeDialog(BuildContext context, CareerRoadmapNode node) {
+    final titleCtrl = TextEditingController(text: node.title);
+    final descCtrl = TextEditingController(text: node.description);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) {
+          return Dialog(
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('Edit Roadmap Milestone', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: titleCtrl,
+                      decoration: const InputDecoration(labelText: 'Node Title', border: OutlineInputBorder()),
+                    ),
+                    const SizedBox(height: 14),
+                    TextField(
+                      controller: descCtrl,
+                      maxLines: 3,
+                      decoration: const InputDecoration(labelText: 'Description & Deadline', border: OutlineInputBorder()),
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+                        const SizedBox(width: 8),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0D5CE5)),
+                          onPressed: () {
+                            if (titleCtrl.text.trim().isNotEmpty) {
+                              node.title = titleCtrl.text.trim();
+                              node.description = descCtrl.text.trim();
+                              Provider.of<AppProvider>(context, listen: false).updateCareerNode(node);
+                              Navigator.pop(ctx);
+                            }
+                          },
+                          child: const Text('Save Changes', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }

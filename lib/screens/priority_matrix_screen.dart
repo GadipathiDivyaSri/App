@@ -22,22 +22,26 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
   List<Map<String, dynamic>> _completedTasks = [];
   bool _sortByUrgentTime = false;
 
-  TimeOfDay _parseTimeOfDay(String? timeStr) {
-    if (timeStr == null || timeStr.isEmpty) return const TimeOfDay(hour: 18, minute: 0);
-    try {
-      final parts = timeStr.trim().split(' ');
-      final timeParts = parts[0].split(':');
-      int hour = int.parse(timeParts[0]);
-      final minute = int.parse(timeParts[1]);
-      if (parts.length > 1 && parts[1].toUpperCase() == 'PM' && hour < 12) {
-        hour += 12;
-      } else if (parts.length > 1 && parts[1].toUpperCase() == 'AM' && hour == 12) {
-        hour = 0;
-      }
-      return TimeOfDay(hour: hour, minute: minute);
-    } catch (_) {
-      return const TimeOfDay(hour: 18, minute: 0);
+  TimeOfDay _parseTimeOfDay(String? timeStr, [DateTime? fallbackDate]) {
+    if (timeStr != null && timeStr.trim().isNotEmpty) {
+      try {
+        final str = timeStr.trim();
+        final parts = str.split(' ');
+        final timeParts = parts[0].split(':');
+        int hour = int.parse(timeParts[0]);
+        final minute = int.parse(timeParts[1]);
+        if (parts.length > 1 && parts[1].toUpperCase() == 'PM' && hour < 12) {
+          hour += 12;
+        } else if (parts.length > 1 && parts[1].toUpperCase() == 'AM' && hour == 12) {
+          hour = 0;
+        }
+        return TimeOfDay(hour: hour, minute: minute);
+      } catch (_) {}
     }
+    if (fallbackDate != null) {
+      return TimeOfDay(hour: fallbackDate.hour, minute: fallbackDate.minute);
+    }
+    return const TimeOfDay(hour: 18, minute: 0);
   }
 
   @override
@@ -52,7 +56,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
               'title': t.title,
               'tag': t.category,
               'dueDate': t.dueDate,
-              'dueTime': _parseTimeOfDay(t.dueTime),
+              'dueTime': _parseTimeOfDay(t.dueTime, t.dueDate),
               'priority': t.priority,
             })
         .toList();
@@ -64,7 +68,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
               'title': t.title,
               'tag': t.category,
               'dueDate': t.dueDate,
-              'dueTime': _parseTimeOfDay(t.dueTime),
+              'dueTime': _parseTimeOfDay(t.dueTime, t.dueDate),
               'priority': t.priority,
             })
         .toList();
@@ -76,7 +80,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
               'title': t.title,
               'tag': t.category,
               'dueDate': t.dueDate,
-              'dueTime': _parseTimeOfDay(t.dueTime),
+              'dueTime': _parseTimeOfDay(t.dueTime, t.dueDate),
               'priority': t.priority,
             })
         .toList();
@@ -88,7 +92,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
               'title': t.title,
               'tag': t.category,
               'dueDate': t.dueDate,
-              'dueTime': _parseTimeOfDay(t.dueTime),
+              'dueTime': _parseTimeOfDay(t.dueTime, t.dueDate),
               'priority': t.priority,
             })
         .toList();
@@ -1216,12 +1220,19 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                           );
                           return;
                         }
+                        final fullDueDate = DateTime(
+                          selectedDate.year,
+                          selectedDate.month,
+                          selectedDate.day,
+                          selectedTime.hour,
+                          selectedTime.minute,
+                        );
                         provider.addTask(
                           titleCtrl.text.trim(),
                           selectedTag,
                           dateFormatted,
                           priority: assignedPriority,
-                          dueDate: selectedDate,
+                          dueDate: fullDueDate,
                           dueTime: timeFormatted,
                         );
                         Navigator.pop(ctx);
@@ -1449,12 +1460,20 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                     dateFormatted = '${_monthName(selectedDate.month)} ${selectedDate.day}, ${selectedDate.year}';
                   }
 
+                  final fullDueDate = DateTime(
+                    selectedDate.year,
+                    selectedDate.month,
+                    selectedDate.day,
+                    selectedTime.hour,
+                    selectedTime.minute,
+                  );
+
                   p.editTask(
                     task['id'] as String,
                     trimmedTitle,
                     selectedPriority,
                     task['tag'] as String? ?? 'STUDY',
-                    dueDate: selectedDate,
+                    dueDate: fullDueDate,
                     dueTime: _formatTimeOfDay(selectedTime),
                     dueDateLabel: dateFormatted,
                   );
