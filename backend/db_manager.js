@@ -190,6 +190,7 @@ class DatabaseManager {
       is_email_verified: !!userData.is_email_verified,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
+      ...(userData.password_hash ? { password_hash: userData.password_hash } : {}),
     };
 
     const createdProfile = await dbQuery('profiles', { method: 'POST', body: newUser, single: true });
@@ -230,6 +231,9 @@ class DatabaseManager {
     if (updates.is_premium !== undefined) payload.is_premium = !!updates.is_premium;
     if (updates.subscription_plan) payload.subscription_plan = updates.subscription_plan.toUpperCase();
     if (updates.is_email_verified !== undefined) payload.is_email_verified = !!updates.is_email_verified;
+    // Password reset and account-credential updates must persist the hash.
+    // Never write the plaintext `password` field to the profiles table.
+    if (updates.password_hash) payload.password_hash = updates.password_hash;
 
     return await dbQuery('profiles', { method: 'PATCH', match: { id: uid }, body: payload, single: true });
   }
@@ -1103,4 +1107,3 @@ module.exports = {
   verifyPassword,
   ensureUuid,
 };
-
