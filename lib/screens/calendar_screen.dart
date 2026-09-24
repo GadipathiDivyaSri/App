@@ -716,7 +716,7 @@ class CalendarScreen extends StatelessWidget {
     final titleCtrl = TextEditingController();
     final descCtrl = TextEditingController();
     final locationCtrl = TextEditingController();
-    String type = 'Focus Session';
+    String type = 'Task';
     TimeOfDay preferredStartTime = const TimeOfDay(hour: 9, minute: 0);
     TimeOfDay preferredEndTime = const TimeOfDay(hour: 10, minute: 30);
 
@@ -855,9 +855,6 @@ class CalendarScreen extends StatelessWidget {
                             border: OutlineInputBorder(),
                           ),
                           items: const [
-                            DropdownMenuItem(
-                                value: 'Focus Session',
-                                child: Text('Focus Session')),
                             DropdownMenuItem(
                                 value: 'Meeting', child: Text('Meeting')),
                             DropdownMenuItem(
