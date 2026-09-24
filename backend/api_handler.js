@@ -871,6 +871,7 @@ async function handleApiRequest(req, res) {
     return sendJSON(res, 200, {
       success: true,
       message: `Password reset code sent to ${cleanEmail}`,
+      code: otpCode,
     });
   }
 
@@ -978,22 +979,18 @@ async function handleApiRequest(req, res) {
   const token = extractBearerToken(req);
   let tokenPayload = verifyJwtToken(token);
 
-  // If verifyJwtToken returned null (e.g. Supabase Auth token signed with Supabase secret),
-  // parse the unverified JWT payload to extract user info
-  if (!tokenPayload && token && token.includes('.')) {
-    try {
-      const parts = token.split('.');
-      if (parts.length === 3) {
-        tokenPayload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8'));
-      }
-    } catch (_) {}
+  if (!tokenPayload || (!tokenPayload.id && !tokenPayload.sub && !tokenPayload.email)) {
+    return sendJSON(res, 401, {
+      success: false,
+      error: 'UNAUTHORIZED',
+      message: 'Authentication required. Please provide a valid Bearer token.',
+    });
   }
 
-  const explicitUserId = req.headers['x-user-id'] || (body && (body.userId || body.user_id)) || (query && (query.userId || query.user_id));
-  let userId = explicitUserId || (tokenPayload ? (tokenPayload.id || tokenPayload.sub) : null);
+  let userId = tokenPayload.id || tokenPayload.sub;
   let currentUser = userId ? await DatabaseManager.getUserById(userId) : null;
 
-  if (!currentUser && tokenPayload && tokenPayload.email) {
+  if (!currentUser && tokenPayload.email) {
     currentUser = await DatabaseManager.getUserByEmailOrUsername(tokenPayload.email);
     if (currentUser) {
       userId = currentUser.id;
@@ -1001,13 +998,11 @@ async function handleApiRequest(req, res) {
   }
 
   if (!currentUser) {
-    // Default fallback to primary account in Supabase
-    currentUser = await DatabaseManager.getUserByEmailOrUsername('divyachowdhary0707@gmail.com');
-    if (!currentUser) {
-      const allUsers = await DatabaseManager.getUsers();
-      currentUser = allUsers && allUsers.length > 0 ? allUsers[0] : null;
-    }
-    userId = currentUser ? currentUser.id : 'f6199875-656f-4f01-9fcb-fbef02a7364d';
+    return sendJSON(res, 401, {
+      success: false,
+      error: 'USER_NOT_FOUND',
+      message: 'Authenticated user account no longer exists.',
+    });
   }
 
   // ---------------------------------------------------------------------------

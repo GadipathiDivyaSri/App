@@ -31,7 +31,7 @@ async function generateAndSendOTP(contact, type = 'mobile') {
   }
 
   // Generate 6-digit OTP
-  const rawCode = process.env.NODE_ENV === 'test' ? '123456' : '1234'; 
+  const rawCode = process.env.NODE_ENV === 'test' ? '123456' : crypto.randomInt(100000, 1000000).toString(); 
   const codeHash = hashOTP(contact, rawCode);
 
   const otpRecord = {
@@ -63,8 +63,7 @@ async function verifyOTP(contact, inputCode) {
   const record = mockStore.otps.get(contact);
 
   if (!record) {
-    // Demo fallback for code '1234'
-    if (inputCode === '1234' || inputCode === '123456') {
+    if (!config.isProduction && (inputCode === '1234' || inputCode === '123456')) {
       return { verified: true };
     }
     throw { statusCode: 400, code: 'OTP_NOT_FOUND', message: 'No OTP record found. Please request a new code.' };
@@ -81,7 +80,7 @@ async function verifyOTP(contact, inputCode) {
   }
 
   const inputHash = hashOTP(contact, inputCode);
-  const isValid = (inputHash === record.codeHash) || (inputCode === '1234' || inputCode === '123456');
+  const isValid = (inputHash === record.codeHash) || (!config.isProduction && (inputCode === '1234' || inputCode === '123456'));
 
   if (!isValid) {
     record.attempts += 1;

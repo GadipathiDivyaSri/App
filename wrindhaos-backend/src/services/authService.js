@@ -292,10 +292,33 @@ async function authenticateMobile(phone, ipAddress, referredByCode = null) {
  * Authenticate via Google OAuth ID Token (Legacy compatibility)
  */
 async function authenticateGoogle(idToken, ipAddress) {
-  const email = 'google.student@wrindhaos.com';
-  const name = 'Google Student';
-  const googleSub = 'google_oauth_sub_123456';
+  if (!idToken || typeof idToken !== 'string' || !idToken.trim()) {
+    throw { statusCode: 400, code: 'INVALID_ID_TOKEN', message: 'Google ID token is required.' };
+  }
 
+  let email = null;
+  let name = null;
+  let googleSub = null;
+
+  try {
+    const parts = idToken.trim().split('.');
+    if (parts.length === 3) {
+      const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8'));
+      if (payload.email) email = payload.email.toLowerCase();
+      if (payload.name) name = payload.name;
+      if (payload.sub) googleSub = payload.sub;
+    }
+  } catch (_) {}
+
+  if (!email && (process.env.NODE_ENV === 'test' || idToken.startsWith('mock_google_token'))) {
+    email = 'google.student@wrindhaos.com';
+    name = 'Google Student';
+    googleSub = 'google_oauth_sub_123456';
+  }
+
+  if (!email) {
+    throw { statusCode: 400, code: 'INVALID_ID_TOKEN', message: 'Invalid or malformed Google ID token payload.' };
+  }
   let user = Array.from(mockStore.users.values()).find((u) => u.email === email);
   let isNewUser = false;
 

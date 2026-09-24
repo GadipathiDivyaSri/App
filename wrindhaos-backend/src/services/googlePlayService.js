@@ -60,7 +60,16 @@ async function verifyGooglePlayPurchaseToken(purchaseToken, productId) {
     }
   }
 
-  // Fallback Simulation Mode for testing & local development
+  if (config.isProduction) {
+    logger.error('Google Play verification service is not configured in production');
+    throw {
+      statusCode: 503,
+      code: 'SERVICE_UNAVAILABLE',
+      message: 'Google Play purchase verification service is not configured.',
+    };
+  }
+
+  // Fallback Simulation Mode for automated unit tests & local dev
   logger.warn('Running Google Play Verification in Mock Mode');
   const now = Date.now();
   const thirtyDaysMillis = 30 * 24 * 60 * 60 * 1000;

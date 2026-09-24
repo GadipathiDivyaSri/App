@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const config = require('../config/env');
 const googlePlayService = require('./googlePlayService');
 const referralService = require('./referralService');
 const { mockStore } = require('../config/supabase');
@@ -54,17 +55,18 @@ async function processGooglePlayPurchase(userId, purchaseToken, productId, ipAdd
 
   mockStore.subscriptions.set(subscriptionId, subRecord);
 
-  // Update User Entitlement Status
+  // Update User Entitlement Status only if active
   const user = mockStore.users.get(userId);
+  const isActive = playData.status === 'ACTIVE';
   if (user) {
-    user.subscription_plan = PLANS.PREMIUM;
+    user.subscription_plan = isActive ? PLANS.PREMIUM : PLANS.FREE;
     user.subscription_status = playData.status;
-    user.ads_enabled = false; // AD-FREE EXPERIENCE
+    user.ads_enabled = !isActive;
     mockStore.users.set(userId, user);
   }
 
   // Qualify referral if this user was referred by someone
-  if (playData.status === 'ACTIVE') {
+  if (isActive) {
     await referralService.qualifyReferralOnPayment(userId, playData.orderId);
   }
 
@@ -72,8 +74,8 @@ async function processGooglePlayPurchase(userId, purchaseToken, productId, ipAdd
 
   return {
     subscription: subRecord,
-    userPlan: PLANS.PREMIUM,
-    adsEnabled: false,
+    userPlan: isActive ? PLANS.PREMIUM : PLANS.FREE,
+    adsEnabled: !isActive,
   };
 }
 
@@ -81,6 +83,14 @@ async function processGooglePlayPurchase(userId, purchaseToken, productId, ipAdd
  * Process In-App Direct / Mock Checkout with Referral Discount applied
  */
 async function checkoutSubscription(userId, plan = 'PREMIUM', basePrice = 59.0, ipAddress = '127.0.0.1') {
+  if (config.isProduction) {
+    throw {
+      statusCode: 400,
+      code: 'DIRECT_CHECKOUT_DISABLED',
+      message: 'Direct checkout without verified payment processor is disabled in production. Please use Google Play Billing.',
+    };
+  }
+
   const parsedPrice = typeof basePrice === 'number' ? basePrice : parseFloat(basePrice) || 59.0;
   
   // 1. Check for Active Referral Reward
@@ -175,18 +185,23 @@ async function checkoutSubscription(userId, plan = 'PREMIUM', basePrice = 59.0, 
 async function getUserSubscription(userId) {
   const user = mockStore.users.get(userId);
   const activeSub = Array.from(mockStore.subscriptions.values()).find(
-    (s) => s.user_id === userId && s.status !== 'EXPIRED'
+    (s) => s.user_id === userId && s.status === 'ACTIVE'
   );
 
+  if (activeSub && activeSub.current_period_end && new Date(activeSub.current_period_end).getTime() < Date.now()) {
+    await handleSubscriptionExpiry(userId);
+  }
+
+  const updatedUser = mockStore.users.get(userId);
   const discountInfo = referralService.getActiveReferralDiscount(userId);
 
   return {
-    plan: user?.subscription_plan || PLANS.FREE,
-    status: user?.subscription_status || SUBSCRIPTION_STATUSES.ACTIVE,
+    plan: updatedUser?.subscription_plan || PLANS.FREE,
+    status: updatedUser?.subscription_status || SUBSCRIPTION_STATUSES.ACTIVE,
     productId: activeSub?.product_id || null,
     autoRenewing: activeSub?.auto_renewing ?? false,
     currentPeriodEnd: activeSub?.current_period_end || null,
-    adsEnabled: user?.ads_enabled ?? true,
+    adsEnabled: updatedUser?.ads_enabled ?? true,
     activeReferralDiscount: discountInfo,
   };
 }

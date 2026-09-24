@@ -24,13 +24,9 @@ async function verifyAccessToken(accessToken) {
 
   const token = accessToken.trim();
 
-  // Test mode & mock fallback (for local development or automated test suites)
-  if (
-    process.env.NODE_ENV === 'test' ||
-    token.startsWith('test_msg91_token_') ||
-    token === 'test_access_token_valid' ||
-    !config.msg91.authKey
-  ) {
+  // Test mode & mock fallback (strictly for local development or automated test suites)
+  const isTestMode = (process.env.NODE_ENV === 'test' || config.env === 'test') && !config.isProduction;
+  if (isTestMode || (!config.isProduction && !config.msg91.authKey)) {
     if (token === 'test_invalid_token' || token === 'expired_token') {
       throw {
         statusCode: 401,
@@ -50,6 +46,14 @@ async function verifyAccessToken(accessToken) {
       success: true,
       email: mockEmail,
       message: 'MSG91 token verified successfully (test mode).',
+    };
+  }
+
+  if (!config.msg91.authKey) {
+    throw {
+      statusCode: 503,
+      code: 'SERVICE_UNAVAILABLE',
+      message: 'MSG91 verification service is not configured in production.',
     };
   }
 

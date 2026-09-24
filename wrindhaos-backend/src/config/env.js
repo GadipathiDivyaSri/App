@@ -23,6 +23,7 @@ if (isProduction) {
   if (missingKeys.length > 0) {
     console.error(`[FATAL] Missing required production environment variables: ${missingKeys.join(', ')}`);
     console.error(`[FATAL] Please configure these in your production environment or .env file.`);
+    process.exit(1);
   }
 }
 
