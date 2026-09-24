@@ -949,10 +949,6 @@ async function handleApiRequest(req, res) {
     }
 
     const updatedPassHash = hashPassword(newPassword);
-    await DatabaseManager.updateUser(user.id, {
-      password: newPassword,
-      password_hash: updatedPassHash,
-    });
 
     if (isSupabaseConfigured() && supabase) {
       try {
@@ -968,6 +964,20 @@ async function handleApiRequest(req, res) {
             },
           });
           console.log(`[SUPABASE FORGOT PASSWORD] Updated Supabase password for: ${cleanEmail}`);
+        } else {
+          // Accounts created before Supabase Auth provisioning may exist only
+          // in profiles. Create their Auth credential so login can verify the
+          // newly reset password through the same provider.
+          await supabase.auth.admin.createUser({
+            email: cleanEmail,
+            password: newPassword,
+            email_confirm: true,
+            user_metadata: {
+              username: user.username,
+              passwordHash: updatedPassHash,
+            },
+          });
+          console.log(`[SUPABASE FORGOT PASSWORD] Created Supabase Auth user for: ${cleanEmail}`);
         }
       } catch (supErr) {
         console.warn('[SUPABASE PASSWORD RESET NOTICE]:', supErr.message);
