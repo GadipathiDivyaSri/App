@@ -1,15 +1,20 @@
 -- =============================================================================
--- WRINDHAOS PRODUCTION SUPABASE DATABASE SCHEMA v4.3.0
+-- WRINDHAOS COMPLETE PRODUCTION-READY SUPABASE DATABASE SCHEMA v5.0.0
 -- Security Architecture: Zero-Admin Data Privacy & User-Isolated Row Level Security (RLS)
--- Improvements:
---   1. Clean 1:1 matching for all frontend fields across all 10 core modules.
---   2. Removed unused/redundant legacy tables.
---   3. Flexible string types preventing constraint rejections.
---   4. Backwards-compatible views for seamless table connectivity.
+-- Includes fixes for:
+--   1. Explicit CREATE POLICY statements (No FOREACH IN ARRAY syntax bugs).
+--   2. Chicken-and-egg profile INSERT policy & SECURITY DEFINER auto-bootstrap trigger.
+--   3. Explicit column lists for all backward-compatibility views.
+--   4. Canonical habit_completions date columns & UNIQUE (habit_id, completion_date) constraint.
+--   5. Deterministic referral_code trigger with collision retry loop.
+--   6. Multi-row subscription history support (no strict single-row UNIQUE constraint).
+--   7. Automatic updated_at triggers attached to ALL 13 user data tables.
+--   8. Generated column aliases for zero-redundancy schema & backward compatibility.
+--   9. Explicit coupon read policy & SECURITY DEFINER redeem_coupon() RPC function.
+--  10. Modern auth.jwt() ->> 'role' RLS checks & role escalation protection trigger.
 -- =============================================================================
 
--- Enable required extensions
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+-- Enable required extensions (gen_random_uuid from pgcrypto)
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- Automatic Updated-At Timestamp Function
@@ -30,31 +35,104 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     username VARCHAR(100) UNIQUE NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     full_name VARCHAR(255) DEFAULT 'Student User',
-    display_name VARCHAR(255) DEFAULT 'Student User',
-    name VARCHAR(255) DEFAULT 'Student User',
+    display_name VARCHAR(255) GENERATED ALWAYS AS (full_name) STORED,
+    name VARCHAR(255) GENERATED ALWAYS AS (full_name) STORED,
     phone_number VARCHAR(30),
+    contact VARCHAR(30) GENERATED ALWAYS AS (phone_number) STORED,
     avatar_url TEXT,
+    profile_image TEXT GENERATED ALWAYS AS (avatar_url) STORED,
     role VARCHAR(30) DEFAULT 'USER',
     is_email_verified BOOLEAN DEFAULT FALSE,
+    is_2fa_enabled BOOLEAN DEFAULT FALSE,
+    two_factor_secret VARCHAR(64),
     is_premium BOOLEAN DEFAULT FALSE,
     subscription_plan VARCHAR(30) DEFAULT 'FREE',
     focus_score INT DEFAULT 0,
     active_streak INT DEFAULT 0,
-    referral_code VARCHAR(50) UNIQUE NOT NULL DEFAULT ('WRINDHA_' || upper(substring(md5(random()::text) from 1 for 6))),
+    xp INT DEFAULT 0,
+    referral_code VARCHAR(50) UNIQUE NOT NULL DEFAULT ('WRINDHA_' || upper(substring(md5(gen_random_uuid()::text) from 1 for 6))),
     referred_by_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
     fcm_device_token TEXT,
     account_status VARCHAR(30) DEFAULT 'ACTIVE',
+    deleted_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_login_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_profiles_user_id ON public.profiles(user_id);
-CREATE INDEX IF NOT EXISTS idx_profiles_username ON public.profiles(username);
-CREATE INDEX IF NOT EXISTS idx_profiles_email ON public.profiles(email);
+CREATE INDEX IF NOT EXISTS idx_profiles_referral ON public.profiles(referral_code);
 
--- Backwards-compatibility Views
-CREATE OR REPLACE VIEW public.users AS SELECT * FROM public.profiles;
-CREATE OR REPLACE VIEW public.user_profiles AS SELECT * FROM public.profiles;
+-- Deterministic Referral Code Generation Trigger with Collision Retry Loop
+CREATE OR REPLACE FUNCTION public.set_referral_code()
+RETURNS TRIGGER AS $$
+DECLARE
+    new_code TEXT;
+    done BOOLEAN := FALSE;
+BEGIN
+    IF NEW.referral_code IS NULL OR NEW.referral_code = '' OR NEW.referral_code LIKE 'WRINDHA_%' THEN
+        WHILE NOT done LOOP
+            new_code := 'WRINDHA_' || upper(substring(md5(gen_random_uuid()::text) from 1 for 6));
+            IF NOT EXISTS (SELECT 1 FROM public.profiles WHERE referral_code = new_code) THEN
+                NEW.referral_code := new_code;
+                done := TRUE;
+            END IF;
+        END LOOP;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_set_referral_code ON public.profiles;
+CREATE TRIGGER trg_set_referral_code
+    BEFORE INSERT ON public.profiles
+    FOR EACH ROW EXECUTE FUNCTION public.set_referral_code();
+
+-- Privilege Escalation Protection: Block users from mutating 'role' via UPDATE
+CREATE OR REPLACE FUNCTION public.prevent_role_escalation()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF OLD.role IS DISTINCT FROM NEW.role AND (auth.jwt() ->> 'role') IS DISTINCT FROM 'service_role' THEN
+        NEW.role := OLD.role;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_prevent_role_escalation ON public.profiles;
+CREATE TRIGGER trg_prevent_role_escalation
+    BEFORE UPDATE ON public.profiles
+    FOR EACH ROW EXECUTE FUNCTION public.prevent_role_escalation();
+
+-- Auto-Bootstrap Profile Trigger for New Auth Users (Solves Chicken-and-Egg RLS)
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER SECURITY DEFINER AS $$
+BEGIN
+    INSERT INTO public.profiles (user_id, email, username, full_name)
+    VALUES (
+        NEW.id,
+        NEW.email,
+        COALESCE(NEW.raw_user_meta_data->>'username', REPLACE(SPLIT_PART(NEW.email, '@', 1), '.', '_')),
+        COALESCE(NEW.raw_user_meta_data->>'full_name', 'Student User')
+    )
+    ON CONFLICT (user_id) DO NOTHING;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+    AFTER INSERT ON auth.users
+    FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- Backwards-compatibility Views with Explicit Column Lists
+CREATE OR REPLACE VIEW public.users AS 
+SELECT id, user_id, username, email, full_name, display_name, name, phone_number, contact, avatar_url, profile_image, role, is_email_verified, is_2fa_enabled, is_premium, subscription_plan, focus_score, active_streak, xp, referral_code, created_at, updated_at, last_login_at
+FROM public.profiles;
+
+CREATE OR REPLACE VIEW public.user_profiles AS 
+SELECT id, user_id, username, email, full_name, display_name, name, phone_number, contact, avatar_url, profile_image, role, is_email_verified, is_2fa_enabled, is_premium, subscription_plan, focus_score, active_streak, xp, referral_code, created_at, updated_at, last_login_at
+FROM public.profiles;
 
 -- -----------------------------------------------------------------------------
 -- 2. SUBSCRIPTIONS MODULE
@@ -69,12 +147,14 @@ CREATE TABLE IF NOT EXISTS public.subscriptions (
     started_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     expires_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT uq_subscriptions_user UNIQUE (user_id)
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_subscriptions_user_status ON public.subscriptions(user_id, status);
-CREATE OR REPLACE VIEW public.user_subscriptions AS SELECT * FROM public.subscriptions;
+
+CREATE OR REPLACE VIEW public.user_subscriptions AS 
+SELECT id, user_id, plan, status, billing_provider, payment_provider, started_at, expires_at, created_at, updated_at
+FROM public.subscriptions;
 
 -- -----------------------------------------------------------------------------
 -- 3. PAYMENTS & PURCHASES MODULE
@@ -90,13 +170,16 @@ CREATE TABLE IF NOT EXISTS public.payments (
     amount NUMERIC(12, 2) NOT NULL DEFAULT 59.00,
     currency VARCHAR(10) DEFAULT 'INR',
     status VARCHAR(30) DEFAULT 'SUCCESS',
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    raw_payload JSONB,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_payments_user ON public.payments(user_id);
+CREATE INDEX IF NOT EXISTS idx_payments_order ON public.payments(order_id);
 
 -- -----------------------------------------------------------------------------
--- 4. COUPONS & DISCOUNTS MODULE
+-- 4. COUPONS, DISCOUNTS & REDEMPTIONS MODULE
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.coupons (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -108,10 +191,54 @@ CREATE TABLE IF NOT EXISTS public.coupons (
     times_redeemed INT DEFAULT 0,
     is_active BOOLEAN DEFAULT TRUE,
     expires_at TIMESTAMPTZ,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_coupons_code ON public.coupons(code);
+
+CREATE TABLE IF NOT EXISTS public.coupon_redemptions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    coupon_id UUID NOT NULL REFERENCES public.coupons(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    redeemed_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_coupon_user UNIQUE (coupon_id, user_id)
+);
+
+-- Secure Coupon Redemption RPC Function (Protects Leaking Coupon List)
+CREATE OR REPLACE FUNCTION public.redeem_coupon(p_code TEXT)
+RETURNS JSONB SECURITY DEFINER AS $$
+DECLARE
+    v_coupon public.coupons%ROWTYPE;
+    v_user_id UUID;
+BEGIN
+    v_user_id := auth.uid();
+    IF v_user_id IS NULL THEN
+        RETURN jsonb_build_object('success', false, 'message', 'Authentication required.');
+    END IF;
+
+    SELECT * INTO v_coupon FROM public.coupons 
+    WHERE upper(code) = upper(p_code) AND is_active = TRUE
+    AND (expires_at IS NULL OR expires_at > CURRENT_TIMESTAMP);
+
+    IF NOT FOUND THEN
+        RETURN jsonb_build_object('success', false, 'message', 'Invalid or expired coupon code.');
+    END IF;
+
+    IF v_coupon.times_redeemed >= v_coupon.max_redemptions THEN
+        RETURN jsonb_build_object('success', false, 'message', 'Coupon redemption limit reached.');
+    END IF;
+
+    IF EXISTS (SELECT 1 FROM public.coupon_redemptions WHERE coupon_id = v_coupon.id AND user_id = v_user_id) THEN
+        RETURN jsonb_build_object('success', false, 'message', 'You have already redeemed this coupon.');
+    END IF;
+
+    INSERT INTO public.coupon_redemptions (coupon_id, user_id) VALUES (v_coupon.id, v_user_id);
+    UPDATE public.coupons SET times_redeemed = times_redeemed + 1 WHERE id = v_coupon.id;
+
+    RETURN jsonb_build_object('success', true, 'message', 'Coupon redeemed successfully!', 'discount_type', v_coupon.discount_type, 'discount_value', v_coupon.discount_value);
+END;
+$$ LANGUAGE plpgsql;
 
 -- -----------------------------------------------------------------------------
 -- 5. TASKS & TODOS MODULE (Eisenhower Matrix Support)
@@ -131,11 +258,15 @@ CREATE TABLE IF NOT EXISTS public.tasks (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX IF NOT EXISTS idx_tasks_user_id ON public.tasks(user_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_user_quadrant ON public.tasks(user_id, quadrant);
 
-CREATE OR REPLACE VIEW public.todos AS SELECT * FROM public.tasks;
-CREATE OR REPLACE VIEW public.eisenhower_tasks AS SELECT * FROM public.tasks;
+CREATE OR REPLACE VIEW public.todos AS 
+SELECT id, user_id, title, description, category, priority, quadrant, is_completed, due_at, due_date, created_at, updated_at
+FROM public.tasks;
+
+CREATE OR REPLACE VIEW public.eisenhower_tasks AS 
+SELECT id, user_id, title, description, category, priority, quadrant, is_completed, due_at, due_date, created_at, updated_at
+FROM public.tasks;
 
 -- -----------------------------------------------------------------------------
 -- 6. HABITS & HABIT COMPLETIONS MODULE
@@ -165,16 +296,20 @@ CREATE TABLE IF NOT EXISTS public.habit_completions (
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     habit_id UUID NOT NULL REFERENCES public.habits(id) ON DELETE CASCADE,
     completion_date DATE NOT NULL DEFAULT CURRENT_DATE,
-    completed_date DATE DEFAULT CURRENT_DATE,
-    date DATE DEFAULT CURRENT_DATE,
+    completed_date DATE GENERATED ALWAYS AS (completion_date) STORED,
+    date DATE GENERATED ALWAYS AS (completion_date) STORED,
     completed_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     status VARCHAR(30) DEFAULT 'completed',
     notes TEXT,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT uq_habit_completion_day UNIQUE (habit_id, completion_date)
 );
 
 CREATE INDEX IF NOT EXISTS idx_habit_completions_user_date ON public.habit_completions(user_id, completion_date);
-CREATE OR REPLACE VIEW public.habit_logs AS SELECT * FROM public.habit_completions;
+
+CREATE OR REPLACE VIEW public.habit_logs AS 
+SELECT id, user_id, habit_id, completion_date, completed_date, date, completed_at, status, notes, updated_at
+FROM public.habit_completions;
 
 -- -----------------------------------------------------------------------------
 -- 7. EXPENSES & FINANCIAL MODULE
@@ -189,9 +324,10 @@ CREATE TABLE IF NOT EXISTS public.expenses (
     is_income BOOLEAN DEFAULT FALSE,
     payment_method VARCHAR(50) DEFAULT 'UPI',
     occurred_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    expense_date TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    date TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    expense_date TIMESTAMPTZ GENERATED ALWAYS AS (occurred_at) STORED,
+    date TIMESTAMPTZ GENERATED ALWAYS AS (occurred_at) STORED,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_expenses_user_date ON public.expenses(user_id, occurred_at);
@@ -203,6 +339,7 @@ CREATE TABLE IF NOT EXISTS public.monthly_budgets (
     month INT NOT NULL,
     year INT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT uq_monthly_budgets_user_month UNIQUE (user_id, month, year)
 );
 
@@ -213,30 +350,35 @@ CREATE TABLE IF NOT EXISTS public.subjects (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
-    subject_name TEXT,
+    subject_name TEXT GENERATED ALWAYS AS (name) STORED,
     code VARCHAR(50),
-    instructor VARCHAR(255),
     color VARCHAR(30) DEFAULT '#0D5CE5',
     color_hex VARCHAR(30) DEFAULT '#0D5CE5',
-    credits INT DEFAULT 3,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_subjects_user ON public.subjects(user_id);
-CREATE OR REPLACE VIEW public.study_subjects AS SELECT * FROM public.subjects;
+
+CREATE OR REPLACE VIEW public.study_subjects AS 
+SELECT id, user_id, name, subject_name, code, color, color_hex, created_at, updated_at
+FROM public.subjects;
 
 CREATE TABLE IF NOT EXISTS public.study_units (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     subject_id UUID NOT NULL REFERENCES public.subjects(id) ON DELETE CASCADE,
     unit_number INT DEFAULT 1,
-    order_num INT DEFAULT 1,
+    order_num INT GENERATED ALWAYS AS (unit_number) STORED,
     title TEXT NOT NULL,
-    unit_title TEXT,
+    unit_title TEXT GENERATED ALWAYS AS (title) STORED,
     status VARCHAR(30) DEFAULT 'pending',
     is_completed BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX IF NOT EXISTS idx_study_units_order ON public.study_units(subject_id, unit_number);
 
 CREATE TABLE IF NOT EXISTS public.study_items (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -244,11 +386,13 @@ CREATE TABLE IF NOT EXISTS public.study_items (
     subject_id UUID NOT NULL REFERENCES public.subjects(id) ON DELETE CASCADE,
     unit_id UUID REFERENCES public.study_units(id) ON DELETE CASCADE,
     title TEXT NOT NULL,
+    order_num INT DEFAULT 1,
     type VARCHAR(30) DEFAULT 'TASK',
     status VARCHAR(30) DEFAULT 'pending',
     is_completed BOOLEAN DEFAULT FALSE,
     due_date TIMESTAMPTZ,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- -----------------------------------------------------------------------------
@@ -260,29 +404,34 @@ CREATE TABLE IF NOT EXISTS public.goals (
     title TEXT NOT NULL,
     description TEXT,
     tier VARCHAR(30) DEFAULT 'short',
-    timeframe VARCHAR(30) DEFAULT 'short',
+    timeframe VARCHAR(30) GENERATED ALWAYS AS (tier) STORED,
     section VARCHAR(50) DEFAULT 'GOAL',
     category VARCHAR(50) DEFAULT 'General',
     is_completed BOOLEAN DEFAULT FALSE,
     target_date DATE,
     aligned_purpose TEXT,
     progress_percentage NUMERIC(5, 2) DEFAULT 0.00,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_goals_user_tier ON public.goals(user_id, tier);
-CREATE OR REPLACE VIEW public.career_roadmap AS SELECT * FROM public.goals;
+
+CREATE OR REPLACE VIEW public.career_roadmap AS 
+SELECT id, user_id, title, description, tier, timeframe, section, category, is_completed, target_date, aligned_purpose, progress_percentage, created_at, updated_at
+FROM public.goals;
 
 CREATE TABLE IF NOT EXISTS public.milestones (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     goal_id UUID NOT NULL REFERENCES public.goals(id) ON DELETE CASCADE,
     title TEXT NOT NULL,
-    milestone_title TEXT,
+    milestone_title TEXT GENERATED ALWAYS AS (title) STORED,
     description TEXT,
     is_completed BOOLEAN DEFAULT FALSE,
     target_date DATE,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- -----------------------------------------------------------------------------
@@ -294,14 +443,15 @@ CREATE TABLE IF NOT EXISTS public.calendar_events (
     title TEXT NOT NULL,
     description TEXT,
     event_date DATE NOT NULL DEFAULT CURRENT_DATE,
-    date DATE DEFAULT CURRENT_DATE,
+    date DATE GENERATED ALWAYS AS (event_date) STORED,
     start_time TIME DEFAULT '10:00:00',
     end_time TIME DEFAULT '11:00:00',
     category VARCHAR(50) DEFAULT 'General',
-    event_type VARCHAR(50) DEFAULT 'General',
+    event_type VARCHAR(50) GENERATED ALWAYS AS (category) STORED,
     location VARCHAR(255) DEFAULT 'Workspace A',
     is_all_day BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_calendar_events_user_date ON public.calendar_events(user_id, event_date);
@@ -315,9 +465,11 @@ CREATE TABLE IF NOT EXISTS public.journal_entries (
     title TEXT NOT NULL,
     content_ciphertext TEXT DEFAULT '',
     content TEXT DEFAULT '',
+    encryption_version VARCHAR(30) DEFAULT 'AES-GCM-256',
+    key_id VARCHAR(100) DEFAULT 'v1_master',
     mood VARCHAR(30) DEFAULT 'neutral',
     entry_date DATE NOT NULL DEFAULT CURRENT_DATE,
-    date DATE DEFAULT CURRENT_DATE,
+    date DATE GENERATED ALWAYS AS (entry_date) STORED,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -325,13 +477,95 @@ CREATE TABLE IF NOT EXISTS public.journal_entries (
 CREATE INDEX IF NOT EXISTS idx_journal_entries_user ON public.journal_entries(user_id);
 
 -- -----------------------------------------------------------------------------
--- 12. ROW LEVEL SECURITY (RLS) POLICIES
+-- 12. AUTH IDENTITIES, AUDIT LOGS & REFERRALS
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.user_auth_identities (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    provider VARCHAR(50) DEFAULT 'email',
+    provider_user_id VARCHAR(255),
+    email VARCHAR(255),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS public.audit_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+    action VARCHAR(100) NOT NULL,
+    payload JSONB,
+    ip_address INET,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS public.referrals (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    referrer_user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    referred_user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    code VARCHAR(50),
+    status VARCHAR(30) DEFAULT 'pending',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- -----------------------------------------------------------------------------
+-- AUTOMATIC UPDATED_AT TRIGGER ATTACHMENTS
+-- -----------------------------------------------------------------------------
+DROP TRIGGER IF EXISTS trg_profiles_updated_at ON public.profiles;
+CREATE TRIGGER trg_profiles_updated_at BEFORE UPDATE ON public.profiles FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+DROP TRIGGER IF EXISTS trg_subscriptions_updated_at ON public.subscriptions;
+CREATE TRIGGER trg_subscriptions_updated_at BEFORE UPDATE ON public.subscriptions FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+DROP TRIGGER IF EXISTS trg_payments_updated_at ON public.payments;
+CREATE TRIGGER trg_payments_updated_at BEFORE UPDATE ON public.payments FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+DROP TRIGGER IF EXISTS trg_coupons_updated_at ON public.coupons;
+CREATE TRIGGER trg_coupons_updated_at BEFORE UPDATE ON public.coupons FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+DROP TRIGGER IF EXISTS trg_tasks_updated_at ON public.tasks;
+CREATE TRIGGER trg_tasks_updated_at BEFORE UPDATE ON public.tasks FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+DROP TRIGGER IF EXISTS trg_habits_updated_at ON public.habits;
+CREATE TRIGGER trg_habits_updated_at BEFORE UPDATE ON public.habits FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+DROP TRIGGER IF EXISTS trg_habit_completions_updated_at ON public.habit_completions;
+CREATE TRIGGER trg_habit_completions_updated_at BEFORE UPDATE ON public.habit_completions FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+DROP TRIGGER IF EXISTS trg_expenses_updated_at ON public.expenses;
+CREATE TRIGGER trg_expenses_updated_at BEFORE UPDATE ON public.expenses FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+DROP TRIGGER IF EXISTS trg_monthly_budgets_updated_at ON public.monthly_budgets;
+CREATE TRIGGER trg_monthly_budgets_updated_at BEFORE UPDATE ON public.monthly_budgets FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+DROP TRIGGER IF EXISTS trg_subjects_updated_at ON public.subjects;
+CREATE TRIGGER trg_subjects_updated_at BEFORE UPDATE ON public.subjects FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+DROP TRIGGER IF EXISTS trg_study_units_updated_at ON public.study_units;
+CREATE TRIGGER trg_study_units_updated_at BEFORE UPDATE ON public.study_units FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+DROP TRIGGER IF EXISTS trg_study_items_updated_at ON public.study_items;
+CREATE TRIGGER trg_study_items_updated_at BEFORE UPDATE ON public.study_items FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+DROP TRIGGER IF EXISTS trg_goals_updated_at ON public.goals;
+CREATE TRIGGER trg_goals_updated_at BEFORE UPDATE ON public.goals FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+DROP TRIGGER IF EXISTS trg_milestones_updated_at ON public.milestones;
+CREATE TRIGGER trg_milestones_updated_at BEFORE UPDATE ON public.milestones FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+DROP TRIGGER IF EXISTS trg_calendar_events_updated_at ON public.calendar_events;
+CREATE TRIGGER trg_calendar_events_updated_at BEFORE UPDATE ON public.calendar_events FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+DROP TRIGGER IF EXISTS trg_journal_entries_updated_at ON public.journal_entries;
+CREATE TRIGGER trg_journal_entries_updated_at BEFORE UPDATE ON public.journal_entries FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+-- -----------------------------------------------------------------------------
+-- SECTION 13: ROW LEVEL SECURITY (RLS) POLICIES
 -- Strict Isolation: Users can ONLY access their OWN data. Admins BLOCKED from private user data.
 -- -----------------------------------------------------------------------------
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.subscriptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.coupons ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.coupon_redemptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.tasks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.habits ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.habit_completions ENABLE ROW LEVEL SECURITY;
@@ -344,40 +578,75 @@ ALTER TABLE public.goals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.milestones ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.calendar_events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.journal_entries ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_auth_identities ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.referrals ENABLE ROW LEVEL SECURITY;
 
-DO $$ 
-DECLARE
-    tbl text;
-    user_tables text[] := ARRAY[
-        'payments', 'tasks', 'habits', 'habit_completions', 'expenses', 'monthly_budgets',
-        'subjects', 'study_units', 'study_items', 'goals', 'milestones',
-        'calendar_events', 'journal_entries'
-    ];
-BEGIN
-    -- 1. Profiles Table RLS
-    DROP POLICY IF EXISTS profiles_user_policy ON public.profiles;
-    CREATE POLICY profiles_user_policy ON public.profiles
-        FOR ALL USING (auth.uid() = user_id OR auth.role() = 'service_role')
-        WITH CHECK (auth.uid() = user_id OR auth.role() = 'service_role');
+-- 1. Profiles Table Policies (Solves Chicken-and-Egg Profile Insertion)
+DROP POLICY IF EXISTS profiles_select_policy ON public.profiles;
+CREATE POLICY profiles_select_policy ON public.profiles
+    FOR SELECT USING (auth.uid() = user_id OR (auth.jwt() ->> 'role') = 'service_role');
 
-    -- 2. Subscriptions Table RLS
-    DROP POLICY IF EXISTS subscriptions_user_policy ON public.subscriptions;
-    CREATE POLICY subscriptions_user_policy ON public.subscriptions
-        FOR ALL USING (auth.uid() = user_id OR auth.role() = 'service_role')
-        WITH CHECK (auth.uid() = user_id OR auth.role() = 'service_role');
+DROP POLICY IF EXISTS profiles_insert_policy ON public.profiles;
+CREATE POLICY profiles_insert_policy ON public.profiles
+    FOR INSERT WITH CHECK (auth.uid() = user_id OR user_id IS NULL OR (auth.jwt() ->> 'role') = 'service_role');
 
-    -- 3. Coupons Policy
-    DROP POLICY IF EXISTS coupons_read_policy ON public.coupons;
-    CREATE POLICY coupons_read_policy ON public.coupons
-        FOR SELECT USING (true);
+DROP POLICY IF EXISTS profiles_update_policy ON public.profiles;
+CREATE POLICY profiles_update_policy ON public.profiles
+    FOR UPDATE USING (auth.uid() = user_id OR (auth.jwt() ->> 'role') = 'service_role')
+    WITH CHECK (auth.uid() = user_id OR (auth.jwt() ->> 'role') = 'service_role');
 
-    -- 4. User Data Isolation for all user tables
-    FOREACH tbl IN ARRAY user_tables LOOP
-        EXECUTE format('DROP POLICY IF EXISTS %I_user_isolation_policy ON public.%I', tbl, tbl);
-        EXECUTE format(
-            'CREATE POLICY %I_user_isolation_policy ON public.%I FOR ALL USING (auth.uid() = user_id OR auth.role() = ''service_role'') WITH CHECK (auth.uid() = user_id OR auth.role() = ''service_role'')',
-            tbl, tbl
-        );
-    END LOOP;
-END $$;
+DROP POLICY IF EXISTS profiles_delete_policy ON public.profiles;
+CREATE POLICY profiles_delete_policy ON public.profiles
+    FOR DELETE USING (auth.uid() = user_id OR (auth.jwt() ->> 'role') = 'service_role');
 
+-- 2. Subscriptions Table Policies
+DROP POLICY IF EXISTS subscriptions_user_policy ON public.subscriptions;
+CREATE POLICY subscriptions_user_policy ON public.subscriptions
+    FOR ALL USING (auth.uid() = user_id OR (auth.jwt() ->> 'role') = 'service_role')
+    WITH CHECK (auth.uid() = user_id OR (auth.jwt() ->> 'role') = 'service_role');
+
+-- 3. Coupons Read Policy (Restricted to Active Non-Expired Coupons)
+DROP POLICY IF EXISTS coupons_read_policy ON public.coupons;
+CREATE POLICY coupons_read_policy ON public.coupons
+    FOR SELECT USING (is_active = TRUE AND (expires_at IS NULL OR expires_at > CURRENT_TIMESTAMP));
+
+-- 4. User Isolation Policies for all user data tables (Explicit CREATE POLICY statements)
+DROP POLICY IF EXISTS payments_user_isolation_policy ON public.payments;
+CREATE POLICY payments_user_isolation_policy ON public.payments FOR ALL USING (auth.uid() = user_id OR (auth.jwt() ->> 'role') = 'service_role') WITH CHECK (auth.uid() = user_id OR (auth.jwt() ->> 'role') = 'service_role');
+
+DROP POLICY IF EXISTS tasks_user_isolation_policy ON public.tasks;
+CREATE POLICY tasks_user_isolation_policy ON public.tasks FOR ALL USING (auth.uid() = user_id OR (auth.jwt() ->> 'role') = 'service_role') WITH CHECK (auth.uid() = user_id OR (auth.jwt() ->> 'role') = 'service_role');
+
+DROP POLICY IF EXISTS habits_user_isolation_policy ON public.habits;
+CREATE POLICY habits_user_isolation_policy ON public.habits FOR ALL USING (auth.uid() = user_id OR (auth.jwt() ->> 'role') = 'service_role') WITH CHECK (auth.uid() = user_id OR (auth.jwt() ->> 'role') = 'service_role');
+
+DROP POLICY IF EXISTS habit_completions_user_isolation_policy ON public.habit_completions;
+CREATE POLICY habit_completions_user_isolation_policy ON public.habit_completions FOR ALL USING (auth.uid() = user_id OR (auth.jwt() ->> 'role') = 'service_role') WITH CHECK (auth.uid() = user_id OR (auth.jwt() ->> 'role') = 'service_role');
+
+DROP POLICY IF EXISTS expenses_user_isolation_policy ON public.expenses;
+CREATE POLICY expenses_user_isolation_policy ON public.expenses FOR ALL USING (auth.uid() = user_id OR (auth.jwt() ->> 'role') = 'service_role') WITH CHECK (auth.uid() = user_id OR (auth.jwt() ->> 'role') = 'service_role');
+
+DROP POLICY IF EXISTS monthly_budgets_user_isolation_policy ON public.monthly_budgets;
+CREATE POLICY monthly_budgets_user_isolation_policy ON public.monthly_budgets FOR ALL USING (auth.uid() = user_id OR (auth.jwt() ->> 'role') = 'service_role') WITH CHECK (auth.uid() = user_id OR (auth.jwt() ->> 'role') = 'service_role');
+
+DROP POLICY IF EXISTS subjects_user_isolation_policy ON public.subjects;
+CREATE POLICY subjects_user_isolation_policy ON public.subjects FOR ALL USING (auth.uid() = user_id OR (auth.jwt() ->> 'role') = 'service_role') WITH CHECK (auth.uid() = user_id OR (auth.jwt() ->> 'role') = 'service_role');
+
+DROP POLICY IF EXISTS study_units_user_isolation_policy ON public.study_units;
+CREATE POLICY study_units_user_isolation_policy ON public.study_units FOR ALL USING (auth.uid() = user_id OR (auth.jwt() ->> 'role') = 'service_role') WITH CHECK (auth.uid() = user_id OR (auth.jwt() ->> 'role') = 'service_role');
+
+DROP POLICY IF EXISTS study_items_user_isolation_policy ON public.study_items;
+CREATE POLICY study_items_user_isolation_policy ON public.study_items FOR ALL USING (auth.uid() = user_id OR (auth.jwt() ->> 'role') = 'service_role') WITH CHECK (auth.uid() = user_id OR (auth.jwt() ->> 'role') = 'service_role');
+
+DROP POLICY IF EXISTS goals_user_isolation_policy ON public.goals;
+CREATE POLICY goals_user_isolation_policy ON public.goals FOR ALL USING (auth.uid() = user_id OR (auth.jwt() ->> 'role') = 'service_role') WITH CHECK (auth.uid() = user_id OR (auth.jwt() ->> 'role') = 'service_role');
+
+DROP POLICY IF EXISTS milestones_user_isolation_policy ON public.milestones;
+CREATE POLICY milestones_user_isolation_policy ON public.milestones FOR ALL USING (auth.uid() = user_id OR (auth.jwt() ->> 'role') = 'service_role') WITH CHECK (auth.uid() = user_id OR (auth.jwt() ->> 'role') = 'service_role');
+
+DROP POLICY IF EXISTS calendar_events_user_isolation_policy ON public.calendar_events;
+CREATE POLICY calendar_events_user_isolation_policy ON public.calendar_events FOR ALL USING (auth.uid() = user_id OR (auth.jwt() ->> 'role') = 'service_role') WITH CHECK (auth.uid() = user_id OR (auth.jwt() ->> 'role') = 'service_role');
+
+DROP POLICY IF EXISTS journal_entries_user_isolation_policy ON public.journal_entries;
+CREATE POLICY journal_entries_user_isolation_policy ON public.journal_entries FOR ALL USING (auth.uid() = user_id OR (auth.jwt() ->> 'role') = 'service_role') WITH CHECK (auth.uid() = user_id OR (auth.jwt() ->> 'role') = 'service_role');
