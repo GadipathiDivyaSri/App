@@ -141,7 +141,7 @@ class DatabaseManager {
     // Merge Supabase Auth metadata (passwordHash) if user or password_hash is missing
     if (isSupabaseConfigured() && supabase) {
       try {
-        const { data } = await supabase.auth.admin.listUsers();
+        const { data } = await supabase.auth.admin.listUsers({ perPage: 1000 });
         const supUser = (data?.users || []).find(u =>
           (u.email || '').toLowerCase() === clean ||
           (u.user_metadata && (u.user_metadata.username || '').toLowerCase() === clean)
@@ -222,12 +222,14 @@ class DatabaseManager {
     const payload = { updated_at: new Date().toISOString() };
 
     if (updates.username) payload.username = updates.username.trim().toLowerCase();
+    if (updates.email) payload.email = updates.email.trim().toLowerCase();
     if (updates.name) payload.name = updates.name;
     if (updates.display_name) payload.display_name = updates.display_name;
     if (updates.focus_score !== undefined) payload.focus_score = updates.focus_score;
     if (updates.active_streak !== undefined) payload.active_streak = updates.active_streak;
     if (updates.is_premium !== undefined) payload.is_premium = !!updates.is_premium;
     if (updates.subscription_plan) payload.subscription_plan = updates.subscription_plan.toUpperCase();
+    if (updates.is_email_verified !== undefined) payload.is_email_verified = !!updates.is_email_verified;
 
     return await dbQuery('profiles', { method: 'PATCH', match: { id: uid }, body: payload, single: true });
   }
@@ -904,19 +906,20 @@ class DatabaseManager {
     return await dbQuery('milestones', { method: 'GET', match });
   }
 
-  static async createMilestone(userId, goalId, milestoneData) {
+  static async createMilestone(userId, goalId, milestoneData = {}) {
     if (!userId || !goalId) throw new Error('userId and goalId are required');
     const uid = ensureUuid(userId);
     const gid = ensureUuid(goalId);
+    const data = milestoneData || {};
 
     const newMilestone = {
-      id: ensureUuid(milestoneData.id),
+      id: ensureUuid(data.id),
       user_id: uid,
       goal_id: gid,
-      title: milestoneData.title || milestoneData.milestone_title || 'New Milestone',
-      description: milestoneData.description || null,
-      target_date: milestoneData.target_date || milestoneData.targetDate || null,
-      is_completed: !!(milestoneData.is_completed || milestoneData.isCompleted),
+      title: data.title || data.milestone_title || 'New Milestone',
+      description: data.description || null,
+      target_date: data.target_date || data.targetDate || null,
+      is_completed: !!(data.is_completed || data.isCompleted),
       created_at: new Date().toISOString(),
     };
 

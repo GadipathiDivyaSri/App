@@ -59,7 +59,52 @@ function makeRequest({ method, path, body = null, headers = {} }) {
   });
 }
 
+const { handleApiRequest } = require('../backend/api_handler');
+
 async function runQualitySuite() {
+  const WEB_DIR = path.join(__dirname, '..', 'build', 'web');
+  const MIME_TYPES = {
+    '.html': 'text/html; charset=UTF-8',
+    '.js': 'application/javascript; charset=UTF-8',
+    '.json': 'application/json; charset=UTF-8',
+    '.css': 'text/css; charset=UTF-8',
+    '.png': 'image/png',
+  };
+
+  const server = http.createServer((req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+    if (req.method === 'OPTIONS') {
+      res.writeHead(204);
+      return res.end();
+    }
+    if (req.url.startsWith('/api/')) {
+      return handleApiRequest(req, res);
+    }
+    let cleanUrl = req.url.split('?')[0];
+    if (cleanUrl === '/' || cleanUrl === '') cleanUrl = '/index.html';
+    let filePath = path.join(WEB_DIR, cleanUrl);
+    if (fs.existsSync(filePath) && !fs.statSync(filePath).isDirectory()) {
+      const ext = path.extname(filePath).toLowerCase();
+      const contentType = MIME_TYPES[ext] || 'application/octet-stream';
+      fs.readFile(filePath, (err, content) => {
+        if (err) {
+          res.writeHead(500, { 'Content-Type': 'text/plain' });
+          return res.end('Server Error');
+        }
+        res.writeHead(200, { 'Content-Type': contentType });
+        res.end(content);
+      });
+    } else {
+      res.writeHead(404, { 'Content-Type': 'text/plain' });
+      res.end('Not Found');
+    }
+  });
+
+  await new Promise((resolve) => server.listen(8080, resolve));
+
   const timestamp = Date.now();
   const testEmail = `qa_tester_${timestamp}@wrindhaos.in`;
   const testUser = `qa_user_${timestamp.toString().slice(-5)}`;
@@ -362,6 +407,8 @@ async function runQualitySuite() {
   } else {
     console.log(`⚠️ ${failedTests} quality test(s) failed. Check details above.\n`);
   }
+
+  server.close();
 }
 
 runQualitySuite();
