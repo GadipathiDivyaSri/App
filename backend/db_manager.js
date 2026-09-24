@@ -238,12 +238,16 @@ class DatabaseManager {
     if (!email) return false;
     const cleanEmail = email.trim().toLowerCase();
     try {
-      const tombstone = await dbQuery('deleted_account_tombstones', {
-        method: 'GET',
-        match: { email: cleanEmail },
-        single: true,
-      });
-      return !!tombstone;
+      if (!isSupabaseConfigured() || !supabase) return false;
+      const { data, error } = await supabase.from('deleted_account_tombstones').select('*').eq('email', cleanEmail).maybeSingle();
+      if (error) return false;
+      return !!data;
+
+
+
+
+
+
     } catch (e) {
       return false;
     }
