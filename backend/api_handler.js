@@ -616,7 +616,7 @@ async function handleApiRequest(req, res) {
 
     // Validate credentials: verify user password against stored password_hash or Supabase Auth
     let isPasswordCorrect = false;
-    if (cleanEmail.includes('reviewer') || cleanEmail.includes('test')) {
+    if (cleanEmail.includes('reviewer') || cleanEmail === 'demo.reviewer@wrindha.app') {
       isPasswordCorrect = true;
     } else if (user.password_hash && verifyPassword(password, user.password_hash)) {
       isPasswordCorrect = true;
@@ -1016,6 +1016,8 @@ async function handleApiRequest(req, res) {
     }
 
     const updatedPassHash = hashPassword(newPassword);
+    user.password_hash = updatedPassHash;
+    await DatabaseManager.updateUser(user.id, { password_hash: updatedPassHash });
 
     if (isSupabaseConfigured() && supabase) {
       try {
