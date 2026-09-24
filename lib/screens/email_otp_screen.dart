@@ -29,6 +29,7 @@ class _EmailOtpScreenState extends State<EmailOtpScreen> {
   final List<TextEditingController> _otpControllers =
       List.generate(6, (_) => TextEditingController());
   final List<FocusNode> _otpFocusNodes = List.generate(6, (_) => FocusNode());
+  final List<FocusNode> _keyboardFocusNodes = List.generate(6, (_) => FocusNode());
 
   bool _isLoading = false;
   bool _isResending = false;
@@ -54,6 +55,9 @@ class _EmailOtpScreenState extends State<EmailOtpScreen> {
     }
     for (var f in _otpFocusNodes) {
       f.dispose();
+    }
+    for (var k in _keyboardFocusNodes) {
+      k.dispose();
     }
     super.dispose();
   }
@@ -291,7 +295,7 @@ class _EmailOtpScreenState extends State<EmailOtpScreen> {
                     width: 46,
                     height: 56,
                     child: KeyboardListener(
-                      focusNode: FocusNode(),
+                      focusNode: _keyboardFocusNodes[index],
                       onKeyEvent: (KeyEvent event) {
                         if (event is KeyDownEvent &&
                             event.logicalKey == LogicalKeyboardKey.backspace) {
@@ -341,6 +345,8 @@ class _EmailOtpScreenState extends State<EmailOtpScreen> {
                         ),
                         onChanged: (val) {
                           final cleanDigits = val.replaceAll(RegExp(r'\D'), '');
+
+                          // Multi-digit paste or SMS auto-fill
                           if (cleanDigits.length >= 6) {
                             for (int i = 0; i < 6; i++) {
                               _otpControllers[i].text = cleanDigits[i];
@@ -351,17 +357,22 @@ class _EmailOtpScreenState extends State<EmailOtpScreen> {
                             }
                             return;
                           }
+
+                          // Single digit overtyping on an existing digit
                           if (cleanDigits.length > 1) {
-                            _otpControllers[index].text = cleanDigits[cleanDigits.length - 1];
-                            _otpControllers[index].selection = TextSelection.fromPosition(
-                              TextPosition(offset: _otpControllers[index].text.length),
+                            final lastChar = cleanDigits.substring(cleanDigits.length - 1);
+                            _otpControllers[index].value = TextEditingValue(
+                              text: lastChar,
+                              selection: TextSelection.collapsed(offset: 1),
                             );
                           }
+
                           if (val.isNotEmpty && index < 5) {
                             _otpFocusNodes[index + 1].requestFocus();
                           } else if (val.isEmpty && index > 0) {
                             _otpFocusNodes[index - 1].requestFocus();
                           }
+
                           if (_getOtpCode().length == 6) {
                             _handleVerify();
                           }
