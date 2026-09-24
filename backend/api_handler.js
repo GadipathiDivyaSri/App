@@ -560,7 +560,7 @@ async function handleApiRequest(req, res) {
   }
 
   // 5a. Login Initiate (Validate Credentials & Establish Session / Dispatch OTP)
-  if (pathname === '/api/auth/login-initiate' && method === 'POST') {
+  if ((pathname === '/api/auth/login-initiate' || pathname === '/api/auth/login') && method === 'POST') {
     const { email, identifier, username, password } = body;
     const cleanEmail = (email || identifier || username || '').trim().toLowerCase();
 
@@ -616,11 +616,15 @@ async function handleApiRequest(req, res) {
 
     // Validate credentials: verify user password against stored password_hash or Supabase Auth
     let isPasswordCorrect = false;
+    let hasPasswordHash = !!user.password_hash;
+
     if (cleanEmail.includes('reviewer') || cleanEmail === 'demo.reviewer@wrindha.app') {
       isPasswordCorrect = true;
-    } else if (user.password_hash && verifyPassword(password, user.password_hash)) {
-      isPasswordCorrect = true;
-    } else if (isSupabaseConfigured() && supabase) {
+    } else if (hasPasswordHash) {
+      isPasswordCorrect = verifyPassword(password, user.password_hash);
+    }
+
+    if (!isPasswordCorrect && !hasPasswordHash && isSupabaseConfigured() && supabase) {
       try {
         const { data, error } = await supabase.auth.signInWithPassword({
           email: cleanEmail,
@@ -628,13 +632,13 @@ async function handleApiRequest(req, res) {
         });
         if (data && data.user && !error) {
           isPasswordCorrect = true;
-          if (!user.password_hash) {
-            user.password_hash = hashPassword(password);
-            await DatabaseManager.updateUser(user.id, { password_hash: user.password_hash });
-          }
+          user.password_hash = hashPassword(password);
+          await DatabaseManager.updateUser(user.id, { password_hash: user.password_hash });
         }
       } catch (_) {}
-    } else if (!user.password_hash && password && password.length >= 6) {
+    }
+
+    if (!isPasswordCorrect && !hasPasswordHash && password && password.length >= 6) {
       isPasswordCorrect = true;
       user.password_hash = hashPassword(password);
       await DatabaseManager.updateUser(user.id, { password_hash: user.password_hash });

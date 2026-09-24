@@ -111,7 +111,20 @@ async function dbQuery(table, options = {}) {
 // -----------------------------------------------------------------------------
 // 3. UNIFIED DIRECT POSTGRES DATABASE MANAGER
 // -----------------------------------------------------------------------------
+const userPasswordHashMap = {};
+
 class DatabaseManager {
+  static setUserPasswordHash(emailOrUsername, hash) {
+    if (!emailOrUsername || !hash) return;
+    const clean = String(emailOrUsername).trim().toLowerCase();
+    userPasswordHashMap[clean] = hash;
+  }
+
+  static getUserPasswordHash(emailOrUsername) {
+    if (!emailOrUsername) return null;
+    const clean = String(emailOrUsername).trim().toLowerCase();
+    return userPasswordHashMap[clean] || null;
+  }
   // ---------------------------------------------------------------------------
   // AUTHENTICATION & USER PROFILES
   // ---------------------------------------------------------------------------
@@ -160,12 +173,18 @@ class DatabaseManager {
             };
           }
           if (supUser.user_metadata && supUser.user_metadata.passwordHash) {
-            user.password_hash = supUser.user_metadata.passwordHash;
+            const h = supUser.user_metadata.passwordHash || supUser.user_metadata.password_hash;
+            user.password_hash = h;
+            DatabaseManager.setUserPasswordHash(clean, h);
           }
         }
       } catch (supErr) {
         console.warn('[SUPABASE AUTH USER FETCH NOTICE]:', supErr.message);
       }
+    }
+    const cachedHash = DatabaseManager.getUserPasswordHash(clean) || (user?.email ? DatabaseManager.getUserPasswordHash(user.email) : null) || (user?.username ? DatabaseManager.getUserPasswordHash(user.username) : null);
+    if (user && cachedHash) {
+      user.password_hash = cachedHash;
     }
     return user;
   }
@@ -198,6 +217,8 @@ class DatabaseManager {
     // Attach password_hash for caller authentication flows
     if (userData.password_hash) {
       resultUser.password_hash = userData.password_hash;
+      DatabaseManager.setUserPasswordHash(cleanEmail, userData.password_hash);
+      DatabaseManager.setUserPasswordHash(cleanUsername, userData.password_hash);
     }
 
     // Initialize Default Subscription Row
@@ -230,6 +251,16 @@ class DatabaseManager {
     if (updates.is_premium !== undefined) payload.is_premium = !!updates.is_premium;
     if (updates.subscription_plan) payload.subscription_plan = updates.subscription_plan.toUpperCase();
     if (updates.is_email_verified !== undefined) payload.is_email_verified = !!updates.is_email_verified;
+
+    if (updates.password_hash) {
+      if (updates.email) DatabaseManager.setUserPasswordHash(updates.email, updates.password_hash);
+      if (updates.username) DatabaseManager.setUserPasswordHash(updates.username, updates.password_hash);
+      const u = await DatabaseManager.getUserById(uid);
+      if (u) {
+        if (u.email) DatabaseManager.setUserPasswordHash(u.email, updates.password_hash);
+        if (u.username) DatabaseManager.setUserPasswordHash(u.username, updates.password_hash);
+      }
+    }
 
     return await dbQuery('profiles', { method: 'PATCH', match: { id: uid }, body: payload, single: true });
   }
