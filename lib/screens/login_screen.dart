@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../models/models.dart';
+import '../providers/app_provider.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import 'signup_screen.dart';
 import 'email_otp_screen.dart';
 import 'forgot_password_screen.dart';
+import 'main_navigation.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -57,6 +61,34 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = false);
 
     if (res['success'] == true) {
+      final token = res['token'] ?? res['data']?['token'];
+      final userMap = res['user'] ?? res['data']?['user'];
+
+      if (token != null && userMap != null) {
+        final provider = Provider.of<AppProvider>(context, listen: false);
+        final profile = UserProfile.fromJson(userMap);
+        profile.token = token.toString();
+        if (res['subscription'] != null) {
+          final subMap = res['subscription'];
+          final isProSub = (subMap['isPro'] == true ||
+              subMap['isPremium'] == true ||
+              (subMap['plan'] ?? '').toString().toLowerCase() == 'pro' ||
+              (subMap['plan'] ?? '').toString().toLowerCase() == 'premium');
+          if (isProSub) {
+            profile.isPremium = true;
+            profile.subscriptionPlan = 'PRO';
+          }
+        }
+        provider.setUser(profile);
+
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
+          (route) => false,
+        );
+        return;
+      }
+
       Navigator.push(
         context,
         MaterialPageRoute(
