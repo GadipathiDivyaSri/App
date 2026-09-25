@@ -159,17 +159,22 @@ class Habit {
       };
 
   factory Habit.fromJson(Map<String, dynamic> json) {
-    final history = (json['completionHistory'] as List<dynamic>?)
+    final historyRaw = json['completionHistory'] ?? json['completion_history'] ?? json['history'];
+    final history = (historyRaw as List<dynamic>?)
             ?.map((e) => e.toString())
             .toList() ??
         [];
-    final days = (json['selectedDays'] as List<dynamic>?)
+    final daysRaw = json['selectedDays'] ?? json['selected_days'] ?? json['days'];
+    final days = (daysRaw as List<dynamic>?)
             ?.map((e) => int.tryParse(e.toString()) ?? 1)
             .toList() ??
         [];
 
+    final todayStr = '${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}-${DateTime.now().day.toString().padLeft(2, '0')}';
+    final isDone = json['isCompleted'] ?? json['is_completed'] ?? history.contains(todayStr);
+
     return Habit(
-      id: json['id'] ?? 'h_1',
+      id: json['id']?.toString() ?? 'h_1',
       title: json['title'] ?? '',
       category: json['category'] ?? 'General',
       frequency: json['frequency'] ?? 'DAILY',
@@ -181,10 +186,10 @@ class Habit {
           ? (int.tryParse(json['colorHex'].toString()) ?? 0xFF10B981)
           : (json['color_hex'] != null ? (int.tryParse(json['color_hex'].toString()) ?? 0xFF10B981) : 0xFF10B981),
       iconName: json['iconName'] ?? json['icon_name'] ?? 'repeat',
-      isCompleted: json['isCompleted'] ?? false,
-      streakDay: json['currentStreak'] ?? json['streakDay'] ?? json['streak'] ?? 0,
-      longestStreak: json['longestStreak'] ?? 0,
-      totalCompletions: json['totalCompletions'] ?? history.length,
+      isCompleted: isDone,
+      streakDay: json['currentStreak'] ?? json['streakDay'] ?? json['streak_day'] ?? json['streak'] ?? 0,
+      longestStreak: json['longestStreak'] ?? json['longest_streak'] ?? 0,
+      totalCompletions: json['totalCompletions'] ?? json['total_completions'] ?? history.length,
       completionHistory: history,
     );
   }
@@ -328,25 +333,26 @@ class CalendarEvent {
         'isCompleted': isCompleted,
       };
 
-  factory CalendarEvent.fromJson(Map<String, dynamic> json) => CalendarEvent(
-        id: json['id']?.toString() ?? generateUuidV4(),
-        title: json['title'] ?? 'Event',
-        description: json['description'] ?? '',
-        startTime: json['startTime'] != null
-            ? (DateTime.tryParse(json['startTime'].toString()) ?? DateTime.now())
-            : (json['start_time'] != null
-                ? (DateTime.tryParse(json['start_time'].toString()) ?? DateTime.now())
-                : DateTime.now()),
-        endTime: json['endTime'] != null
-            ? (DateTime.tryParse(json['endTime'].toString()) ?? DateTime.now().add(const Duration(hours: 1)))
-            : (json['end_time'] != null
-                ? (DateTime.tryParse(json['end_time'].toString()) ?? DateTime.now().add(const Duration(hours: 1)))
-                : DateTime.now().add(const Duration(hours: 1))),
-        location: json['location'] ?? 'Workspace A',
-        type: json['type'] ?? 'Focus Session',
-        category: json['category'] ?? 'General',
-        isCompleted: json['isCompleted'] ?? json['is_completed'] ?? false,
-      );
+  factory CalendarEvent.fromJson(Map<String, dynamic> json) {
+    DateTime parseDate(dynamic val, DateTime defaultVal) {
+      if (val == null) return defaultVal;
+      final parsed = DateTime.tryParse(val.toString());
+      if (parsed == null) return defaultVal;
+      return parsed.isUtc ? parsed.toLocal() : parsed;
+    }
+
+    return CalendarEvent(
+      id: json['id']?.toString() ?? generateUuidV4(),
+      title: json['title'] ?? 'Event',
+      description: json['description'] ?? '',
+      startTime: parseDate(json['startTime'] ?? json['start_time'] ?? json['date'], DateTime.now()),
+      endTime: parseDate(json['endTime'] ?? json['end_time'], DateTime.now().add(const Duration(hours: 1))),
+      location: json['location'] ?? 'Workspace A',
+      type: json['type'] ?? json['event_type'] ?? json['type_name'] ?? 'Focus Session',
+      category: json['category'] ?? json['event_category'] ?? 'General',
+      isCompleted: json['isCompleted'] ?? json['is_completed'] ?? false,
+    );
+  }
 }
 
 class AppNotification {

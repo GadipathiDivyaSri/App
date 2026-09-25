@@ -11,7 +11,10 @@ class TodoScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<AppProvider>(context);
-    final tasks = provider.tasks;
+    final tasks = provider.tasks.where((t) {
+      final cat = t.category.trim().toLowerCase();
+      return !cat.contains('roadmap') && !cat.contains('matrix') && !cat.contains('unit') && !cat.contains('topic');
+    }).toList();
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(

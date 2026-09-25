@@ -141,10 +141,6 @@ class ExpensesTabView extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 24),
-
-        // 3. INSIGHTS
-        AnalyticsInsightsCard(insights: data.insights),
       ],
     );
   }
