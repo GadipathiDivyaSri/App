@@ -861,11 +861,13 @@ class AppProvider extends ChangeNotifier {
     await prefs.setString('saved_session_user', userJson);
     await prefs.setString('wrindha_auth_user', userJson);
     await prefs.setString('wrindha_secure_user_profile', userJson);
-    if (_user.token != null) {
+    if (_user.token != null && _user.token!.isNotEmpty) {
       await prefs.setString('saved_session_token', _user.token!);
       await prefs.setString('wrindha_auth_token', _user.token!);
       await prefs.setString('wrindha_secure_jwt_token', _user.token!);
+      await AuthApiService.saveSessionToken(_user.token!);
     }
+    await AuthApiService.saveCachedUser(_user.toJson());
   }
 
   Future<Map<String, dynamic>> deleteAccount() async {
@@ -1015,8 +1017,10 @@ class AppProvider extends ChangeNotifier {
       _monthlyBudget = prefs.getDouble('saved_monthly_budget') ?? 10000.0;
 
       // Restore authenticated session from secure storage
-      final storedToken = await AuthApiService.getSessionToken();
-      final cachedUser = await AuthApiService.getCachedUser();
+      String? storedToken = await AuthApiService.getSessionToken();
+      storedToken ??= await ApiService.getSessionToken();
+      Map<String, dynamic>? cachedUser = await AuthApiService.getCachedUser();
+      cachedUser ??= await ApiService.getSessionUser();
       if (storedToken != null && storedToken.isNotEmpty && cachedUser != null) {
         setAuthenticatedSession(userMap: cachedUser, token: storedToken);
       }

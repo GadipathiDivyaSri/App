@@ -111,17 +111,24 @@ class AuthApiService {
     final prefs = await SharedPreferences.getInstance();
     final encodedToken = base64Encode(utf8.encode(token));
     await prefs.setString(_jwtStorageKey, encodedToken);
+    await prefs.setString('wrindha_auth_token', token);
+    await prefs.setString('saved_session_token', token);
   }
 
   static Future<String?> getSessionToken() async {
     final prefs = await SharedPreferences.getInstance();
     final stored = prefs.getString(_jwtStorageKey);
-    if (stored == null || stored.isEmpty) return null;
-    try {
-      return utf8.decode(base64Decode(stored));
-    } catch (_) {
-      return null;
+    if (stored != null && stored.isNotEmpty) {
+      try {
+        final decoded = utf8.decode(base64Decode(stored));
+        if (decoded.isNotEmpty) return decoded;
+      } catch (_) {
+        // Stored value was already a raw JWT string
+        return stored;
+      }
     }
+    return prefs.getString('wrindha_auth_token') ??
+        prefs.getString('saved_session_token');
   }
 
   static Future<void> saveCachedUser(Map<String, dynamic> userMap) async {

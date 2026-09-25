@@ -211,6 +211,10 @@ class DatabaseManager {
       updated_at: new Date().toISOString(),
     };
 
+    if (userData.password_hash) {
+      newUser.password_hash = userData.password_hash;
+    }
+
     const createdProfile = await dbQuery('profiles', { method: 'POST', body: newUser, single: true });
     const resultUser = createdProfile || newUser;
 
@@ -253,6 +257,7 @@ class DatabaseManager {
     if (updates.is_email_verified !== undefined) payload.is_email_verified = !!updates.is_email_verified;
 
     if (updates.password_hash) {
+      payload.password_hash = updates.password_hash;
       if (updates.email) DatabaseManager.setUserPasswordHash(updates.email, updates.password_hash);
       if (updates.username) DatabaseManager.setUserPasswordHash(updates.username, updates.password_hash);
       const u = await DatabaseManager.getUserById(uid);

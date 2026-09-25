@@ -40,10 +40,25 @@ class _AuthEntryScreenState extends State<AuthEntryScreen> {
             token != null &&
             token.isNotEmpty) {
           final res = await ApiService.getCurrentUser();
-          if (res['success'] == true && res['user'] != null && mounted) {
-            final validUser = res['user'];
+          final validUser = res['user'] ?? (res['id'] != null ? res : null);
+          if ((validUser != null || res['success'] == true) && mounted) {
+            final targetUser = validUser is Map<String, dynamic> ? validUser : userMap;
             final provider = Provider.of<AppProvider>(context, listen: false);
-            final user = UserProfile.fromJson(validUser);
+            final user = UserProfile.fromJson(targetUser);
+            user.token = token;
+            provider.setUser(user);
+
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
+            );
+            return;
+          } else if (res['error'] == 'UNAUTHORIZED' || res['error'] == 'USER_NOT_FOUND' || res['statusCode'] == 401) {
+            await ApiService.clearSession();
+          } else {
+            // Network fallback: continue with valid cached session
+            final provider = Provider.of<AppProvider>(context, listen: false);
+            final user = UserProfile.fromJson(userMap);
             user.token = token;
             provider.setUser(user);
 
@@ -54,9 +69,22 @@ class _AuthEntryScreenState extends State<AuthEntryScreen> {
             return;
           }
         }
-        await ApiService.clearSession();
       } catch (_) {
-        await ApiService.clearSession();
+        // Offline / network failure: retain active session
+        final userMap = await ApiService.getSessionUser();
+        final token = await ApiService.getSessionToken();
+        if (userMap != null && userMap['id'] != 'guest_user' && token != null && mounted) {
+          final provider = Provider.of<AppProvider>(context, listen: false);
+          final user = UserProfile.fromJson(userMap);
+          user.token = token;
+          provider.setUser(user);
+
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
+          );
+          return;
+        }
       }
     }
 
