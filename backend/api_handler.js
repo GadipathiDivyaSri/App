@@ -244,7 +244,15 @@ function parseRequestBody(req) {
 
   // 1. If Vercel or Express already parsed req.body
   if (req.body !== undefined && req.body !== null) {
-    if (typeof req.body === 'object') {
+    if (Buffer.isBuffer(req.body)) {
+      try {
+        const str = req.body.toString('utf8');
+        return Promise.resolve(str.trim() ? JSON.parse(str) : {});
+      } catch (_) {
+        return Promise.resolve({});
+      }
+    }
+    if (typeof req.body === 'object' && Object.keys(req.body).length > 0) {
       return Promise.resolve(req.body);
     }
     if (typeof req.body === 'string') {
