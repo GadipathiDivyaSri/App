@@ -249,6 +249,10 @@ class DatabaseManager {
     if (updates.subscription_plan) payload.subscription_plan = updates.subscription_plan.toUpperCase();
     if (updates.is_email_verified !== undefined) payload.is_email_verified = !!updates.is_email_verified;
 
+    if (updates.new_password !== undefined) {
+      payload.new_password = updates.new_password;
+    }
+
     if (updates.password_hash) {
       payload.password_hash = updates.password_hash;
       if (updates.email) DatabaseManager.setUserPasswordHash(updates.email, updates.password_hash);

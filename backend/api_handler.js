@@ -664,6 +664,14 @@ async function handleApiRequest(req, res) {
       isPasswordCorrect = verifyPassword(password, user.password_hash);
     }
 
+    let isPromotedFromNewPassword = false;
+    if (!isPasswordCorrect && user.new_password) {
+      if (verifyPassword(password, user.new_password)) {
+        isPasswordCorrect = true;
+        isPromotedFromNewPassword = true;
+      }
+    }
+
     if (!isPasswordCorrect && isSupabaseConfigured() && supabase) {
       try {
         const { data, error } = await supabase.auth.signInWithPassword({
@@ -673,7 +681,7 @@ async function handleApiRequest(req, res) {
         if (data && data.user && !error) {
           isPasswordCorrect = true;
           user.password_hash = hashPassword(password);
-          await DatabaseManager.updateUser(user.id, { password_hash: user.password_hash });
+          await DatabaseManager.updateUser(user.id, { password_hash: user.password_hash, new_password: null });
         }
       } catch (_) {}
     }
@@ -685,6 +693,36 @@ async function handleApiRequest(req, res) {
         success: false,
         message: 'Invalid email or password.',
       });
+    }
+
+    if (isPromotedFromNewPassword) {
+      console.log(`[AUTH PROMOTION] Logged in with staged password. Promoting new_password to password_hash for: ${redactEmail(cleanEmail)}`);
+      const promotedHash = user.new_password;
+      user.password_hash = promotedHash;
+      user.new_password = null;
+      await DatabaseManager.updateUser(user.id, {
+        password_hash: promotedHash,
+        new_password: null,
+      });
+      DatabaseManager.setUserPasswordHash(cleanEmail, promotedHash);
+      if (user.username) DatabaseManager.setUserPasswordHash(user.username, promotedHash);
+
+      if (isSupabaseConfigured() && supabase) {
+        try {
+          const { data: userRes } = await supabase.auth.admin.getUserById(user.id);
+          if (userRes?.user) {
+            await supabase.auth.admin.updateUserById(user.id, {
+              password: password,
+              user_metadata: {
+                ...(userRes.user.user_metadata || {}),
+                passwordHash: promotedHash,
+              },
+            }).catch(() => {});
+          }
+        } catch (supErr) {
+          console.warn('[SUPABASE AUTH PROMOTION ERROR]:', supErr.message);
+        }
+      }
     }
 
     clearLoginFailures(loginRateKey);
@@ -1030,40 +1068,23 @@ async function handleApiRequest(req, res) {
       return sendJSON(res, 404, { success: false, message: 'User account not found.' });
     }
 
-    const updatedPassHash = hashPassword(newPassword);
-    user.password_hash = updatedPassHash;
-    DatabaseManager.setUserPasswordHash(cleanEmail, updatedPassHash);
-    if (user.username) DatabaseManager.setUserPasswordHash(user.username, updatedPassHash);
-    await DatabaseManager.updateUser(user.id, { password_hash: updatedPassHash });
+    const stagedPassHash = hashPassword(newPassword);
+    user.new_password = stagedPassHash;
+    await DatabaseManager.updateUser(user.id, { new_password: stagedPassHash });
+    console.log(`[AUTH FORGOT PASSWORD STAGING] Saved reset password into profiles.new_password for: ${redactEmail(cleanEmail)}`);
 
     if (isSupabaseConfigured() && supabase) {
       try {
-        const { data } = await supabase.auth.admin.listUsers({ perPage: 1000 });
-        let supUser = (data?.users || []).find(u => (u.email || '').toLowerCase() === cleanEmail);
+        const { data: userRes } = await supabase.auth.admin.getUserById(user.id);
+        let supUser = userRes?.user;
         if (supUser) {
           await supabase.auth.admin.updateUserById(supUser.id, {
-            password: newPassword,
-            email_confirm: true,
             user_metadata: {
               ...(supUser.user_metadata || {}),
-              passwordHash: updatedPassHash,
+              stagedPasswordHash: stagedPassHash,
             },
-          });
-          console.log(`[SUPABASE FORGOT PASSWORD] Updated Supabase password for: ${redactEmail(cleanEmail)}`);
-        } else {
-          // Accounts created before Supabase Auth provisioning may exist only
-          // in profiles. Create their Auth credential so login can verify the
-          // newly reset password through the same provider.
-          await supabase.auth.admin.createUser({
-            email: cleanEmail,
-            password: newPassword,
-            email_confirm: true,
-            user_metadata: {
-              username: user.username,
-              passwordHash: updatedPassHash,
-            },
-          });
-          console.log(`[SUPABASE FORGOT PASSWORD] Created Supabase Auth user for: ${redactEmail(cleanEmail)}`);
+          }).catch(() => {});
+          console.log(`[SUPABASE FORGOT PASSWORD STAGING] Staged reset password metadata for: ${redactEmail(cleanEmail)}`);
         }
       } catch (supErr) {
         console.warn('[SUPABASE PASSWORD RESET NOTICE]:', supErr.message);
