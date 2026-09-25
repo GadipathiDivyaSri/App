@@ -103,7 +103,7 @@ async function dbQuery(table, options = {}) {
     const data = await res.json();
     return single ? (Array.isArray(data) ? data[0] : data) : data;
   } catch (err) {
-    console.error(`[Database Engine Error] (${table} ${method}):`, err.message);
+    console.error(`[Database Engine Notice] (${table} ${method}):`, err.message);
     return method === 'GET' ? (single ? null : []) : null;
   }
 }
@@ -125,17 +125,14 @@ class DatabaseManager {
     const clean = String(emailOrUsername).trim().toLowerCase();
     return userPasswordHashMap[clean] || null;
   }
+
   // ---------------------------------------------------------------------------
   // AUTHENTICATION & USER PROFILES
   // ---------------------------------------------------------------------------
   static async getUserById(userId) {
     if (!userId) return null;
     const uid = ensureUuid(userId);
-    let user = await dbQuery('profiles', { method: 'GET', match: { id: uid }, single: true });
-    if (!user) {
-      user = await dbQuery('profiles', { method: 'GET', match: { user_id: uid }, single: true });
-    }
-    return user;
+    return await dbQuery('profiles', { method: 'GET', match: { id: uid }, single: true });
   }
 
   static async getUserByReferralCode(code) {
@@ -163,16 +160,14 @@ class DatabaseManager {
           if (!user) {
             user = {
               id: supUser.id,
-              user_id: supUser.id,
               email: supUser.email,
               username: supUser.user_metadata?.username || clean,
-              name: supUser.user_metadata?.name || supUser.email.split('@')[0],
               display_name: supUser.user_metadata?.name || supUser.email.split('@')[0],
               is_premium: false,
               subscription_plan: 'FREE',
             };
           }
-          if (supUser.user_metadata && supUser.user_metadata.passwordHash) {
+          if (supUser.user_metadata && (supUser.user_metadata.passwordHash || supUser.user_metadata.password_hash)) {
             const h = supUser.user_metadata.passwordHash || supUser.user_metadata.password_hash;
             user.password_hash = h;
             DatabaseManager.setUserPasswordHash(clean, h);
@@ -196,9 +191,7 @@ class DatabaseManager {
 
     const newUser = {
       id: userId,
-      user_id: userId,
       username: cleanUsername,
-      name: userData.name || userData.display_name || (cleanUsername ? cleanUsername[0].toUpperCase() + cleanUsername.slice(1) : 'Student User'),
       display_name: userData.display_name || userData.name || (cleanUsername ? cleanUsername[0].toUpperCase() + cleanUsername.slice(1) : 'Student User'),
       email: cleanEmail,
       is_premium: !!userData.is_premium,
@@ -218,7 +211,6 @@ class DatabaseManager {
     const createdProfile = await dbQuery('profiles', { method: 'POST', body: newUser, single: true });
     const resultUser = createdProfile || newUser;
 
-    // Attach password_hash for caller authentication flows
     if (userData.password_hash) {
       resultUser.password_hash = userData.password_hash;
       DatabaseManager.setUserPasswordHash(cleanEmail, userData.password_hash);
@@ -248,8 +240,9 @@ class DatabaseManager {
 
     if (updates.username) payload.username = updates.username.trim().toLowerCase();
     if (updates.email) payload.email = updates.email.trim().toLowerCase();
-    if (updates.name) payload.name = updates.name;
-    if (updates.display_name) payload.display_name = updates.display_name;
+    if (updates.display_name || updates.name) payload.display_name = updates.display_name || updates.name;
+    if (updates.phone_number || updates.contact) payload.phone_number = updates.phone_number || updates.contact;
+    if (updates.avatar_url || updates.profile_image) payload.avatar_url = updates.avatar_url || updates.profile_image;
     if (updates.focus_score !== undefined) payload.focus_score = updates.focus_score;
     if (updates.active_streak !== undefined) payload.active_streak = updates.active_streak;
     if (updates.is_premium !== undefined) payload.is_premium = !!updates.is_premium;
@@ -278,12 +271,6 @@ class DatabaseManager {
       const { data, error } = await supabase.from('deleted_account_tombstones').select('*').eq('email', cleanEmail).maybeSingle();
       if (error) return false;
       return !!data;
-
-
-
-
-
-
     } catch (e) {
       return false;
     }
@@ -336,7 +323,7 @@ class DatabaseManager {
     };
   }
 
-  static async upgradeSubscription(userId, plan = 'pro', paymentProvider = 'GOOGLE_PLAY', transactionId = null) {
+  static async upgradeSubscription(userId, plan = 'pro', paymentProvider = 'GOOGLE_PLAY') {
     if (!userId) throw new Error('userId is required');
     const uid = ensureUuid(userId);
     const planName = plan.toLowerCase() === 'pro' || plan.toLowerCase() === 'premium' ? 'premium' : 'free';
@@ -368,7 +355,7 @@ class DatabaseManager {
       ...t,
       userId: t.user_id,
       isCompleted: t.is_completed,
-      dueDate: t.due_at || t.due_date,
+      dueDate: t.due_at,
     }));
   }
 
@@ -387,7 +374,7 @@ class DatabaseManager {
       priority: Number(taskData.priority) || 1,
       quadrant: taskData.quadrant || 'q1_do_first',
       is_completed: isDone,
-      due_at: taskData.due_date || taskData.dueDate || taskData.due_at || new Date().toISOString(),
+      due_at: taskData.due_at || taskData.due_date || taskData.dueDate || new Date().toISOString(),
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -407,8 +394,8 @@ class DatabaseManager {
     if (updates.category !== undefined) payload.category = updates.category;
     if (updates.priority !== undefined) payload.priority = Number(updates.priority) || 1;
     if (updates.quadrant !== undefined) payload.quadrant = updates.quadrant;
-    if (updates.due_date || updates.dueDate || updates.due_at) {
-      payload.due_at = updates.due_date || updates.dueDate || updates.due_at;
+    if (updates.due_at || updates.due_date || updates.dueDate) {
+      payload.due_at = updates.due_at || updates.due_date || updates.dueDate;
     }
     if (updates.is_completed !== undefined || updates.isCompleted !== undefined) {
       payload.is_completed = !!(updates.is_completed ?? updates.isCompleted);
@@ -426,7 +413,7 @@ class DatabaseManager {
   }
 
   // ---------------------------------------------------------------------------
-  // HABITS & HABIT COMPLETIONS (DIRECT POSTGRESQL CRUD)
+  // HABITS & HABIT LOGS (DIRECT POSTGRESQL CRUD)
   // ---------------------------------------------------------------------------
   static async getHabits(userId) {
     if (!userId) return [];
@@ -435,7 +422,7 @@ class DatabaseManager {
     return (habits || []).map(h => ({
       ...h,
       userId: h.user_id,
-      colorHex: h.color_hex || h.color,
+      colorHex: h.color_hex,
       iconName: h.icon_name,
     }));
   }
@@ -446,7 +433,7 @@ class DatabaseManager {
     const dateStr = targetDateStr || new Date().toISOString().split('T')[0];
 
     const habits = await this.getHabits(uid);
-    const completions = await dbQuery('habit_completions', { method: 'GET', match: { user_id: uid, completion_date: dateStr } });
+    const completions = await dbQuery('habit_logs', { method: 'GET', match: { user_id: uid, completion_date: dateStr } });
     const completedSet = new Set((completions || []).map(c => c.habit_id));
 
     const scheduled = habits.map(h => {
@@ -474,7 +461,7 @@ class DatabaseManager {
       category: habitData.category || 'General',
       frequency: (habitData.frequency || 'daily').toLowerCase(),
       icon_name: habitData.icon_name || habitData.iconName || 'repeat',
-      color_hex: habitData.color_hex || habitData.colorHex || habitData.color || '#10B981',
+      color_hex: habitData.color_hex || habitData.colorHex || '#10B981',
       status: 'active',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -494,8 +481,8 @@ class DatabaseManager {
     if (updates.description !== undefined) payload.description = updates.description;
     if (updates.category !== undefined) payload.category = updates.category;
     if (updates.frequency !== undefined) payload.frequency = updates.frequency;
-    if (updates.color_hex || updates.colorHex || updates.color) {
-      payload.color_hex = updates.color_hex || updates.colorHex || updates.color;
+    if (updates.color_hex || updates.colorHex) {
+      payload.color_hex = updates.color_hex || updates.colorHex;
     }
     if (updates.status !== undefined) payload.status = updates.status;
 
@@ -506,7 +493,7 @@ class DatabaseManager {
     if (!userId || !habitId) return false;
     const uid = ensureUuid(userId);
     const hid = ensureUuid(habitId);
-    await dbQuery('habit_completions', { method: 'DELETE', match: { habit_id: hid, user_id: uid } });
+    await dbQuery('habit_logs', { method: 'DELETE', match: { habit_id: hid, user_id: uid } });
     return await dbQuery('habits', { method: 'DELETE', match: { id: hid, user_id: uid } });
   }
 
@@ -516,10 +503,10 @@ class DatabaseManager {
     const hid = ensureUuid(habitId);
     const targetDate = dateStr || new Date().toISOString().split('T')[0];
 
-    const existing = await dbQuery('habit_completions', { method: 'GET', match: { habit_id: hid, user_id: uid, completion_date: targetDate }, single: true });
+    const existing = await dbQuery('habit_logs', { method: 'GET', match: { habit_id: hid, user_id: uid, completion_date: targetDate }, single: true });
 
     if (existing) {
-      await dbQuery('habit_completions', { method: 'DELETE', match: { id: existing.id } });
+      await dbQuery('habit_logs', { method: 'DELETE', match: { id: existing.id } });
       return { isCompleted: false, habitId: hid, date: targetDate };
     } else {
       const log = {
@@ -531,7 +518,7 @@ class DatabaseManager {
         notes: notes || '',
         completed_at: new Date().toISOString(),
       };
-      await dbQuery('habit_completions', { method: 'POST', body: log });
+      await dbQuery('habit_logs', { method: 'POST', body: log });
       return { isCompleted: true, habitId: hid, date: targetDate };
     }
   }
@@ -565,7 +552,7 @@ class DatabaseManager {
       category: expenseData.category || 'General',
       transaction_type: isInc ? 'income' : 'expense',
       payment_method: expenseData.payment_method || expenseData.paymentMethod || 'UPI',
-      occurred_at: expenseData.expense_date || expenseData.occurred_at || new Date().toISOString(),
+      occurred_at: expenseData.occurred_at || expenseData.expense_date || new Date().toISOString(),
       created_at: new Date().toISOString(),
     };
 
@@ -589,8 +576,8 @@ class DatabaseManager {
     if (updates.paymentMethod || updates.payment_method) {
       payload.payment_method = updates.paymentMethod || updates.payment_method;
     }
-    if (updates.date || updates.occurred_at || updates.expense_date) {
-      payload.occurred_at = updates.date || updates.occurred_at || updates.expense_date;
+    if (updates.occurred_at || updates.expense_date || updates.date) {
+      payload.occurred_at = updates.occurred_at || updates.expense_date || updates.date;
     }
 
     const updated = await dbQuery('expenses', { method: 'PATCH', match: { id: eid, user_id: uid }, body: payload, single: true });
@@ -632,7 +619,7 @@ class DatabaseManager {
   }
 
   // ---------------------------------------------------------------------------
-  // STUDY MODULE: SUBJECTS, UNITS & ITEMS (DIRECT POSTGRESQL CRUD)
+  // STUDY MODULE: SUBJECTS & ITEMS (DIRECT POSTGRESQL CRUD)
   // ---------------------------------------------------------------------------
   static async getSubjects(userId) {
     if (!userId) return [];
@@ -649,7 +636,7 @@ class DatabaseManager {
       name: subjectData.name || subjectData.subject_name || 'New Subject',
       code: subjectData.code || '',
       instructor: subjectData.instructor || '',
-      color: subjectData.color_hex || subjectData.colorHex || subjectData.color || '#0D5CE5',
+      color_hex: subjectData.color_hex || subjectData.colorHex || '#0D5CE5',
       credits: Number(subjectData.credits) || 3,
       created_at: new Date().toISOString(),
     };
@@ -662,12 +649,10 @@ class DatabaseManager {
     const sid = ensureUuid(subjectId);
 
     const payload = {};
-    if (updates.name !== undefined) {
-      payload.name = updates.name;
-    }
+    if (updates.name !== undefined) payload.name = updates.name;
     if (updates.code !== undefined) payload.code = updates.code;
-    if (updates.color || updates.colorHex || updates.color_hex) {
-      payload.color = updates.color || updates.colorHex || updates.color_hex;
+    if (updates.color_hex || updates.colorHex) {
+      payload.color_hex = updates.color_hex || updates.colorHex;
     }
 
     return await dbQuery('subjects', { method: 'PATCH', match: { id: sid, user_id: uid }, body: payload, single: true });
@@ -680,107 +665,11 @@ class DatabaseManager {
     return await dbQuery('subjects', { method: 'DELETE', match: { id: sid, user_id: uid } });
   }
 
-  static async getStudyUnits(userId, subjectId = null) {
+  static async getStudyItems(userId, subjectId = null) {
     if (!userId) return [];
     const uid = ensureUuid(userId);
     const match = { user_id: uid };
     if (subjectId) match.subject_id = ensureUuid(subjectId);
-    return await dbQuery('study_units', { method: 'GET', match });
-  }
-
-  static async createStudyUnit(userId, arg1, arg2) {
-    if (!userId) throw new Error('userId is required');
-    const uid = ensureUuid(userId);
-    const unitData = typeof arg1 === 'object' ? arg1 : (arg2 || {});
-    const sid = ensureUuid(unitData.subject_id || unitData.subjectId || (typeof arg1 === 'string' ? arg1 : ''));
-
-    const newUnit = {
-      id: ensureUuid(unitData.id),
-      user_id: uid,
-      subject_id: sid,
-      unit_number: Number(unitData.unit_number || unitData.unitNumber || unitData.order) || 1,
-      title: unitData.title || unitData.unit_title || 'Unit',
-      description: unitData.description || unitData.desc || '',
-      status: (unitData.is_completed || unitData.isCompleted) ? 'completed' : 'pending',
-      created_at: new Date().toISOString(),
-    };
-
-    return await dbQuery('study_units', { method: 'POST', body: newUnit, single: true });
-  }
-
-  static async updateStudyUnit(userId, unitId, updates) {
-    if (!userId || !unitId) return null;
-    const uid = ensureUuid(userId);
-    const uid_unit = ensureUuid(unitId);
-
-    const payload = {};
-    if (updates.title !== undefined) payload.title = updates.title;
-    if (updates.description !== undefined) payload.description = updates.description;
-    if (updates.unit_number !== undefined) payload.unit_number = Number(updates.unit_number);
-    if (updates.status !== undefined) payload.status = updates.status;
-    if (updates.is_completed !== undefined) payload.is_completed = !!updates.is_completed;
-
-    return await dbQuery('study_units', { method: 'PATCH', match: { id: uid_unit, user_id: uid }, body: payload, single: true });
-  }
-
-  static async deleteStudyUnit(userId, unitId) {
-    if (!userId || !unitId) return false;
-    const uid = ensureUuid(userId);
-    const uid_unit = ensureUuid(unitId);
-    await dbQuery('study_topics', { method: 'DELETE', match: { unit_id: uid_unit, user_id: uid } });
-    return await dbQuery('study_units', { method: 'DELETE', match: { id: uid_unit, user_id: uid } });
-  }
-
-  // STUDY TOPICS (TOPICS INSIDE UNITS)
-  static async getStudyTopics(userId, unitId = null) {
-    if (!userId) return [];
-    const uid = ensureUuid(userId);
-    const match = { user_id: uid };
-    if (unitId) match.unit_id = ensureUuid(unitId);
-    return await dbQuery('study_topics', { method: 'GET', match });
-  }
-
-  static async createStudyTopic(userId, topicData) {
-    if (!userId) throw new Error('userId is required');
-    const uid = ensureUuid(userId);
-
-    const newTopic = {
-      id: ensureUuid(topicData.id),
-      user_id: uid,
-      unit_id: ensureUuid(topicData.unit_id || topicData.unitId),
-      subject_id: topicData.subject_id || topicData.subjectId ? ensureUuid(topicData.subject_id || topicData.subjectId) : null,
-      title: topicData.title || 'Topic',
-      description: topicData.description || '',
-      is_completed: !!(topicData.is_completed || topicData.isCompleted),
-      created_at: new Date().toISOString(),
-    };
-
-    return await dbQuery('study_topics', { method: 'POST', body: newTopic, single: true });
-  }
-
-  static async toggleStudyTopic(userId, topicId) {
-    if (!userId || !topicId) return null;
-    const uid = ensureUuid(userId);
-    const tid = ensureUuid(topicId);
-    const existing = await dbQuery('study_topics', { method: 'GET', match: { id: tid, user_id: uid }, single: true });
-    if (!existing) return null;
-    const isCompleted = !existing.is_completed;
-    return await dbQuery('study_topics', { method: 'PATCH', match: { id: tid, user_id: uid }, body: { is_completed: isCompleted }, single: true });
-  }
-
-  static async deleteStudyTopic(userId, topicId) {
-    if (!userId || !topicId) return false;
-    const uid = ensureUuid(userId);
-    const tid = ensureUuid(topicId);
-    return await dbQuery('study_topics', { method: 'DELETE', match: { id: tid, user_id: uid } });
-  }
-
-  static async getStudyItems(userId, subjectId = null, unitId = null) {
-    if (!userId) return [];
-    const uid = ensureUuid(userId);
-    const match = { user_id: uid };
-    if (subjectId) match.subject_id = ensureUuid(subjectId);
-    if (unitId) match.unit_id = ensureUuid(unitId);
     const items = await dbQuery('study_items', { method: 'GET', match });
     const subjects = await dbQuery('subjects', { method: 'GET', match: { user_id: uid } });
     const subMap = {};
@@ -790,7 +679,7 @@ class DatabaseManager {
       ...it,
       subjectId: it.subject_id,
       subjectName: subMap[it.subject_id] || 'Study Subject',
-      dueDate: it.due_at || it.due_date,
+      dueDate: it.due_at,
       isCompleted: it.status === 'completed' || !!it.is_completed,
     }));
   }
@@ -800,7 +689,7 @@ class DatabaseManager {
     const uid = ensureUuid(userId);
     const itemData = (typeof subjectIdOrData === 'object' && subjectIdOrData !== null) ? subjectIdOrData : (itemDataParam || {});
     const rawSubId = (typeof subjectIdOrData === 'string') ? subjectIdOrData : (itemData.subject_id || itemData.subjectId);
-    
+
     let sid = rawSubId ? ensureUuid(rawSubId) : null;
     if (!sid) {
       const existingSubjs = await dbQuery('subjects', { method: 'GET', match: { user_id: uid } });
@@ -814,7 +703,7 @@ class DatabaseManager {
             user_id: uid,
             name: itemData.subjectName || 'General Studies',
             code: 'GEN',
-            color: '#0D5CE5',
+            color_hex: '#0D5CE5',
             created_at: new Date().toISOString(),
           },
           single: true,
@@ -824,12 +713,11 @@ class DatabaseManager {
     }
 
     const isDone = !!(itemData.is_completed ?? itemData.isCompleted ?? (itemData.status === 'completed'));
-    const dueAt = itemData.due_at || itemData.due_date || itemData.dueDate || new Date().toISOString();
+    const dueAt = itemData.due_at || itemData.dueDate || new Date().toISOString();
     const newItem = {
       id: ensureUuid(itemData.id),
       user_id: uid,
       subject_id: sid,
-      unit_id: itemData.unit_id || itemData.unitId ? ensureUuid(itemData.unit_id || itemData.unitId) : null,
       title: itemData.title || 'Study Task',
       type: (itemData.type || 'TASK').toUpperCase(),
       status: isDone ? 'completed' : 'pending',
@@ -854,8 +742,8 @@ class DatabaseManager {
     const payload = {};
     if (updates.title !== undefined) payload.title = updates.title;
     if (updates.type !== undefined) payload.type = updates.type.toUpperCase();
-    if (updates.due_at || updates.due_date || updates.dueDate) {
-      payload.due_at = updates.due_at || updates.due_date || updates.dueDate;
+    if (updates.due_at || updates.dueDate) {
+      payload.due_at = updates.due_at || updates.dueDate;
     }
     if (updates.is_completed !== undefined || updates.isCompleted !== undefined || updates.status !== undefined) {
       const isDone = !!(updates.is_completed ?? updates.isCompleted ?? (updates.status === 'completed'));
@@ -1010,7 +898,7 @@ class DatabaseManager {
     if (!userId) throw new Error('userId is required');
     const uid = ensureUuid(userId);
 
-    const d = eventData.event_date || eventData.date || new Date().toISOString().split('T')[0];
+    const d = eventData.event_date || new Date().toISOString().split('T')[0];
     let startTime = eventData.start_time?.includes('T') ? eventData.start_time.split('T')[1].substring(0, 8) : (eventData.start_time || '10:00:00');
     let endTime = eventData.end_time?.includes('T') ? eventData.end_time.split('T')[1].substring(0, 8) : (eventData.end_time || '11:00:00');
     if (startTime.length === 5) startTime += ':00';
@@ -1047,20 +935,16 @@ class DatabaseManager {
     if (!userId) return [];
     const user = await DatabaseManager.getUserById(userId);
     const uid = user ? user.id : ensureUuid(userId);
-    let entries = await dbQuery('journal_entries', { method: 'GET', match: { user_id: uid } });
-    if ((!entries || entries.length === 0) && user && user.user_id && user.user_id !== uid) {
-      entries = await dbQuery('journal_entries', { method: 'GET', match: { user_id: user.user_id } });
-    }
+    const entries = await dbQuery('journal_entries', { method: 'GET', match: { user_id: uid } });
     return (entries || []).map(j => {
-      const fullDate = j.created_at || (j.date && j.date.includes('T') ? j.date : null) || (j.entry_date ? `${j.entry_date}T12:00:00.000Z` : new Date().toISOString());
+      const fullDate = j.created_at || (j.entry_date ? `${j.entry_date}T12:00:00.000Z` : new Date().toISOString());
       return {
         ...j,
         userId: j.user_id,
         date: fullDate,
         created_at: fullDate,
         entry_date: j.entry_date || fullDate.split('T')[0],
-        content: j.content || j.content_ciphertext || '',
-        content_ciphertext: j.content_ciphertext || j.content || '',
+        content: j.content || '',
         mood: j.mood || 'neutral',
         title: j.title || 'Journal Entry',
       };
@@ -1074,14 +958,13 @@ class DatabaseManager {
 
     const fullDate = (entryData.created_at && entryData.created_at.includes('T'))
       ? entryData.created_at
-      : ((entryData.date && entryData.date.includes('T')) ? entryData.date : new Date().toISOString());
+      : new Date().toISOString();
 
     const newEntry = {
       id: ensureUuid(entryData.id),
       user_id: uid,
       title: entryData.title || 'Journal Entry',
-      content: entryData.content || entryData.content_ciphertext || '',
-      content_ciphertext: entryData.content_ciphertext || entryData.content || '',
+      content: entryData.content || '',
       mood: entryData.mood || 'neutral',
       entry_date: fullDate.split('T')[0],
       created_at: fullDate,
@@ -1105,18 +988,11 @@ class DatabaseManager {
 
     const payload = { updated_at: new Date().toISOString() };
     if (updates.title !== undefined) payload.title = updates.title;
-    if (updates.content !== undefined) {
-      payload.content = updates.content;
-      payload.content_ciphertext = updates.content_ciphertext || updates.content;
-    }
-    if (updates.content_ciphertext !== undefined) payload.content_ciphertext = updates.content_ciphertext;
+    if (updates.content !== undefined) payload.content = updates.content;
     if (updates.mood !== undefined) payload.mood = updates.mood;
-    if (updates.entry_date || updates.date) payload.entry_date = updates.entry_date || updates.date;
+    if (updates.entry_date) payload.entry_date = updates.entry_date;
 
-    let updated = await dbQuery('journal_entries', { method: 'PATCH', match: { id: jid, user_id: uid }, body: payload, single: true });
-    if (!updated && user && user.user_id && user.user_id !== uid) {
-      updated = await dbQuery('journal_entries', { method: 'PATCH', match: { id: jid, user_id: user.user_id }, body: payload, single: true });
-    }
+    const updated = await dbQuery('journal_entries', { method: 'PATCH', match: { id: jid, user_id: uid }, body: payload, single: true });
     return updated ? {
       ...updated,
       userId: uid,
@@ -1129,11 +1005,7 @@ class DatabaseManager {
     const user = await DatabaseManager.getUserById(userId);
     const uid = user ? user.id : ensureUuid(userId);
     const jid = ensureUuid(entryId);
-    let deleted = await dbQuery('journal_entries', { method: 'DELETE', match: { id: jid, user_id: uid } });
-    if (!deleted && user && user.user_id && user.user_id !== uid) {
-      deleted = await dbQuery('journal_entries', { method: 'DELETE', match: { id: jid, user_id: user.user_id } });
-    }
-    return deleted;
+    return await dbQuery('journal_entries', { method: 'DELETE', match: { id: jid, user_id: uid } });
   }
 }
 
