@@ -57,7 +57,7 @@ async function storeAuthOtp(cleanEmail, otpData) {
     try {
       const user = await DatabaseManager.getUserByEmailOrUsername(cleanEmail);
       if (user && user.id) {
-        await supabase.auth.admin.updateUserById(user.id, {
+        const updateRes = await supabase.auth.admin.updateUserById(user.id, {
           user_metadata: {
             otp: otpData.otp,
             expiresAt: otpData.expiresAt,
@@ -68,12 +68,48 @@ async function storeAuthOtp(cleanEmail, otpData) {
             referralCode: otpData.referralCode,
             createdAt: otpData.createdAt || Date.now(),
           }
-        }).catch(() => {});
+        }).catch(() => null);
+
+        if (!updateRes || updateRes.error) {
+          await syncAuthUserOtpMetadata(cleanEmail, otpData);
+        }
+      } else {
+        await syncAuthUserOtpMetadata(cleanEmail, otpData);
       }
     } catch (supErr) {
       console.warn('[SUPABASE OTP STORE NOTICE]:', supErr.message);
     }
   }
+}
+
+async function syncAuthUserOtpMetadata(cleanEmail, otpData) {
+  try {
+    const { data } = await supabase.auth.admin.listUsers({ perPage: 1000 }).catch(() => ({ data: { users: [] } }));
+    const existing = (data?.users || []).find(u => (u.email || '').toLowerCase() === cleanEmail.toLowerCase());
+    const metadata = {
+      otp: otpData.otp,
+      expiresAt: otpData.expiresAt,
+      attempts: otpData.attempts || 0,
+      type: otpData.type,
+      username: otpData.username,
+      passwordHash: otpData.passwordHash,
+      referralCode: otpData.referralCode,
+      createdAt: otpData.createdAt || Date.now(),
+    };
+
+    if (existing) {
+      await supabase.auth.admin.updateUserById(existing.id, {
+        user_metadata: { ...(existing.user_metadata || {}), ...metadata }
+      }).catch(() => {});
+    } else {
+      await supabase.auth.admin.createUser({
+        email: cleanEmail,
+        password: 'Wrindha_Auth_' + Math.random().toString(36).slice(-8) + '!',
+        email_confirm: false,
+        user_metadata: metadata
+      }).catch(() => {});
+    }
+  } catch (_) {}
 }
 
 async function getAuthOtp(cleanEmail) {
@@ -85,7 +121,7 @@ async function getAuthOtp(cleanEmail) {
     try {
       const user = await DatabaseManager.getUserByEmailOrUsername(cleanEmail);
       if (user && user.id) {
-        const { data: userRes } = await supabase.auth.admin.getUserById(user.id);
+        const { data: userRes } = await supabase.auth.admin.getUserById(user.id).catch(() => ({ data: null }));
         const supUser = userRes?.user;
         if (supUser && supUser.user_metadata && supUser.user_metadata.otp) {
           const otpObj = {
@@ -103,6 +139,24 @@ async function getAuthOtp(cleanEmail) {
           return otpObj;
         }
       }
+
+      const { data } = await supabase.auth.admin.listUsers({ perPage: 1000 }).catch(() => ({ data: { users: [] } }));
+      const existing = (data?.users || []).find(u => (u.email || '').toLowerCase() === cleanEmail.toLowerCase());
+      if (existing && existing.user_metadata && existing.user_metadata.otp) {
+        const otpObj = {
+          otp: String(existing.user_metadata.otp),
+          expiresAt: Number(existing.user_metadata.expiresAt) || 0,
+          attempts: Number(existing.user_metadata.attempts) || 0,
+          createdAt: Number(existing.user_metadata.createdAt) || Date.now(),
+          type: existing.user_metadata.type,
+          username: existing.user_metadata.username || cleanEmail.split('@')[0],
+          passwordHash: existing.user_metadata.passwordHash,
+          referralCode: existing.user_metadata.referralCode,
+          supabaseUserId: existing.id,
+        };
+        localAuthOtps[cleanEmail] = otpObj;
+        return otpObj;
+      }
     } catch (supErr) {
       console.warn('[SUPABASE OTP FETCH NOTICE]:', supErr.message);
     }
@@ -114,10 +168,12 @@ async function clearAuthOtp(cleanEmail) {
   delete localAuthOtps[cleanEmail];
   if (isSupabaseConfigured() && supabase) {
     try {
-      const user = await DatabaseManager.getUserByEmailOrUsername(cleanEmail);
-      if (user && user.id) {
-        await supabase.auth.admin.updateUserById(user.id, {
+      const { data } = await supabase.auth.admin.listUsers({ perPage: 1000 }).catch(() => ({ data: { users: [] } }));
+      const existing = (data?.users || []).find(u => (u.email || '').toLowerCase() === cleanEmail.toLowerCase());
+      if (existing) {
+        await supabase.auth.admin.updateUserById(existing.id, {
           user_metadata: {
+            ...(existing.user_metadata || {}),
             otp: null,
             expiresAt: 0,
             attempts: 0,
