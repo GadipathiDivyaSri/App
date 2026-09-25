@@ -34,13 +34,13 @@ jobs:
 
       - name: Build Universal Android Release APK
         run: |
-          flutter build apk --release --android-skip-build-dependency-validation
+          flutter build apk --release --no-tree-shake-icons
           mkdir -p build_saved
           cp build/app/outputs/flutter-apk/app-release.apk build_saved/
 
       - name: Build Split-per-ABI Android Release APKs
         run: |
-          flutter build apk --release --split-per-abi --android-skip-build-dependency-validation
+          flutter build apk --release --split-per-abi --no-tree-shake-icons
           cp build_saved/app-release.apk build/app/outputs/flutter-apk/
 
       - name: Upload APK artifacts
