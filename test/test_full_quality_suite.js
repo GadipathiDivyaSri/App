@@ -59,7 +59,7 @@ function makeRequest({ method, path, body = null, headers = {} }) {
   });
 }
 
-const { handleApiRequest } = require('../backend/api_handler');
+const { handleApiRequest, getAuthOtp } = require('../backend/api_handler');
 
 async function runQualitySuite() {
   const WEB_DIR = path.join(__dirname, '..', 'build', 'web');
@@ -158,7 +158,8 @@ async function runQualitySuite() {
     body: { username: testUser, email: testEmail, password: 'SecurePassword123!', confirmPassword: 'SecurePassword123!' }
   });
   assert(initRes.status === 200 && initRes.data?.success === true, 'Register initiate generates verification code');
-  generatedOtp = initRes.data?.code;
+  const storedRegObj = await getAuthOtp(testEmail);
+  generatedOtp = storedRegObj ? storedRegObj.otp : '123456';
 
   // 3.2 Register Verify (Wrong OTP -> Expect 400)
   const wrongOtpRes = await makeRequest({
@@ -206,7 +207,8 @@ async function runQualitySuite() {
     body: { email: testEmail }
   });
   assert(fpInit.status === 200 && fpInit.data?.success === true, 'Forgot password initiate sends OTP');
-  const fpOtp = fpInit.data?.code;
+  const fpOtpObj = await getAuthOtp(testEmail);
+  const fpOtp = fpOtpObj ? fpOtpObj.otp : '123456';
 
   // 4.2 Verify Forgot Password OTP
   const fpVerify = await makeRequest({

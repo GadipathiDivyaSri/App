@@ -1027,7 +1027,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                     controller: titleCtrl,
                     decoration: InputDecoration(
                       labelText: 'Task Title',
-                      hintText: 'Enter task description or goal...',
+                      hintText: 'Enter task title...',
                       prefixIcon: const Icon(Icons.task_alt_rounded, size: 20),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     ),

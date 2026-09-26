@@ -377,15 +377,23 @@ class AppProvider extends ChangeNotifier {
     }
   }
 
-  void _updateSubjectProgress(String subjectId) {
-    final subIdx = _subjects.indexWhere((s) => s.id == subjectId || s.id.toLowerCase() == subjectId.toLowerCase());
+  void _updateSubjectProgress(String subjectIdOrName) {
+    final cleanId = subjectIdOrName.trim().toLowerCase();
+    final subIdx = _subjects.indexWhere((s) =>
+        s.id.trim().toLowerCase() == cleanId ||
+        s.name.trim().toLowerCase() == cleanId);
     if (subIdx != -1) {
-      final sId = _subjects[subIdx].id;
-      final units = _studyUnits.where((u) => u.subjectId == sId || u.subjectId.toLowerCase() == sId.toLowerCase()).toList();
+      final sId = _subjects[subIdx].id.trim().toLowerCase();
+      final sName = _subjects[subIdx].name.trim().toLowerCase();
+      final units = _studyUnits.where((u) {
+        final uSubId = u.subjectId.trim().toLowerCase();
+        return uSubId == sId || uSubId == sName;
+      }).toList();
 
       if (units.isNotEmpty) {
         final allTopics = _studyTopics.where((t) {
-          return units.any((u) => u.id == t.unitId || u.id.toLowerCase() == t.unitId.toLowerCase());
+          final tUnitId = t.unitId.trim().toLowerCase();
+          return units.any((u) => u.id.trim().toLowerCase() == tUnitId || u.title.trim().toLowerCase() == tUnitId);
         }).toList();
 
         if (allTopics.isNotEmpty) {
@@ -396,7 +404,10 @@ class AppProvider extends ChangeNotifier {
           _subjects[subIdx].progress = totalProg / units.length;
         }
       } else {
-        final items = _studyItems.where((i) => i.subjectId == sId).toList();
+        final items = _studyItems.where((i) {
+          final iSubId = i.subjectId.trim().toLowerCase();
+          return iSubId == sId || iSubId == sName;
+        }).toList();
         if (items.isEmpty) {
           _subjects[subIdx].progress = 0.0;
         } else {
@@ -423,6 +434,7 @@ class AppProvider extends ChangeNotifier {
 
   void addStudyUnit(StudyUnit unit) {
     _studyUnits.add(unit);
+    _updateSubjectProgress(unit.subjectId);
     _saveStudyUnits();
     notifyListeners();
     ApiService.createStudyUnitOnBackend(unit);
@@ -448,6 +460,7 @@ class AppProvider extends ChangeNotifier {
         t.isCompleted = true;
         ApiService.toggleStudyTopicOnBackend(t.id);
       }
+      _updateSubjectProgress(_studyUnits[idx].subjectId);
       _saveStudyUnits();
       _saveStudyTopics();
       notifyListeners();
@@ -456,8 +469,16 @@ class AppProvider extends ChangeNotifier {
   }
 
   void deleteStudyUnit(String unitId) {
+    final idx = _studyUnits.indexWhere((u) => u.id == unitId);
+    String? subjectId;
+    if (idx != -1) {
+      subjectId = _studyUnits[idx].subjectId;
+    }
     _studyUnits.removeWhere((u) => u.id == unitId);
     _studyTopics.removeWhere((t) => t.unitId == unitId);
+    if (subjectId != null && subjectId.isNotEmpty) {
+      _updateSubjectProgress(subjectId);
+    }
     _saveStudyUnits();
     _saveStudyTopics();
     notifyListeners();
@@ -1217,15 +1238,6 @@ class AppProvider extends ChangeNotifier {
       _careerNodes = [];
     }
 
-    _careerNodes.removeWhere((n) => {
-      'Entry Level Goal',
-      'Core Technical Skills',
-      'Portfolio Projects',
-      'System Architecture',
-      'Engineering Leadership',
-      'Senior Offer Target',
-    }.contains(n.title));
-
     // 8. Notifications (User-Isolated)
     final notifsJson = prefs.getString('saved_notifications_$uid');
     if (notifsJson != null) {
@@ -1680,9 +1692,11 @@ class AppProvider extends ChangeNotifier {
   Future<void> syncCareerRoadmapFromCloud() async {
     try {
       final remoteNodes = await ApiService.fetchCareerRoadmapNodes();
-      _careerNodes = remoteNodes;
-      _saveCareerNodes();
-      notifyListeners();
+      if (remoteNodes.isNotEmpty) {
+        _careerNodes = remoteNodes;
+        _saveCareerNodes();
+        notifyListeners();
+      }
     } catch (e) {
       debugPrint('[AppProvider] syncCareerRoadmapFromCloud error: $e');
     }

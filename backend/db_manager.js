@@ -169,8 +169,10 @@ class DatabaseManager {
           }
           if (supUser.user_metadata && (supUser.user_metadata.passwordHash || supUser.user_metadata.password_hash)) {
             const h = supUser.user_metadata.passwordHash || supUser.user_metadata.password_hash;
-            user.password_hash = h;
-            DatabaseManager.setUserPasswordHash(clean, h);
+            if (!user.password_hash) {
+              user.password_hash = h;
+              DatabaseManager.setUserPasswordHash(clean, h);
+            }
           }
         }
       } catch (supErr) {
@@ -178,7 +180,7 @@ class DatabaseManager {
       }
     }
     const cachedHash = DatabaseManager.getUserPasswordHash(clean) || (user?.email ? DatabaseManager.getUserPasswordHash(user.email) : null) || (user?.username ? DatabaseManager.getUserPasswordHash(user.username) : null);
-    if (user && cachedHash) {
+    if (user && !user.password_hash && cachedHash) {
       user.password_hash = cachedHash;
     }
     return user;
@@ -423,12 +425,34 @@ class DatabaseManager {
     if (!userId) return [];
     const uid = ensureUuid(userId);
     const habits = await dbQuery('habits', { method: 'GET', match: { user_id: uid } });
-    return (habits || []).map(h => ({
-      ...h,
-      userId: h.user_id,
-      colorHex: h.color_hex,
-      iconName: h.icon_name,
-    }));
+    if (!habits || habits.length === 0) return [];
+
+    const logs = await dbQuery('habit_logs', { method: 'GET', match: { user_id: uid } });
+    const historyMap = {};
+    (logs || []).forEach(log => {
+      if (!log.habit_id || !log.completion_date) return;
+      if (!historyMap[log.habit_id]) historyMap[log.habit_id] = [];
+      if (!historyMap[log.habit_id].includes(log.completion_date)) {
+        historyMap[log.habit_id].push(log.completion_date);
+      }
+    });
+
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    return habits.map(h => {
+      const history = historyMap[h.id] || [];
+      const isDone = history.includes(todayStr);
+      return {
+        ...h,
+        userId: h.user_id,
+        colorHex: h.color_hex || h.color,
+        iconName: h.icon_name,
+        completionHistory: history,
+        completion_history: history,
+        isCompleted: isDone,
+        is_completed: isDone,
+      };
+    });
   }
 
   static async getHabitOverview(userId, targetDateStr = null) {
@@ -779,7 +803,7 @@ class DatabaseManager {
     const match = { user_id: uid };
     if (tier) match.tier = tier.toLowerCase();
     const goals = await dbQuery('goals', { method: 'GET', match });
-    return (goals || []).map(g => ({
+    let list = (goals || []).map(g => ({
       ...g,
       userId: g.user_id,
       user_id: g.user_id,
@@ -791,6 +815,10 @@ class DatabaseManager {
       aligned_purpose: g.aligned_purpose,
       section: g.section || 'GOAL',
     }));
+    if (!tier) {
+      list = list.filter(g => (g.tier || '').toLowerCase() !== 'roadmap');
+    }
+    return list;
   }
 
   static async createGoal(userId, goalData) {
@@ -799,8 +827,9 @@ class DatabaseManager {
 
     const rawTier = (goalData.tier || goalData.timeframe || 'short').toString().toLowerCase();
     let normalizedTier = 'short';
-    if (rawTier.includes('med')) normalizedTier = 'medium';
-    else if (rawTier.includes('long') || rawTier.includes('career')) normalizedTier = 'long';
+    if (rawTier.includes('roadmap') || rawTier.includes('career')) normalizedTier = 'roadmap';
+    else if (rawTier.includes('med')) normalizedTier = 'medium';
+    else if (rawTier.includes('long')) normalizedTier = 'long';
 
     const newGoal = {
       id: ensureUuid(goalData.id),
@@ -895,18 +924,49 @@ class DatabaseManager {
   static async getCalendarEvents(userId) {
     if (!userId) return [];
     const uid = ensureUuid(userId);
-    return await dbQuery('calendar_events', { method: 'GET', match: { user_id: uid } });
+    const events = await dbQuery('calendar_events', { method: 'GET', match: { user_id: uid } });
+    return (events || []).map(e => {
+      const d = e.event_date || new Date().toISOString().split('T')[0];
+      const st = e.start_time || '10:00:00';
+      const et = e.end_time || '11:00:00';
+      const startTimeIso = e.startTime || (st.includes('T') ? st : `${d}T${st}`);
+      const endTimeIso = e.endTime || (et.includes('T') ? et : `${d}T${et}`);
+      const eventType = e.type || e.event_type || e.type_name || 'Focus Session';
+      const cat = e.category || 'General';
+
+      return {
+        ...e,
+        userId: uid,
+        startTime: startTimeIso,
+        endTime: endTimeIso,
+        type: eventType,
+        category: cat,
+      };
+    });
   }
 
   static async createCalendarEvent(userId, eventData) {
     if (!userId) throw new Error('userId is required');
     const uid = ensureUuid(userId);
 
-    const d = eventData.event_date || new Date().toISOString().split('T')[0];
-    let startTime = eventData.start_time?.includes('T') ? eventData.start_time.split('T')[1].substring(0, 8) : (eventData.start_time || '10:00:00');
-    let endTime = eventData.end_time?.includes('T') ? eventData.end_time.split('T')[1].substring(0, 8) : (eventData.end_time || '11:00:00');
-    if (startTime.length === 5) startTime += ':00';
-    if (endTime.length === 5) endTime += ':00';
+    const fullStart = eventData.startTime || eventData.start_time;
+    const fullEnd = eventData.endTime || eventData.end_time;
+    let d = eventData.event_date;
+
+    if (!d && fullStart) {
+      d = fullStart.split('T')[0];
+    }
+    if (!d) {
+      d = new Date().toISOString().split('T')[0];
+    }
+
+    let startTimeStr = fullStart?.includes('T') ? fullStart.split('T')[1].substring(0, 8) : (eventData.start_time || '10:00:00');
+    let endTimeStr = fullEnd?.includes('T') ? fullEnd.split('T')[1].substring(0, 8) : (eventData.end_time || '11:00:00');
+    if (startTimeStr.length === 5) startTimeStr += ':00';
+    if (endTimeStr.length === 5) endTimeStr += ':00';
+
+    const eventType = eventData.type || eventData.event_type || 'Focus Session';
+    const category = eventData.category || 'General';
 
     const newEvent = {
       id: ensureUuid(eventData.id),
@@ -914,15 +974,28 @@ class DatabaseManager {
       title: eventData.title || 'New Event',
       description: eventData.description || null,
       event_date: d,
-      start_time: startTime,
-      end_time: endTime,
-      category: eventData.category || eventData.event_type || 'General',
+      start_time: startTimeStr,
+      end_time: endTimeStr,
+      category: category,
       location: eventData.location || 'Workspace A',
       is_all_day: !!(eventData.is_all_day ?? eventData.isAllDay),
       created_at: new Date().toISOString(),
     };
 
-    return await dbQuery('calendar_events', { method: 'POST', body: newEvent, single: true });
+    const created = await dbQuery('calendar_events', { method: 'POST', body: newEvent, single: true });
+    const res = created || newEvent;
+
+    const isoStart = fullStart || `${res.event_date || d}T${res.start_time || startTimeStr}`;
+    const isoEnd = fullEnd || `${res.event_date || d}T${res.end_time || endTimeStr}`;
+
+    return {
+      ...res,
+      userId: uid,
+      startTime: isoStart,
+      endTime: isoEnd,
+      type: eventType,
+      category: category,
+    };
   }
 
   static async deleteCalendarEvent(userId, eventId) {

@@ -287,14 +287,44 @@ class _OrganizeMatrixScreenState extends State<OrganizeMatrixScreen> {
                       ),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: Text(
-                          task.title,
-                          style: TextStyle(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w600,
-                            decoration: task.isCompleted ? TextDecoration.lineThrough : null,
-                            color: isDark ? Colors.white : const Color(0xFF1E293B),
-                          ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              task.title,
+                              style: TextStyle(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w600,
+                                decoration: task.isCompleted ? TextDecoration.lineThrough : null,
+                                color: isDark ? Colors.white : const Color(0xFF1E293B),
+                              ),
+                            ),
+                            if (task.dueDateLabel.isNotEmpty || task.dueTime.isNotEmpty) ...[
+                              const SizedBox(height: 2),
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.access_time_rounded,
+                                    size: 11,
+                                    color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Expanded(
+                                    child: Text(
+                                      '${task.dueDateLabel}${task.dueTime.isNotEmpty ? ' (${task.dueTime})' : ''}',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 10.5,
+                                        fontWeight: FontWeight.w500,
+                                        color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ],
                         ),
                       ),
                       PopupMenuButton<String>(
@@ -358,7 +388,7 @@ class _OrganizeMatrixScreenState extends State<OrganizeMatrixScreen> {
                     autofocus: true,
                     decoration: const InputDecoration(
                       labelText: 'Task Title *',
-                      hintText: 'Enter task description or goal...',
+                      hintText: 'Enter task title...',
                       border: OutlineInputBorder(),
                     ),
                   ),

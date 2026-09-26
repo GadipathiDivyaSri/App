@@ -171,7 +171,7 @@ class Habit {
         [];
 
     final todayStr = '${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}-${DateTime.now().day.toString().padLeft(2, '0')}';
-    final isDone = json['isCompleted'] ?? json['is_completed'] ?? history.contains(todayStr);
+    final isDone = history.contains(todayStr) || (json['isCompleted'] == true) || (json['is_completed'] == true);
 
     return Habit(
       id: json['id']?.toString() ?? 'h_1',
@@ -314,9 +314,9 @@ class CalendarEvent {
     required this.endTime,
     this.location = 'Workspace A',
     this.type = 'Focus Session',
-    this.category = 'General',
+    String? category,
     this.isCompleted = false,
-  });
+  }) : category = (category != null && category.isNotEmpty && category != 'General') ? category : type;
 
   DateTime get date => startTime;
   String get time => '${startTime.hour.toString().padLeft(2, '0')}:${startTime.minute.toString().padLeft(2, '0')}';
@@ -334,22 +334,45 @@ class CalendarEvent {
       };
 
   factory CalendarEvent.fromJson(Map<String, dynamic> json) {
-    DateTime parseDate(dynamic val, DateTime defaultVal) {
-      if (val == null) return defaultVal;
-      final parsed = DateTime.tryParse(val.toString());
-      if (parsed == null) return defaultVal;
-      return parsed.isUtc ? parsed.toLocal() : parsed;
+    DateTime parseDate(dynamic val, dynamic altVal, DateTime defaultVal) {
+      if (val != null) {
+        final str = val.toString();
+        final parsed = DateTime.tryParse(str);
+        if (parsed != null) return parsed.isUtc ? parsed.toLocal() : parsed;
+      }
+      if (altVal != null) {
+        final str = altVal.toString();
+        if (str.contains('T')) {
+          final parsed = DateTime.tryParse(str);
+          if (parsed != null) return parsed.isUtc ? parsed.toLocal() : parsed;
+        } else {
+          final parts = str.split(':');
+          if (parts.length >= 2) {
+            final h = int.tryParse(parts[0]) ?? 10;
+            final m = int.tryParse(parts[1]) ?? 0;
+            final now = DateTime.now();
+            return DateTime(now.year, now.month, now.day, h, m);
+          }
+        }
+      }
+      return defaultVal;
     }
+
+    final start = parseDate(json['startTime'] ?? json['start_time'], json['event_date'], DateTime.now());
+    final end = parseDate(json['endTime'] ?? json['end_time'], json['event_date'], start.add(const Duration(hours: 1)));
+    final parsedType = json['type'] ?? json['event_type'] ?? json['type_name'] ?? 'Task';
+    final rawCat = json['category'] ?? json['event_category'];
+    final parsedCat = (rawCat != null && rawCat.toString().isNotEmpty && rawCat != 'General') ? rawCat.toString() : parsedType;
 
     return CalendarEvent(
       id: json['id']?.toString() ?? generateUuidV4(),
       title: json['title'] ?? 'Event',
       description: json['description'] ?? '',
-      startTime: parseDate(json['startTime'] ?? json['start_time'] ?? json['date'], DateTime.now()),
-      endTime: parseDate(json['endTime'] ?? json['end_time'], DateTime.now().add(const Duration(hours: 1))),
+      startTime: start,
+      endTime: end,
       location: json['location'] ?? 'Workspace A',
-      type: json['type'] ?? json['event_type'] ?? json['type_name'] ?? 'Focus Session',
-      category: json['category'] ?? json['event_category'] ?? 'General',
+      type: parsedType,
+      category: parsedCat,
       isCompleted: json['isCompleted'] ?? json['is_completed'] ?? false,
     );
   }

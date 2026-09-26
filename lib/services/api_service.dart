@@ -895,7 +895,7 @@ class ApiService {
           'title': node.title,
           'description': node.description,
           'section': node.section,
-          'tier': 'long',
+          'tier': 'roadmap',
           'is_completed': node.isCompleted,
         }),
       );

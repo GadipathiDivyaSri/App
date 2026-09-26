@@ -22,10 +22,6 @@ class _CareerRoadmapScreenState extends State<CareerRoadmapScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final provider = Provider.of<AppProvider>(context, listen: false);
-      provider.clearPredefinedNodes();
-    });
   }
 
 
