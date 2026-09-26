@@ -169,8 +169,10 @@ class DatabaseManager {
           }
           if (supUser.user_metadata && (supUser.user_metadata.passwordHash || supUser.user_metadata.password_hash)) {
             const h = supUser.user_metadata.passwordHash || supUser.user_metadata.password_hash;
-            user.password_hash = h;
-            DatabaseManager.setUserPasswordHash(clean, h);
+            if (!user.password_hash) {
+              user.password_hash = h;
+              DatabaseManager.setUserPasswordHash(clean, h);
+            }
           }
         }
       } catch (supErr) {
@@ -178,7 +180,7 @@ class DatabaseManager {
       }
     }
     const cachedHash = DatabaseManager.getUserPasswordHash(clean) || (user?.email ? DatabaseManager.getUserPasswordHash(user.email) : null) || (user?.username ? DatabaseManager.getUserPasswordHash(user.username) : null);
-    if (user && cachedHash) {
+    if (user && !user.password_hash && cachedHash) {
       user.password_hash = cachedHash;
     }
     return user;

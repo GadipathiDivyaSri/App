@@ -47,7 +47,8 @@ function redactEmail(email) {
 
 // Persistent OTP Storage Engine (Shared across serverless instances via Supabase)
 async function storeAuthOtp(cleanEmail, otpData) {
-  localAuthOtps[cleanEmail] = {
+  const norm = (cleanEmail || '').trim().toLowerCase();
+  localAuthOtps[norm] = {
     ...otpData,
     createdAt: otpData.createdAt || Date.now(),
     attempts: otpData.attempts || 0,
@@ -55,27 +56,7 @@ async function storeAuthOtp(cleanEmail, otpData) {
 
   if (isSupabaseConfigured() && supabase) {
     try {
-      const user = await DatabaseManager.getUserByEmailOrUsername(cleanEmail);
-      if (user && user.id) {
-        const updateRes = await supabase.auth.admin.updateUserById(user.id, {
-          user_metadata: {
-            otp: otpData.otp,
-            expiresAt: otpData.expiresAt,
-            attempts: otpData.attempts || 0,
-            type: otpData.type,
-            username: otpData.username || user.username,
-            passwordHash: otpData.passwordHash,
-            referralCode: otpData.referralCode,
-            createdAt: otpData.createdAt || Date.now(),
-          }
-        }).catch(() => null);
-
-        if (!updateRes || updateRes.error) {
-          await syncAuthUserOtpMetadata(cleanEmail, otpData);
-        }
-      } else {
-        await syncAuthUserOtpMetadata(cleanEmail, otpData);
-      }
+      await syncAuthUserOtpMetadata(norm, otpData);
     } catch (supErr) {
       console.warn('[SUPABASE OTP STORE NOTICE]:', supErr.message);
     }
@@ -83,9 +64,10 @@ async function storeAuthOtp(cleanEmail, otpData) {
 }
 
 async function syncAuthUserOtpMetadata(cleanEmail, otpData) {
+  const norm = (cleanEmail || '').trim().toLowerCase();
   try {
     const { data } = await supabase.auth.admin.listUsers({ perPage: 1000 }).catch(() => ({ data: { users: [] } }));
-    const existing = (data?.users || []).find(u => (u.email || '').toLowerCase() === cleanEmail.toLowerCase());
+    const existing = (data?.users || []).find(u => (u.email || '').toLowerCase() === norm);
     const metadata = {
       otp: otpData.otp,
       expiresAt: otpData.expiresAt,
@@ -103,7 +85,7 @@ async function syncAuthUserOtpMetadata(cleanEmail, otpData) {
       }).catch(() => {});
     } else {
       await supabase.auth.admin.createUser({
-        email: cleanEmail,
+        email: norm,
         password: 'Wrindha_Auth_' + Math.random().toString(36).slice(-8) + '!',
         email_confirm: false,
         user_metadata: metadata
@@ -113,35 +95,15 @@ async function syncAuthUserOtpMetadata(cleanEmail, otpData) {
 }
 
 async function getAuthOtp(cleanEmail) {
-  if (localAuthOtps[cleanEmail]) {
-    return localAuthOtps[cleanEmail];
+  const norm = (cleanEmail || '').trim().toLowerCase();
+  if (localAuthOtps[norm]) {
+    return localAuthOtps[norm];
   }
 
   if (isSupabaseConfigured() && supabase) {
     try {
-      const user = await DatabaseManager.getUserByEmailOrUsername(cleanEmail);
-      if (user && user.id) {
-        const { data: userRes } = await supabase.auth.admin.getUserById(user.id).catch(() => ({ data: null }));
-        const supUser = userRes?.user;
-        if (supUser && supUser.user_metadata && supUser.user_metadata.otp) {
-          const otpObj = {
-            otp: String(supUser.user_metadata.otp),
-            expiresAt: Number(supUser.user_metadata.expiresAt) || 0,
-            attempts: Number(supUser.user_metadata.attempts) || 0,
-            createdAt: Number(supUser.user_metadata.createdAt) || Date.now(),
-            type: supUser.user_metadata.type,
-            username: supUser.user_metadata.username || user.username || cleanEmail.split('@')[0],
-            passwordHash: supUser.user_metadata.passwordHash,
-            referralCode: supUser.user_metadata.referralCode,
-            supabaseUserId: supUser.id,
-          };
-          localAuthOtps[cleanEmail] = otpObj;
-          return otpObj;
-        }
-      }
-
       const { data } = await supabase.auth.admin.listUsers({ perPage: 1000 }).catch(() => ({ data: { users: [] } }));
-      const existing = (data?.users || []).find(u => (u.email || '').toLowerCase() === cleanEmail.toLowerCase());
+      const existing = (data?.users || []).find(u => (u.email || '').toLowerCase() === norm);
       if (existing && existing.user_metadata && existing.user_metadata.otp) {
         const otpObj = {
           otp: String(existing.user_metadata.otp),
@@ -149,12 +111,12 @@ async function getAuthOtp(cleanEmail) {
           attempts: Number(existing.user_metadata.attempts) || 0,
           createdAt: Number(existing.user_metadata.createdAt) || Date.now(),
           type: existing.user_metadata.type,
-          username: existing.user_metadata.username || cleanEmail.split('@')[0],
+          username: existing.user_metadata.username || norm.split('@')[0],
           passwordHash: existing.user_metadata.passwordHash,
           referralCode: existing.user_metadata.referralCode,
           supabaseUserId: existing.id,
         };
-        localAuthOtps[cleanEmail] = otpObj;
+        localAuthOtps[norm] = otpObj;
         return otpObj;
       }
     } catch (supErr) {
@@ -165,11 +127,12 @@ async function getAuthOtp(cleanEmail) {
 }
 
 async function clearAuthOtp(cleanEmail) {
-  delete localAuthOtps[cleanEmail];
+  const norm = (cleanEmail || '').trim().toLowerCase();
+  delete localAuthOtps[norm];
   if (isSupabaseConfigured() && supabase) {
     try {
       const { data } = await supabase.auth.admin.listUsers({ perPage: 1000 }).catch(() => ({ data: { users: [] } }));
-      const existing = (data?.users || []).find(u => (u.email || '').toLowerCase() === cleanEmail.toLowerCase());
+      const existing = (data?.users || []).find(u => (u.email || '').toLowerCase() === norm);
       if (existing) {
         await supabase.auth.admin.updateUserById(existing.id, {
           user_metadata: {
@@ -1090,7 +1053,7 @@ async function handleApiRequest(req, res) {
 
     await clearAuthOtp(cleanEmail);
 
-    const resetToken = generateJwtToken({ email: cleanEmail, purpose: 'password_reset' }, 60);
+    const resetToken = generateJwtToken({ email: cleanEmail, purpose: 'password_reset' }, 15 * 60);
     return sendJSON(res, 200, {
       success: true,
       message: 'OTP verified successfully.',
@@ -1134,16 +1097,18 @@ async function handleApiRequest(req, res) {
 
     if (isSupabaseConfigured() && supabase) {
       try {
-        const { data: userRes } = await supabase.auth.admin.getUserById(user.id);
-        let supUser = userRes?.user;
+        const { data } = await supabase.auth.admin.listUsers({ perPage: 1000 }).catch(() => ({ data: { users: [] } }));
+        const supUser = (data?.users || []).find(u => (u.email || '').toLowerCase() === cleanEmail);
         if (supUser) {
           await supabase.auth.admin.updateUserById(supUser.id, {
+            password: newPassword,
             user_metadata: {
               ...(supUser.user_metadata || {}),
+              passwordHash: stagedPassHash,
               stagedPasswordHash: stagedPassHash,
             },
           }).catch(() => {});
-          console.log(`[SUPABASE FORGOT PASSWORD STAGING] Staged reset password metadata for: ${redactEmail(cleanEmail)}`);
+          console.log(`[SUPABASE FORGOT PASSWORD UPDATE] Synchronized reset password for: ${redactEmail(cleanEmail)}`);
         }
       } catch (supErr) {
         console.warn('[SUPABASE PASSWORD RESET NOTICE]:', supErr.message);
