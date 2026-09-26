@@ -309,12 +309,16 @@ class _OrganizeMatrixScreenState extends State<OrganizeMatrixScreen> {
                                     color: isDark ? Colors.white60 : const Color(0xFF64748B),
                                   ),
                                   const SizedBox(width: 4),
-                                  Text(
-                                    '${task.dueDateLabel}${task.dueTime.isNotEmpty ? ' (${task.dueTime})' : ''}',
-                                    style: TextStyle(
-                                      fontSize: 10.5,
-                                      fontWeight: FontWeight.w500,
-                                      color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                                  Expanded(
+                                    child: Text(
+                                      '${task.dueDateLabel}${task.dueTime.isNotEmpty ? ' (${task.dueTime})' : ''}',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 10.5,
+                                        fontWeight: FontWeight.w500,
+                                        color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                                      ),
                                     ),
                                   ),
                                 ],

@@ -61,6 +61,10 @@ class AnalyticsService {
     final milestones = goals.where((g) => g.section != 'GOAL').toList();
     final completedMilestones = milestones.where((m) => m.isCompleted).length;
 
+    final avgSubjectProgress = subjects.isNotEmpty
+        ? (subjects.fold<double>(0.0, (sum, s) => sum + s.progress) / subjects.length)
+        : 0.0;
+
     // 6. Overall Progress Score (0 - 100)
     int countSources = 0;
     double scoreSum = 0.0;
@@ -70,6 +74,9 @@ class AnalyticsService {
     }
     if (totalStudyTasks > 0) {
       scoreSum += (totalStudyTasksCompleted / totalStudyTasks) * 0.35;
+      countSources++;
+    } else if (subjects.isNotEmpty) {
+      scoreSum += avgSubjectProgress * 0.35;
       countSources++;
     }
     if (activeGoals.isNotEmpty) {
@@ -294,7 +301,12 @@ class AnalyticsService {
   }) {
     final periodStudyItems = studyItems.where((s) => !s.dueDate.isBefore(period.start) && !s.dueDate.isAfter(period.end)).toList();
     final completedItems = periodStudyItems.where((s) => s.isCompleted).length;
-    final completionRate = periodStudyItems.isNotEmpty ? (completedItems / periodStudyItems.length) : 0.0;
+    final avgSubjectProgress = subjects.isNotEmpty
+        ? (subjects.fold<double>(0.0, (sum, s) => sum + s.progress) / subjects.length)
+        : 0.0;
+    final completionRate = periodStudyItems.isNotEmpty
+        ? (completedItems / periodStudyItems.length)
+        : avgSubjectProgress;
 
     final subjectDistributions = <StudySubjectDistribution>[];
     for (final sub in subjects) {

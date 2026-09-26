@@ -13,12 +13,10 @@ class TodoScreen extends StatelessWidget {
     final provider = Provider.of<AppProvider>(context);
     final tasks = provider.tasks.where((t) {
       final cat = t.category.trim().toLowerCase();
-      return !cat.contains('roadmap') &&
-          !cat.contains('matrix') &&
+      return !cat.contains('matrix') &&
           !cat.contains('eisenhower') &&
           !cat.contains('unit') &&
           !cat.contains('topic') &&
-          !cat.contains('study') &&
           !cat.contains('habit');
     }).toList();
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -287,7 +285,7 @@ class TodoScreen extends StatelessWidget {
 
   void _showAddTaskDialog(BuildContext context) {
     final titleController = TextEditingController();
-    String category = 'Career Roadmap';
+    String category = 'To-Do';
     String dueDateLabel = 'Today';
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -348,6 +346,12 @@ class TodoScreen extends StatelessWidget {
                             border: OutlineInputBorder(),
                           ),
                           items: const [
+                            DropdownMenuItem(
+                                value: 'To-Do',
+                                child: Text('To-Do')),
+                            DropdownMenuItem(
+                                value: 'General',
+                                child: Text('General')),
                             DropdownMenuItem(
                                 value: 'Career Roadmap',
                                 child: Text('Career Roadmap')),

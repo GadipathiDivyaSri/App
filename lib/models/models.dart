@@ -314,9 +314,9 @@ class CalendarEvent {
     required this.endTime,
     this.location = 'Workspace A',
     this.type = 'Focus Session',
-    this.category = 'General',
+    String? category,
     this.isCompleted = false,
-  });
+  }) : category = (category != null && category.isNotEmpty && category != 'General') ? category : type;
 
   DateTime get date => startTime;
   String get time => '${startTime.hour.toString().padLeft(2, '0')}:${startTime.minute.toString().padLeft(2, '0')}';
@@ -360,6 +360,9 @@ class CalendarEvent {
 
     final start = parseDate(json['startTime'] ?? json['start_time'], json['event_date'], DateTime.now());
     final end = parseDate(json['endTime'] ?? json['end_time'], json['event_date'], start.add(const Duration(hours: 1)));
+    final parsedType = json['type'] ?? json['event_type'] ?? json['type_name'] ?? 'Task';
+    final rawCat = json['category'] ?? json['event_category'];
+    final parsedCat = (rawCat != null && rawCat.toString().isNotEmpty && rawCat != 'General') ? rawCat.toString() : parsedType;
 
     return CalendarEvent(
       id: json['id']?.toString() ?? generateUuidV4(),
@@ -368,8 +371,8 @@ class CalendarEvent {
       startTime: start,
       endTime: end,
       location: json['location'] ?? 'Workspace A',
-      type: json['type'] ?? json['event_type'] ?? json['type_name'] ?? 'Focus Session',
-      category: json['category'] ?? json['event_category'] ?? 'General',
+      type: parsedType,
+      category: parsedCat,
       isCompleted: json['isCompleted'] ?? json['is_completed'] ?? false,
     );
   }
