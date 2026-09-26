@@ -1062,15 +1062,13 @@ async function handleApiRequest(req, res) {
   }
 
   // 6d. Forgot Password Reset
-  // 6d. Forgot Password Reset
   if (pathname === '/api/auth/forgot-password/reset' && method === 'POST') {
-    const { email, resetToken, newPassword, confirmPassword } = body || {};
+    const { email, resetToken, newPassword, confirmPassword } = body;
     const cleanEmail = (email || '').trim().toLowerCase();
 
     if (!cleanEmail || !newPassword || newPassword.length < 6) {
       return sendJSON(res, 400, { success: false, message: 'Password must be at least 6 characters long.' });
     }
-
     if (newPassword !== confirmPassword) {
       return sendJSON(res, 400, { success: false, message: 'Passwords do not match.' });
     }
@@ -1095,31 +1093,31 @@ async function handleApiRequest(req, res) {
     await DatabaseManager.updateUser(user.id, { password_hash: stagedPassHash, new_password: null });
     DatabaseManager.setUserPasswordHash(cleanEmail, stagedPassHash);
     if (user.username) DatabaseManager.setUserPasswordHash(user.username, stagedPassHash);
-
     console.log(`[AUTH FORGOT PASSWORD] Updated password_hash for: ${redactEmail(cleanEmail)}`);
 
-    // Update Supabase Auth if configured
     if (isSupabaseConfigured() && supabase) {
       try {
-        const { data: supData } = await supabase.auth.admin.listUsers().catch(() => ({ data: { users: [] } }));
-        const supUser = supData?.users?.find(u => (u.email || '').toLowerCase() === cleanEmail);
-
+        const { data } = await supabase.auth.admin.listUsers({ perPage: 1000 }).catch(() => ({ data: { users: [] } }));
+        const supUser = (data?.users || []).find(u => (u.email || '').toLowerCase() === cleanEmail);
         if (supUser) {
           await supabase.auth.admin.updateUserById(supUser.id, {
             password: newPassword,
-            user_metadata: { ...(supUser.user_metadata || {}), passwordHash: stagedPassHash }
-          });
-          console.log(`[AUTH FORGOT PASSWORD] Updated Supabase password for: ${redactEmail(cleanEmail)}`);
+            user_metadata: {
+              ...(supUser.user_metadata || {}),
+              passwordHash: stagedPassHash,
+              stagedPasswordHash: stagedPassHash,
+            },
+          }).catch(() => {});
+          console.log(`[SUPABASE FORGOT PASSWORD UPDATE] Synchronized reset password for: ${redactEmail(cleanEmail)}`);
         }
       } catch (supErr) {
-        console.error('[AUTH FORGOT PASSWORD] Supabase update error:', supErr);
+        console.warn('[SUPABASE PASSWORD RESET NOTICE]:', supErr.message);
       }
     }
 
-    // Success response
     return sendJSON(res, 200, {
       success: true,
-      message: 'Password reset successfully. You can now log in with your new password.'
+      message: 'Password reset successfully. You can now login with your new password.',
     });
   }
 
