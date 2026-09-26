@@ -1101,9 +1101,8 @@ async function handleApiRequest(req, res) {
     // Update Supabase Auth if configured
     if (isSupabaseConfigured() && supabase) {
       try {
-        // Look up Supabase user directly by email instead of paginated list
-        const { data: supData, error: supError } = await supabase.auth.admin.getUserByEmail(cleanEmail).catch(() => ({ data: null }));
-        const supUser = supData?.user;
+        const { data: supData } = await supabase.auth.admin.listUsers().catch(() => ({ data: { users: [] } }));
+        const supUser = supData?.users?.find(u => (u.email || '').toLowerCase() === cleanEmail);
 
         if (supUser) {
           await supabase.auth.admin.updateUserById(supUser.id, {
