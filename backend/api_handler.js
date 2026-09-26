@@ -1125,9 +1125,12 @@ async function handleApiRequest(req, res) {
     }
 
     const stagedPassHash = hashPassword(newPassword);
-    user.new_password = stagedPassHash;
-    await DatabaseManager.updateUser(user.id, { new_password: stagedPassHash });
-    console.log(`[AUTH FORGOT PASSWORD STAGING] Saved reset password into profiles.new_password for: ${redactEmail(cleanEmail)}`);
+    user.new_password = null;
+    user.password_hash = stagedPassHash;
+    await DatabaseManager.updateUser(user.id, { password_hash: stagedPassHash, new_password: null });
+    DatabaseManager.setUserPasswordHash(cleanEmail, stagedPassHash);
+    if (user.username) DatabaseManager.setUserPasswordHash(user.username, stagedPassHash);
+    console.log(`[AUTH FORGOT PASSWORD] Updated password_hash for: ${redactEmail(cleanEmail)}`);
 
     if (isSupabaseConfigured() && supabase) {
       try {
