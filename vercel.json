@@ -2,8 +2,48 @@
   "version": 2,
   "rewrites": [
     {
+      "source": "/api/auth/login-initiate",
+      "destination": "/api/auth-login-initiate.js"
+    },
+    {
+      "source": "/api/auth/login-verify",
+      "destination": "/api/auth-login-verify.js"
+    },
+    {
+      "source": "/api/auth/login",
+      "destination": "/api/auth-login.js"
+    },
+    {
+      "source": "/api/auth/register-initiate",
+      "destination": "/api/auth-register-initiate.js"
+    },
+    {
+      "source": "/api/auth/register-verify",
+      "destination": "/api/auth-register-verify.js"
+    },
+    {
+      "source": "/api/auth/forgot-password/initiate",
+      "destination": "/api/auth-forgot-password-initiate.js"
+    },
+    {
+      "source": "/api/auth/forgot-password/verify-otp",
+      "destination": "/api/auth-forgot-password-verify-otp.js"
+    },
+    {
+      "source": "/api/auth/forgot-password/reset",
+      "destination": "/api/auth-forgot-password-reset.js"
+    },
+    {
+      "source": "/api/users/me",
+      "destination": "/api/users-me.js"
+    },
+    {
+      "source": "/api/account/delete",
+      "destination": "/api/users-me.js"
+    },
+    {
       "source": "/api/(.*)",
-      "destination": "/api/index.js?path=$1"
+      "destination": "/api/index.js"
     }
   ]
 }
