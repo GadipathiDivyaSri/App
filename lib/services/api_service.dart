@@ -119,8 +119,6 @@ class ApiService {
   static Future<Map<String, dynamic>> registerInitiate({
     required String username,
     required String email,
-    required String password,
-    required String confirmPassword,
     String? referralCode,
   }) async {
     try {
@@ -130,13 +128,11 @@ class ApiService {
         body: jsonEncode({
           'username': username.trim().toLowerCase(),
           'email': email.trim().toLowerCase(),
-          'password': password,
-          'confirmPassword': confirmPassword,
           if (referralCode != null && referralCode.trim().isNotEmpty)
             'referralCode': referralCode.trim().toUpperCase(),
         }),
       );
-      final data = jsonDecode(response.body);
+      final data = _safeDecodeResponse(response);
       if (data['otpSession'] != null) {
         currentOtpSession = data['otpSession'];
       }
@@ -144,7 +140,7 @@ class ApiService {
     } catch (e) {
       return {
         'success': false,
-        'message': 'Network error: Unable to connect to server ($e)',
+        'message': 'Network error: Unable to connect to server.',
       };
     }
   }
@@ -348,24 +344,21 @@ class ApiService {
     }
   }
 
-  /// Initiate Login via Email + Password credentials verification
-  /// Validates password first, then dispatches real OTP to user's registered email
+  /// Initiate Login via Email OTP dispatch (Passwordless Auth)
   static Future<Map<String, dynamic>> loginInitiate({
     required String email,
-    required String password,
+    String? password,
   }) async {
     final clean = email.trim().toLowerCase();
 
     // Dedicated Google Play Reviewer Demo Credentials (2FA Static OTP Bypass)
     if (clean == 'demo.reviewer@wrindha.app' || clean == 'reviewer@wrindha.app' || clean == 'test.reviewer@gmail.com') {
-      if (password.isNotEmpty) {
-        return {
-          'success': true,
-          'message': 'Verification code sent to email.',
-          'email': clean,
-          'username': 'GoogleReviewer',
-        };
-      }
+      return {
+        'success': true,
+        'message': 'Verification code sent to email.',
+        'email': clean,
+        'username': 'GoogleReviewer',
+      };
     }
 
     try {
@@ -374,7 +367,7 @@ class ApiService {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'email': clean,
-          'password': password,
+          if (password != null && password.isNotEmpty) 'password': password,
         }),
       );
       return _safeDecodeResponse(response);

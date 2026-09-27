@@ -17,11 +17,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _formKey = GlobalKey<FormState>();
   final _usernameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
-  final _passwordCtrl = TextEditingController();
-  final _confirmPasswordCtrl = TextEditingController();
 
-  bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
   bool _isLoading = false;
   String? _errorMessage;
 
@@ -37,8 +33,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     _debounceTimer?.cancel();
     _usernameCtrl.dispose();
     _emailCtrl.dispose();
-    _passwordCtrl.dispose();
-    _confirmPasswordCtrl.dispose();
     super.dispose();
   }
 
@@ -106,12 +100,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Future<void> _handleSignUp() async {
     final username = _usernameCtrl.text.trim().toLowerCase();
     final email = _emailCtrl.text.trim().toLowerCase();
-    final password = _passwordCtrl.text;
-    final confirmPassword = _confirmPasswordCtrl.text;
 
     // Validation checks
-    if (username.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
-      setState(() => _errorMessage = 'Please fill in all required fields.');
+    if (username.isEmpty || email.isEmpty) {
+      setState(() => _errorMessage = 'Please enter both username and email address.');
       return;
     }
 
@@ -125,16 +117,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
       return;
     }
 
-    if (password.length < 8) {
-      setState(() => _errorMessage = 'Password must be at least 8 characters long.');
-      return;
-    }
-
-    if (password != confirmPassword) {
-      setState(() => _errorMessage = 'Passwords do not match.');
-      return;
-    }
-
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -143,8 +125,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     final res = await ApiService.registerInitiate(
       username: username,
       email: email,
-      password: password,
-      confirmPassword: confirmPassword,
     );
 
     if (!mounted) return;
@@ -157,7 +137,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           builder: (_) => EmailOtpScreen(
             email: email,
             username: username,
-            isForgotPassword: false,
+            isLogin: false,
           ),
         ),
       );
@@ -249,7 +229,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Join WrindhaOS and start mastering your productivity.',
+                  'Enter your username and email address to get started.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,
@@ -347,7 +327,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   controller: _emailCtrl,
                   keyboardType: TextInputType.emailAddress,
                   autocorrect: false,
-                  textInputAction: TextInputAction.next,
+                  textInputAction: TextInputAction.done,
+                  onFieldSubmitted: (_) => _handleSignUp(),
                   style: TextStyle(
                     fontSize: 15,
                     color: isDark ? Colors.white : AppTheme.lightTextPrimary,
@@ -358,63 +339,36 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     isDark: isDark,
                   ),
                 ),
-                const SizedBox(height: 18),
+                const SizedBox(height: 20),
 
-                // 3. Password Field
-                _buildFieldLabel('Password', isDark),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _passwordCtrl,
-                  obscureText: _obscurePassword,
-                  textInputAction: TextInputAction.next,
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+                // Security Note
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: primaryColor.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: primaryColor.withOpacity(0.2)),
                   ),
-                  decoration: _buildInputDecoration(
-                    hintText: 'Create a secure password',
-                    prefixIcon: Icons.lock_outline_rounded,
-                    isDark: isDark,
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                        color: isDark ? Colors.white54 : Colors.black45,
-                        size: 20,
+                  child: Row(
+                    children: [
+                      Icon(Icons.shield_outlined, color: primaryColor, size: 20),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'A 6-digit verification code will be sent to your email to verify and complete account setup.',
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
+                            height: 1.35,
+                          ),
+                        ),
                       ),
-                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 18),
-
-                // 4. Confirm Password Field
-                _buildFieldLabel('Confirm Password', isDark),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _confirmPasswordCtrl,
-                  obscureText: _obscureConfirmPassword,
-                  textInputAction: TextInputAction.next,
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: isDark ? Colors.white : AppTheme.lightTextPrimary,
-                  ),
-                  decoration: _buildInputDecoration(
-                    hintText: 'Re-enter your password',
-                    prefixIcon: Icons.lock_reset_rounded,
-                    isDark: isDark,
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscureConfirmPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                        color: isDark ? Colors.white54 : Colors.black45,
-                        size: 20,
-                      ),
-                      onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
-                    ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 28),
 
-                // Primary Button: Continue
+                // Primary Button: Send Verification Code
                 SizedBox(
                   height: 52,
                   child: ElevatedButton(
@@ -437,7 +391,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             ),
                           )
                         : const Text(
-                            'Continue',
+                            'Verify Email & Create Account',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,

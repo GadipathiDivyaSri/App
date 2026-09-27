@@ -6,7 +6,6 @@ import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import 'signup_screen.dart';
 import 'email_otp_screen.dart';
-import 'forgot_password_screen.dart';
 import 'main_navigation.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -19,33 +18,22 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailCtrl = TextEditingController();
-  final _passwordCtrl = TextEditingController();
 
-  bool _obscurePassword = true;
   bool _isLoading = false;
   String? _errorMessage;
 
   @override
   void dispose() {
     _emailCtrl.dispose();
-    _passwordCtrl.dispose();
     super.dispose();
   }
 
   Future<void> _handleLogin() async {
     final email = _emailCtrl.text.trim().toLowerCase();
-    final password = _passwordCtrl.text;
 
     if (email.isEmpty || !email.contains('@')) {
       setState(() {
         _errorMessage = 'Please enter your registered email address.';
-      });
-      return;
-    }
-
-    if (password.isEmpty) {
-      setState(() {
-        _errorMessage = 'Please enter your password.';
       });
       return;
     }
@@ -55,7 +43,7 @@ class _LoginScreenState extends State<LoginScreen> {
       _errorMessage = null;
     });
 
-    final res = await ApiService.loginInitiate(email: email, password: password);
+    final res = await ApiService.loginInitiate(email: email);
 
     if (!mounted) return;
     setState(() => _isLoading = false);
@@ -101,7 +89,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     } else {
       setState(() {
-        _errorMessage = res['message'] ?? 'Invalid email or password.';
+        _errorMessage = res['message'] ?? 'No account found with this email.';
       });
     }
   }
@@ -191,7 +179,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Welcome back! Enter your credentials to continue.',
+                  'Enter your registered email address to receive a verification code.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,
@@ -236,7 +224,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   controller: _emailCtrl,
                   autocorrect: false,
                   keyboardType: TextInputType.emailAddress,
-                  textInputAction: TextInputAction.next,
+                  textInputAction: TextInputAction.done,
+                  onFieldSubmitted: (_) => _handleLogin(),
                   style: TextStyle(
                     fontSize: 15,
                     color: isDark ? Colors.white : AppTheme.lightTextPrimary,
@@ -247,59 +236,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     isDark: isDark,
                   ),
                 ),
-                const SizedBox(height: 18),
-
-                // Password Field
-                _buildFieldLabel('Password', isDark),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _passwordCtrl,
-                  obscureText: _obscurePassword,
-                  textInputAction: TextInputAction.done,
-                  onFieldSubmitted: (_) => _handleLogin(),
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: isDark ? Colors.white : AppTheme.lightTextPrimary,
-                  ),
-                  decoration: _buildInputDecoration(
-                    hintText: 'Enter your account password',
-                    prefixIcon: Icons.lock_outline_rounded,
-                    isDark: isDark,
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                        color: isDark ? Colors.white54 : const Color(0xFF6B7280),
-                        size: 20,
-                      ),
-                      onPressed: () {
-                        setState(() => _obscurePassword = !_obscurePassword);
-                      },
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 10),
-
-                // Forgot Password Link
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
-                      );
-                    },
-                    child: Text(
-                      'Forgot Password?',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: primaryColor,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 18),
+                const SizedBox(height: 20),
 
                 // Security Note
                 Container(
@@ -315,7 +252,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          'Once your credentials are validated, a secure 6-digit verification code will be sent to your registered email to finalize login.',
+                          'A 6-digit verification code will be sent to your registered email to log in securely.',
                           style: TextStyle(
                             fontSize: 12.5,
                             color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
@@ -326,7 +263,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 28),
 
                 // Primary Login Button
                 SizedBox(
@@ -354,7 +291,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                'Verify & Continue',
+                                'Send Verification Code',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w700,

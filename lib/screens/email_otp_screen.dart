@@ -363,7 +363,7 @@ class _EmailOtpScreenState extends State<EmailOtpScreen> {
                             final lastChar = cleanDigits.substring(cleanDigits.length - 1);
                             _otpControllers[index].value = TextEditingValue(
                               text: lastChar,
-                              selection: TextSelection.collapsed(offset: 1),
+                              selection: const TextSelection.collapsed(offset: 1),
                             );
                           }
 
