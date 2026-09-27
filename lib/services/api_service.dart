@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/models.dart';
@@ -719,8 +720,6 @@ return data;    } catch (e) {
         if (data['success'] == true && data['subscription'] != null) {
           return UserSubscription.fromJson(data['subscription']);
         }
-      } else if (response.statusCode == 401) {
-        await clearSession();
       }
     } catch (_) {}
     return null;
@@ -781,8 +780,7 @@ return data;    } catch (e) {
       final headers = await _getHeaders();
       final response = await http.get(Uri.parse('$baseUrl/referrals/my-code'), headers: headers);
       if (response.statusCode == 401) {
-        await clearSession();
-        return {'success': false, 'message': 'Session expired'};
+        return {'success': false, 'message': 'Not authenticated'};
       }
       return jsonDecode(response.body);
     } catch (e) {
@@ -819,8 +817,6 @@ return data;    } catch (e) {
       if (response.statusCode == 200) {
         final List<dynamic> list = jsonDecode(response.body);
         return list.map((json) => Habit.fromJson(json)).toList();
-      } else if (response.statusCode == 401) {
-        await clearSession();
       }
     } catch (_) {}
     return [];
@@ -932,8 +928,6 @@ return data;    } catch (e) {
       final response = await http.get(uri, headers: headers);
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
-      } else if (response.statusCode == 401) {
-        await clearSession();
       }
     } catch (_) {}
     return {'success': false};
@@ -974,8 +968,6 @@ return data;    } catch (e) {
       if (response.statusCode == 200) {
         final List<dynamic> list = jsonDecode(response.body);
         return list.map((json) => Goal.fromJson(json)).toList();
-      } else if (response.statusCode == 401) {
-        await clearSession();
       }
     } catch (_) {}
     return [];
@@ -1100,8 +1092,6 @@ return data;    } catch (e) {
       if (response.statusCode == 200) {
         final List<dynamic> list = jsonDecode(response.body);
         return list.map((json) => CareerRoadmapNode.fromJson(json)).toList();
-      } else if (response.statusCode == 401) {
-        await clearSession();
       }
     } catch (_) {}
     return [];
@@ -1114,11 +1104,10 @@ return data;    } catch (e) {
     try {
       final headers = await _getHeaders();
       final response = await http.get(Uri.parse('$baseUrl/analytics/summary'), headers: headers);
-      if (response.statusCode == 401) {
-        await clearSession();
-        return {'success': false, 'message': 'Session expired'};
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
       }
-      return jsonDecode(response.body);
+      return {'success': false};
     } catch (e) {
       return {'success': false, 'message': 'Analytics fetch error: $e'};
     }
@@ -1137,8 +1126,6 @@ return data;    } catch (e) {
       if (response.statusCode == 200) {
         final List<dynamic> list = jsonDecode(response.body);
         return list.map((json) => StudyUnit.fromMap(json)).toList();
-      } else if (response.statusCode == 401) {
-        await clearSession();
       }
     } catch (_) {}
     return [];
@@ -1236,8 +1223,6 @@ return data;    } catch (e) {
       if (response.statusCode == 200) {
         final List<dynamic> list = jsonDecode(response.body);
         return list.map((json) => Task.fromJson(json)).toList();
-      } else if (response.statusCode == 401) {
-        await clearSession();
       }
     } catch (_) {}
     return [];
@@ -1296,8 +1281,6 @@ return data;    } catch (e) {
       if (response.statusCode == 200) {
         final List<dynamic> list = jsonDecode(response.body);
         return list.map((json) => ExpenseTransaction.fromJson(json)).toList();
-      } else if (response.statusCode == 401) {
-        await clearSession();
       }
     } catch (_) {}
     return [];
@@ -1374,8 +1357,6 @@ return data;    } catch (e) {
       if (response.statusCode == 200) {
         final List<dynamic> list = jsonDecode(response.body);
         return list.map((json) => StudySubject.fromJson(json)).toList();
-      } else if (response.statusCode == 401) {
-        await clearSession();
       }
     } catch (_) {}
     return [];
@@ -1423,8 +1404,6 @@ return data;    } catch (e) {
       if (response.statusCode == 200) {
         final List<dynamic> list = jsonDecode(response.body);
         return list.map((json) => StudyItem.fromJson(json)).toList();
-      } else if (response.statusCode == 401) {
-        await clearSession();
       }
     } catch (_) {}
     return [];
@@ -1483,8 +1462,6 @@ return data;    } catch (e) {
       if (response.statusCode == 200) {
         final List<dynamic> list = jsonDecode(response.body);
         return list.map((json) => CalendarEvent.fromJson(json)).toList();
-      } else if (response.statusCode == 401) {
-        await clearSession();
       }
     } catch (_) {}
     return [];
@@ -1546,9 +1523,6 @@ return data;    } catch (e) {
         if (list.isNotEmpty) {
           return list.map((json) => JournalEntry.fromJson(json)).toList();
         }
-      } else if (response.statusCode == 401) {
-        await clearSession();
-        return [];
       }
     } catch (_) {}
 
@@ -1744,8 +1718,6 @@ return data;    } catch (e) {
       final response = await http.get(Uri.parse('$baseUrl/users/me'), headers: headers);
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
-      } else if (response.statusCode == 401) {
-        await clearSession();
       }
     } catch (_) {}
     return {'success': false};

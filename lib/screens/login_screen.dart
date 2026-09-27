@@ -88,8 +88,13 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
     } else {
+      final msg = (res['message'] ?? '').toString();
       setState(() {
-        _errorMessage = res['message'] ?? 'No account found with this email.';
+        if (msg.toLowerCase().contains('bearer token') || msg.toLowerCase().contains('authentication required')) {
+          _errorMessage = 'Session expired. Please log in again.';
+        } else {
+          _errorMessage = msg.isNotEmpty ? msg : 'No account found with this email.';
+        }
       });
     }
   }

@@ -198,7 +198,7 @@ function sanitizeUser(user) {
 // -----------------------------------------------------------------------------
 // 2. JWT TOKEN HELPERS
 // -----------------------------------------------------------------------------
-function generateJwtToken(payload, expiresInMinutes = 60 * 24 * 30) { // 30 days
+function generateJwtToken(payload, expiresInMinutes = 60 * 24 * 365) { // 365 days (1 year session duration)
   const header = { alg: 'HS256', typ: 'JWT' };
   const exp = Math.floor(Date.now() / 1000) + expiresInMinutes * 60;
   const fullPayload = { ...payload, exp };
