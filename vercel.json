@@ -6,7 +6,11 @@
       "dest": "/api/health.js"
     },
     {
-      "src": "/(.*)",
+      "src": "/(WrindhaOS.*|.*\\.apk|.*\\.aab)",
+      "dest": "/$1"
+    },
+    {
+      "src": "/api/(.*)",
       "dest": "/api/index.js"
     }
   ]
