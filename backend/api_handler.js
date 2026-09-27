@@ -373,6 +373,7 @@ async function handleApiRequest(req, res) {
   // Normalize hyphenated Vercel serverless route aliases
   res.setHeader('X-Debug-Hit-Path', pathname);
   res.setHeader('X-Debug-Hit-Method', method);
+  console.log('[DEBUG ROUTER]', { pathname, method, url: req.url });
   pathname = pathname
     .replace('/api/auth-login-initiate', '/api/auth/login-initiate')
     .replace('/api/auth-login-verify', '/api/auth/login-verify')
