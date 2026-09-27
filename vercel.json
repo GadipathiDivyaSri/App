@@ -1,20 +1,53 @@
 {
   "version": 2,
-  "routes": [
+  "rewrites": [
     {
-      "handle": "filesystem"
+      "source": "/api/health",
+      "destination": "/api/health.js"
     },
     {
-      "src": "/api/health",
-      "dest": "/api/health.js"
+      "source": "/api/auth/login-initiate",
+      "destination": "/api/auth-login-initiate.js"
     },
     {
-      "src": "/api/(.*)",
-      "dest": "/api/index.js"
+      "source": "/api/auth/login-verify",
+      "destination": "/api/auth-login-verify.js"
     },
     {
-      "src": "/(.*)",
-      "dest": "/api/index.js"
+      "source": "/api/auth/login",
+      "destination": "/api/auth-login.js"
+    },
+    {
+      "source": "/api/auth/refresh-token",
+      "destination": "/api/auth-refresh-token.js"
+    },
+    {
+      "source": "/api/auth/register-initiate",
+      "destination": "/api/auth-register-initiate.js"
+    },
+    {
+      "source": "/api/auth/register-verify",
+      "destination": "/api/auth-register-verify.js"
+    },
+    {
+      "source": "/api/auth/forgot-password/initiate",
+      "destination": "/api/auth-forgot-password-initiate.js"
+    },
+    {
+      "source": "/api/auth/forgot-password/verify-otp",
+      "destination": "/api/auth-forgot-password-verify-otp.js"
+    },
+    {
+      "source": "/api/auth/forgot-password/reset",
+      "destination": "/api/auth-forgot-password-reset.js"
+    },
+    {
+      "source": "/api/users/me",
+      "destination": "/api/users-me.js"
+    },
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index.js"
     }
   ]
 }
