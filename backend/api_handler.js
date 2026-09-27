@@ -349,43 +349,30 @@ async function handleApiRequest(req, res) {
   const method = (req.method || 'GET').toUpperCase();
   const query = { ...(parsedUrl.query || {}), ...(req.query || {}) };
 
-  // Support Vercel serverless catch-all routing ONLY when pathname is a generic catch-all
-  if (pathname === '/api/[...path]' || pathname === '/api/index' || pathname === '/api' || pathname === '' || pathname === '/') {
-    const rawMatch = req.headers['x-now-route-matches'];
-    if (rawMatch) {
-      const match = rawMatch.match(/(?:^|&)1=([^&]+)/);
-      if (match) {
-        pathname = '/api/' + decodeURIComponent(match[1]).replace(/^\/+/, '');
-      }
-    } else if (req.headers['x-matched-path'] && !req.headers['x-matched-path'].includes('index') && !req.headers['x-matched-path'].includes('[...path]')) {
-      pathname = req.headers['x-matched-path'];
-    } else if (req.query?.path || parsedUrl.query?.path) {
+  // Support Vercel serverless catch-all routing
+  if (pathname === '/api/[...path]' || pathname === '/api' || pathname === '' || pathname === '/') {
+    if (req.headers['x-invoke-path'] && req.headers['x-invoke-path'] !== '/api/[...path]') {
+      pathname = req.headers['x-invoke-path'];
+    } else {
       const rawPath = req.query?.path || parsedUrl.query?.path;
-      const subPath = Array.isArray(rawPath) ? rawPath.join('/') : String(rawPath);
-      pathname = '/api/' + subPath.replace(/^\/+/, '');
+      if (rawPath) {
+        const subPath = Array.isArray(rawPath) ? rawPath.join('/') : String(rawPath);
+        pathname = '/api/' + subPath.replace(/^\/+/, '');
+      } else if (req.headers['x-now-route-matches']) {
+        const match = req.headers['x-now-route-matches'].match(/(?:^|&)1=([^&]+)/);
+        if (match) {
+          pathname = '/api/' + decodeURIComponent(match[1]).replace(/^\/+/, '');
+        }
+      } else if (req.headers['x-forwarded-uri']) {
+        pathname = req.headers['x-forwarded-uri'].split('?')[0];
+      }
     }
   }
   pathname = (pathname || '/').replace(/\/+$/, '') || '/';
-  if (pathname && !pathname.startsWith('/api')) {
-    pathname = '/api' + (pathname.startsWith('/') ? '' : '/') + pathname;
-  }
-
-  // Normalize hyphenated Vercel serverless route aliases
-  pathname = pathname
-    .replace('/api/auth-login-initiate', '/api/auth/login-initiate')
-    .replace('/api/auth-login-verify', '/api/auth/login-verify')
-    .replace('/api/auth-login', '/api/auth/login')
-    .replace('/api/auth-register-initiate', '/api/auth/register-initiate')
-    .replace('/api/auth-register-verify', '/api/auth/register-verify')
-    .replace('/api/auth-forgot-password-initiate', '/api/auth/forgot-password/initiate')
-    .replace('/api/auth-forgot-password-verify-otp', '/api/auth/forgot-password/verify-otp')
-    .replace('/api/auth-forgot-password-reset', '/api/auth/forgot-password/reset')
-    .replace('/api/users-me', '/api/users/me');
 
   const body = sanitizeInput(await parseRequestBody(req));
 
   console.log(`[${method}] ${pathname}`);
-  res.setHeader('X-Debug-Pathname', pathname);
 
   // Health Check
   if (pathname === '/api/health' || pathname === '/health') {
@@ -425,7 +412,7 @@ async function handleApiRequest(req, res) {
   }
 
   // 3. Register Initiate (Send Real Email OTP)
-  if (pathname.includes('register-initiate')) {
+  if (pathname === '/api/auth/register-initiate' && method === 'POST') {
     const { username, email, password, confirmPassword, referralCode } = body;
     const cleanUsername = (username || '').trim().toLowerCase();
     const cleanEmail = (email || '').trim().toLowerCase();
@@ -524,7 +511,7 @@ async function handleApiRequest(req, res) {
   }
 
   // 4. Register Verify (Complete Registration - Strict Server-Side OTP Verification)
-  if (pathname.includes('register-verify')) {
+  if (pathname === '/api/auth/register-verify' && method === 'POST') {
     const { email, otp, username } = body;
     const cleanEmail = (email || '').trim().toLowerCase();
     const cleanOtp = String(otp || '').trim();
@@ -624,7 +611,7 @@ async function handleApiRequest(req, res) {
   }
 
   // 5a. Login Initiate (Validate Credentials & Dispatch OTP)
-  if (pathname.includes('login-initiate')) {
+  if (pathname === '/api/auth/login-initiate' && method === 'POST') {
     const { email, identifier, username, password } = body;
     const cleanEmail = (email || identifier || username || '').trim().toLowerCase();
     const loginRateKey = getLoginRateKey(req, cleanEmail);
@@ -799,7 +786,7 @@ async function handleApiRequest(req, res) {
   }
 
   // 5b. Login Verify (Strict Server-Side OTP Verification & Session Issuance)
-  if (pathname.includes('login-verify')) {
+  if (pathname === '/api/auth/login-verify' && method === 'POST') {
     const { email, identifier, otp } = body;
     const cleanEmail = (email || identifier || '').trim().toLowerCase();
     const cleanOtp = String(otp || '').trim();
@@ -882,7 +869,7 @@ async function handleApiRequest(req, res) {
   }
 
   // 5c. Standard Login (Enforces OTP Verification - No Password-Only or Backdoor Bypass)
-  if ((pathname === '/api/auth/login' || pathname.endsWith('/login') || pathname.endsWith('-login')) && method === 'POST') {
+  if (pathname === '/api/auth/login' && method === 'POST') {
     const { identifier, email, username, otp, password } = body;
     const loginKey = (identifier || email || username || '').trim().toLowerCase();
 
@@ -986,7 +973,7 @@ async function handleApiRequest(req, res) {
   }
 
   // 6b. Forgot Password Initiate
-  if (pathname.includes('forgot-password') && pathname.includes('initiate')) {
+  if (pathname === '/api/auth/forgot-password/initiate' && method === 'POST') {
     const { email } = body;
     const cleanEmail = (email || '').trim().toLowerCase();
 
@@ -1033,7 +1020,7 @@ async function handleApiRequest(req, res) {
   }
 
   // 6c. Forgot Password Verify OTP
-  if (pathname.includes('forgot-password') && pathname.includes('verify')) {
+  if (pathname === '/api/auth/forgot-password/verify-otp' && method === 'POST') {
     const { email, otp } = body;
     const cleanEmail = (email || '').trim().toLowerCase();
     const cleanOtp = (otp || '').trim();
@@ -1075,7 +1062,7 @@ async function handleApiRequest(req, res) {
   }
 
   // 6d. Forgot Password Reset
-  if (pathname.includes('forgot-password') && pathname.includes('reset')) {
+  if (pathname === '/api/auth/forgot-password/reset' && method === 'POST') {
     const { email, resetToken, newPassword, confirmPassword } = body;
     const cleanEmail = (email || '').trim().toLowerCase();
 
@@ -1169,7 +1156,7 @@ async function handleApiRequest(req, res) {
   // ---------------------------------------------------------------------------
   // 7. USER PROFILE
   // ---------------------------------------------------------------------------
-  if ((pathname === '/api/users/me' || pathname.endsWith('/users/me') || pathname.endsWith('-users-me') || pathname === '/api/user/profile') && method === 'GET') {
+  if ((pathname === '/api/users/me' || pathname === '/api/user/profile') && method === 'GET') {
     const sub = await DatabaseManager.getUserSubscription(userId);
     return sendJSON(res, 200, {
       success: true,
@@ -1178,7 +1165,7 @@ async function handleApiRequest(req, res) {
     });
   }
 
-  if ((pathname === '/api/users/me' || pathname.endsWith('/users/me') || pathname.endsWith('-users-me') || pathname === '/api/user/profile') && (method === 'PUT' || method === 'PATCH')) {
+  if ((pathname === '/api/users/me' || pathname === '/api/user/profile') && (method === 'PUT' || method === 'PATCH')) {
     const updated = await DatabaseManager.updateUser(userId, body);
     return sendJSON(res, 200, {
       success: true,
@@ -1187,7 +1174,7 @@ async function handleApiRequest(req, res) {
     });
   }
 
-  if ((pathname === '/api/users/me' || pathname.endsWith('/users/me') || pathname.endsWith('-users-me') || pathname === '/api/account/delete') && method === 'DELETE') {
+  if ((pathname === '/api/users/me' || pathname === '/api/account/delete') && method === 'DELETE') {
     await DatabaseManager.deleteUser(userId);
     return sendJSON(res, 200, { success: true, message: 'Account and associated data permanently deleted.' });
   }
