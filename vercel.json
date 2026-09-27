@@ -3,51 +3,55 @@
   "rewrites": [
     {
       "source": "/api/health",
-      "destination": "/api/health.js"
+      "destination": "/api/health"
     },
     {
       "source": "/api/auth/login-initiate",
-      "destination": "/api/auth-login-initiate.js"
+      "destination": "/api/auth/login-initiate"
     },
     {
       "source": "/api/auth/login-verify",
-      "destination": "/api/auth-login-verify.js"
+      "destination": "/api/auth/login-verify"
     },
     {
       "source": "/api/auth/login",
-      "destination": "/api/auth-login.js"
+      "destination": "/api/auth/login"
     },
     {
       "source": "/api/auth/refresh-token",
-      "destination": "/api/auth-refresh-token.js"
+      "destination": "/api/auth/refresh-token"
     },
     {
       "source": "/api/auth/register-initiate",
-      "destination": "/api/auth-register-initiate.js"
+      "destination": "/api/auth/register-initiate"
     },
     {
       "source": "/api/auth/register-verify",
-      "destination": "/api/auth-register-verify.js"
+      "destination": "/api/auth/register-verify"
     },
     {
       "source": "/api/auth/forgot-password/initiate",
-      "destination": "/api/auth-forgot-password-initiate.js"
+      "destination": "/api/auth/forgot-password/initiate"
     },
     {
       "source": "/api/auth/forgot-password/verify-otp",
-      "destination": "/api/auth-forgot-password-verify-otp.js"
+      "destination": "/api/auth/forgot-password/verify-otp"
     },
     {
       "source": "/api/auth/forgot-password/reset",
-      "destination": "/api/auth-forgot-password-reset.js"
+      "destination": "/api/auth/forgot-password/reset"
     },
     {
       "source": "/api/users/me",
-      "destination": "/api/users-me.js"
+      "destination": "/api/users/me"
+    },
+    {
+      "source": "/api/account/delete",
+      "destination": "/api/account/delete"
     },
     {
       "source": "/api/(.*)",
-      "destination": "/api/index.js"
+      "destination": "/api/index"
     }
   ]
 }

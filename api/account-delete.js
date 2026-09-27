@@ -1,6 +1,6 @@
 ﻿const { handleApiRequest } = require('../backend/api_handler');
 
 module.exports = async (req, res) => {
-  req.url = '/api/auth/register-verify';
+  req.url = '/api/account/delete';
   return handleApiRequest(req, res);
 };

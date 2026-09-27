@@ -29,10 +29,20 @@ class _LoginScreenState extends State<LoginScreen> {
     if (widget.isSessionExpired) {
       _errorMessage = 'Session expired. Please log in again.';
     }
+    _emailCtrl.addListener(_onEmailChanged);
+  }
+
+  void _onEmailChanged() {
+    if (_errorMessage != null && mounted) {
+      setState(() {
+        _errorMessage = null;
+      });
+    }
   }
 
   @override
   void dispose() {
+    _emailCtrl.removeListener(_onEmailChanged);
     _emailCtrl.dispose();
     super.dispose();
   }
@@ -99,7 +109,15 @@ class _LoginScreenState extends State<LoginScreen> {
     } else {
       final msg = (res['message'] ?? '').toString();
       setState(() {
-        _errorMessage = msg.isNotEmpty ? msg : 'No account found with this email.';
+        final lower = msg.toLowerCase();
+        if (res['statusCode'] == 401 ||
+            lower.contains('bearer') ||
+            lower.contains('unauthorized') ||
+            lower.contains('session expired')) {
+          _errorMessage = 'Unable to send verification code. Please try again.';
+        } else {
+          _errorMessage = msg.isNotEmpty ? msg : 'No account found with this email.';
+        }
       });
     }
   }

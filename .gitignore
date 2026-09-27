@@ -68,3 +68,5 @@ wrindhaos-backend/powershell.bat
 
 .flutter-plugins
 chrome_data/
+releases/*.apk
+releases/*.aab
