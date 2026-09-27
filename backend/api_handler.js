@@ -369,6 +369,9 @@ async function handleApiRequest(req, res) {
     }
   }
   pathname = (pathname || '/').replace(/\/+$/, '') || '/';
+  if (pathname && !pathname.startsWith('/api')) {
+    pathname = '/api' + (pathname.startsWith('/') ? '' : '/') + pathname;
+  }
 
   const body = sanitizeInput(await parseRequestBody(req));
 
