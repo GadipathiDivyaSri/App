@@ -373,6 +373,18 @@ async function handleApiRequest(req, res) {
     pathname = '/api' + (pathname.startsWith('/') ? '' : '/') + pathname;
   }
 
+  // Normalize hyphenated Vercel serverless route aliases
+  pathname = pathname
+    .replace('/api/auth-login-initiate', '/api/auth/login-initiate')
+    .replace('/api/auth-login-verify', '/api/auth/login-verify')
+    .replace('/api/auth-login', '/api/auth/login')
+    .replace('/api/auth-register-initiate', '/api/auth/register-initiate')
+    .replace('/api/auth-register-verify', '/api/auth/register-verify')
+    .replace('/api/auth-forgot-password-initiate', '/api/auth/forgot-password/initiate')
+    .replace('/api/auth-forgot-password-verify-otp', '/api/auth/forgot-password/verify-otp')
+    .replace('/api/auth-forgot-password-reset', '/api/auth/forgot-password/reset')
+    .replace('/api/users-me', '/api/users/me');
+
   const body = sanitizeInput(await parseRequestBody(req));
 
   console.log(`[${method}] ${pathname}`);
