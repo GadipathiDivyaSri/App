@@ -428,7 +428,7 @@ async function handleApiRequest(req, res) {
   }
 
   // 3. Register Initiate (Send Real Email OTP)
-  if (pathname === '/api/auth/register-initiate' && method === 'POST') {
+  if ((pathname === '/api/auth/register-initiate' || pathname.endsWith('/register-initiate') || pathname.endsWith('-register-initiate')) && method === 'POST') {
     const { username, email, password, confirmPassword, referralCode } = body;
     const cleanUsername = (username || '').trim().toLowerCase();
     const cleanEmail = (email || '').trim().toLowerCase();
@@ -527,7 +527,7 @@ async function handleApiRequest(req, res) {
   }
 
   // 4. Register Verify (Complete Registration - Strict Server-Side OTP Verification)
-  if (pathname === '/api/auth/register-verify' && method === 'POST') {
+  if ((pathname === '/api/auth/register-verify' || pathname.endsWith('/register-verify') || pathname.endsWith('-register-verify')) && method === 'POST') {
     const { email, otp, username } = body;
     const cleanEmail = (email || '').trim().toLowerCase();
     const cleanOtp = String(otp || '').trim();
@@ -627,7 +627,7 @@ async function handleApiRequest(req, res) {
   }
 
   // 5a. Login Initiate (Validate Credentials & Dispatch OTP)
-  if (pathname === '/api/auth/login-initiate' && method === 'POST') {
+  if ((pathname === '/api/auth/login-initiate' || pathname.endsWith('/login-initiate') || pathname.endsWith('-login-initiate')) && method === 'POST') {
     const { email, identifier, username, password } = body;
     const cleanEmail = (email || identifier || username || '').trim().toLowerCase();
     const loginRateKey = getLoginRateKey(req, cleanEmail);
@@ -802,7 +802,7 @@ async function handleApiRequest(req, res) {
   }
 
   // 5b. Login Verify (Strict Server-Side OTP Verification & Session Issuance)
-  if (pathname === '/api/auth/login-verify' && method === 'POST') {
+  if ((pathname === '/api/auth/login-verify' || pathname.endsWith('/login-verify') || pathname.endsWith('-login-verify')) && method === 'POST') {
     const { email, identifier, otp } = body;
     const cleanEmail = (email || identifier || '').trim().toLowerCase();
     const cleanOtp = String(otp || '').trim();
@@ -885,7 +885,7 @@ async function handleApiRequest(req, res) {
   }
 
   // 5c. Standard Login (Enforces OTP Verification - No Password-Only or Backdoor Bypass)
-  if (pathname === '/api/auth/login' && method === 'POST') {
+  if ((pathname === '/api/auth/login' || pathname.endsWith('/login') || pathname.endsWith('-login')) && method === 'POST') {
     const { identifier, email, username, otp, password } = body;
     const loginKey = (identifier || email || username || '').trim().toLowerCase();
 
@@ -989,7 +989,7 @@ async function handleApiRequest(req, res) {
   }
 
   // 6b. Forgot Password Initiate
-  if (pathname === '/api/auth/forgot-password/initiate' && method === 'POST') {
+  if ((pathname === '/api/auth/forgot-password/initiate' || pathname.endsWith('/forgot-password/initiate') || pathname.endsWith('-forgot-password-initiate')) && method === 'POST') {
     const { email } = body;
     const cleanEmail = (email || '').trim().toLowerCase();
 
@@ -1036,7 +1036,7 @@ async function handleApiRequest(req, res) {
   }
 
   // 6c. Forgot Password Verify OTP
-  if (pathname === '/api/auth/forgot-password/verify-otp' && method === 'POST') {
+  if ((pathname === '/api/auth/forgot-password/verify-otp' || pathname.endsWith('/forgot-password/verify-otp') || pathname.endsWith('-forgot-password-verify-otp')) && method === 'POST') {
     const { email, otp } = body;
     const cleanEmail = (email || '').trim().toLowerCase();
     const cleanOtp = (otp || '').trim();
@@ -1078,7 +1078,7 @@ async function handleApiRequest(req, res) {
   }
 
   // 6d. Forgot Password Reset
-  if (pathname === '/api/auth/forgot-password/reset' && method === 'POST') {
+  if ((pathname === '/api/auth/forgot-password/reset' || pathname.endsWith('/forgot-password/reset') || pathname.endsWith('-forgot-password-reset')) && method === 'POST') {
     const { email, resetToken, newPassword, confirmPassword } = body;
     const cleanEmail = (email || '').trim().toLowerCase();
 
@@ -1172,7 +1172,7 @@ async function handleApiRequest(req, res) {
   // ---------------------------------------------------------------------------
   // 7. USER PROFILE
   // ---------------------------------------------------------------------------
-  if ((pathname === '/api/users/me' || pathname === '/api/user/profile') && method === 'GET') {
+  if ((pathname === '/api/users/me' || pathname.endsWith('/users/me') || pathname.endsWith('-users-me') || pathname === '/api/user/profile') && method === 'GET') {
     const sub = await DatabaseManager.getUserSubscription(userId);
     return sendJSON(res, 200, {
       success: true,
@@ -1181,7 +1181,7 @@ async function handleApiRequest(req, res) {
     });
   }
 
-  if ((pathname === '/api/users/me' || pathname === '/api/user/profile') && (method === 'PUT' || method === 'PATCH')) {
+  if ((pathname === '/api/users/me' || pathname.endsWith('/users/me') || pathname.endsWith('-users-me') || pathname === '/api/user/profile') && (method === 'PUT' || method === 'PATCH')) {
     const updated = await DatabaseManager.updateUser(userId, body);
     return sendJSON(res, 200, {
       success: true,
@@ -1190,7 +1190,7 @@ async function handleApiRequest(req, res) {
     });
   }
 
-  if ((pathname === '/api/users/me' || pathname === '/api/account/delete') && method === 'DELETE') {
+  if ((pathname === '/api/users/me' || pathname.endsWith('/users/me') || pathname.endsWith('-users-me') || pathname === '/api/account/delete') && method === 'DELETE') {
     await DatabaseManager.deleteUser(userId);
     return sendJSON(res, 200, { success: true, message: 'Account and associated data permanently deleted.' });
   }
