@@ -1,49 +1,9 @@
 {
   "version": 2,
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/auth/login-initiate",
-      "dest": "/api/auth/login-initiate.js"
-    },
-    {
-      "src": "/api/auth/login-verify",
-      "dest": "/api/auth/login-verify.js"
-    },
-    {
-      "src": "/api/auth/login",
-      "dest": "/api/auth/login.js"
-    },
-    {
-      "src": "/api/auth/register-initiate",
-      "dest": "/api/auth/register-initiate.js"
-    },
-    {
-      "src": "/api/auth/register-verify",
-      "dest": "/api/auth/register-verify.js"
-    },
-    {
-      "src": "/api/auth/forgot-password/initiate",
-      "dest": "/api/auth/forgot-password/initiate.js"
-    },
-    {
-      "src": "/api/auth/forgot-password/verify-otp",
-      "dest": "/api/auth/forgot-password/verify-otp.js"
-    },
-    {
-      "src": "/api/auth/forgot-password/reset",
-      "dest": "/api/auth/forgot-password/reset.js"
-    },
-    {
-      "src": "/api/users/me",
-      "dest": "/api/users/me.js"
-    },
-    {
-      "src": "/api/account/delete",
-      "dest": "/api/users/me.js"
-    },
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/index.js"
+      "source": "/api/(.*)",
+      "destination": "/api/index.js"
     }
   ]
 }
