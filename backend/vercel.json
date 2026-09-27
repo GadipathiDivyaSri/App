@@ -1,21 +1,9 @@
 {
   "version": 2,
-  "rewrites": [
+  "routes": [
     {
-      "source": "/api/auth/(.*)",
-      "destination": "/api/auth.js?path=$1"
-    },
-    {
-      "source": "/api/users/(.*)",
-      "destination": "/api/users.js?path=$1"
-    },
-    {
-      "source": "/api/account/(.*)",
-      "destination": "/api/account.js?path=$1"
-    },
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/index.js?path=$1"
+      "src": "/api/(.*)",
+      "dest": "/api/[...path].js"
     }
   ]
 }
