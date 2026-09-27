@@ -622,9 +622,17 @@ class ApiService {
 
   static Future<String?> getSessionToken() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_tokenKey) ??
+    final token = prefs.getString(_tokenKey) ??
         prefs.getString('saved_session_token') ??
         prefs.getString('wrindha_secure_jwt_token');
+    if (token == null ||
+        token.isEmpty ||
+        token == 'guest_token' ||
+        token == 'null' ||
+        token == 'undefined') {
+      return null;
+    }
+    return token;
   }
 
   static Future<Map<String, dynamic>?> getSessionUser() async {
@@ -661,6 +669,8 @@ class ApiService {
   // 3. SUBSCRIPTION & PAYMENTS
   // ---------------------------------------------------------------------------
   static Future<UserSubscription?> fetchUserSubscription() async {
+    final token = await getSessionToken();
+    if (token == null || token.isEmpty) return null;
     try {
       final headers = await _getHeaders();
       final response = await http.get(Uri.parse('$baseUrl/subscription/me'), headers: headers);
@@ -669,6 +679,8 @@ class ApiService {
         if (data['success'] == true && data['subscription'] != null) {
           return UserSubscription.fromJson(data['subscription']);
         }
+      } else if (response.statusCode == 401) {
+        await clearSession();
       }
     } catch (_) {}
     return null;
@@ -723,9 +735,15 @@ class ApiService {
   // 5. REFERRAL SYSTEM
   // ---------------------------------------------------------------------------
   static Future<Map<String, dynamic>> fetchMyReferralCode() async {
+    final token = await getSessionToken();
+    if (token == null || token.isEmpty) return {'success': false, 'message': 'Not logged in'};
     try {
       final headers = await _getHeaders();
       final response = await http.get(Uri.parse('$baseUrl/referrals/my-code'), headers: headers);
+      if (response.statusCode == 401) {
+        await clearSession();
+        return {'success': false, 'message': 'Session expired'};
+      }
       return jsonDecode(response.body);
     } catch (e) {
       return {'success': false, 'message': 'Fetching referral code failed: $e'};
@@ -752,6 +770,8 @@ class ApiService {
 
   /// Fetch user's habits with streak & completion status for a specific date
   static Future<List<Habit>> fetchHabits({String? date}) async {
+    final token = await getSessionToken();
+    if (token == null || token.isEmpty) return [];
     try {
       final headers = await _getHeaders();
       final uri = Uri.parse('$baseUrl/habits').replace(queryParameters: date != null ? {'date': date} : null);
@@ -759,6 +779,8 @@ class ApiService {
       if (response.statusCode == 200) {
         final List<dynamic> list = jsonDecode(response.body);
         return list.map((json) => Habit.fromJson(json)).toList();
+      } else if (response.statusCode == 401) {
+        await clearSession();
       }
     } catch (_) {}
     return [];
@@ -862,12 +884,16 @@ class ApiService {
 
   /// Fetch habit analytics summary
   static Future<Map<String, dynamic>> fetchHabitAnalytics({String? date}) async {
+    final token = await getSessionToken();
+    if (token == null || token.isEmpty) return {'success': false};
     try {
       final headers = await _getHeaders();
       final uri = Uri.parse('$baseUrl/habits/analytics').replace(queryParameters: date != null ? {'date': date} : null);
       final response = await http.get(uri, headers: headers);
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
+      } else if (response.statusCode == 401) {
+        await clearSession();
       }
     } catch (_) {}
     return {'success': false};
@@ -899,6 +925,8 @@ class ApiService {
 
   /// Pro Goal Creation API
   static Future<List<Goal>> fetchGoals({String? tier}) async {
+    final token = await getSessionToken();
+    if (token == null || token.isEmpty) return [];
     try {
       final headers = await _getHeaders();
       final uri = Uri.parse('$baseUrl/goals').replace(queryParameters: tier != null ? {'tier': tier} : null);
@@ -906,6 +934,8 @@ class ApiService {
       if (response.statusCode == 200) {
         final List<dynamic> list = jsonDecode(response.body);
         return list.map((json) => Goal.fromJson(json)).toList();
+      } else if (response.statusCode == 401) {
+        await clearSession();
       }
     } catch (_) {}
     return [];
@@ -1022,12 +1052,16 @@ class ApiService {
   }
 
   static Future<List<CareerRoadmapNode>> fetchCareerRoadmapNodes() async {
+    final token = await getSessionToken();
+    if (token == null || token.isEmpty) return [];
     try {
       final headers = await _getHeaders();
       final response = await http.get(Uri.parse('$baseUrl/career-roadmap'), headers: headers);
       if (response.statusCode == 200) {
         final List<dynamic> list = jsonDecode(response.body);
         return list.map((json) => CareerRoadmapNode.fromJson(json)).toList();
+      } else if (response.statusCode == 401) {
+        await clearSession();
       }
     } catch (_) {}
     return [];
@@ -1035,9 +1069,15 @@ class ApiService {
 
   /// Real Dynamic Analytics Summary
   static Future<Map<String, dynamic>> fetchAnalyticsSummary() async {
+    final token = await getSessionToken();
+    if (token == null || token.isEmpty) return {'success': false};
     try {
       final headers = await _getHeaders();
       final response = await http.get(Uri.parse('$baseUrl/analytics/summary'), headers: headers);
+      if (response.statusCode == 401) {
+        await clearSession();
+        return {'success': false, 'message': 'Session expired'};
+      }
       return jsonDecode(response.body);
     } catch (e) {
       return {'success': false, 'message': 'Analytics fetch error: $e'};
@@ -1048,6 +1088,8 @@ class ApiService {
   // STUDY UNITS & TOPICS API (SUPABASE BACKEND SYNC)
   // ---------------------------------------------------------------------------
   static Future<List<StudyUnit>> fetchStudyUnits({String? subjectId}) async {
+    final token = await getSessionToken();
+    if (token == null || token.isEmpty) return [];
     try {
       final headers = await _getHeaders();
       final uri = Uri.parse('$baseUrl/study-units').replace(queryParameters: subjectId != null ? {'subjectId': subjectId} : null);
@@ -1055,6 +1097,8 @@ class ApiService {
       if (response.statusCode == 200) {
         final List<dynamic> list = jsonDecode(response.body);
         return list.map((json) => StudyUnit.fromMap(json)).toList();
+      } else if (response.statusCode == 401) {
+        await clearSession();
       }
     } catch (_) {}
     return [];
@@ -1144,12 +1188,16 @@ class ApiService {
   // TASKS API (SUPABASE BACKEND SYNC)
   // ---------------------------------------------------------------------------
   static Future<List<Task>> fetchTasks() async {
+    final token = await getSessionToken();
+    if (token == null || token.isEmpty) return [];
     try {
       final headers = await _getHeaders();
       final response = await http.get(Uri.parse('$baseUrl/tasks'), headers: headers);
       if (response.statusCode == 200) {
         final List<dynamic> list = jsonDecode(response.body);
         return list.map((json) => Task.fromJson(json)).toList();
+      } else if (response.statusCode == 401) {
+        await clearSession();
       }
     } catch (_) {}
     return [];
@@ -1200,12 +1248,16 @@ class ApiService {
   // 8. EXPENSES REST APIS (Production-Ready Cloud Sync)
   // ---------------------------------------------------------------------------
   static Future<List<ExpenseTransaction>> fetchExpenses() async {
+    final token = await getSessionToken();
+    if (token == null || token.isEmpty) return [];
     try {
       final headers = await _getHeaders();
       final response = await http.get(Uri.parse('$baseUrl/expenses'), headers: headers);
       if (response.statusCode == 200) {
         final List<dynamic> list = jsonDecode(response.body);
         return list.map((json) => ExpenseTransaction.fromJson(json)).toList();
+      } else if (response.statusCode == 401) {
+        await clearSession();
       }
     } catch (_) {}
     return [];
@@ -1274,12 +1326,16 @@ class ApiService {
   // 9. SUBJECTS REST APIS (Production-Ready Cloud Sync)
   // ---------------------------------------------------------------------------
   static Future<List<StudySubject>> fetchSubjects() async {
+    final token = await getSessionToken();
+    if (token == null || token.isEmpty) return [];
     try {
       final headers = await _getHeaders();
       final response = await http.get(Uri.parse('$baseUrl/subjects'), headers: headers);
       if (response.statusCode == 200) {
         final List<dynamic> list = jsonDecode(response.body);
         return list.map((json) => StudySubject.fromJson(json)).toList();
+      } else if (response.statusCode == 401) {
+        await clearSession();
       }
     } catch (_) {}
     return [];
@@ -1316,6 +1372,8 @@ class ApiService {
   // 9B. STUDY ITEMS REST APIS (Production-Ready Cloud Sync)
   // ---------------------------------------------------------------------------
   static Future<List<StudyItem>> fetchStudyItems({String? subjectId}) async {
+    final token = await getSessionToken();
+    if (token == null || token.isEmpty) return [];
     try {
       final headers = await _getHeaders();
       final uri = Uri.parse('$baseUrl/study-items').replace(
@@ -1325,6 +1383,8 @@ class ApiService {
       if (response.statusCode == 200) {
         final List<dynamic> list = jsonDecode(response.body);
         return list.map((json) => StudyItem.fromJson(json)).toList();
+      } else if (response.statusCode == 401) {
+        await clearSession();
       }
     } catch (_) {}
     return [];
@@ -1375,12 +1435,16 @@ class ApiService {
   // 10. CALENDAR EVENTS REST APIS (Production-Ready Cloud Sync)
   // ---------------------------------------------------------------------------
   static Future<List<CalendarEvent>> fetchCalendarEvents() async {
+    final token = await getSessionToken();
+    if (token == null || token.isEmpty) return [];
     try {
       final headers = await _getHeaders();
       final response = await http.get(Uri.parse('$baseUrl/calendar'), headers: headers);
       if (response.statusCode == 200) {
         final List<dynamic> list = jsonDecode(response.body);
         return list.map((json) => CalendarEvent.fromJson(json)).toList();
+      } else if (response.statusCode == 401) {
+        await clearSession();
       }
     } catch (_) {}
     return [];
@@ -1428,6 +1492,9 @@ class ApiService {
   // 11. JOURNAL ENTRIES REST APIS (Production-Ready Cloud Sync)
   // ---------------------------------------------------------------------------
   static Future<List<JournalEntry>> fetchJournalEntries() async {
+    final token = await getSessionToken();
+    if (token == null || token.isEmpty) return [];
+
     // 1. Primary: Try Backend API
     try {
       final headers = await _getHeaders();
@@ -1439,24 +1506,25 @@ class ApiService {
         if (list.isNotEmpty) {
           return list.map((json) => JournalEntry.fromJson(json)).toList();
         }
+      } else if (response.statusCode == 401) {
+        await clearSession();
+        return [];
       }
     } catch (_) {}
 
     // 2. Direct Supabase Fallback
     try {
       final user = await getSessionUser();
-      final token = await getSessionToken();
       final uid = user?['id']?.toString() ?? user?['userId']?.toString();
-      final url = (uid != null && uid.isNotEmpty)
-          ? '$supabaseUrl/rest/v1/journal_entries?user_id=eq.$uid&select=*'
-          : '$supabaseUrl/rest/v1/journal_entries?select=*';
+      if (uid == null || uid.isEmpty) return [];
+      final url = '$supabaseUrl/rest/v1/journal_entries?user_id=eq.$uid&select=*';
 
       final res = await http
           .get(
             Uri.parse(url),
             headers: {
               'apikey': supabaseAnonKey,
-              if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+              'Authorization': 'Bearer $token',
             },
           )
           .timeout(const Duration(seconds: 6));
@@ -1629,11 +1697,15 @@ class ApiService {
   // 12. USER PROFILE CLOUD SYNC
   // ---------------------------------------------------------------------------
   static Future<Map<String, dynamic>> fetchUserProfileFromBackend() async {
+    final token = await getSessionToken();
+    if (token == null || token.isEmpty) return {'success': false};
     try {
       final headers = await _getHeaders();
       final response = await http.get(Uri.parse('$baseUrl/users/me'), headers: headers);
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
+      } else if (response.statusCode == 401) {
+        await clearSession();
       }
     } catch (_) {}
     return {'success': false};

@@ -1042,7 +1042,11 @@ class AppProvider extends ChangeNotifier {
       storedToken ??= await ApiService.getSessionToken();
       Map<String, dynamic>? cachedUser = await AuthApiService.getCachedUser();
       cachedUser ??= await ApiService.getSessionUser();
-      if (storedToken != null && storedToken.isNotEmpty && cachedUser != null) {
+      if (storedToken != null &&
+          storedToken.isNotEmpty &&
+          storedToken != 'guest_token' &&
+          cachedUser != null &&
+          cachedUser['id'] != 'guest_user') {
         setAuthenticatedSession(userMap: cachedUser, token: storedToken);
       }
 
@@ -1594,6 +1598,12 @@ class AppProvider extends ChangeNotifier {
 
   Future<void> syncAllDataFromCloud() async {
     if (!_isLoggedIn) return;
+    final token = await ApiService.getSessionToken();
+    if (token == null || token.isEmpty) {
+      _isLoggedIn = false;
+      notifyListeners();
+      return;
+    }
     _isSyncing = true;
     try {
       await Future.wait([

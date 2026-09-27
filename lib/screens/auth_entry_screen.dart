@@ -61,8 +61,11 @@ class _AuthEntryScreenState extends State<AuthEntryScreen> {
             );
             return;
           } else {
-            // Token is invalid/expired: clear session and present clean login screen
-            await ApiService.clearSession();
+            // Token is invalid/expired: logout provider and present clean login screen
+            if (mounted) {
+              final provider = Provider.of<AppProvider>(context, listen: false);
+              await provider.logout();
+            }
           }
         }
       } catch (_) {
