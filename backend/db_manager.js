@@ -126,6 +126,12 @@ class DatabaseManager {
     return userPasswordHashMap[clean] || null;
   }
 
+  static clearUserPasswordHash(emailOrUsername) {
+    if (!emailOrUsername) return;
+    const clean = String(emailOrUsername).trim().toLowerCase();
+    delete userPasswordHashMap[clean];
+  }
+
   // ---------------------------------------------------------------------------
   // AUTHENTICATION & USER PROFILES
   // ---------------------------------------------------------------------------
@@ -270,37 +276,42 @@ class DatabaseManager {
   }
 
   static async isEmailTombstoned(email) {
-    if (!email) return false;
-    const cleanEmail = email.trim().toLowerCase();
-    try {
-      if (!isSupabaseConfigured() || !supabase) return false;
-      const { data, error } = await supabase.from('deleted_account_tombstones').select('*').eq('email', cleanEmail).maybeSingle();
-      if (error) return false;
-      return !!data;
-    } catch (e) {
-      return false;
-    }
+    // Re-registration is permitted after account deletion
+    return false;
   }
 
   static async deleteUser(userId) {
     if (!userId) return false;
     const uid = ensureUuid(userId);
     const user = await this.getUserById(uid);
-    if (user && user.email) {
-      const cleanEmail = user.email.trim().toLowerCase();
-      try {
-        await dbQuery('deleted_account_tombstones', {
-          method: 'POST',
-          body: {
-            id: ensureUuid(),
-            email: cleanEmail,
-            deleted_at: new Date().toISOString(),
-          },
-        });
-      } catch (tombErr) {
-        console.warn('[TOMBSTONE STORE NOTICE]:', tombErr.message);
+
+    if (user) {
+      if (user.email) {
+        DatabaseManager.clearUserPasswordHash(user.email);
+      }
+      if (user.username) {
+        DatabaseManager.clearUserPasswordHash(user.username);
       }
     }
+
+    // Clean up Supabase Auth Admin user if configured
+    if (isSupabaseConfigured() && supabase) {
+      try {
+        await supabase.auth.admin.deleteUser(uid).catch(() => {});
+        if (user && user.email) {
+          const cleanEmail = user.email.trim().toLowerCase();
+          const { data } = await supabase.auth.admin.listUsers({ perPage: 1000 }).catch(() => ({ data: { users: [] } }));
+          const supUser = (data?.users || []).find(u => (u.email || '').toLowerCase() === cleanEmail);
+          if (supUser && supUser.id !== uid) {
+            await supabase.auth.admin.deleteUser(supUser.id).catch(() => {});
+          }
+        }
+        console.log(`[SUPABASE AUTH DELETE] Successfully deleted auth user for ID: ${uid}`);
+      } catch (supErr) {
+        console.warn('[SUPABASE AUTH DELETE NOTICE]:', supErr.message);
+      }
+    }
+
     return await dbQuery('profiles', { method: 'DELETE', match: { id: uid } });
   }
 
