@@ -1,8 +1,8 @@
-const { handleApiRequest } = require('../../backend/api_handler');
+const { handleApiRequest } = require('../backend/api_handler');
 
 module.exports = async (req, res) => {
   try {
-    req.url = '/api/auth/register-initiate';
+    req.url = '/api/auth/login';
     return await handleApiRequest(req, res);
   } catch (err) {
     res.statusCode = 500;
