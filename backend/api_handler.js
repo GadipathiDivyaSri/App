@@ -371,9 +371,6 @@ async function handleApiRequest(req, res) {
   }
 
   // Normalize hyphenated Vercel serverless route aliases
-  res.setHeader('X-Debug-Hit-Path', pathname);
-  res.setHeader('X-Debug-Hit-Method', method);
-  console.log('[DEBUG ROUTER]', { pathname, method, url: req.url });
   pathname = pathname
     .replace('/api/auth-login-initiate', '/api/auth/login-initiate')
     .replace('/api/auth-login-verify', '/api/auth/login-verify')
@@ -428,7 +425,7 @@ async function handleApiRequest(req, res) {
   }
 
   // 3. Register Initiate (Send Real Email OTP)
-  if ((pathname === '/api/auth/register-initiate' || pathname.endsWith('/register-initiate') || pathname.endsWith('-register-initiate')) && method === 'POST') {
+  if (pathname.includes('register-initiate')) {
     const { username, email, password, confirmPassword, referralCode } = body;
     const cleanUsername = (username || '').trim().toLowerCase();
     const cleanEmail = (email || '').trim().toLowerCase();
@@ -527,7 +524,7 @@ async function handleApiRequest(req, res) {
   }
 
   // 4. Register Verify (Complete Registration - Strict Server-Side OTP Verification)
-  if ((pathname === '/api/auth/register-verify' || pathname.endsWith('/register-verify') || pathname.endsWith('-register-verify')) && method === 'POST') {
+  if (pathname.includes('register-verify')) {
     const { email, otp, username } = body;
     const cleanEmail = (email || '').trim().toLowerCase();
     const cleanOtp = String(otp || '').trim();
@@ -627,7 +624,7 @@ async function handleApiRequest(req, res) {
   }
 
   // 5a. Login Initiate (Validate Credentials & Dispatch OTP)
-  if ((pathname === '/api/auth/login-initiate' || pathname.endsWith('/login-initiate') || pathname.endsWith('-login-initiate')) && method === 'POST') {
+  if (pathname.includes('login-initiate')) {
     const { email, identifier, username, password } = body;
     const cleanEmail = (email || identifier || username || '').trim().toLowerCase();
     const loginRateKey = getLoginRateKey(req, cleanEmail);
@@ -802,7 +799,7 @@ async function handleApiRequest(req, res) {
   }
 
   // 5b. Login Verify (Strict Server-Side OTP Verification & Session Issuance)
-  if ((pathname === '/api/auth/login-verify' || pathname.endsWith('/login-verify') || pathname.endsWith('-login-verify')) && method === 'POST') {
+  if (pathname.includes('login-verify')) {
     const { email, identifier, otp } = body;
     const cleanEmail = (email || identifier || '').trim().toLowerCase();
     const cleanOtp = String(otp || '').trim();
@@ -989,7 +986,7 @@ async function handleApiRequest(req, res) {
   }
 
   // 6b. Forgot Password Initiate
-  if ((pathname === '/api/auth/forgot-password/initiate' || pathname.endsWith('/forgot-password/initiate') || pathname.endsWith('-forgot-password-initiate')) && method === 'POST') {
+  if (pathname.includes('forgot-password') && pathname.includes('initiate')) {
     const { email } = body;
     const cleanEmail = (email || '').trim().toLowerCase();
 
@@ -1036,7 +1033,7 @@ async function handleApiRequest(req, res) {
   }
 
   // 6c. Forgot Password Verify OTP
-  if ((pathname === '/api/auth/forgot-password/verify-otp' || pathname.endsWith('/forgot-password/verify-otp') || pathname.endsWith('-forgot-password-verify-otp')) && method === 'POST') {
+  if (pathname.includes('forgot-password') && pathname.includes('verify')) {
     const { email, otp } = body;
     const cleanEmail = (email || '').trim().toLowerCase();
     const cleanOtp = (otp || '').trim();
@@ -1078,7 +1075,7 @@ async function handleApiRequest(req, res) {
   }
 
   // 6d. Forgot Password Reset
-  if ((pathname === '/api/auth/forgot-password/reset' || pathname.endsWith('/forgot-password/reset') || pathname.endsWith('-forgot-password-reset')) && method === 'POST') {
+  if (pathname.includes('forgot-password') && pathname.includes('reset')) {
     const { email, resetToken, newPassword, confirmPassword } = body;
     const cleanEmail = (email || '').trim().toLowerCase();
 
