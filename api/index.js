@@ -1,5 +1,4 @@
-const path = require('path');
-const { handleApiRequest } = require(path.join(process.cwd(), 'backend', 'api_handler'));
+const { handleApiRequest } = require('../backend/api_handler');
 
 module.exports = async (req, res) => {
   try {
