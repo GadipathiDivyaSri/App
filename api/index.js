@@ -2,6 +2,11 @@ const { handleApiRequest } = require('../backend/api_handler');
 
 module.exports = async (req, res) => {
   try {
+    res.setHeader('X-Debug-Index-Url', req.url || 'NONE');
+    res.setHeader('X-Debug-Forwarded-Uri', req.headers['x-forwarded-uri'] || 'NONE');
+    res.setHeader('X-Debug-Invoke-Path', req.headers['x-invoke-path'] || 'NONE');
+    res.setHeader('X-Debug-Matched-Path', req.headers['x-matched-path'] || 'NONE');
+
     const rawUrl = req.url || '/';
     if (rawUrl === '/' || rawUrl.includes('/api/index') || rawUrl.includes('/api/[...path]')) {
       if (req.headers['x-forwarded-uri'] && req.headers['x-forwarded-uri'].startsWith('/api')) {
