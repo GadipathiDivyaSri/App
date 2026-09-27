@@ -1548,12 +1548,11 @@ async function handleApiRequest(req, res) {
   });
 }
 
-const mainHandler = async (req, res) => handleApiRequest(req, res);
-mainHandler.handleApiRequest = handleApiRequest;
-mainHandler.generateJwtToken = generateJwtToken;
-mainHandler.verifyJwtToken = verifyJwtToken;
-mainHandler.getAuthOtp = getAuthOtp;
-mainHandler.storeAuthOtp = storeAuthOtp;
-mainHandler.clearAuthOtp = clearAuthOtp;
-
-module.exports = mainHandler;
+module.exports = {
+  handleApiRequest,
+  generateJwtToken,
+  verifyJwtToken,
+  getAuthOtp,
+  storeAuthOtp,
+  clearAuthOtp,
+};

@@ -1,16 +1,4 @@
-let handleApiRequest;
-try {
-  const mod = require("../../../backend/api_handler");
-  handleApiRequest = mod.handleApiRequest || mod;
-} catch (e1) {
-  try {
-    const mod = require("../../../api_handler");
-    handleApiRequest = mod.handleApiRequest || mod;
-  } catch (e2) {
-    const mod = require("../../api_handler");
-    handleApiRequest = mod.handleApiRequest || mod;
-  }
-}
+const { handleApiRequest } = require("../../../backend/api_handler");
 
 module.exports = async (req, res) => {
   try {
