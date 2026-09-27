@@ -27,6 +27,64 @@ class ApiService {
     };
   }
 
+  /// Execute POST request with resilient fallback URL routing for Vercel
+  static Future<http.Response> _postWithFallback(
+    String primaryEndpoint, {
+    Map<String, String>? headers,
+    Object? body,
+    Duration timeout = const Duration(seconds: 12),
+  }) async {
+    final reqHeaders = headers ?? {'Content-Type': 'application/json'};
+
+    // 1. Try Primary Endpoint (e.g. /auth/login-initiate)
+    try {
+      final response = await http
+          .post(Uri.parse('$baseUrl$primaryEndpoint'), headers: reqHeaders, body: body)
+          .timeout(timeout);
+      if (response.statusCode != 404 && !response.body.contains('The page could not be found')) {
+        return response;
+      }
+    } catch (_) {}
+
+    // 2. Try Flattened Vercel Endpoint Fallback (e.g. /auth-login-initiate)
+    final fallbackEndpoint = primaryEndpoint
+        .replaceAll('/auth/', '/auth-')
+        .replaceAll('/users/', '/users-')
+        .replaceAll('/forgot-password/', '/forgot-password-');
+
+    return await http
+        .post(Uri.parse('$baseUrl$fallbackEndpoint'), headers: reqHeaders, body: body)
+        .timeout(timeout);
+  }
+
+  /// Execute DELETE request with resilient fallback URL routing for Vercel
+  static Future<http.Response> _deleteWithFallback(
+    String primaryEndpoint, {
+    Map<String, String>? headers,
+    Object? body,
+    Duration timeout = const Duration(seconds: 12),
+  }) async {
+    final reqHeaders = headers ?? {'Content-Type': 'application/json'};
+
+    try {
+      final response = await http
+          .delete(Uri.parse('$baseUrl$primaryEndpoint'), headers: reqHeaders, body: body)
+          .timeout(timeout);
+      if (response.statusCode != 404 && !response.body.contains('The page could not be found')) {
+        return response;
+      }
+    } catch (_) {}
+
+    final fallbackEndpoint = primaryEndpoint
+        .replaceAll('/auth/', '/auth-')
+        .replaceAll('/users/', '/users-')
+        .replaceAll('/forgot-password/', '/forgot-password-');
+
+    return await http
+        .delete(Uri.parse('$baseUrl$fallbackEndpoint'), headers: reqHeaders, body: body)
+        .timeout(timeout);
+  }
+
   // ---------------------------------------------------------------------------
   // 1. AUTHENTICATION SERVICES
   // ---------------------------------------------------------------------------
@@ -38,8 +96,8 @@ class ApiService {
     String? referralCode,
   }) async {
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/auth/register-initiate'),
+      final response = await _postWithFallback(
+        '/auth/register-initiate',
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'username': username.trim().toLowerCase(),
@@ -209,8 +267,8 @@ class ApiService {
 
   static Future<Map<String, dynamic>> forgotPasswordInitiate(String email) async {
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/auth/forgot-password/initiate'),
+      final response = await _postWithFallback(
+        '/auth/forgot-password/initiate',
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': email.trim().toLowerCase()}),
       );
@@ -225,8 +283,8 @@ class ApiService {
     required String otp,
   }) async {
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/auth/forgot-password/verify-otp'),
+      final response = await _postWithFallback(
+        '/auth/forgot-password/verify-otp',
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'email': email.trim().toLowerCase(),
@@ -246,8 +304,8 @@ class ApiService {
     required String confirmPassword,
   }) async {
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/auth/forgot-password/reset'),
+      final response = await _postWithFallback(
+        '/auth/forgot-password/reset',
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'email': email.trim().toLowerCase(),
@@ -283,16 +341,14 @@ class ApiService {
     }
 
     try {
-      final response = await http
-          .post(
-            Uri.parse('$baseUrl/auth/login-initiate'),
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({
-              'email': clean,
-              'password': password,
-            }),
-          )
-          .timeout(const Duration(seconds: 10));
+      final response = await _postWithFallback(
+        '/auth/login-initiate',
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': clean,
+          'password': password,
+        }),
+      );
       return jsonDecode(response.body);
     } catch (e) {
       // Fallback for reviewer credentials on network timeout
@@ -503,8 +559,8 @@ class ApiService {
   }) async {
     try {
       final headers = await _getHeaders();
-      final response = await http.delete(
-        Uri.parse('$baseUrl/users/me'),
+      final response = await _deleteWithFallback(
+        '/users/me',
         headers: headers,
       );
       final data = jsonDecode(response.body);

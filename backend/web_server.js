@@ -39,6 +39,22 @@ const server = http.createServer((req, res) => {
     return handleApiRequest(req, res);
   }
 
+  // 1b. Direct Release Binary File Downloads (http://localhost:8080/releases/*)
+  if (req.url.startsWith('/releases/') || req.url.startsWith('/download/')) {
+    const filename = path.basename(req.url.split('?')[0]);
+    const releasePath = path.join(__dirname, '..', 'releases', filename);
+    if (fs.existsSync(releasePath) && fs.statSync(releasePath).isFile()) {
+      const ext = path.extname(filename).toLowerCase();
+      const contentType = ext === '.apk' ? 'application/vnd.android.package-archive' : 'application/octet-stream';
+      res.writeHead(200, {
+        'Content-Type': contentType,
+        'Content-Disposition': `attachment; filename="${filename}"`,
+        'Content-Length': fs.statSync(releasePath).size,
+      });
+      return fs.createReadStream(releasePath).pipe(res);
+    }
+  }
+
   // 2. Static Web App Files
   let cleanUrl = req.url.split('?')[0];
   if (cleanUrl.startsWith('/WRINDHA_OS_APP')) {
