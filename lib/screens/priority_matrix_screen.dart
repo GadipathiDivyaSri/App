@@ -152,7 +152,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
         backgroundColor: isDark ? AppTheme.darkPrimary : AppTheme.primaryAccent,
         icon: const Icon(Icons.add_task_rounded, color: Colors.white),
         label: const Text(
-          'Set Task & Deadline',
+          'Add Task',
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
       ),
@@ -191,7 +191,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Deadline-Driven Priorities',
+                          'Organize Your Tasks',
                           style: TextStyle(
                             color: isDark ? Colors.white : AppTheme.lightTextPrimary,
                             fontSize: 18,
@@ -200,7 +200,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Mark task dates & deadlines to auto-structure your daily focus ⭐',
+                          'Organize tasks by priority quadrants and manage them effortlessly ⭐',
                           style: TextStyle(
                             color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
                             fontSize: 12,
@@ -960,9 +960,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
     }
     final titleCtrl = TextEditingController();
     String selectedTag = 'STUDY';
-    DateTime selectedDate = DateTime.now();
-    TimeOfDay selectedTime = TimeOfDay.now();
-    int assignedPriority = defaultPriority ?? _computePriorityFromDate(selectedDate);
+    int assignedPriority = defaultPriority ?? 1;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     showModalBottomSheet(
@@ -974,23 +972,6 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
       ),
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setModalState) {
-          final now = DateTime.now();
-          final isToday = selectedDate.year == now.year && selectedDate.month == now.month && selectedDate.day == now.day;
-          final isTomorrow = selectedDate.year == now.add(const Duration(days: 1)).year &&
-              selectedDate.month == now.add(const Duration(days: 1)).month &&
-              selectedDate.day == now.add(const Duration(days: 1)).day;
-
-          String dateFormatted;
-          if (isToday) {
-            dateFormatted = 'Today (${_monthName(selectedDate.month)} ${selectedDate.day})';
-          } else if (isTomorrow) {
-            dateFormatted = 'Tomorrow (${_monthName(selectedDate.month)} ${selectedDate.day})';
-          } else {
-            dateFormatted = '${_monthName(selectedDate.month)} ${selectedDate.day}, ${selectedDate.year}';
-          }
-
-          final timeFormatted = _formatTimeOfDay(selectedTime);
-
           return Padding(
             padding: EdgeInsets.only(
               bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
@@ -1007,7 +988,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Set Task & Deadline',
+                        'Add New Task',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -1025,9 +1006,10 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                   // Task Title
                   TextField(
                     controller: titleCtrl,
+                    autofocus: true,
                     decoration: InputDecoration(
-                      labelText: 'Task Title',
-                      hintText: 'Enter task title...',
+                      labelText: 'Task Title *',
+                      hintText: 'Enter task description...',
                       prefixIcon: const Icon(Icons.task_alt_rounded, size: 20),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     ),
@@ -1058,123 +1040,17 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Date & Time Deadline Selector
-                  const Text(
-                    'MARK DEADLINE DATE & TIME',
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF94A3B8)),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      // Date Selector Button
-                      Expanded(
-                        child: InkWell(
-                          onTap: () async {
-                            final pickedDate = await showDatePicker(
-                              context: context,
-                              initialDate: selectedDate,
-                              firstDate: DateTime.now().subtract(const Duration(days: 1)),
-                              lastDate: DateTime.now().add(const Duration(days: 365)),
-                            );
-                            if (pickedDate != null) {
-                              setModalState(() {
-                                selectedDate = pickedDate;
-                                assignedPriority = _computePriorityFromDate(selectedDate);
-                              });
-                            }
-                          },
-                          borderRadius: BorderRadius.circular(12),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                            decoration: BoxDecoration(
-                              color: isDark ? const Color(0xFF2A2B3D) : const Color(0xFFF1F5F9),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: const Color(0xFFCBD5E1)),
-                            ),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.calendar_month_rounded, size: 18, color: Color(0xFF6366F1)),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      const Text('Deadline Date', style: TextStyle(fontSize: 10, color: Color(0xFF94A3B8))),
-                                      Text(dateFormatted, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-
-                      // Time Selector Button
-                      Expanded(
-                        child: InkWell(
-                          onTap: () async {
-                            final pickedTime = await showTimePicker(
-                              context: context,
-                              initialTime: selectedTime,
-                            );
-                            if (pickedTime != null) {
-                              setModalState(() {
-                                selectedTime = pickedTime;
-                              });
-                            }
-                          },
-                          borderRadius: BorderRadius.circular(12),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                            decoration: BoxDecoration(
-                              color: isDark ? const Color(0xFF2A2B3D) : const Color(0xFFF1F5F9),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: const Color(0xFFCBD5E1)),
-                            ),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.access_time_rounded, size: 18, color: Color(0xFF6366F1)),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      const Text('Deadline Time', style: TextStyle(fontSize: 10, color: Color(0xFF94A3B8))),
-                                      Text(timeFormatted, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
                   // Priority Selector
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'PRIORITY ASSIGNMENT',
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF94A3B8)),
-                      ),
-                      Text(
-                        'Deadline suggests: P${_computePriorityFromDate(selectedDate)}',
-                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF6366F1)),
-                      ),
-                    ],
+                  const Text(
+                    'PRIORITY ASSIGNMENT',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF94A3B8)),
                   ),
                   const SizedBox(height: 8),
                   Row(
                     children: [
                       _buildPriorityOption(
                         level: 1,
-                        label: 'P1: Urgent (Today)',
+                        label: 'P1: Urgent (Do First)',
                         color: Colors.redAccent,
                         isSelected: assignedPriority == 1,
                         onTap: () => setModalState(() => assignedPriority = 1),
@@ -1182,7 +1058,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                       const SizedBox(width: 8),
                       _buildPriorityOption(
                         level: 2,
-                        label: 'P2: Upcoming (1-3d)',
+                        label: 'P2: Important',
                         color: Colors.amber.shade800,
                         isSelected: assignedPriority == 2,
                         onTap: () => setModalState(() => assignedPriority = 2),
@@ -1190,7 +1066,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                       const SizedBox(width: 8),
                       _buildPriorityOption(
                         level: 3,
-                        label: 'P3: Later (>3d)',
+                        label: 'P3: General',
                         color: const Color(0xFF10B981),
                         isSelected: assignedPriority == 3,
                         onTap: () => setModalState(() => assignedPriority = 3),
@@ -1214,31 +1090,22 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                         if (titleCtrl.text.trim().isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text('Please enter a task title before setting deadline.'),
+                              content: Text('Please enter a task title.'),
                               backgroundColor: Colors.redAccent,
                             ),
                           );
                           return;
                         }
-                        final fullDueDate = DateTime(
-                          selectedDate.year,
-                          selectedDate.month,
-                          selectedDate.day,
-                          selectedTime.hour,
-                          selectedTime.minute,
-                        );
                         provider.addTask(
                           titleCtrl.text.trim(),
                           selectedTag,
-                          dateFormatted,
+                          'Active',
                           priority: assignedPriority,
-                          dueDate: fullDueDate,
-                          dueTime: timeFormatted,
                         );
                         Navigator.pop(ctx);
                       },
                       child: const Text(
-                        'Set Deadline & Save Task',
+                        'Add Task',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 16,

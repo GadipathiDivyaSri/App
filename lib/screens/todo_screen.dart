@@ -180,7 +180,7 @@ class TodoScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${task.category}  •  ${task.dueDateLabel}',
+                    task.category,
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
@@ -286,7 +286,6 @@ class TodoScreen extends StatelessWidget {
   void _showAddTaskDialog(BuildContext context) {
     final titleController = TextEditingController();
     String category = 'To-Do';
-    String dueDateLabel = 'Today';
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     showModalBottomSheet(
@@ -335,60 +334,32 @@ class TodoScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: DropdownButtonFormField<String>(
-                          value: category,
-                          dropdownColor: isDark ? AppTheme.darkCardBg : Colors.white,
-                          decoration: const InputDecoration(
-                            labelText: 'Category',
-                            border: OutlineInputBorder(),
-                          ),
-                          items: const [
-                            DropdownMenuItem(
-                                value: 'To-Do',
-                                child: Text('To-Do')),
-                            DropdownMenuItem(
-                                value: 'General',
-                                child: Text('General')),
-                            DropdownMenuItem(
-                                value: 'Career Roadmap',
-                                child: Text('Career Roadmap')),
-                            DropdownMenuItem(
-                                value: 'Studies', child: Text('Studies')),
-                            DropdownMenuItem(
-                                value: 'Personal Growth',
-                                child: Text('Personal Growth')),
-                          ],
-                          onChanged: (val) {
-                            if (val != null) setState(() => category = val);
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: DropdownButtonFormField<String>(
-                          value: dueDateLabel,
-                          dropdownColor: isDark ? AppTheme.darkCardBg : Colors.white,
-                          decoration: const InputDecoration(
-                            labelText: 'Due Date',
-                            border: OutlineInputBorder(),
-                          ),
-                          items: const [
-                            DropdownMenuItem(
-                                value: 'Today', child: Text('Today')),
-                            DropdownMenuItem(
-                                value: 'Tomorrow', child: Text('Tomorrow')),
-                            DropdownMenuItem(
-                                value: 'This Week', child: Text('This Week')),
-                          ],
-                          onChanged: (val) {
-                            if (val != null) setState(() => dueDateLabel = val);
-                          },
-                        ),
-                      ),
+                  DropdownButtonFormField<String>(
+                    value: category,
+                    dropdownColor: isDark ? AppTheme.darkCardBg : Colors.white,
+                    decoration: const InputDecoration(
+                      labelText: 'Category',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: const [
+                      DropdownMenuItem(
+                          value: 'To-Do',
+                          child: Text('To-Do')),
+                      DropdownMenuItem(
+                          value: 'General',
+                          child: Text('General')),
+                      DropdownMenuItem(
+                          value: 'Career Roadmap',
+                          child: Text('Career Roadmap')),
+                      DropdownMenuItem(
+                          value: 'Studies', child: Text('Studies')),
+                      DropdownMenuItem(
+                          value: 'Personal Growth',
+                          child: Text('Personal Growth')),
                     ],
+                    onChanged: (val) {
+                      if (val != null) setState(() => category = val);
+                    },
                   ),
                   const SizedBox(height: 24),
                   SizedBox(
@@ -407,7 +378,7 @@ class TodoScreen extends StatelessWidget {
                               .addTask(
                             titleController.text.trim(),
                             category,
-                            dueDateLabel,
+                            'Active',
                           );
                           Navigator.pop(ctx);
                         }
