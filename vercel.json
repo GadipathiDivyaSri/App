@@ -1,49 +1,49 @@
 {
   "version": 2,
-  "rewrites": [
+  "routes": [
     {
-      "source": "/api/auth/login-initiate",
-      "destination": "/api/auth-login-initiate"
+      "src": "/api/auth/login-initiate",
+      "dest": "/api/auth/login-initiate.js"
     },
     {
-      "source": "/api/auth/login-verify",
-      "destination": "/api/auth-login-verify"
+      "src": "/api/auth/login-verify",
+      "dest": "/api/auth/login-verify.js"
     },
     {
-      "source": "/api/auth/login",
-      "destination": "/api/auth-login"
+      "src": "/api/auth/login",
+      "dest": "/api/auth/login.js"
     },
     {
-      "source": "/api/auth/register-initiate",
-      "destination": "/api/auth-register-initiate"
+      "src": "/api/auth/register-initiate",
+      "dest": "/api/auth/register-initiate.js"
     },
     {
-      "source": "/api/auth/register-verify",
-      "destination": "/api/auth-register-verify"
+      "src": "/api/auth/register-verify",
+      "dest": "/api/auth/register-verify.js"
     },
     {
-      "source": "/api/auth/forgot-password/initiate",
-      "destination": "/api/auth-forgot-password-initiate"
+      "src": "/api/auth/forgot-password/initiate",
+      "dest": "/api/auth/forgot-password/initiate.js"
     },
     {
-      "source": "/api/auth/forgot-password/verify-otp",
-      "destination": "/api/auth-forgot-password-verify-otp"
+      "src": "/api/auth/forgot-password/verify-otp",
+      "dest": "/api/auth/forgot-password/verify-otp.js"
     },
     {
-      "source": "/api/auth/forgot-password/reset",
-      "destination": "/api/auth-forgot-password-reset"
+      "src": "/api/auth/forgot-password/reset",
+      "dest": "/api/auth/forgot-password/reset.js"
     },
     {
-      "source": "/api/users/me",
-      "destination": "/api/users-me"
+      "src": "/api/users/me",
+      "dest": "/api/users/me.js"
     },
     {
-      "source": "/api/account/delete",
-      "destination": "/api/users-me"
+      "src": "/api/account/delete",
+      "dest": "/api/users/me.js"
     },
     {
-      "source": "/api/(.*)",
-      "destination": "/api/index.js"
+      "src": "/api/(.*)",
+      "dest": "/api/index.js"
     }
   ]
 }
