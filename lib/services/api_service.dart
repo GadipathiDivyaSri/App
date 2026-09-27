@@ -85,6 +85,34 @@ class ApiService {
         .timeout(timeout);
   }
 
+  /// Safely decodes HTTP response body into a Map<String, dynamic>.
+  /// Prevents FormatException crashes when Vercel or proxies return HTML 404/500 error pages.
+  static Map<String, dynamic> _safeDecodeResponse(
+    http.Response response, {
+    String defaultErrorMessage = 'Network error: Unable to connect to server. Please try again.',
+  }) {
+    final body = response.body.trim();
+    if (body.isEmpty ||
+        body.startsWith('<') ||
+        body.contains('The page could not be found') ||
+        response.statusCode >= 500 ||
+        response.statusCode == 404) {
+      return {
+        'success': false,
+        'message': 'Unable to connect to server. Please try again.',
+      };
+    }
+    try {
+      final decoded = jsonDecode(body);
+      if (decoded is Map<String, dynamic>) {
+        return decoded;
+      }
+      return {'success': false, 'message': defaultErrorMessage};
+    } catch (_) {
+      return {'success': false, 'message': defaultErrorMessage};
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // 1. AUTHENTICATION SERVICES
   // ---------------------------------------------------------------------------
@@ -272,9 +300,9 @@ class ApiService {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': email.trim().toLowerCase()}),
       );
-      return jsonDecode(response.body);
+      return _safeDecodeResponse(response);
     } catch (e) {
-      return {'success': false, 'message': 'Network error: Unable to connect to server ($e)'};
+      return {'success': false, 'message': 'Network error: Unable to connect to server.'};
     }
   }
 
@@ -291,9 +319,9 @@ class ApiService {
           'otp': otp.trim(),
         }),
       );
-      return jsonDecode(response.body);
+      return _safeDecodeResponse(response);
     } catch (e) {
-      return {'success': false, 'message': 'Network error: Unable to connect to server ($e)'};
+      return {'success': false, 'message': 'Network error: Unable to connect to server.'};
     }
   }
 
@@ -314,9 +342,9 @@ class ApiService {
           'confirmPassword': confirmPassword,
         }),
       );
-      return jsonDecode(response.body);
+      return _safeDecodeResponse(response);
     } catch (e) {
-      return {'success': false, 'message': 'Network error: Unable to connect to server ($e)'};
+      return {'success': false, 'message': 'Network error: Unable to connect to server.'};
     }
   }
 
@@ -349,7 +377,7 @@ class ApiService {
           'password': password,
         }),
       );
-      return jsonDecode(response.body);
+      return _safeDecodeResponse(response);
     } catch (e) {
       // Fallback for reviewer credentials on network timeout
       if (clean.contains('reviewer') || clean.contains('test')) {
@@ -360,7 +388,7 @@ class ApiService {
           'username': 'GoogleReviewer',
         };
       }
-      return {'success': false, 'message': 'Network error: Unable to connect to server ($e)'};
+      return {'success': false, 'message': 'Network error: Unable to connect to server.'};
     }
   }
 
