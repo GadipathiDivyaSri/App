@@ -1014,7 +1014,7 @@ async function handleApiRequest(req, res) {
     return sendJSON(res, 401, {
       success: false,
       error: 'UNAUTHORIZED',
-      message: 'Authentication required. Please provide a valid Bearer token.',
+      message: 'Session expired. Please log in again.',
     });
   }
 

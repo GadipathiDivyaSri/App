@@ -92,6 +92,13 @@ class ApiService {
     String defaultErrorMessage = 'Network error: Unable to connect to server. Please try again.',
   }) {
     final body = response.body.trim();
+    if (response.statusCode == 401) {
+      return {
+        'success': false,
+        'error': 'UNAUTHORIZED',
+        'message': 'Session expired. Please log in again.',
+      };
+    }
     if (body.isEmpty ||
         body.startsWith('<') ||
         body.contains('The page could not be found') ||

@@ -40,8 +40,15 @@ class _AuthEntryScreenState extends State<AuthEntryScreen> {
             token != null &&
             token.isNotEmpty) {
           final res = await ApiService.getCurrentUser();
-          final validUser = res['user'] ?? (res['id'] != null ? res : null);
-          if ((validUser != null || res['success'] == true) && mounted) {
+          final isSuccess = res['success'] == true || (res['user'] != null) || (res['id'] != null);
+          final isUnauthorized = res['error'] == 'UNAUTHORIZED' ||
+              res['error'] == 'USER_NOT_FOUND' ||
+              res['statusCode'] == 401 ||
+              res['success'] == false ||
+              (res['message'] != null && res['message'].toString().toLowerCase().contains('authentication required'));
+
+          if (isSuccess && !isUnauthorized && mounted) {
+            final validUser = res['user'] ?? (res['id'] != null ? res : null);
             final targetUser = validUser is Map<String, dynamic> ? validUser : userMap;
             final provider = Provider.of<AppProvider>(context, listen: false);
             final user = UserProfile.fromJson(targetUser);
@@ -53,20 +60,9 @@ class _AuthEntryScreenState extends State<AuthEntryScreen> {
               MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
             );
             return;
-          } else if (res['error'] == 'UNAUTHORIZED' || res['error'] == 'USER_NOT_FOUND' || res['statusCode'] == 401) {
-            await ApiService.clearSession();
           } else {
-            // Network fallback: continue with valid cached session
-            final provider = Provider.of<AppProvider>(context, listen: false);
-            final user = UserProfile.fromJson(userMap);
-            user.token = token;
-            provider.setUser(user);
-
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
-            );
-            return;
+            // Token is invalid/expired: clear session and present clean login screen
+            await ApiService.clearSession();
           }
         }
       } catch (_) {
