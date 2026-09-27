@@ -350,24 +350,19 @@ async function handleApiRequest(req, res) {
   const query = { ...(parsedUrl.query || {}), ...(req.query || {}) };
 
   // Support Vercel serverless catch-all routing
-  if (pathname === '/api/[...path]' || pathname === '/api' || pathname === '/api/index' || pathname === '' || pathname === '/') {
-    if (req.headers['x-forwarded-uri'] && req.headers['x-forwarded-uri'].startsWith('/api')) {
-      pathname = req.headers['x-forwarded-uri'].split('?')[0];
-    } else if (req.headers['x-matched-path'] && req.headers['x-matched-path'].startsWith('/api')) {
-      pathname = req.headers['x-matched-path'];
-    } else if (req.headers['x-invoke-path'] && req.headers['x-invoke-path'] !== '/api/[...path]' && req.headers['x-invoke-path'] !== '/api/index') {
-      pathname = req.headers['x-invoke-path'];
-    } else {
-      const rawPath = req.query?.path || parsedUrl.query?.path;
-      if (rawPath) {
-        const subPath = Array.isArray(rawPath) ? rawPath.join('/') : String(rawPath);
-        pathname = '/api/' + subPath.replace(/^\/+/, '');
-      } else if (req.headers['x-now-route-matches']) {
-        const match = req.headers['x-now-route-matches'].match(/(?:^|&)1=([^&]+)/);
-        if (match) {
-          pathname = '/api/' + decodeURIComponent(match[1]).replace(/^\/+/, '');
-        }
+  if (pathname === '/api/[...path]' || pathname === '/api/index' || pathname === '/api' || pathname === '' || pathname === '/') {
+    const candidate = req.headers['x-forwarded-uri'] || req.headers['x-matched-path'] || req.headers['x-invoke-path'];
+    if (candidate && candidate.startsWith('/api') && !candidate.includes('index') && !candidate.includes('[...path]')) {
+      pathname = candidate.split('?')[0];
+    } else if (req.headers['x-now-route-matches']) {
+      const match = req.headers['x-now-route-matches'].match(/(?:^|&)1=([^&]+)/);
+      if (match) {
+        pathname = '/api/' + decodeURIComponent(match[1]).replace(/^\/+/, '');
       }
+    } else if (req.query?.path || parsedUrl.query?.path) {
+      const rawPath = req.query?.path || parsedUrl.query?.path;
+      const subPath = Array.isArray(rawPath) ? rawPath.join('/') : String(rawPath);
+      pathname = '/api/' + subPath.replace(/^\/+/, '');
     }
   }
   pathname = (pathname || '/').replace(/\/+$/, '') || '/';
