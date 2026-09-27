@@ -6,7 +6,7 @@
       "dest": "/api/health.js"
     },
     {
-      "src": "/api/(.*)",
+      "src": "/(.*)",
       "dest": "/api/index.js"
     }
   ]

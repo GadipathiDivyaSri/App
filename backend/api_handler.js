@@ -369,6 +369,12 @@ async function handleApiRequest(req, res) {
     }
   }
   pathname = (pathname || '/').replace(/\/+$/, '') || '/';
+  if (pathname.includes('/auth-')) pathname = pathname.replace('/auth-', '/auth/');
+  if (pathname.includes('/users-')) pathname = pathname.replace('/users-', '/users/');
+  if (pathname.includes('/forgot-password-')) pathname = pathname.replace('/forgot-password-', '/forgot-password/');
+  if (!pathname.startsWith('/api/') && pathname !== '/api') {
+    pathname = '/api' + (pathname.startsWith('/') ? pathname : '/' + pathname);
+  }
 
   const body = sanitizeInput(await parseRequestBody(req));
 

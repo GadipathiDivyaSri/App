@@ -85,6 +85,31 @@ class ApiService {
         .timeout(timeout);
   }
 
+  /// Execute GET request with resilient fallback URL routing for Vercel
+  static Future<http.Response> _getWithFallback(
+    String primaryEndpoint, {
+    Map<String, String>? headers,
+    Duration timeout = const Duration(seconds: 12),
+  }) async {
+    try {
+      final response = await http
+          .get(Uri.parse('$baseUrl$primaryEndpoint'), headers: headers)
+          .timeout(timeout);
+      if (response.statusCode != 404 && !response.body.contains('The page could not be found')) {
+        return response;
+      }
+    } catch (_) {}
+
+    final fallbackEndpoint = primaryEndpoint
+        .replaceAll('/auth/', '/auth-')
+        .replaceAll('/users/', '/users-')
+        .replaceAll('/forgot-password/', '/forgot-password-');
+
+    return await http
+        .get(Uri.parse('$baseUrl$fallbackEndpoint'), headers: headers)
+        .timeout(timeout);
+  }
+
   /// Safely decodes HTTP response body into a Map<String, dynamic>.
   /// Prevents FormatException crashes when Vercel or proxies return HTML 404/500 error pages.
   static Map<String, dynamic> _safeDecodeResponse(
@@ -199,8 +224,8 @@ class ApiService {
     String? otpSession,
   }) async {
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/auth/register-verify'),
+      final response = await _postWithFallback(
+        '/auth/register-verify',
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           if (username != null) 'username': username.trim().toLowerCase(),
@@ -210,7 +235,7 @@ class ApiService {
           'otpSession': otpSession ?? currentOtpSession,
         }),
       );
-      final data = jsonDecode(response.body);
+      final data = _safeDecodeResponse(response);
       final token = data['token'] ?? data['data']?['token'];
       final user = data['user'] ?? data['data']?['user'];
       if (data['success'] == true && token != null) {
@@ -281,12 +306,12 @@ class ApiService {
 
   static Future<Map<String, dynamic>> resendRegistrationOtp(String email) async {
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/auth/resend-otp'),
+      final response = await _postWithFallback(
+        '/auth/resend-otp',
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': email.trim().toLowerCase(), 'type': 'register'}),
       );
-      final data = jsonDecode(response.body);
+      final data = _safeDecodeResponse(response);
       if (data['otpSession'] != null) {
         currentOtpSession = data['otpSession'];
       }
@@ -396,14 +421,12 @@ class ApiService {
   static Future<Map<String, dynamic>> resendLoginOtp(String email) async {
     final clean = email.trim().toLowerCase();
     try {
-      final response = await http
-          .post(
-            Uri.parse('$baseUrl/auth/resend-otp'),
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({'email': clean, 'type': 'login'}),
-          )
-          .timeout(const Duration(seconds: 10));
-      return jsonDecode(response.body);
+      final response = await _postWithFallback(
+        '/auth/resend-otp',
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': clean, 'type': 'login'}),
+      );
+      return _safeDecodeResponse(response);
     } catch (e) {
       return {'success': false, 'message': 'Network error: Unable to resend OTP ($e)'};
     }
@@ -423,17 +446,16 @@ class ApiService {
         cleanEmail == 'test.reviewer@gmail.com' ||
         cleanOtp == '123456') {
       try {
-        final response = await http
-            .post(
-              Uri.parse('$baseUrl/auth/login-verify'),
-              headers: {'Content-Type': 'application/json'},
-              body: jsonEncode({
-                'email': cleanEmail,
-                'otp': cleanOtp,
-              }),
-            )
-            .timeout(const Duration(seconds: 5));
-        final data = jsonDecode(response.body);
+        final response = await _postWithFallback(
+          '/auth/login-verify',
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'email': cleanEmail,
+            'otp': cleanOtp,
+          }),
+          timeout: const Duration(seconds: 5),
+        );
+        final data = _safeDecodeResponse(response);
         if (data['success'] == true && data['token'] != null) {
           await saveSession(data['token'], data['user']);
           return data;
@@ -459,17 +481,15 @@ class ApiService {
     }
 
     try {
-      final response = await http
-          .post(
-            Uri.parse('$baseUrl/auth/login-verify'),
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({
-              'email': cleanEmail,
-              'otp': cleanOtp,
-            }),
-          )
-          .timeout(const Duration(seconds: 10));
-      final data = jsonDecode(response.body);
+      final response = await _postWithFallback(
+        '/auth/login-verify',
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': cleanEmail,
+          'otp': cleanOtp,
+        }),
+      );
+      final data = _safeDecodeResponse(response);
       final token = data['token'] ?? data['data']?['token'];
       final user = data['user'] ?? data['data']?['user'];
       if (data['success'] == true && token != null) {
@@ -488,16 +508,14 @@ class ApiService {
       return {'success': false, 'message': 'No session token found.'};
     }
     try {
-      final response = await http
-          .get(
-            Uri.parse('$baseUrl/users/me'),
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer $token',
-            },
-          )
-          .timeout(const Duration(seconds: 8));
-      return jsonDecode(response.body);
+      final response = await _getWithFallback(
+        '/users/me',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+      return _safeDecodeResponse(response);
     } catch (e) {
       return {'success': false, 'message': 'Failed to validate session: $e'};
     }
@@ -510,21 +528,18 @@ class ApiService {
   }) async {
     final clean = username.trim().toLowerCase();
 
-    // Enforce OTP-backed authentication through backend authority
     try {
-      final response = await http
-          .post(
-            Uri.parse('$baseUrl/auth/login'),
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({
-              'identifier': clean,
-              'email': clean,
-              if (password != null && password.isNotEmpty) 'password': password,
-              if (otp != null && otp.isNotEmpty) 'otp': otp.trim(),
-            }),
-          )
-          .timeout(const Duration(seconds: 10));
-      final data = jsonDecode(response.body);
+      final response = await _postWithFallback(
+        '/auth/login',
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'identifier': clean,
+          'email': clean,
+          if (password != null && password.isNotEmpty) 'password': password,
+          if (otp != null && otp.isNotEmpty) 'otp': otp.trim(),
+        }),
+      );
+      final data = _safeDecodeResponse(response);
       final token = data['token'] ?? data['data']?['token'];
       final user = data['user'] ?? data['data']?['user'];
       if (data['success'] == true && token != null) {
