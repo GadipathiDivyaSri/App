@@ -143,6 +143,7 @@ class AppProvider extends ChangeNotifier {
   }
 
   Future<void> logout() async {
+    ApiService.logAuth('User logout initiated', {'userId': _user.id});
     _isLoggedIn = false;
     _user = UserProfile(
       id: 'u_guest',
@@ -1047,6 +1048,7 @@ class AppProvider extends ChangeNotifier {
           storedToken != 'guest_token' &&
           cachedUser != null &&
           cachedUser['id'] != 'guest_user') {
+        ApiService.logAuth('Restoring authenticated session during startup', {'userId': cachedUser['id']});
         setAuthenticatedSession(userMap: cachedUser, token: storedToken);
       }
 

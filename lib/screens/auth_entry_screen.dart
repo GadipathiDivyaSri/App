@@ -30,28 +30,67 @@ class _AuthEntryScreenState extends State<AuthEntryScreen> {
     final hasSession = await ApiService.hasActiveSession();
     if (!mounted) return;
 
-    if (hasSession) {
-      try {
-        final userMap = await ApiService.getSessionUser();
-        final token = await ApiService.getSessionToken();
-        // Disallow guest user or missing session token
-        if (userMap != null &&
-            userMap['id'] != 'guest_user' &&
-            token != null &&
-            token.isNotEmpty) {
-          final res = await ApiService.getCurrentUser();
-          final isSuccess = res['success'] == true || (res['user'] != null) || (res['id'] != null);
-          final isUnauthorized = res['error'] == 'UNAUTHORIZED' ||
-              res['error'] == 'USER_NOT_FOUND' ||
-              res['statusCode'] == 401 ||
-              res['success'] == false ||
-              (res['message'] != null && res['message'].toString().toLowerCase().contains('authentication required'));
+    if (!hasSession) {
+      // First-time user or clean logged out state: present clean welcome screen without error
+      if (mounted) {
+        setState(() {
+          _isCheckingSession = false;
+        });
+      }
+      return;
+    }
 
-          if (isSuccess && !isUnauthorized && mounted) {
-            final validUser = res['user'] ?? (res['id'] != null ? res : null);
-            final targetUser = validUser is Map<String, dynamic> ? validUser : userMap;
+    try {
+      final userMap = await ApiService.getSessionUser();
+      final token = await ApiService.getSessionToken();
+
+      // Ensure valid non-guest cached session exists before attempting remote verification
+      if (userMap != null &&
+          userMap['id'] != 'guest_user' &&
+          token != null &&
+          token.isNotEmpty) {
+        
+        // Validate with backend / Supabase with automatic token refresh on 401
+        final res = await ApiService.getCurrentUser();
+        final isSuccess = res['success'] == true || (res['user'] != null) || (res['id'] != null);
+        final isConfirmedExpired = res['isExpired'] == true ||
+            res['error'] == 'TOKEN_EXPIRED' ||
+            res['error'] == 'SESSION_EXPIRED' ||
+            (res['statusCode'] == 401 && res['isNetworkError'] != true);
+
+        if (isSuccess && mounted) {
+          final validUser = res['user'] ?? (res['id'] != null ? res : null);
+          final targetUser = validUser is Map<String, dynamic> ? validUser : userMap;
+          final provider = Provider.of<AppProvider>(context, listen: false);
+          final user = UserProfile.fromJson(targetUser);
+          user.token = await ApiService.getSessionToken() ?? token;
+          provider.setUser(user);
+
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
+          );
+          return;
+        } else if (isConfirmedExpired) {
+          // Token is confirmed invalid/expired after token refresh attempt:
+          // Cleanly clear session and route to LoginScreen with session expired indicator
+          ApiService.logAuth('Session expired confirmed during app startup');
+          if (mounted) {
             final provider = Provider.of<AppProvider>(context, listen: false);
-            final user = UserProfile.fromJson(targetUser);
+            await provider.logout();
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const LoginScreen(isSessionExpired: true)),
+            );
+            return;
+          }
+        } else {
+          // Temporary network issue / server unreachable:
+          // Preserve local session and proceed to MainNavigationScreen
+          ApiService.logAuth('Preserving active cached session during offline/slow network startup');
+          if (mounted) {
+            final provider = Provider.of<AppProvider>(context, listen: false);
+            final user = UserProfile.fromJson(userMap);
             user.token = token;
             provider.setUser(user);
 
@@ -60,30 +99,25 @@ class _AuthEntryScreenState extends State<AuthEntryScreen> {
               MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
             );
             return;
-          } else {
-            // Token is invalid/expired: logout provider and present clean login screen
-            if (mounted) {
-              final provider = Provider.of<AppProvider>(context, listen: false);
-              await provider.logout();
-            }
           }
         }
-      } catch (_) {
-        // Offline / network failure: retain active session
-        final userMap = await ApiService.getSessionUser();
-        final token = await ApiService.getSessionToken();
-        if (userMap != null && userMap['id'] != 'guest_user' && token != null && mounted) {
-          final provider = Provider.of<AppProvider>(context, listen: false);
-          final user = UserProfile.fromJson(userMap);
-          user.token = token;
-          provider.setUser(user);
+      }
+    } catch (e) {
+      // Offline fallback: retain active cached session
+      ApiService.logAuth('Exception during session check: $e');
+      final userMap = await ApiService.getSessionUser();
+      final token = await ApiService.getSessionToken();
+      if (userMap != null && userMap['id'] != 'guest_user' && token != null && mounted) {
+        final provider = Provider.of<AppProvider>(context, listen: false);
+        final user = UserProfile.fromJson(userMap);
+        user.token = token;
+        provider.setUser(user);
 
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
-          );
-          return;
-        }
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
+        );
+        return;
       }
     }
 

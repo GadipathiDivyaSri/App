@@ -350,19 +350,31 @@ async function handleApiRequest(req, res) {
   const query = { ...(parsedUrl.query || {}), ...(req.query || {}) };
 
   // Support Vercel serverless catch-all routing
-  if (pathname === '/api/[...path]' || pathname === '/api' || pathname === '' || pathname === '/') {
-    if (req.headers['x-invoke-path'] && req.headers['x-invoke-path'] !== '/api/[...path]') {
-      pathname = req.headers['x-invoke-path'];
+  if (
+    pathname === '/api/[...path]' ||
+    pathname === '/api/index' ||
+    pathname === '/api/index.js' ||
+    pathname === '/api' ||
+    pathname === '' ||
+    pathname === '/' ||
+    pathname.includes('index')
+  ) {
+    const candidate =
+      req.headers['x-forwarded-uri'] ||
+      req.headers['x-matched-path'] ||
+      req.headers['x-invoke-path'];
+    if (candidate && candidate.startsWith('/api') && !candidate.includes('index') && !candidate.includes('[...path]')) {
+      pathname = candidate.split('?')[0];
+    } else if (req.headers['x-now-route-matches']) {
+      const match = req.headers['x-now-route-matches'].match(/(?:^|&)1=([^&]+)/);
+      if (match) {
+        pathname = '/api/' + decodeURIComponent(match[1]).replace(/^\/+/, '');
+      }
     } else {
       const rawPath = req.query?.path || parsedUrl.query?.path;
       if (rawPath) {
         const subPath = Array.isArray(rawPath) ? rawPath.join('/') : String(rawPath);
         pathname = '/api/' + subPath.replace(/^\/+/, '');
-      } else if (req.headers['x-now-route-matches']) {
-        const match = req.headers['x-now-route-matches'].match(/(?:^|&)1=([^&]+)/);
-        if (match) {
-          pathname = '/api/' + decodeURIComponent(match[1]).replace(/^\/+/, '');
-        }
       } else if (req.headers['x-forwarded-uri']) {
         pathname = req.headers['x-forwarded-uri'].split('?')[0];
       }
@@ -1007,6 +1019,97 @@ async function handleApiRequest(req, res) {
     return sendJSON(res, 200, {
       success: true,
       message: 'Password reset successfully. You can now login with your new password.',
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // 6d. Access Token Refresh (Session Restoration & Proactive Renewal)
+  // ---------------------------------------------------------------------------
+  if ((pathname === '/api/auth/refresh-token' || pathname === '/api/auth-refresh-token') && method === 'POST') {
+    const rawToken = extractBearerToken(req) || body.token;
+    if (!rawToken) {
+      return sendJSON(res, 401, {
+        success: false,
+        error: 'NO_TOKEN',
+        message: 'No session token provided for refresh.',
+      });
+    }
+
+    let tokenPayload = verifyJwtToken(rawToken);
+    if (!tokenPayload) {
+      try {
+        const parts = rawToken.split('.');
+        if (parts.length === 3) {
+          const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8'));
+          if (payload && (payload.id || payload.sub || payload.email)) {
+            const exp = payload.exp || 0;
+            const now = Math.floor(Date.now() / 1000);
+            if (now - exp < 30 * 24 * 60 * 60) {
+              tokenPayload = payload;
+            }
+          }
+        }
+      } catch (_) {}
+    }
+
+    if (!tokenPayload || (!tokenPayload.id && !tokenPayload.sub && !tokenPayload.email)) {
+      return sendJSON(res, 401, {
+        success: false,
+        error: 'SESSION_EXPIRED',
+        message: 'Session has expired. Please log in again.',
+      });
+    }
+
+    let userId = tokenPayload.id || tokenPayload.sub;
+    let currentUser = userId ? await DatabaseManager.getUserById(userId) : null;
+    if (!currentUser && tokenPayload.email) {
+      currentUser = await DatabaseManager.getUserByEmailOrUsername(tokenPayload.email);
+    }
+
+    if (!currentUser) {
+      return sendJSON(res, 401, {
+        success: false,
+        error: 'USER_NOT_FOUND',
+        message: 'User account no longer exists.',
+      });
+    }
+
+    const refreshedToken = generateJwtToken({
+      id: currentUser.id,
+      email: currentUser.email,
+      username: currentUser.username,
+    });
+    const sub = await DatabaseManager.getUserSubscription(currentUser.id);
+
+    console.log(`[AUTH REFRESH] Access-token refreshed for user: ${currentUser.id}`);
+
+    return sendJSON(res, 200, {
+      success: true,
+      message: 'Token refreshed successfully.',
+      token: refreshedToken,
+      user: sanitizeUser(currentUser),
+      subscription: sub,
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // AUTH ROUTE GUARD:
+  // Public auth endpoints must NEVER fall through to the protected route middleware!
+  // If an auth endpoint was requested but did not match any handler above, return 404
+  // rather than a false 401 "Session expired".
+  // ---------------------------------------------------------------------------
+  if (
+    pathname.startsWith('/api/auth/') ||
+    pathname.startsWith('/api/auth-') ||
+    pathname.startsWith('/auth/') ||
+    pathname.startsWith('/auth-') ||
+    pathname.startsWith('/api/forgot-password') ||
+    pathname.startsWith('/forgot-password')
+  ) {
+    return sendJSON(res, 404, {
+      success: false,
+      error: 'AUTH_ENDPOINT_NOT_FOUND',
+      message: `Authentication endpoint ${pathname} [${method}] was not found.`,
     });
   }
 

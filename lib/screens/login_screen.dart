@@ -9,7 +9,8 @@ import 'email_otp_screen.dart';
 import 'main_navigation.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  final bool isSessionExpired;
+  const LoginScreen({super.key, this.isSessionExpired = false});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -21,6 +22,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool _isLoading = false;
   String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.isSessionExpired) {
+      _errorMessage = 'Session expired. Please log in again.';
+    }
+  }
 
   @override
   void dispose() {
@@ -90,11 +99,7 @@ class _LoginScreenState extends State<LoginScreen> {
     } else {
       final msg = (res['message'] ?? '').toString();
       setState(() {
-        if (msg.toLowerCase().contains('bearer token') || msg.toLowerCase().contains('authentication required')) {
-          _errorMessage = 'Session expired. Please log in again.';
-        } else {
-          _errorMessage = msg.isNotEmpty ? msg : 'No account found with this email.';
-        }
+        _errorMessage = msg.isNotEmpty ? msg : 'No account found with this email.';
       });
     }
   }
