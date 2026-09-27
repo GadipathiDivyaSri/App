@@ -376,6 +376,7 @@ async function handleApiRequest(req, res) {
   const body = sanitizeInput(await parseRequestBody(req));
 
   console.log(`[${method}] ${pathname}`);
+  res.setHeader('X-Debug-Pathname', pathname);
 
   // Health Check
   if (pathname === '/api/health' || pathname === '/health') {
