@@ -113,38 +113,60 @@ class ApiService {
   /// Safely decodes HTTP response body into a Map<String, dynamic>.
   /// Prevents FormatException crashes when Vercel or proxies return HTML 404/500 error pages.
   static Map<String, dynamic> _safeDecodeResponse(
-    http.Response response, {
-    String defaultErrorMessage = 'Network error: Unable to connect to server. Please try again.',
-  }) {
-    final body = response.body.trim();
-    if (response.statusCode == 401) {
-      return {
-        'success': false,
-        'error': 'UNAUTHORIZED',
-        'message': 'Session expired. Please log in again.',
-      };
-    }
-    if (body.isEmpty ||
-        body.startsWith('<') ||
-        body.contains('The page could not be found') ||
-        response.statusCode >= 500 ||
-        response.statusCode == 404) {
-      return {
-        'success': false,
-        'message': 'Unable to connect to server. Please try again.',
-      };
-    }
-    try {
-      final decoded = jsonDecode(body);
-      if (decoded is Map<String, dynamic>) {
-        return decoded;
-      }
-      return {'success': false, 'message': defaultErrorMessage};
-    } catch (_) {
-      return {'success': false, 'message': defaultErrorMessage};
-    }
+  http.Response response, {
+  String defaultErrorMessage =
+      'Network error: Unable to connect to server. Please try again.',
+}) {
+  final body = response.body.trim();
+
+  if (body.isEmpty ||
+      body.startsWith('<') ||
+      body.contains('The page could not be found')) {
+    return {
+      'success': false,
+      'message':
+          'Server returned an invalid response (HTTP ${response.statusCode}).',
+    };
   }
 
+  try {
+    final decoded = jsonDecode(body);
+
+    if (decoded is Map<String, dynamic>) {
+      // Preserve the actual backend response message.
+      if (response.statusCode == 401) {
+        return {
+          ...decoded,
+          'success': false,
+          'message': decoded['message'] ??
+              'Request was unauthorized. Please check the login request.',
+        };
+      }
+
+      if (response.statusCode >= 400) {
+        return {
+          ...decoded,
+          'success': false,
+          'message': decoded['message'] ??
+              'Request failed (HTTP ${response.statusCode}).',
+        };
+      }
+
+      return decoded;
+    }
+
+    return {
+      'success': false,
+      'message': defaultErrorMessage,
+    };
+  } catch (_) {
+    return {
+      'success': false,
+      'message':
+          'Server returned an unreadable response (HTTP ${response.statusCode}).',
+    };
+  }
+}
   // ---------------------------------------------------------------------------
   // 1. AUTHENTICATION SERVICES
   // ---------------------------------------------------------------------------
@@ -402,8 +424,11 @@ class ApiService {
           if (password != null && password.isNotEmpty) 'password': password,
         }),
       );
-      return _safeDecodeResponse(response);
-    } catch (e) {
+final data = _safeDecodeResponse(response);
+debugPrint(
+  'LOGIN INITIATE: HTTP ${response.statusCode} - ${response.body}',
+);
+return data;    } catch (e) {
       // Fallback for reviewer credentials on network timeout
       if (clean.contains('reviewer') || clean.contains('test')) {
         return {
