@@ -217,6 +217,94 @@ class ApiService {
   // DIRECT RESILIENT FALLBACK HELPERS (SUPABASE + MSG91)
   // ---------------------------------------------------------------------------
 
+  /// Generates exhaustive template variable mappings for MSG91 Handlebars templates.
+  /// Guarantees that whether the template uses {{otp}}, {{OTP}}, {{code}}, {{otp_code}},
+  /// {{company_name}}, {{VAR1}}, or any other common convention, the placeholder is
+  /// properly filled with the 6-digit verification code.
+  static Map<String, dynamic> buildMsg91OtpVariables({
+    required String otpCode,
+    required String recipientName,
+  }) {
+    final displayName = recipientName.isNotEmpty
+        ? recipientName[0].toUpperCase() + recipientName.substring(1)
+        : 'User';
+
+    return {
+      // Primary standard variables (MSG91 Handlebars case-sensitive match)
+      'otp': otpCode,
+      'OTP': otpCode,
+      'Otp': otpCode,
+      'code': otpCode,
+      'CODE': otpCode,
+      'Code': otpCode,
+
+      // Compound and snake/camel variations
+      'otp_code': otpCode,
+      'OTP_CODE': otpCode,
+      'Otp_Code': otpCode,
+      'otpCode': otpCode,
+      'OtpCode': otpCode,
+      'verification_code': otpCode,
+      'VERIFICATION_CODE': otpCode,
+      'verificationCode': otpCode,
+      'VerificationCode': otpCode,
+      'passcode': otpCode,
+      'PASSCODE': otpCode,
+      'Passcode': otpCode,
+      'pin': otpCode,
+      'PIN': otpCode,
+      'Pin': otpCode,
+      'token': otpCode,
+      'TOKEN': otpCode,
+      'Token': otpCode,
+
+      // Contextual OTP keys
+      'login_otp': otpCode,
+      'LOGIN_OTP': otpCode,
+      'email_otp': otpCode,
+      'EMAIL_OTP': otpCode,
+      'user_otp': otpCode,
+      'USER_OTP': otpCode,
+      'one_time_password': otpCode,
+      'ONE_TIME_PASSWORD': otpCode,
+      'oneTimePassword': otpCode,
+
+      // MSG91 positional / generic variable placeholders
+      'var1': otpCode,
+      'VAR1': otpCode,
+      'var_1': otpCode,
+      'VAR_1': otpCode,
+      'var': otpCode,
+      'VAR': otpCode,
+      'number': otpCode,
+      'NUMBER': otpCode,
+      'val': otpCode,
+      'VAL': otpCode,
+      'value': otpCode,
+      'VALUE': otpCode,
+
+      // Company and App branding
+      'company': 'WrindhaOS',
+      'COMPANY': 'WrindhaOS',
+      'company_name': 'WrindhaOS',
+      'COMPANY_NAME': 'WrindhaOS',
+      'companyName': 'WrindhaOS',
+      'app_name': 'WrindhaOS',
+      'APP_NAME': 'WrindhaOS',
+
+      // User display name
+      'name': displayName,
+      'NAME': displayName,
+      'Name': displayName,
+      'username': displayName,
+      'USERNAME': displayName,
+      'user_name': displayName,
+      'USER_NAME': displayName,
+      'user': displayName,
+      'USER': displayName,
+    };
+  }
+
   /// Direct MSG91 Email Dispatch for 6-digit verification codes
   static Future<bool> _sendMsg91EmailOtp({
     required String email,
@@ -228,18 +316,17 @@ class ApiService {
       final displayName = recipientName.isNotEmpty
           ? recipientName[0].toUpperCase() + recipientName.substring(1)
           : 'User';
+      final variables = buildMsg91OtpVariables(
+        otpCode: otpCode,
+        recipientName: recipientName,
+      );
       final body = {
         'recipients': [
           {
             'to': [
               {'email': email, 'name': displayName}
             ],
-            'variables': {
-              'OTP': otpCode,
-              'code': otpCode,
-              'company': 'WrindhaOS',
-              'name': displayName,
-            }
+            'variables': variables,
           }
         ],
         'from': {

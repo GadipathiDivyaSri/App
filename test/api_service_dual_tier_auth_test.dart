@@ -88,5 +88,26 @@ void main() {
       final resAvailable = await ApiService.checkUsername('unique_user_unused_${DateTime.now().millisecondsSinceEpoch}');
       expect(resAvailable['available'], true);
     });
+
+    test('8. MSG91 template variables contain exhaustive lowercase and uppercase mappings', () {
+      final vars = ApiService.buildMsg91OtpVariables(
+        otpCode: '581920',
+        recipientName: 'devi',
+      );
+
+      // Verify essential Handlebars variable keys
+      expect(vars['otp'], '581920', reason: 'Lowercase otp is required by standard MSG91 global_otp template');
+      expect(vars['OTP'], '581920', reason: 'Uppercase OTP must match uppercase template variants');
+      expect(vars['code'], '581920');
+      expect(vars['CODE'], '581920');
+      expect(vars['otp_code'], '581920');
+      expect(vars['verification_code'], '581920');
+      expect(vars['var1'], '581920');
+      expect(vars['VAR1'], '581920');
+      expect(vars['company_name'], 'WrindhaOS');
+      expect(vars['company'], 'WrindhaOS');
+      expect(vars['name'], 'Devi');
+    });
   });
 }
+
