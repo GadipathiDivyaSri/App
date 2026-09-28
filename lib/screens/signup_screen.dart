@@ -143,14 +143,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
       );
     } else {
       final msg = (res['message'] ?? '').toString();
-      final lower = msg.toLowerCase();
       setState(() {
-        if (res['statusCode'] == 401 ||
-            lower.contains('bearer') ||
-            lower.contains('unauthorized')) {
-          _errorMessage = 'Unable to send registration code. Please try again.';
+        if (msg.isNotEmpty && !msg.toLowerCase().contains('bearer token')) {
+          _errorMessage = msg;
         } else {
-          _errorMessage = msg.isNotEmpty ? msg : 'Failed to initiate registration.';
+          _errorMessage = 'Unable to send registration code. Please try again.';
         }
       });
     }

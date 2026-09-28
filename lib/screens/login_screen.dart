@@ -109,14 +109,10 @@ class _LoginScreenState extends State<LoginScreen> {
     } else {
       final msg = (res['message'] ?? '').toString();
       setState(() {
-        final lower = msg.toLowerCase();
-        if (res['statusCode'] == 401 ||
-            lower.contains('bearer') ||
-            lower.contains('unauthorized') ||
-            lower.contains('session expired')) {
-          _errorMessage = 'Unable to send verification code. Please try again.';
+        if (msg.isNotEmpty && !msg.toLowerCase().contains('bearer token')) {
+          _errorMessage = msg;
         } else {
-          _errorMessage = msg.isNotEmpty ? msg : 'No account found with this email.';
+          _errorMessage = 'Unable to send verification code. Please try again.';
         }
       });
     }
