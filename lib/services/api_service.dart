@@ -1704,13 +1704,36 @@ class ApiService {
           body: jsonEncode({
             'email': rawEmail,
             'deleted_at': nowIso,
-            'deleted_time': nowIso,
-            'username': rawUsername,
-            if (effectiveUid != null) 'user_id': effectiveUid,
           }),
         ).timeout(const Duration(seconds: 8));
       } catch (tombErr) {
         logAuth('Supabase tombstone insert notice: $tombErr');
+      }
+
+      // 3b. Direct Supabase record in separate table 'audit_logs' with full deleted account details
+      try {
+        await http.post(
+          Uri.parse('$supabaseUrl/rest/v1/audit_logs'),
+          headers: {
+            'apikey': supabaseServiceKey,
+            'Authorization': 'Bearer $supabaseServiceKey',
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal',
+          },
+          body: jsonEncode({
+            if (effectiveUid != null) 'user_id': effectiveUid,
+            'action': 'ACCOUNT_PERMANENTLY_DELETED',
+            'payload': {
+              'username': rawUsername,
+              'emailid': rawEmail,
+              'email': rawEmail,
+              'deleted_time': nowIso,
+            },
+            'created_at': nowIso,
+          }),
+        ).timeout(const Duration(seconds: 8));
+      } catch (auditErr) {
+        logAuth('Supabase audit_logs insert notice: $auditErr');
       }
 
       // 4. Purge all records from Supabase tables
