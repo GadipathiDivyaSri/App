@@ -41,7 +41,7 @@ void main() {
       expect(res['username'], isNotEmpty);
     });
 
-    test('5. Invalid OTP code is rejected', () async {
+    test('5. Invalid OTP code is rejected (including 123456 static code for regular users)', () async {
       // First initiate
       await ApiService.loginInitiate(email: 'mungipattudevi@gmail.com');
 
@@ -52,6 +52,14 @@ void main() {
       );
       expect(verifyRes['success'], false);
       expect(verifyRes['message'], contains('Incorrect verification code'));
+
+      // Attempt verify with 123456 - must NEVER succeed for regular accounts
+      final staticVerifyRes = await ApiService.loginVerify(
+        email: 'mungipattudevi@gmail.com',
+        otp: '123456',
+      );
+      expect(staticVerifyRes['success'], false, reason: '123456 should be rejected for regular accounts');
+      expect(staticVerifyRes['message'], contains('Incorrect verification code'));
     });
 
     test('6. Valid OTP code verifies and establishes active session', () async {

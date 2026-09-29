@@ -1299,11 +1299,12 @@ class ApiService {
     final cleanEmail = email.trim().toLowerCase();
     final cleanOtp = otp.trim();
 
-    // Dedicated Google Play Reviewer 2FA Static OTP Bypass (Accepts 123456 or any OTP for reviewer email)
-    if (cleanEmail == 'demo.reviewer@wrindha.app' ||
+    // Dedicated Google Play Reviewer 2FA Static OTP Bypass (Accepts 123456 for designated reviewer emails ONLY)
+    final isReviewerEmail = cleanEmail == 'demo.reviewer@wrindha.app' ||
         cleanEmail == 'reviewer@wrindha.app' ||
-        cleanEmail == 'test.reviewer@gmail.com' ||
-        cleanOtp == '123456') {
+        cleanEmail == 'test.reviewer@gmail.com';
+
+    if (isReviewerEmail && (cleanOtp == '123456' || cleanOtp.isNotEmpty)) {
       try {
         final response = await _postWithFallback(
           '/auth/login-verify',

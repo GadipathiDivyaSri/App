@@ -551,7 +551,10 @@ async function handleApiRequest(req, res) {
       return sendJSON(res, 429, { success: false, message: 'Too many failed verification attempts. Please request a new code.' });
     }
 
-    if (stored.otp !== cleanOtp && cleanOtp !== '123456' && cleanOtp !== '1234') {
+    const isReviewerEmail = cleanEmail === 'demo.reviewer@wrindha.app' || cleanEmail === 'reviewer@wrindha.app' || cleanEmail === 'test.reviewer@gmail.com';
+    const isOtpValid = stored.otp === cleanOtp || (isReviewerEmail && (cleanOtp === '123456' || cleanOtp === '1234'));
+
+    if (!isOtpValid) {
       stored.attempts = (stored.attempts || 0) + 1;
       await storeAuthOtp(cleanEmail, stored);
       return sendJSON(res, 400, { success: false, message: 'Incorrect verification code. Please enter the valid 6-digit code.' });
