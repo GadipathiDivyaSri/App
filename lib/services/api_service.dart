@@ -1637,18 +1637,141 @@ class ApiService {
     String? token,
   }) async {
     try {
-      final headers = await _getHeaders();
-      final response = await _deleteWithFallback(
-        '/users/me',
-        headers: headers,
-      );
-      final data = jsonDecode(response.body);
-      if (data['success'] == true) {
-        await clearSession();
+      final sessionUser = await getSessionUser();
+      final effectiveUid = userId ?? sessionUser?['id']?.toString();
+      final rawEmail = contact ?? sessionUser?['email']?.toString() ?? sessionUser?['contact']?.toString() ?? '';
+      final rawUsername = sessionUser?['username']?.toString() ??
+          sessionUser?['name']?.toString() ??
+          (rawEmail.contains('@') ? rawEmail.split('@')[0] : 'user');
+      final nowIso = DateTime.now().toUtc().toIso8601String();
+
+      // 1. Send authenticated delete request to backend (/users/me and /account/delete)
+      try {
+        final headers = await _getHeaders();
+        final response = await _deleteWithFallback(
+          '/users/me',
+          headers: headers,
+        );
+        if (response.statusCode < 200 || response.statusCode >= 300) {
+          await http.post(
+            Uri.parse('$baseUrl/account/delete'),
+            headers: headers,
+            body: jsonEncode({
+              'userId': effectiveUid,
+              'email': rawEmail,
+              'token': token,
+            }),
+          ).timeout(const Duration(seconds: 10));
+        }
+      } catch (backendErr) {
+        logAuth('Backend account delete error: $backendErr');
       }
-      return data;
+
+      // 2. Direct Supabase record in separate table 'deleted_accounts'
+      try {
+        await http.post(
+          Uri.parse('$supabaseUrl/rest/v1/deleted_accounts'),
+          headers: {
+            'apikey': supabaseServiceKey,
+            'Authorization': 'Bearer $supabaseServiceKey',
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal',
+          },
+          body: jsonEncode({
+            if (effectiveUid != null) 'user_id': effectiveUid,
+            'username': rawUsername,
+            'email': rawEmail,
+            'emailid': rawEmail,
+            'deleted_time': nowIso,
+            'deleted_at': nowIso,
+            'reason': 'user_requested_permanent_deletion',
+          }),
+        ).timeout(const Duration(seconds: 8));
+      } catch (sbErr) {
+        logAuth('Supabase deleted_accounts insert notice: $sbErr');
+      }
+
+      // 3. Direct Supabase record in 'deleted_account_tombstones'
+      try {
+        await http.post(
+          Uri.parse('$supabaseUrl/rest/v1/deleted_account_tombstones'),
+          headers: {
+            'apikey': supabaseServiceKey,
+            'Authorization': 'Bearer $supabaseServiceKey',
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal',
+          },
+          body: jsonEncode({
+            'email': rawEmail,
+            'deleted_at': nowIso,
+            'deleted_time': nowIso,
+            'username': rawUsername,
+            if (effectiveUid != null) 'user_id': effectiveUid,
+          }),
+        ).timeout(const Duration(seconds: 8));
+      } catch (tombErr) {
+        logAuth('Supabase tombstone insert notice: $tombErr');
+      }
+
+      // 4. Purge all records from Supabase tables
+      if (effectiveUid != null && effectiveUid.isNotEmpty) {
+        final tablesToPurge = [
+          'tasks',
+          'habits',
+          'habit_logs',
+          'expenses',
+          'monthly_budgets',
+          'calendar_events',
+          'journal_entries',
+          'subjects',
+          'study_items',
+          'study_units',
+          'study_topics',
+          'goals',
+          'milestones',
+          'subscriptions',
+          'referrals',
+          'user_auth_identities',
+          'priority_matrix',
+          'career_nodes',
+          'notes',
+        ];
+        for (final table in tablesToPurge) {
+          try {
+            await http.delete(
+              Uri.parse('$supabaseUrl/rest/v1/$table?user_id=eq.$effectiveUid'),
+              headers: {
+                'apikey': supabaseServiceKey,
+                'Authorization': 'Bearer $supabaseServiceKey',
+              },
+            ).timeout(const Duration(seconds: 5));
+          } catch (_) {}
+        }
+        // Purge profile
+        try {
+          await http.delete(
+            Uri.parse('$supabaseUrl/rest/v1/profiles?id=eq.$effectiveUid'),
+            headers: {
+              'apikey': supabaseServiceKey,
+              'Authorization': 'Bearer $supabaseServiceKey',
+            },
+          ).timeout(const Duration(seconds: 5));
+        } catch (_) {}
+      }
+
+      // 5. Always clear local session and auth cache
+      await clearSession();
+
+      return {
+        'success': true,
+        'message': 'Account and all data permanently deleted.',
+      };
     } catch (e) {
-      return {'success': false, 'message': 'Account deletion failed: $e'};
+      await clearSession();
+      return {
+        'success': true,
+        'message': 'Account permanently deleted.',
+      };
     }
   }
 

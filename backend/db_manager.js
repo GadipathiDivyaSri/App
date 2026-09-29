@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const { Client } = require('pg');
 const { supabase, isConfigured: isSupabaseConfigured } = require('./supabase_client');
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://hkeyywopbkmlclsealbz.supabase.co';
@@ -280,11 +281,121 @@ class DatabaseManager {
     return false;
   }
 
+  static async ensureDeletedAccountsTable() {
+    const dbUrl = process.env.DATABASE_URL || 'postgresql://postgres:yb8J3XQGAcuh2SXc@db.hkeyywopbkmlclsealbz.supabase.co:5432/postgres';
+    if (!dbUrl) return;
+    try {
+      const client = new Client({
+        connectionString: dbUrl,
+        ssl: { rejectUnauthorized: false },
+      });
+      await client.connect();
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS public.deleted_accounts (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          user_id UUID,
+          username TEXT,
+          email TEXT,
+          emailid TEXT,
+          deleted_time TIMESTAMPTZ DEFAULT now(),
+          deleted_at TIMESTAMPTZ DEFAULT now(),
+          reason TEXT,
+          created_at TIMESTAMPTZ DEFAULT now()
+        );
+
+        GRANT ALL ON public.deleted_accounts TO anon, authenticated, service_role;
+        ALTER TABLE public.deleted_accounts ENABLE ROW LEVEL SECURITY;
+
+        DO $$
+        BEGIN
+          IF NOT EXISTS (
+            SELECT 1 FROM pg_policies WHERE tablename = 'deleted_accounts' AND policyname = 'allow_all_deleted_accounts'
+          ) THEN
+            CREATE POLICY allow_all_deleted_accounts ON public.deleted_accounts FOR ALL TO anon, authenticated, service_role USING (true) WITH CHECK (true);
+          END IF;
+        END $$;
+
+        ALTER TABLE public.deleted_account_tombstones
+          ADD COLUMN IF NOT EXISTS username TEXT,
+          ADD COLUMN IF NOT EXISTS user_id UUID,
+          ADD COLUMN IF NOT EXISTS deleted_time TIMESTAMPTZ DEFAULT now();
+
+        NOTIFY pgrst, 'reload schema';
+      `);
+      await client.end().catch(() => {});
+      console.log('[SUPABASE SCHEMA] deleted_accounts table and tombstone columns ensured');
+    } catch (err) {
+      console.warn('[SUPABASE SCHEMA NOTICE]:', err.message);
+    }
+  }
+
   static async deleteUser(userId) {
     if (!userId) return false;
     const uid = ensureUuid(userId);
     const user = await this.getUserById(uid);
 
+    const deletedTime = new Date().toISOString();
+    const rawUsername = user?.username || (user?.email ? user.email.split('@')[0] : 'user');
+    const rawEmail = (user?.email || '').trim().toLowerCase();
+
+    // 1. Ensure deleted_accounts table exists in Supabase
+    await this.ensureDeletedAccountsTable().catch(() => {});
+
+    // 2. Store deleted account details (username, email, emailid, deleted_time) in separate Supabase table
+    try {
+      await dbQuery('deleted_accounts', {
+        method: 'POST',
+        body: {
+          user_id: uid,
+          username: rawUsername,
+          email: rawEmail,
+          emailid: rawEmail,
+          deleted_time: deletedTime,
+          deleted_at: deletedTime,
+          reason: 'user_requested_permanent_deletion',
+        },
+      });
+      console.log(`[DELETED_ACCOUNTS] Recorded deleted account: ${rawEmail} (${rawUsername}) at ${deletedTime}`);
+    } catch (e) {
+      console.warn('[DELETED_ACCOUNTS INSERT NOTICE]:', e.message);
+    }
+
+    // 3. Also record in deleted_account_tombstones table for redundancy
+    try {
+      await dbQuery('deleted_account_tombstones', {
+        method: 'POST',
+        body: {
+          email: rawEmail,
+          deleted_at: deletedTime,
+          username: rawUsername,
+          user_id: uid,
+          deleted_time: deletedTime,
+        },
+      });
+      console.log(`[TOMBSTONE] Recorded in deleted_account_tombstones: ${rawEmail}`);
+    } catch (e) {
+      console.warn('[TOMBSTONE INSERT NOTICE]:', e.message);
+    }
+
+    // 4. Record deletion event in audit_logs
+    try {
+      await dbQuery('audit_logs', {
+        method: 'POST',
+        body: {
+          user_id: uid,
+          action: 'ACCOUNT_PERMANENTLY_DELETED',
+          payload: {
+            username: rawUsername,
+            email: rawEmail,
+            emailid: rawEmail,
+            deleted_time: deletedTime,
+          },
+          created_at: deletedTime,
+        },
+      });
+    } catch (_) {}
+
+    // 5. Clear password hash cache
     if (user) {
       if (user.email) {
         DatabaseManager.clearUserPasswordHash(user.email);
@@ -294,7 +405,7 @@ class DatabaseManager {
       }
     }
 
-    // Clean up Supabase Auth Admin user if configured
+    // 6. Clean up Supabase Auth Admin user if configured
     if (isSupabaseConfigured() && supabase) {
       try {
         await supabase.auth.admin.deleteUser(uid).catch(() => {});
@@ -312,6 +423,36 @@ class DatabaseManager {
       }
     }
 
+    // 7. Permanently remove all user data from all related tables
+    const userTables = [
+      'tasks',
+      'habits',
+      'habit_logs',
+      'expenses',
+      'monthly_budgets',
+      'calendar_events',
+      'journal_entries',
+      'subjects',
+      'study_items',
+      'study_units',
+      'study_topics',
+      'goals',
+      'milestones',
+      'subscriptions',
+      'referrals',
+      'user_auth_identities',
+      'priority_matrix',
+      'career_nodes',
+      'notes',
+    ];
+
+    for (const table of userTables) {
+      try {
+        await dbQuery(table, { method: 'DELETE', match: { user_id: uid } });
+      } catch (_) {}
+    }
+
+    // 8. Finally delete profile from profiles table
     return await dbQuery('profiles', { method: 'DELETE', match: { id: uid } });
   }
 
@@ -1096,6 +1237,9 @@ class DatabaseManager {
     return await dbQuery('journal_entries', { method: 'DELETE', match: { id: jid, user_id: uid } });
   }
 }
+ 
+// Run schema check in background on initialization
+DatabaseManager.ensureDeletedAccountsTable().catch(() => {});
 
 module.exports = {
   DatabaseManager,

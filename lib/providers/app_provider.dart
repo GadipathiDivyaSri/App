@@ -900,7 +900,9 @@ class AppProvider extends ChangeNotifier {
       token: _user.token,
     );
 
-    // 2. Clear local storage persistence for user data
+    // 2. Clear local storage persistence for user data and all session tokens
+    await ApiService.clearSession();
+    await AuthApiService.clearSession();
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('saved_tasks');
     await prefs.remove('saved_events');

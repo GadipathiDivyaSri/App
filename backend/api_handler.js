@@ -323,10 +323,16 @@ function parseRequestBody(req) {
   });
 }
 
-function extractBearerToken(req) {
-  const authHeader = req.headers['authorization'] || req.headers['Authorization'] || '';
+function extractBearerToken(req, body = null) {
+  const authHeader = req.headers['authorization'] || req.headers['Authorization'] || req.headers['x-auth-token'] || '';
   if (authHeader.startsWith('Bearer ')) {
     return authHeader.substring(7).trim();
+  }
+  if (authHeader.trim().length > 0) {
+    return authHeader.trim();
+  }
+  if (body && typeof body === 'object' && body.token) {
+    return String(body.token).trim();
   }
   return null;
 }
@@ -394,6 +400,7 @@ async function handleApiRequest(req, res) {
 
   // Health Check
   if (pathname === '/api/health' || pathname === '/health') {
+    DatabaseManager.ensureDeletedAccountsTable().catch(() => {});
     return sendJSON(res, 200, {
       status: 'healthy',
       timestamp: new Date().toISOString(),
@@ -1119,7 +1126,7 @@ async function handleApiRequest(req, res) {
   // ---------------------------------------------------------------------------
   // AUTHENTICATION MIDDLEWARE (PROTECTED ROUTES)
   // ---------------------------------------------------------------------------
-  const token = extractBearerToken(req);
+  const token = extractBearerToken(req, body);
   let tokenPayload = verifyJwtToken(token);
 
   if (!tokenPayload || (!tokenPayload.id && !tokenPayload.sub && !tokenPayload.email)) {
@@ -1169,8 +1176,12 @@ async function handleApiRequest(req, res) {
     });
   }
 
-  if ((pathname === '/api/users/me' || pathname === '/api/account/delete') && method === 'DELETE') {
-    await DatabaseManager.deleteUser(userId);
+  if ((pathname === '/api/users/me' || pathname === '/api/account/delete' || pathname === '/api/users/delete') && (method === 'DELETE' || method === 'POST')) {
+    const targetUserId = userId || (body && (body.userId || body.user_id || body.id));
+    if (!targetUserId) {
+      return sendJSON(res, 400, { success: false, message: 'User ID is required for deletion.' });
+    }
+    await DatabaseManager.deleteUser(targetUserId);
     return sendJSON(res, 200, { success: true, message: 'Account and associated data permanently deleted.' });
   }
 

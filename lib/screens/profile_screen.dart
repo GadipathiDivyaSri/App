@@ -7,6 +7,7 @@ import 'payment_history_screen.dart';
 import 'about_us_screen.dart';
 import 'terms_conditions_screen.dart';
 import 'auth_entry_screen.dart';
+import 'login_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   final VoidCallback? onNavigateToHome;
@@ -565,21 +566,22 @@ class ProfileScreen extends StatelessWidget {
               // Show loading feedback
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('Deleting account and data...'),
-                  duration: Duration(seconds: 1),
+                  content: Text('Deleting account and data permanently...'),
+                  duration: Duration(seconds: 2),
                 ),
               );
 
               final res = await provider.deleteAccount();
               if (!context.mounted) return;
 
-              if (Navigator.canPop(context)) {
-                Navigator.of(context).popUntil((route) => route.isFirst);
-              }
+              Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                (route) => false,
+              );
 
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(res['message'] ?? 'Account deleted successfully.'),
+                  content: Text(res['message'] ?? 'Account permanently deleted.'),
                   backgroundColor: const Color(0xFF0D5CE5),
                 ),
               );
