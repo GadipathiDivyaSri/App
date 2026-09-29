@@ -400,12 +400,13 @@ async function handleApiRequest(req, res) {
 
   // Health Check
   if (pathname === '/api/health' || pathname === '/health') {
-    DatabaseManager.ensureDeletedAccountsTable().catch(() => {});
+    const schemaResult = await DatabaseManager.ensureDeletedAccountsTable();
     return sendJSON(res, 200, {
       status: 'healthy',
       timestamp: new Date().toISOString(),
       service: 'WrindhaOS Unified Backend',
       supabase: isSupabaseConfigured() ? 'connected' : 'local_storage_active',
+      schema: schemaResult,
     });
   }
 

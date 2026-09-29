@@ -282,51 +282,61 @@ class DatabaseManager {
   }
 
   static async ensureDeletedAccountsTable() {
-    const dbUrl = process.env.DATABASE_URL || 'postgresql://postgres:yb8J3XQGAcuh2SXc@db.hkeyywopbkmlclsealbz.supabase.co:5432/postgres';
-    if (!dbUrl) return;
-    try {
-      const client = new Client({
-        connectionString: dbUrl,
-        ssl: { rejectUnauthorized: false },
-      });
-      await client.connect();
-      await client.query(`
-        CREATE TABLE IF NOT EXISTS public.deleted_accounts (
-          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-          user_id UUID,
-          username TEXT,
-          email TEXT,
-          emailid TEXT,
-          deleted_time TIMESTAMPTZ DEFAULT now(),
-          deleted_at TIMESTAMPTZ DEFAULT now(),
-          reason TEXT,
-          created_at TIMESTAMPTZ DEFAULT now()
-        );
+    const urls = [
+      process.env.DATABASE_URL,
+      'postgresql://postgres.hkeyywopbkmlclsealbz:yb8J3XQGAcuh2SXc@aws-0-ap-northeast-1.pooler.supabase.com:5432/postgres',
+      'postgresql://postgres.hkeyywopbkmlclsealbz:yb8J3XQGAcuh2SXc@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres',
+      'postgresql://postgres:yb8J3XQGAcuh2SXc@db.hkeyywopbkmlclsealbz.supabase.co:5432/postgres',
+    ].filter(Boolean);
 
-        GRANT ALL ON public.deleted_accounts TO anon, authenticated, service_role;
-        ALTER TABLE public.deleted_accounts ENABLE ROW LEVEL SECURITY;
+    for (const dbUrl of urls) {
+      try {
+        const client = new Client({
+          connectionString: dbUrl,
+          ssl: { rejectUnauthorized: false },
+          connectionTimeoutMillis: 6000,
+        });
+        await client.connect();
+        await client.query(`
+          CREATE TABLE IF NOT EXISTS public.deleted_accounts (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            user_id UUID,
+            username TEXT,
+            email TEXT,
+            emailid TEXT,
+            deleted_time TIMESTAMPTZ DEFAULT now(),
+            deleted_at TIMESTAMPTZ DEFAULT now(),
+            reason TEXT,
+            created_at TIMESTAMPTZ DEFAULT now()
+          );
 
-        DO $$
-        BEGIN
-          IF NOT EXISTS (
-            SELECT 1 FROM pg_policies WHERE tablename = 'deleted_accounts' AND policyname = 'allow_all_deleted_accounts'
-          ) THEN
-            CREATE POLICY allow_all_deleted_accounts ON public.deleted_accounts FOR ALL TO anon, authenticated, service_role USING (true) WITH CHECK (true);
-          END IF;
-        END $$;
+          GRANT ALL ON public.deleted_accounts TO anon, authenticated, service_role;
+          ALTER TABLE public.deleted_accounts ENABLE ROW LEVEL SECURITY;
 
-        ALTER TABLE public.deleted_account_tombstones
-          ADD COLUMN IF NOT EXISTS username TEXT,
-          ADD COLUMN IF NOT EXISTS user_id UUID,
-          ADD COLUMN IF NOT EXISTS deleted_time TIMESTAMPTZ DEFAULT now();
+          DO $$
+          BEGIN
+            IF NOT EXISTS (
+              SELECT 1 FROM pg_policies WHERE tablename = 'deleted_accounts' AND policyname = 'allow_all_deleted_accounts'
+            ) THEN
+              CREATE POLICY allow_all_deleted_accounts ON public.deleted_accounts FOR ALL TO anon, authenticated, service_role USING (true) WITH CHECK (true);
+            END IF;
+          END $$;
 
-        NOTIFY pgrst, 'reload schema';
-      `);
-      await client.end().catch(() => {});
-      console.log('[SUPABASE SCHEMA] deleted_accounts table and tombstone columns ensured');
-    } catch (err) {
-      console.warn('[SUPABASE SCHEMA NOTICE]:', err.message);
+          ALTER TABLE public.deleted_account_tombstones
+            ADD COLUMN IF NOT EXISTS username TEXT,
+            ADD COLUMN IF NOT EXISTS user_id UUID,
+            ADD COLUMN IF NOT EXISTS deleted_time TIMESTAMPTZ DEFAULT now();
+
+          NOTIFY pgrst, 'reload schema';
+        `);
+        await client.end().catch(() => {});
+        console.log('[SUPABASE SCHEMA] deleted_accounts table ensured via', dbUrl.split('@')[1]);
+        return { success: true, url: dbUrl.split('@')[1] };
+      } catch (err) {
+        console.warn('[SUPABASE SCHEMA NOTICE] URL failed:', dbUrl.split('@')[1], err.message);
+      }
     }
+    return { success: false };
   }
 
   static async deleteUser(userId) {
