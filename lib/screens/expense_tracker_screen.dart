@@ -555,10 +555,12 @@ class _ExpenseTrackerScreenState extends State<ExpenseTrackerScreen> {
                     ),
                   );
                 }).toList(),
+              ),
             const SizedBox(height: 30),
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
