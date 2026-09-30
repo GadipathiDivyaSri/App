@@ -61,7 +61,9 @@ class _NotesScreenState extends State<NotesScreen> {
             return e.title.toLowerCase().contains(q) || e.content.toLowerCase().contains(q);
           }).toList();
 
-    return Scaffold(
+    return ProFeatureGuard(
+      feature: AppFeature.notes,
+      child: Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.background,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -314,7 +316,8 @@ class _NotesScreenState extends State<NotesScreen> {
         ),
       ),
     ),
-  );
+  ),
+);
 }
 
   // --- ENTRY READER MODAL ---

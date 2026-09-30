@@ -45,6 +45,10 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
     if (_isStopwatchRunning) {
       _stopwatchTimer?.cancel();
       setState(() => _isStopwatchRunning = false);
+      if (_stopwatchSeconds >= 60) {
+        final loggedMins = (_stopwatchSeconds / 60).round();
+        provider.recordFocusSession(loggedMins);
+      }
     } else {
       setState(() => _isStopwatchRunning = true);
       _stopwatchTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -54,7 +58,12 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
   }
 
   void _resetStopwatch() {
+    final provider = Provider.of<AppProvider>(context, listen: false);
     _stopwatchTimer?.cancel();
+    if (_stopwatchSeconds >= 60) {
+      final loggedMins = (_stopwatchSeconds / 60).round();
+      provider.recordFocusSession(loggedMins);
+    }
     setState(() {
       _stopwatchSeconds = 0;
       _isStopwatchRunning = false;
@@ -78,6 +87,10 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
           setState(() => _pomodoroSeconds--);
         } else {
           _pomodoroTimer?.cancel();
+          final isFocusDone = !_isBreakMode;
+          if (isFocusDone) {
+            provider.recordFocusSession(25);
+          }
           setState(() {
             _isPomodoroRunning = false;
             _isBreakMode = !_isBreakMode;
@@ -86,7 +99,7 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(_isBreakMode
-                  ? '🍅 Pomodoro session complete! Take a 5-minute break.'
+                  ? '🍅 Pomodoro session complete! +25m focus logged. Take a 5-minute break.'
                   : '⚡ Break over! Back to 25-minute Pomodoro focus session.'),
             ),
           );

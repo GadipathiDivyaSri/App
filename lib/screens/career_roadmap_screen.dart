@@ -39,30 +39,35 @@ class _CareerRoadmapScreenState extends State<CareerRoadmapScreen> {
     final completedCount = nodes.where((n) => n.isCompleted).length;
 
     if (_activeSubModule == 'GOALS') {
-      return Scaffold(
-        backgroundColor: isDark ? bgDark : bgLight,
-        appBar: AppBar(
+      return ProFeatureGuard(
+        feature: AppFeature.careerRoadmap,
+        child: Scaffold(
           backgroundColor: isDark ? bgDark : bgLight,
-          elevation: 0,
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: textDark),
-            onPressed: () => Navigator.pop(context),
+          appBar: AppBar(
+            backgroundColor: isDark ? bgDark : bgLight,
+            elevation: 0,
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: textDark),
+              onPressed: () => Navigator.pop(context),
+            ),
+            title: Text(
+              'Career & Strategic Goals',
+              style: TextStyle(color: textDark, fontSize: 18, fontWeight: FontWeight.w800),
+            ),
           ),
-          title: Text(
-            'Career & Strategic Goals',
-            style: TextStyle(color: textDark, fontSize: 18, fontWeight: FontWeight.w800),
+          body: Column(
+            children: [
+              _buildSubModuleSwitcher(context, isDark),
+              const Expanded(child: GoalPyramidScreen()),
+            ],
           ),
-        ),
-        body: Column(
-          children: [
-            _buildSubModuleSwitcher(context, isDark),
-            const Expanded(child: GoalPyramidScreen()),
-          ],
         ),
       );
     }
 
-    return Scaffold(
+    return ProFeatureGuard(
+      feature: AppFeature.careerRoadmap,
+      child: Scaffold(
         backgroundColor: isDark ? bgDark : bgLight,
         appBar: AppBar(
           backgroundColor: isDark ? bgDark : bgLight,
@@ -293,7 +298,8 @@ class _CareerRoadmapScreenState extends State<CareerRoadmapScreen> {
             ),
           ],
         ),
-      );
+      ),
+    );
   }
 
   IconData _getNodeIconForIndex(int index) {

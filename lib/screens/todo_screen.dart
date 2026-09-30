@@ -13,11 +13,17 @@ class TodoScreen extends StatelessWidget {
     final provider = Provider.of<AppProvider>(context);
     final tasks = provider.tasks.where((t) {
       final cat = t.category.trim().toLowerCase();
-      return !cat.contains('matrix') &&
-          !cat.contains('eisenhower') &&
-          !cat.contains('unit') &&
-          !cat.contains('topic') &&
-          !cat.contains('habit');
+      final id = t.id.toLowerCase();
+      // Exclude matrix, eisenhower, unit, topic, habit, calendar, or external auto-generated items
+      final isExcluded = cat.contains('matrix') ||
+          cat.contains('eisenhower') ||
+          cat.contains('unit') ||
+          cat.contains('topic') ||
+          cat.contains('habit') ||
+          id.startsWith('cal_') ||
+          id.startsWith('sub_') ||
+          id.startsWith('unit_');
+      return !isExcluded;
     }).toList();
     final isDark = Theme.of(context).brightness == Brightness.dark;
 

@@ -6,6 +6,12 @@ import '../models/analytics_models.dart';
 /// 
 /// Strictly calculates analytics and insights from genuine user data.
 class AnalyticsService {
+  static bool _isDateInPeriod(DateTime date, DateTime start, DateTime end) {
+    final startDay = DateTime(start.year, start.month, start.day, 0, 0, 0);
+    final endDay = DateTime(end.year, end.month, end.day, 23, 59, 59, 999);
+    return !date.isBefore(startDay) && !date.isAfter(endDay);
+  }
+
   // ---------------------------------------------------------------------------
   // 1. OVERVIEW CALCULATOR
   // ---------------------------------------------------------------------------
@@ -38,17 +44,16 @@ class AnalyticsService {
     final habitRate = habitScheduled > 0 ? (habitCompletions / habitScheduled) : 0.0;
 
     // 2. Studies
-    final periodTasks = tasks.where((t) => !t.dueDate.isBefore(period.start) && !t.dueDate.isAfter(period.end)).toList();
+    final periodTasks = tasks.where((t) => _isDateInPeriod(t.dueDate, period.start, period.end)).toList();
     final completedTasks = periodTasks.where((t) => t.isCompleted).length;
-    final taskRate = periodTasks.isNotEmpty ? (completedTasks / periodTasks.length) : 0.0;
 
-    final periodStudyItems = studyItems.where((s) => !s.dueDate.isBefore(period.start) && !s.dueDate.isAfter(period.end)).toList();
+    final periodStudyItems = studyItems.where((s) => _isDateInPeriod(s.dueDate, period.start, period.end)).toList();
     final completedStudyItems = periodStudyItems.where((s) => s.isCompleted).length;
     final totalStudyTasksCompleted = completedTasks + completedStudyItems;
     final totalStudyTasks = periodTasks.length + periodStudyItems.length;
 
     // 3. Expenses
-    final periodExpenses = expenses.where((e) => !e.date.isBefore(period.start) && !e.date.isAfter(period.end) && !e.isIncome).toList();
+    final periodExpenses = expenses.where((e) => _isDateInPeriod(e.date, period.start, period.end) && !e.isIncome).toList();
     final totalSpent = periodExpenses.fold(0.0, (sum, e) => sum + e.amount);
     final remainingBudget = monthlyBudget > 0 ? (monthlyBudget - totalSpent) : 0.0;
 
@@ -299,7 +304,7 @@ class AnalyticsService {
     required List<Task> tasks,
     required DateRangePeriod period,
   }) {
-    final periodStudyItems = studyItems.where((s) => !s.dueDate.isBefore(period.start) && !s.dueDate.isAfter(period.end)).toList();
+    final periodStudyItems = studyItems.where((s) => _isDateInPeriod(s.dueDate, period.start, period.end)).toList();
     final completedItems = periodStudyItems.where((s) => s.isCompleted).length;
     final avgSubjectProgress = subjects.isNotEmpty
         ? (subjects.fold<double>(0.0, (sum, s) => sum + s.progress) / subjects.length)
@@ -404,7 +409,7 @@ class AnalyticsService {
     required double monthlyBudget,
     required DateRangePeriod period,
   }) {
-    final periodExpenses = expenses.where((e) => !e.date.isBefore(period.start) && !e.date.isAfter(period.end)).toList();
+    final periodExpenses = expenses.where((e) => _isDateInPeriod(e.date, period.start, period.end)).toList();
     final spendExpenses = periodExpenses.where((e) => !e.isIncome).toList();
     final totalSpent = spendExpenses.fold(0.0, (sum, e) => sum + e.amount);
     final totalIncome = periodExpenses.where((e) => e.isIncome).fold(0.0, (sum, e) => sum + e.amount);
@@ -413,7 +418,7 @@ class AnalyticsService {
     final budgetUtilization = monthlyBudget > 0 ? (totalSpent / monthlyBudget) : 0.0;
 
     // Previous period spending comparison
-    final prevExpenses = expenses.where((e) => !e.date.isBefore(period.previousStart) && !e.date.isAfter(period.previousEnd) && !e.isIncome).toList();
+    final prevExpenses = expenses.where((e) => _isDateInPeriod(e.date, period.previousStart, period.previousEnd) && !e.isIncome).toList();
     final prevSpent = prevExpenses.fold(0.0, (sum, e) => sum + e.amount);
     double? spendDelta;
     if (prevSpent > 0) {
@@ -536,9 +541,9 @@ class AnalyticsService {
   // ---------------------------------------------------------------------------
   static GoalAnalyticsData calculateGoals({
     required List<CareerRoadmapNode> roadmapNodes,
+    List<Goal>? pyramidGoals,
   }) {
     final goalNodes = roadmapNodes.where((n) => n.section == 'GOAL').toList();
-    final completedCount = goalNodes.where((n) => n.isCompleted).length;
 
     int onTrack = 0;
     int needsAttention = 0;
@@ -562,6 +567,28 @@ class AnalyticsService {
       ));
     }
 
+    if (pyramidGoals != null) {
+      for (final pg in pyramidGoals) {
+        final prog = pg.isCompleted ? 1.0 : 0.5;
+        final status = pg.isCompleted ? 'Completed' : 'On Track';
+        if (pg.isCompleted || status == 'On Track') {
+          onTrack++;
+        } else {
+          needsAttention++;
+        }
+        goalItems.add(GoalItemAnalytics(
+          id: pg.id,
+          title: pg.title,
+          section: 'Pyramid (${pg.tier.toUpperCase()})',
+          progress: prog,
+          status: status,
+          isCompleted: pg.isCompleted,
+        ));
+      }
+    }
+
+    final completedCount = goalItems.where((g) => g.isCompleted).length;
+    final totalCount = goalItems.length;
     final avgProg = goalItems.isNotEmpty ? (goalItems.fold(0.0, (sum, g) => sum + g.progress) / goalItems.length) : 0.0;
 
     // Rule-Based Goal Insights
@@ -569,13 +596,13 @@ class AnalyticsService {
     if (completedCount > 0) {
       insights.add(AnalyticsInsight(
         title: 'Goals Achieved',
-        message: 'You have successfully achieved $completedCount out of ${goalNodes.length} strategic goals!',
+        message: 'You have successfully achieved $completedCount out of $totalCount strategic goals!',
         icon: Icons.emoji_events_rounded,
         sentiment: InsightSentiment.positive,
       ));
     }
 
-    if (onTrack > 0 && completedCount < goalNodes.length) {
+    if (onTrack > 0 && completedCount < totalCount) {
       insights.add(AnalyticsInsight(
         title: 'Strong Progression',
         message: '$onTrack goal${onTrack > 1 ? "s are" : " is"} currently advancing on schedule.',
@@ -585,7 +612,7 @@ class AnalyticsService {
     }
 
     return GoalAnalyticsData(
-      totalGoals: goalNodes.length,
+      totalGoals: totalCount,
       completedGoals: completedCount,
       onTrackGoals: onTrack,
       needsAttentionGoals: needsAttention,

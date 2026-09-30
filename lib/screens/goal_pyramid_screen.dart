@@ -35,7 +35,9 @@ class _GoalPyramidScreenState extends State<GoalPyramidScreen> {
     final longGoals = provider.longGoals;
     final completedGoals = provider.goals.where((g) => g.isCompleted).toList();
 
-    return Scaffold(
+    return ProFeatureGuard(
+      feature: AppFeature.goals,
+      child: Scaffold(
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),

@@ -5,6 +5,7 @@ import '../config/subscription_config.dart';
 import '../providers/app_provider.dart';
 import '../models/models.dart';
 import '../theme/app_theme.dart';
+import '../widgets/pro_feature_guard.dart';
 import '../widgets/pro_upgrade_dialog.dart';
 import 'add_expense_screen.dart';
 
@@ -68,11 +69,16 @@ class _ExpenseTrackerScreenState extends State<ExpenseTrackerScreen> {
     }
   }
 
+  DateTime _getStartOfWeek(DateTime date) {
+    final base = DateTime(date.year, date.month, date.day);
+    return base.subtract(Duration(days: base.weekday - 1));
+  }
+
   String _getPeriodLabel() {
     if (_selectedView == 'MONTH') {
       return DateFormat('MMMM yyyy').format(_currentPeriodDate);
     } else {
-      final startOfWeek = _currentPeriodDate.subtract(Duration(days: _currentPeriodDate.weekday - 1));
+      final startOfWeek = _getStartOfWeek(_currentPeriodDate);
       final endOfWeek = startOfWeek.add(const Duration(days: 6));
       return '${DateFormat('MMM d').format(startOfWeek)} – ${DateFormat('MMM d').format(endOfWeek)}';
     }
@@ -84,14 +90,11 @@ class _ExpenseTrackerScreenState extends State<ExpenseTrackerScreen> {
         return e.date.year == _currentPeriodDate.year && e.date.month == _currentPeriodDate.month;
       }).toList();
     } else {
-      final startOfWeek = DateTime(
-        _currentPeriodDate.year,
-        _currentPeriodDate.month,
-        _currentPeriodDate.day - (_currentPeriodDate.weekday - 1),
-      );
-      final endOfWeek = startOfWeek.add(const Duration(days: 7));
+      final startOfWeek = _getStartOfWeek(_currentPeriodDate);
+      final endOfWeek = startOfWeek.add(const Duration(days: 7)); // start of next week
       return all.where((e) {
-        return !e.date.isBefore(startOfWeek) && e.date.isBefore(endOfWeek);
+        final expDate = DateTime(e.date.year, e.date.month, e.date.day);
+        return !expDate.isBefore(startOfWeek) && expDate.isBefore(endOfWeek);
       }).toList();
     }
   }
@@ -156,7 +159,9 @@ class _ExpenseTrackerScreenState extends State<ExpenseTrackerScreen> {
       categoryBreakdown[exp.category] = (categoryBreakdown[exp.category] ?? 0.0) + exp.amount;
     }
 
-    return Scaffold(
+    return ProFeatureGuard(
+      feature: AppFeature.expenseTracker,
+      child: Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.background,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -550,7 +555,6 @@ class _ExpenseTrackerScreenState extends State<ExpenseTrackerScreen> {
                     ),
                   );
                 }).toList(),
-              ),
             const SizedBox(height: 30),
           ],
         ),

@@ -316,7 +316,7 @@ class CalendarEvent {
     this.type = 'Focus Session',
     String? category,
     this.isCompleted = false,
-  }) : category = (category != null && category.isNotEmpty && category != 'General') ? category : type;
+  }) : category = (category != null && category.isNotEmpty) ? category : type;
 
   DateTime get date => startTime;
   String get time => '${startTime.hour.toString().padLeft(2, '0')}:${startTime.minute.toString().padLeft(2, '0')}';
@@ -326,11 +326,16 @@ class CalendarEvent {
         'title': title,
         'description': description,
         'startTime': startTime.toIso8601String(),
+        'start_time': startTime.toIso8601String(),
         'endTime': endTime.toIso8601String(),
+        'end_time': endTime.toIso8601String(),
         'location': location,
         'type': type,
+        'event_type': type,
         'category': category,
+        'event_category': category,
         'isCompleted': isCompleted,
+        'is_completed': isCompleted,
       };
 
   factory CalendarEvent.fromJson(Map<String, dynamic> json) {
@@ -362,7 +367,7 @@ class CalendarEvent {
     final end = parseDate(json['endTime'] ?? json['end_time'], json['event_date'], start.add(const Duration(hours: 1)));
     final parsedType = json['type'] ?? json['event_type'] ?? json['type_name'] ?? 'Task';
     final rawCat = json['category'] ?? json['event_category'];
-    final parsedCat = (rawCat != null && rawCat.toString().isNotEmpty && rawCat != 'General') ? rawCat.toString() : parsedType;
+    final parsedCat = (rawCat != null && rawCat.toString().isNotEmpty) ? rawCat.toString() : parsedType;
 
     return CalendarEvent(
       id: json['id']?.toString() ?? generateUuidV4(),
@@ -371,8 +376,8 @@ class CalendarEvent {
       startTime: start,
       endTime: end,
       location: json['location'] ?? 'Workspace A',
-      type: parsedType,
-      category: parsedCat,
+      type: parsedType.toString(),
+      category: parsedCat.toString(),
       isCompleted: json['isCompleted'] ?? json['is_completed'] ?? false,
     );
   }
