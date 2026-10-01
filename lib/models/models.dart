@@ -244,6 +244,7 @@ class Task {
   int priority; // 1 = High / Urgent, 2 = Medium / Schedule, 3 = Low / Delegate
   bool isCompleted;
   DateTime? completedDate;
+  bool isPriorityMatrixOnly;
 
   Task({
     required this.id,
@@ -256,6 +257,7 @@ class Task {
     this.priority = 1,
     this.isCompleted = false,
     this.completedDate,
+    this.isPriorityMatrixOnly = false,
   });
 
   Map<String, dynamic> toJson() => {
@@ -269,6 +271,7 @@ class Task {
         'priority': priority,
         'isCompleted': isCompleted,
         'completedDate': completedDate?.toIso8601String(),
+        'isPriorityMatrixOnly': isPriorityMatrixOnly,
       };
 
   factory Task.fromJson(Map<String, dynamic> json) => Task(
@@ -292,6 +295,7 @@ class Task {
             : (json['completed_at'] != null
                 ? DateTime.tryParse(json['completed_at'].toString())
                 : null),
+        isPriorityMatrixOnly: json['isPriorityMatrixOnly'] == true || json['is_priority_matrix_only'] == true,
       );
 }
 

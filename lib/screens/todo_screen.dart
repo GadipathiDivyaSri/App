@@ -15,7 +15,8 @@ class TodoScreen extends StatelessWidget {
       final cat = t.category.trim().toLowerCase();
       final id = t.id.toLowerCase();
       // Exclude matrix, eisenhower, unit, topic, habit, calendar, or external auto-generated items
-      final isExcluded = cat.contains('matrix') ||
+      final isExcluded = t.isPriorityMatrixOnly ||
+          cat.contains('matrix') ||
           cat.contains('eisenhower') ||
           cat.contains('unit') ||
           cat.contains('topic') ||

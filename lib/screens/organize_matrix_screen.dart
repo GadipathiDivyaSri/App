@@ -31,10 +31,10 @@ class _OrganizeMatrixScreenState extends State<OrganizeMatrixScreen> {
     final textPrimary = isDark ? AppTheme.darkTextPrimary : AppTheme.textPrimary;
     final textSecondary = isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary;
 
-    final q1Tasks = provider.tasks.where((t) => t.priority == 1).toList();
-    final q2Tasks = provider.tasks.where((t) => t.priority == 2).toList();
-    final q3Tasks = provider.tasks.where((t) => t.priority == 3).toList();
-    final q4Tasks = provider.tasks.where((t) => t.priority == 4).toList();
+    final q1Tasks = provider.tasks.where((t) => !t.isPriorityMatrixOnly && t.priority == 1).toList();
+    final q2Tasks = provider.tasks.where((t) => !t.isPriorityMatrixOnly && t.priority == 2).toList();
+    final q3Tasks = provider.tasks.where((t) => !t.isPriorityMatrixOnly && t.priority == 3).toList();
+    final q4Tasks = provider.tasks.where((t) => !t.isPriorityMatrixOnly && t.priority == 4).toList();
 
     return ProFeatureGuard(
       feature: AppFeature.eisenhowerMatrix,

@@ -49,48 +49,48 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
     final provider = Provider.of<AppProvider>(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    _p1Tasks = provider.tasks
+    _p1Tasks = provider.priorityMatrixTasks
         .where((t) => !t.isCompleted && t.priority == 1)
         .map((t) => {
               'id': t.id,
               'title': t.title,
-              'tag': t.category,
+              'tag': t.tag,
               'dueDate': t.dueDate,
               'dueTime': _parseTimeOfDay(t.dueTime, t.dueDate),
               'priority': t.priority,
             })
         .toList();
 
-    _p2Tasks = provider.tasks
+    _p2Tasks = provider.priorityMatrixTasks
         .where((t) => !t.isCompleted && t.priority == 2)
         .map((t) => {
               'id': t.id,
               'title': t.title,
-              'tag': t.category,
+              'tag': t.tag,
               'dueDate': t.dueDate,
               'dueTime': _parseTimeOfDay(t.dueTime, t.dueDate),
               'priority': t.priority,
             })
         .toList();
 
-    _p3Tasks = provider.tasks
+    _p3Tasks = provider.priorityMatrixTasks
         .where((t) => !t.isCompleted && (t.priority >= 3 || t.priority <= 0))
         .map((t) => {
               'id': t.id,
               'title': t.title,
-              'tag': t.category,
+              'tag': t.tag,
               'dueDate': t.dueDate,
               'dueTime': _parseTimeOfDay(t.dueTime, t.dueDate),
               'priority': t.priority,
             })
         .toList();
 
-    _completedTasks = provider.tasks
+    _completedTasks = provider.priorityMatrixTasks
         .where((t) => t.isCompleted)
         .map((t) => {
               'id': t.id,
               'title': t.title,
-              'tag': t.category,
+              'tag': t.tag,
               'dueDate': t.dueDate,
               'dueTime': _parseTimeOfDay(t.dueTime, t.dueDate),
               'priority': t.priority,
@@ -118,6 +118,15 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
           ),
         ),
         actions: [
+          if (_completedTasks.isNotEmpty)
+            IconButton(
+              tooltip: 'Clear History',
+              icon: Icon(
+                Icons.delete_sweep_rounded,
+                color: isDark ? Colors.redAccent.shade100 : Colors.redAccent,
+              ),
+              onPressed: () => _showClearHistoryDialog(context, provider),
+            ),
           IconButton(
             tooltip: _sortByUrgentTime ? 'Group by Priority' : 'Sort by Deadline Time',
             icon: Icon(
@@ -744,12 +753,12 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                             } else if (val == 'complete') {
                               final p = Provider.of<AppProvider>(context, listen: false);
                               if (task['id'] != null) {
-                                p.toggleTaskCompletion(task['id'] as String);
+                                p.togglePriorityMatrixTaskCompletion(task['id'] as String);
                               }
                             } else if (val == 'delete') {
                               final p = Provider.of<AppProvider>(context, listen: false);
                               if (task['id'] != null) {
-                                p.deleteTask(task['id'] as String);
+                                p.deletePriorityMatrixTask(task['id'] as String);
                               }
                             }
                           },
@@ -961,6 +970,8 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
     final titleCtrl = TextEditingController();
     String selectedTag = 'STUDY';
     int assignedPriority = defaultPriority ?? 1;
+    DateTime selectedDate = DateTime.now();
+    TimeOfDay selectedTime = const TimeOfDay(hour: 18, minute: 0);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     showModalBottomSheet(
@@ -1040,6 +1051,51 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                   ),
                   const SizedBox(height: 16),
 
+                  // Date & Time Selection
+                  const Text(
+                    'DUE DATE & TIME',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF94A3B8)),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          icon: const Icon(Icons.calendar_month, size: 16),
+                          label: Text('${selectedDate.month}/${selectedDate.day}/${selectedDate.year}', style: const TextStyle(fontSize: 12)),
+                          onPressed: () async {
+                            final picked = await showDatePicker(
+                              context: context,
+                              initialDate: selectedDate,
+                              firstDate: DateTime.now().subtract(const Duration(days: 1)),
+                              lastDate: DateTime.now().add(const Duration(days: 365)),
+                            );
+                            if (picked != null) {
+                              setModalState(() => selectedDate = picked);
+                            }
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          icon: const Icon(Icons.access_time, size: 16),
+                          label: Text(_formatTimeOfDay(selectedTime), style: const TextStyle(fontSize: 12)),
+                          onPressed: () async {
+                            final picked = await showTimePicker(
+                              context: context,
+                              initialTime: selectedTime,
+                            );
+                            if (picked != null) {
+                              setModalState(() => selectedTime = picked);
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
                   // Priority Selector
                   const Text(
                     'PRIORITY ASSIGNMENT',
@@ -1096,11 +1152,19 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                           );
                           return;
                         }
-                        provider.addTask(
+                        final fullDueDate = DateTime(
+                          selectedDate.year,
+                          selectedDate.month,
+                          selectedDate.day,
+                          selectedTime.hour,
+                          selectedTime.minute,
+                        );
+                        provider.addPriorityMatrixTask(
                           titleCtrl.text.trim(),
                           selectedTag,
-                          'Active',
                           priority: assignedPriority,
+                          dueDate: fullDueDate,
+                          dueTime: _formatTimeOfDay(selectedTime),
                         );
                         Navigator.pop(ctx);
                       },
@@ -1119,6 +1183,34 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  void _showClearHistoryDialog(BuildContext context, AppProvider provider) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Clear Completed History?', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: const Text('This will delete all completed task records from Priority Matrix.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            onPressed: () {
+              provider.clearPriorityMatrixHistory();
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Priority Matrix history cleared.')),
+              );
+            },
+            child: const Text('Clear History', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
       ),
     );
   }
@@ -1312,21 +1404,6 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                 }
                 final p = Provider.of<AppProvider>(context, listen: false);
                 if (task['id'] != null) {
-                  final now = DateTime.now();
-                  final isToday = selectedDate.year == now.year && selectedDate.month == now.month && selectedDate.day == now.day;
-                  final isTomorrow = selectedDate.year == now.add(const Duration(days: 1)).year &&
-                      selectedDate.month == now.add(const Duration(days: 1)).month &&
-                      selectedDate.day == now.add(const Duration(days: 1)).day;
-
-                  String dateFormatted;
-                  if (isToday) {
-                    dateFormatted = 'Today (${_monthName(selectedDate.month)} ${selectedDate.day})';
-                  } else if (isTomorrow) {
-                    dateFormatted = 'Tomorrow (${_monthName(selectedDate.month)} ${selectedDate.day})';
-                  } else {
-                    dateFormatted = '${_monthName(selectedDate.month)} ${selectedDate.day}, ${selectedDate.year}';
-                  }
-
                   final fullDueDate = DateTime(
                     selectedDate.year,
                     selectedDate.month,
@@ -1335,14 +1412,13 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
                     selectedTime.minute,
                   );
 
-                  p.editTask(
+                  p.editPriorityMatrixTask(
                     task['id'] as String,
                     trimmedTitle,
                     selectedPriority,
                     task['tag'] as String? ?? 'STUDY',
                     dueDate: fullDueDate,
                     dueTime: _formatTimeOfDay(selectedTime),
-                    dueDateLabel: dateFormatted,
                   );
                 }
                 Navigator.pop(ctx);

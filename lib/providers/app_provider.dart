@@ -666,18 +666,32 @@ class AppProvider extends ChangeNotifier {
   Future<void> fetchGoalsFromBackend() async {
     try {
       final remote = await ApiService.fetchGoals();
-      final validRemote = remote.where((g) => !_deletedItemIds.contains(g.id)).toList();
+      final validRemote = remote.where((g) =>
+        !_deletedItemIds.contains(g.id) &&
+        !_deletedItemIds.contains(g.title.trim().toLowerCase())
+      ).toList();
       final Map<String, Goal> goalMap = {for (var g in _goals) if (!_deletedItemIds.contains(g.id)) g.id: g};
       for (var rg in validRemote) {
-        final local = goalMap[rg.id];
+        Goal? local = goalMap[rg.id];
+        if (local == null) {
+          for (var g in goalMap.values) {
+            if (g.title.trim().toLowerCase() == rg.title.trim().toLowerCase()) {
+              local = g;
+              break;
+            }
+          }
+        }
         if (local != null) {
-          rg.isCompleted = local.isCompleted || rg.isCompleted;
-          goalMap[rg.id] = rg;
+          local.isCompleted = local.isCompleted || rg.isCompleted;
+          goalMap[local.id] = local;
         } else {
           goalMap[rg.id] = rg;
         }
       }
-      _goals = goalMap.values.where((g) => !_deletedItemIds.contains(g.id)).toList();
+      _goals = goalMap.values.where((g) =>
+        !_deletedItemIds.contains(g.id) &&
+        !_deletedItemIds.contains(g.title.trim().toLowerCase())
+      ).toList();
       _saveGoals();
       notifyListeners();
     } catch (_) {}
@@ -748,6 +762,9 @@ class AppProvider extends ChangeNotifier {
   // ---------------------------------------------------------------------------
   List<Task> _tasks = [];
   List<Task> get tasks => _tasks;
+
+  List<Task> _priorityMatrixTasks = [];
+  List<Task> get priorityMatrixTasks => _priorityMatrixTasks;
 
   List<CalendarEvent> _calendarEvents = [];
   List<CalendarEvent> get calendarEvents => _calendarEvents;
@@ -1308,6 +1325,15 @@ class AppProvider extends ChangeNotifier {
       _careerNodes = [];
     }
 
+    // 8B. Priority Matrix Tasks (Decoupled)
+    final pmTasksJson = prefs.getString('saved_priority_matrix_tasks_$uid');
+    if (pmTasksJson != null) {
+      final List decoded = jsonDecode(pmTasksJson);
+      _priorityMatrixTasks = decoded.map((item) => Task.fromJson(item)).toList();
+    } else {
+      _priorityMatrixTasks = [];
+    }
+
     // 9. Notifications (User-Isolated)
     final notifsJson = prefs.getString('saved_notifications_$uid');
     if (notifsJson != null) {
@@ -1318,17 +1344,18 @@ class AppProvider extends ChangeNotifier {
     }
 
     // Filter out all previously deleted item IDs
-    _habits.removeWhere((h) => _deletedItemIds.contains(h.id));
-    _tasks.removeWhere((t) => _deletedItemIds.contains(t.id));
-    _calendarEvents.removeWhere((e) => _deletedItemIds.contains(e.id));
-    _expenses.removeWhere((e) => _deletedItemIds.contains(e.id));
-    _subjects.removeWhere((s) => _deletedItemIds.contains(s.id));
-    _studyItems.removeWhere((i) => _deletedItemIds.contains(i.id));
-    _studyUnits.removeWhere((u) => _deletedItemIds.contains(u.id));
-    _studyTopics.removeWhere((t) => _deletedItemIds.contains(t.id));
-    _journalEntries.removeWhere((j) => _deletedItemIds.contains(j.id));
-    _careerNodes.removeWhere((n) => _deletedItemIds.contains(n.id));
-    _goals.removeWhere((g) => _deletedItemIds.contains(g.id));
+    _habits.removeWhere((h) => _deletedItemIds.contains(h.id) || _deletedItemIds.contains(h.title.trim().toLowerCase()));
+    _tasks.removeWhere((t) => _deletedItemIds.contains(t.id) || _deletedItemIds.contains(t.title.trim().toLowerCase()));
+    _priorityMatrixTasks.removeWhere((t) => _deletedItemIds.contains(t.id) || _deletedItemIds.contains(t.title.trim().toLowerCase()));
+    _calendarEvents.removeWhere((e) => _deletedItemIds.contains(e.id) || _deletedItemIds.contains(e.title.trim().toLowerCase()));
+    _expenses.removeWhere((e) => _deletedItemIds.contains(e.id) || _deletedItemIds.contains(e.title.trim().toLowerCase()));
+    _subjects.removeWhere((s) => _deletedItemIds.contains(s.id) || _deletedItemIds.contains(s.name.trim().toLowerCase()));
+    _studyItems.removeWhere((i) => _deletedItemIds.contains(i.id) || _deletedItemIds.contains(i.title.trim().toLowerCase()));
+    _studyUnits.removeWhere((u) => _deletedItemIds.contains(u.id) || _deletedItemIds.contains(u.title.trim().toLowerCase()));
+    _studyTopics.removeWhere((t) => _deletedItemIds.contains(t.id) || _deletedItemIds.contains(t.title.trim().toLowerCase()));
+    _journalEntries.removeWhere((j) => _deletedItemIds.contains(j.id) || _deletedItemIds.contains(j.title.trim().toLowerCase()));
+    _careerNodes.removeWhere((n) => _deletedItemIds.contains(n.id) || _deletedItemIds.contains(n.title.trim().toLowerCase()));
+    _goals.removeWhere((g) => _deletedItemIds.contains(g.id) || _deletedItemIds.contains(g.title.trim().toLowerCase()));
 
     recalculateAllSubjectProgress();
     _recalculateMetrics();
@@ -1398,12 +1425,110 @@ class AppProvider extends ChangeNotifier {
 
   void deleteTask(String taskId) {
     _deletedItemIds.add(taskId);
+    final idx = _tasks.indexWhere((t) => t.id == taskId);
+    if (idx != -1) {
+      _deletedItemIds.add(_tasks[idx].title.trim().toLowerCase());
+    }
     _saveDeletedItemIds();
     _tasks.removeWhere((t) => t.id == taskId);
     _saveTasks();
     _recalculateMetrics();
     notifyListeners();
     ApiService.deleteTaskOnBackend(taskId);
+  }
+
+  // Priority Matrix Specific Task Operations
+  void addPriorityMatrixTask(
+    String title,
+    String tag, {
+    int priority = 1,
+    DateTime? dueDate,
+    String? dueTime,
+    String? id,
+  }) {
+    final newTask = Task(
+      id: id ?? generateUuidV4(),
+      title: title,
+      category: 'Priority Matrix',
+      tag: tag,
+      dueDateLabel: 'Today',
+      dueDate: dueDate ?? DateTime.now(),
+      dueTime: dueTime ?? '05:00 PM',
+      priority: priority,
+      isPriorityMatrixOnly: true,
+    );
+    _priorityMatrixTasks.add(newTask);
+    _savePriorityMatrixTasks();
+    notifyListeners();
+  }
+
+  void editPriorityMatrixTask(
+    String taskId,
+    String newTitle,
+    int priority,
+    String tag, {
+    DateTime? dueDate,
+    String? dueTime,
+  }) {
+    final index = _priorityMatrixTasks.indexWhere((t) => t.id == taskId);
+    if (index != -1) {
+      _priorityMatrixTasks[index].title = newTitle;
+      _priorityMatrixTasks[index].priority = priority;
+      _priorityMatrixTasks[index].tag = tag;
+      if (dueDate != null) _priorityMatrixTasks[index].dueDate = dueDate;
+      if (dueTime != null) _priorityMatrixTasks[index].dueTime = dueTime;
+      _savePriorityMatrixTasks();
+      notifyListeners();
+    }
+  }
+
+  void togglePriorityMatrixTaskCompletion(String taskId) {
+    final index = _priorityMatrixTasks.indexWhere((t) => t.id == taskId);
+    if (index != -1) {
+      _priorityMatrixTasks[index].isCompleted = !_priorityMatrixTasks[index].isCompleted;
+      if (_priorityMatrixTasks[index].isCompleted) {
+        _priorityMatrixTasks[index].completedDate = DateTime.now();
+        _priorityMatrixTasks[index].dueDateLabel = 'Completed';
+      } else {
+        _priorityMatrixTasks[index].completedDate = null;
+        _priorityMatrixTasks[index].dueDateLabel = 'Today';
+      }
+      _savePriorityMatrixTasks();
+      notifyListeners();
+    }
+  }
+
+  void deletePriorityMatrixTask(String taskId) {
+    _deletedItemIds.add(taskId);
+    final idx = _priorityMatrixTasks.indexWhere((t) => t.id == taskId);
+    if (idx != -1) {
+      _deletedItemIds.add(_priorityMatrixTasks[idx].title.trim().toLowerCase());
+    }
+    _saveDeletedItemIds();
+    _priorityMatrixTasks.removeWhere((t) => t.id == taskId);
+    _savePriorityMatrixTasks();
+    notifyListeners();
+  }
+
+  void clearPriorityMatrixHistory() {
+    for (var t in _priorityMatrixTasks.where((t) => t.isCompleted)) {
+      _deletedItemIds.add(t.id);
+      _deletedItemIds.add(t.title.trim().toLowerCase());
+    }
+    _saveDeletedItemIds();
+    _priorityMatrixTasks.removeWhere((t) => t.isCompleted);
+    _savePriorityMatrixTasks();
+    notifyListeners();
+  }
+
+  Future<void> _savePriorityMatrixTasks() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonList = _priorityMatrixTasks.map((t) => t.toJson()).toList();
+      await prefs.setString('saved_priority_matrix_tasks_${_user.id}', jsonEncode(jsonList));
+    } catch (e) {
+      debugPrint('Error saving priority matrix tasks: $e');
+    }
   }
 
   // Calendar Event Operations
@@ -1735,10 +1860,21 @@ class AppProvider extends ChangeNotifier {
   Future<void> syncTasksFromCloud() async {
     try {
       final remoteTasks = await ApiService.fetchTasks();
-      final validRemote = remoteTasks.where((t) => !_deletedItemIds.contains(t.id)).toList();
+      final validRemote = remoteTasks.where((t) =>
+        !_deletedItemIds.contains(t.id) &&
+        !_deletedItemIds.contains(t.title.trim().toLowerCase())
+      ).toList();
       final Map<String, Task> taskMap = {for (var t in _tasks) if (!_deletedItemIds.contains(t.id)) t.id: t};
       for (var rt in validRemote) {
-        final local = taskMap[rt.id];
+        Task? local = taskMap[rt.id];
+        if (local == null) {
+          for (var t in taskMap.values) {
+            if (t.title.trim().toLowerCase() == rt.title.trim().toLowerCase()) {
+              local = t;
+              break;
+            }
+          }
+        }
         if (local != null) {
           final isComp = local.isCompleted || rt.isCompleted;
           local.isCompleted = isComp;
@@ -1746,12 +1882,16 @@ class AppProvider extends ChangeNotifier {
             local.completedDate = rt.completedDate ?? DateTime.now();
             local.dueDateLabel = 'Completed';
           }
-          taskMap[rt.id] = local;
+          taskMap[local.id] = local;
         } else {
           taskMap[rt.id] = rt;
         }
       }
-      _tasks = taskMap.values.where((t) => !_deletedItemIds.contains(t.id)).toList();
+      _tasks = taskMap.values.where((t) =>
+        !_deletedItemIds.contains(t.id) &&
+        !_deletedItemIds.contains(t.title.trim().toLowerCase()) &&
+        !t.isPriorityMatrixOnly
+      ).toList();
       _saveTasks();
       _recalculateMetrics();
       notifyListeners();
@@ -1921,18 +2061,32 @@ class AppProvider extends ChangeNotifier {
   Future<void> syncCareerRoadmapFromCloud() async {
     try {
       final remoteNodes = await ApiService.fetchCareerRoadmapNodes();
-      final validRemote = remoteNodes.where((n) => !_deletedItemIds.contains(n.id)).toList();
+      final validRemote = remoteNodes.where((n) =>
+        !_deletedItemIds.contains(n.id) &&
+        !_deletedItemIds.contains(n.title.trim().toLowerCase())
+      ).toList();
       final Map<String, CareerRoadmapNode> nodeMap = {for (var n in _careerNodes) if (!_deletedItemIds.contains(n.id)) n.id: n};
       for (var rn in validRemote) {
-        final local = nodeMap[rn.id];
+        CareerRoadmapNode? local = nodeMap[rn.id];
+        if (local == null) {
+          for (var n in nodeMap.values) {
+            if (n.title.trim().toLowerCase() == rn.title.trim().toLowerCase()) {
+              local = n;
+              break;
+            }
+          }
+        }
         if (local != null) {
           local.isCompleted = local.isCompleted || rn.isCompleted;
-          nodeMap[rn.id] = local;
+          nodeMap[local.id] = local;
         } else {
           nodeMap[rn.id] = rn;
         }
       }
-      _careerNodes = nodeMap.values.where((n) => !_deletedItemIds.contains(n.id)).toList();
+      _careerNodes = nodeMap.values.where((n) =>
+        !_deletedItemIds.contains(n.id) &&
+        !_deletedItemIds.contains(n.title.trim().toLowerCase())
+      ).toList();
       _saveCareerNodes();
       notifyListeners();
     } catch (e) {

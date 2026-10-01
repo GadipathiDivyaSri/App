@@ -238,8 +238,9 @@ class _GoalPyramidScreenState extends State<GoalPyramidScreen> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildGoalSection(
       BuildContext context, String title, List<dynamic> goals, VoidCallback onTap) {
