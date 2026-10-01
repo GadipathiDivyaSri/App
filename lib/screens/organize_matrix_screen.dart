@@ -31,10 +31,10 @@ class _OrganizeMatrixScreenState extends State<OrganizeMatrixScreen> {
     final textPrimary = isDark ? AppTheme.darkTextPrimary : AppTheme.textPrimary;
     final textSecondary = isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary;
 
-    final q1Tasks = provider.tasks.where((t) => !t.isPriorityMatrixOnly && t.priority == 1).toList();
-    final q2Tasks = provider.tasks.where((t) => !t.isPriorityMatrixOnly && t.priority == 2).toList();
-    final q3Tasks = provider.tasks.where((t) => !t.isPriorityMatrixOnly && t.priority == 3).toList();
-    final q4Tasks = provider.tasks.where((t) => !t.isPriorityMatrixOnly && t.priority == 4).toList();
+    final q1Tasks = provider.organizeTasks.where((t) => t.priority == 1).toList();
+    final q2Tasks = provider.organizeTasks.where((t) => t.priority == 2).toList();
+    final q3Tasks = provider.organizeTasks.where((t) => t.priority == 3).toList();
+    final q4Tasks = provider.organizeTasks.where((t) => t.priority == 4).toList();
 
     return ProFeatureGuard(
       feature: AppFeature.eisenhowerMatrix,
@@ -277,7 +277,7 @@ class _OrganizeMatrixScreenState extends State<OrganizeMatrixScreen> {
                   child: Row(
                     children: [
                       GestureDetector(
-                        onTap: () => provider.toggleTaskCompletion(task.id),
+                        onTap: () => provider.toggleOrganizeTaskCompletion(task.id),
                         child: Icon(
                           task.isCompleted ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
                           size: 18,
@@ -305,9 +305,9 @@ class _OrganizeMatrixScreenState extends State<OrganizeMatrixScreen> {
                         icon: const Icon(Icons.more_vert_rounded, size: 16, color: Colors.grey),
                         onSelected: (action) {
                           if (action == 'complete') {
-                            provider.toggleTaskCompletion(task.id);
+                            provider.toggleOrganizeTaskCompletion(task.id);
                           } else if (action == 'delete') {
-                            provider.deleteTask(task.id);
+                            provider.deleteOrganizeTask(task.id);
                           }
                         },
                         itemBuilder: (ctx) => [
@@ -387,7 +387,7 @@ class _OrganizeMatrixScreenState extends State<OrganizeMatrixScreen> {
                 return;
               }
               final provider = Provider.of<AppProvider>(context, listen: false);
-              provider.addTask(
+              provider.addOrganizeTask(
                 text,
                 'Eisenhower Matrix',
                 'Active',

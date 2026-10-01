@@ -11,21 +11,7 @@ class TodoScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<AppProvider>(context);
-    final tasks = provider.tasks.where((t) {
-      final cat = t.category.trim().toLowerCase();
-      final id = t.id.toLowerCase();
-      // Exclude matrix, eisenhower, unit, topic, habit, calendar, or external auto-generated items
-      final isExcluded = t.isPriorityMatrixOnly ||
-          cat.contains('matrix') ||
-          cat.contains('eisenhower') ||
-          cat.contains('unit') ||
-          cat.contains('topic') ||
-          cat.contains('habit') ||
-          id.startsWith('cal_') ||
-          id.startsWith('sub_') ||
-          id.startsWith('unit_');
-      return !isExcluded;
-    }).toList();
+    final tasks = provider.todoTasks.where((t) => !t.isPriorityMatrixOnly).toList();
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
@@ -108,7 +94,7 @@ class TodoScreen extends StatelessWidget {
       key: Key(task.id),
       direction: DismissDirection.endToStart,
       onDismissed: (_) {
-        provider.deleteTask(task.id);
+        provider.deleteTodoTask(task.id);
       },
       background: Container(
         alignment: Alignment.centerRight,
@@ -145,7 +131,7 @@ class TodoScreen extends StatelessWidget {
         child: Row(
           children: [
             GestureDetector(
-              onTap: () => provider.toggleTaskCompletion(task.id),
+              onTap: () => provider.toggleTodoTaskCompletion(task.id),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 width: 26,
@@ -212,9 +198,9 @@ class TodoScreen extends StatelessWidget {
                 if (val == 'edit') {
                   _showEditTaskDialog(context, provider, task);
                 } else if (val == 'complete') {
-                  provider.toggleTaskCompletion(task.id);
+                  provider.toggleTodoTaskCompletion(task.id);
                 } else if (val == 'delete') {
-                  provider.deleteTask(task.id);
+                  provider.deleteTodoTask(task.id);
                 }
               },
               itemBuilder: (ctx) => [
@@ -278,8 +264,12 @@ class TodoScreen extends StatelessWidget {
           ElevatedButton(
             onPressed: () {
               if (titleCtrl.text.trim().isNotEmpty) {
-                task.title = titleCtrl.text.trim();
-                provider.updateTask(task);
+                provider.editTodoTask(
+                  task.id as String,
+                  titleCtrl.text.trim(),
+                  task.priority as int? ?? 1,
+                  task.category as String? ?? 'To-Do',
+                );
                 Navigator.pop(ctx);
               }
             },
@@ -382,7 +372,7 @@ class TodoScreen extends StatelessWidget {
                       onPressed: () {
                         if (titleController.text.trim().isNotEmpty) {
                           Provider.of<AppProvider>(context, listen: false)
-                              .addTask(
+                              .addTodoTask(
                             titleController.text.trim(),
                             category,
                             'Active',

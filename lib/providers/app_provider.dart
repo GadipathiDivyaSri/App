@@ -758,10 +758,14 @@ class AppProvider extends ChangeNotifier {
   }
 
   // ---------------------------------------------------------------------------
-  // 5. Tasks (Eisenhower & Priority)
+  // 5. Tasks (To-Do, Organize Matrix, Priority Matrix - 100% Isolated)
   // ---------------------------------------------------------------------------
-  List<Task> _tasks = [];
-  List<Task> get tasks => _tasks;
+  List<Task> _todoTasks = [];
+  List<Task> get todoTasks => _todoTasks;
+  List<Task> get tasks => _todoTasks; // Compatibility getter returns To-Do tasks
+
+  List<Task> _organizeTasks = [];
+  List<Task> get organizeTasks => _organizeTasks;
 
   List<Task> _priorityMatrixTasks = [];
   List<Task> get priorityMatrixTasks => _priorityMatrixTasks;
@@ -1238,13 +1242,22 @@ class AppProvider extends ChangeNotifier {
       _habits = [];
     }
 
-    // 2. Tasks (User-Isolated)
-    final tasksJson = prefs.getString('saved_tasks_$uid');
-    if (tasksJson != null) {
-      final List decoded = jsonDecode(tasksJson);
-      _tasks = decoded.map((item) => Task.fromJson(item)).toList();
+    // 2. To-Do Tasks (User-Isolated, Only User Entered)
+    final todoJson = prefs.getString('saved_todo_tasks_$uid') ?? prefs.getString('saved_tasks_$uid');
+    if (todoJson != null) {
+      final List decoded = jsonDecode(todoJson);
+      _todoTasks = decoded.map((item) => Task.fromJson(item)).where((t) => !t.isPriorityMatrixOnly).toList();
     } else {
-      _tasks = [];
+      _todoTasks = [];
+    }
+
+    // 2B. Organize Your Tasks / Eisenhower Matrix (Isolated)
+    final organizeJson = prefs.getString('saved_organize_tasks_$uid');
+    if (organizeJson != null) {
+      final List decoded = jsonDecode(organizeJson);
+      _organizeTasks = decoded.map((item) => Task.fromJson(item)).toList();
+    } else {
+      _organizeTasks = [];
     }
 
     // 3. Calendar Events (User-Isolated)
@@ -1362,8 +1375,10 @@ class AppProvider extends ChangeNotifier {
     syncAllDataFromCloud();
   }
 
-  // Task Operations
-  void addTask(String title, String category, String dueDateLabel, {int priority = 1, DateTime? dueDate, String? dueTime, String? id}) {
+  // ---------------------------------------------------------------------------
+  // 1. To-Do List Operations (User Entered Only)
+  // ---------------------------------------------------------------------------
+  void addTodoTask(String title, String category, String dueDateLabel, {int priority = 1, DateTime? dueDate, String? dueTime, String? id}) {
     final newTask = Task(
       id: id ?? generateUuidV4(),
       title: title,
@@ -1373,71 +1388,150 @@ class AppProvider extends ChangeNotifier {
       dueTime: dueTime ?? '05:00 PM',
       priority: priority,
     );
-    _tasks.add(newTask);
-    _saveTasks();
+    _todoTasks.add(newTask);
+    _saveTodoTasks();
     _recalculateMetrics();
     notifyListeners();
     ApiService.createTaskOnBackend(newTask);
   }
 
-  void editTask(String taskId, String newTitle, int priority, String category, {DateTime? dueDate, String? dueTime, String? dueDateLabel}) {
-    final index = _tasks.indexWhere((t) => t.id == taskId);
+  void addTask(String title, String category, String dueDateLabel, {int priority = 1, DateTime? dueDate, String? dueTime, String? id}) {
+    addTodoTask(title, category, dueDateLabel, priority: priority, dueDate: dueDate, dueTime: dueTime, id: id);
+  }
+
+  void editTodoTask(String taskId, String newTitle, int priority, String category, {DateTime? dueDate, String? dueTime, String? dueDateLabel}) {
+    final index = _todoTasks.indexWhere((t) => t.id == taskId);
     if (index != -1) {
-      _tasks[index].title = newTitle;
-      _tasks[index].priority = priority;
-      _tasks[index].category = category;
-      if (dueDate != null) _tasks[index].dueDate = dueDate;
-      if (dueTime != null) _tasks[index].dueTime = dueTime;
-      if (dueDateLabel != null) _tasks[index].dueDateLabel = dueDateLabel;
-      _saveTasks();
+      _todoTasks[index].title = newTitle;
+      _todoTasks[index].priority = priority;
+      _todoTasks[index].category = category;
+      if (dueDate != null) _todoTasks[index].dueDate = dueDate;
+      if (dueTime != null) _todoTasks[index].dueTime = dueTime;
+      if (dueDateLabel != null) _todoTasks[index].dueDateLabel = dueDateLabel;
+      _saveTodoTasks();
       notifyListeners();
-      ApiService.updateTaskOnBackend(_tasks[index]);
+      ApiService.updateTaskOnBackend(_todoTasks[index]);
     }
   }
 
-  void updateTask(Task task) {
-    final index = _tasks.indexWhere((t) => t.id == task.id);
+  void editTask(String taskId, String newTitle, int priority, String category, {DateTime? dueDate, String? dueTime, String? dueDateLabel}) {
+    editTodoTask(taskId, newTitle, priority, category, dueDate: dueDate, dueTime: dueTime, dueDateLabel: dueDateLabel);
+  }
+
+  void toggleTodoTaskCompletion(String taskId) {
+    final index = _todoTasks.indexWhere((t) => t.id == taskId);
     if (index != -1) {
-      _tasks[index] = task;
-      _saveTasks();
+      _todoTasks[index].isCompleted = !_todoTasks[index].isCompleted;
+      if (_todoTasks[index].isCompleted) {
+        _todoTasks[index].completedDate = DateTime.now();
+        _todoTasks[index].dueDateLabel = 'Completed';
+      } else {
+        _todoTasks[index].completedDate = null;
+        _todoTasks[index].dueDateLabel = 'Today';
+      }
+      _saveTodoTasks();
+      _recalculateMetrics();
       notifyListeners();
-      ApiService.updateTaskOnBackend(_tasks[index]);
+      ApiService.updateTaskOnBackend(_todoTasks[index]);
     }
   }
 
   void toggleTaskCompletion(String taskId) {
-    final index = _tasks.indexWhere((t) => t.id == taskId);
-    if (index != -1) {
-      _tasks[index].isCompleted = !_tasks[index].isCompleted;
-      if (_tasks[index].isCompleted) {
-        _tasks[index].completedDate = DateTime.now();
-        _tasks[index].dueDateLabel = 'Completed';
-      } else {
-        _tasks[index].completedDate = null;
-        _tasks[index].dueDateLabel = 'Today';
-      }
-      _saveTasks();
-      _recalculateMetrics();
-      notifyListeners();
-      ApiService.updateTaskOnBackend(_tasks[index]);
-    }
+    toggleTodoTaskCompletion(taskId);
   }
 
-  void deleteTask(String taskId) {
+  void deleteTodoTask(String taskId) {
     _deletedItemIds.add(taskId);
-    final idx = _tasks.indexWhere((t) => t.id == taskId);
+    final idx = _todoTasks.indexWhere((t) => t.id == taskId);
     if (idx != -1) {
-      _deletedItemIds.add(_tasks[idx].title.trim().toLowerCase());
+      _deletedItemIds.add(_todoTasks[idx].title.trim().toLowerCase());
     }
     _saveDeletedItemIds();
-    _tasks.removeWhere((t) => t.id == taskId);
-    _saveTasks();
+    _todoTasks.removeWhere((t) => t.id == taskId);
+    _saveTodoTasks();
     _recalculateMetrics();
     notifyListeners();
     ApiService.deleteTaskOnBackend(taskId);
   }
 
-  // Priority Matrix Specific Task Operations
+  void deleteTask(String taskId) {
+    deleteTodoTask(taskId);
+  }
+
+  Future<void> _saveTodoTasks() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonList = _todoTasks.map((t) => t.toJson()).toList();
+      await prefs.setString('saved_todo_tasks_${_user.id}', jsonEncode(jsonList));
+      await prefs.setString('saved_tasks_${_user.id}', jsonEncode(jsonList));
+    } catch (e) {
+      debugPrint('Error saving todo tasks: $e');
+    }
+  }
+
+  Future<void> _saveTasks() async {
+    await _saveTodoTasks();
+  }
+
+  // ---------------------------------------------------------------------------
+  // 2. Organize Your Tasks / Eisenhower Matrix Operations (100% Isolated)
+  // ---------------------------------------------------------------------------
+  void addOrganizeTask(String title, String category, String dueDateLabel, {int priority = 1, DateTime? dueDate, String? dueTime, String? id}) {
+    final newTask = Task(
+      id: id ?? generateUuidV4(),
+      title: title,
+      category: 'Eisenhower Matrix',
+      dueDateLabel: dueDateLabel,
+      dueDate: dueDate ?? DateTime.now(),
+      dueTime: dueTime ?? '05:00 PM',
+      priority: priority,
+    );
+    _organizeTasks.add(newTask);
+    _saveOrganizeTasks();
+    notifyListeners();
+  }
+
+  void toggleOrganizeTaskCompletion(String taskId) {
+    final index = _organizeTasks.indexWhere((t) => t.id == taskId);
+    if (index != -1) {
+      _organizeTasks[index].isCompleted = !_organizeTasks[index].isCompleted;
+      if (_organizeTasks[index].isCompleted) {
+        _organizeTasks[index].completedDate = DateTime.now();
+        _organizeTasks[index].dueDateLabel = 'Completed';
+      } else {
+        _organizeTasks[index].completedDate = null;
+        _organizeTasks[index].dueDateLabel = 'Today';
+      }
+      _saveOrganizeTasks();
+      notifyListeners();
+    }
+  }
+
+  void deleteOrganizeTask(String taskId) {
+    _deletedItemIds.add(taskId);
+    final idx = _organizeTasks.indexWhere((t) => t.id == taskId);
+    if (idx != -1) {
+      _deletedItemIds.add(_organizeTasks[idx].title.trim().toLowerCase());
+    }
+    _saveDeletedItemIds();
+    _organizeTasks.removeWhere((t) => t.id == taskId);
+    _saveOrganizeTasks();
+    notifyListeners();
+  }
+
+  Future<void> _saveOrganizeTasks() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonList = _organizeTasks.map((t) => t.toJson()).toList();
+      await prefs.setString('saved_organize_tasks_${_user.id}', jsonEncode(jsonList));
+    } catch (e) {
+      debugPrint('Error saving organize tasks: $e');
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // 3. Priority Matrix Operations (100% Isolated)
+  // ---------------------------------------------------------------------------
   void addPriorityMatrixTask(
     String title,
     String tag, {
