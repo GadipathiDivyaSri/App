@@ -1179,10 +1179,14 @@ async function handleApiRequest(req, res) {
 
   if ((pathname === '/api/users/me' || pathname === '/api/account/delete' || pathname === '/api/users/delete') && (method === 'DELETE' || method === 'POST')) {
     const targetUserId = userId || (body && (body.userId || body.user_id || body.id));
-    if (!targetUserId) {
-      return sendJSON(res, 400, { success: false, message: 'User ID is required for deletion.' });
+    const targetEmail = (currentUser && currentUser.email) || (body && (body.email || body.contact));
+    if (!targetUserId && !targetEmail) {
+      return sendJSON(res, 400, { success: false, message: 'User ID or email is required for deletion.' });
     }
-    await DatabaseManager.deleteUser(targetUserId);
+    await DatabaseManager.deleteUser(targetUserId || targetEmail);
+    if (targetEmail && targetEmail !== targetUserId) {
+      await DatabaseManager.deleteUser(targetEmail).catch(() => {});
+    }
     return sendJSON(res, 200, { success: true, message: 'Account and associated data permanently deleted.' });
   }
 

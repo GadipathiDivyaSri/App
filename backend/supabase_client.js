@@ -29,14 +29,14 @@ try {
 }
 
 const supabaseUrl = process.env.SUPABASE_URL || 'https://hkeyywopbkmlclsealbz.supabase.co';
-let rawKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || '';
+let rawKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhrZXl5d29wYmttbGNsc2VhbGJ6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4ODI3MTIxOSwiZXhwIjoyMTAzODQ3MjE5fQ.rAJQONxcr0PgCT-59ZfsjoyojY4-_g5aTaH2zwIntAg';
 if (rawKey.includes('=')) {
   const parts = rawKey.split('=');
   rawKey = parts[parts.length - 1].trim();
 }
 const supabaseKey = rawKey.trim();
 
-let rawAnonKey = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_KEY || '';
+let rawAnonKey = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhrZXl5d29wYmttbGNsc2VhbGJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNzEyMTksImV4cCI6MjEwMzg0NzIxOX0.axTZ1vLqZhquSfDhDXwIg4Sf2nioT8ZFjve39gr9QmY';
 if (rawAnonKey.includes('=')) {
   const parts = rawAnonKey.split('=');
   rawAnonKey = parts[parts.length - 1].trim();

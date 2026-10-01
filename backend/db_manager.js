@@ -3,7 +3,7 @@ const { Client } = require('pg');
 const { supabase, isConfigured: isSupabaseConfigured } = require('./supabase_client');
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://hkeyywopbkmlclsealbz.supabase.co';
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || '';
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhrZXl5d29wYmttbGNsc2VhbGJ6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4ODI3MTIxOSwiZXhwIjoyMTAzODQ3MjE5fQ.rAJQONxcr0PgCT-59ZfsjoyojY4-_g5aTaH2zwIntAg';
 
 // -----------------------------------------------------------------------------
 // 1. CRYPTOGRAPHIC SECURITY HELPERS & UUID GENERATOR
@@ -298,9 +298,11 @@ class DatabaseManager {
         });
         await client.connect();
         await client.query(`
+          ALTER TABLE public.profiles DROP COLUMN IF EXISTS deleted_at;
+
           CREATE TABLE IF NOT EXISTS public.deleted_accounts (
             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-            user_id UUID,
+            user_id TEXT,
             username TEXT,
             email TEXT,
             emailid TEXT,
@@ -309,6 +311,8 @@ class DatabaseManager {
             reason TEXT,
             created_at TIMESTAMPTZ DEFAULT now()
           );
+
+          ALTER TABLE public.deleted_accounts ALTER COLUMN user_id TYPE TEXT;
 
           GRANT ALL ON public.deleted_accounts TO anon, authenticated, service_role;
           ALTER TABLE public.deleted_accounts ENABLE ROW LEVEL SECURITY;
@@ -324,7 +328,7 @@ class DatabaseManager {
 
           ALTER TABLE public.deleted_account_tombstones
             ADD COLUMN IF NOT EXISTS username TEXT,
-            ADD COLUMN IF NOT EXISTS user_id UUID,
+            ADD COLUMN IF NOT EXISTS user_id TEXT,
             ADD COLUMN IF NOT EXISTS deleted_time TIMESTAMPTZ DEFAULT now();
 
           NOTIFY pgrst, 'reload schema';
@@ -342,11 +346,15 @@ class DatabaseManager {
   static async deleteUser(userId) {
     if (!userId) return false;
     const uid = ensureUuid(userId);
-    const user = await this.getUserById(uid);
+    let user = await this.getUserById(uid);
+    if (!user && typeof userId === 'string' && userId.includes('@')) {
+      user = await this.getUserByEmailOrUsername(userId);
+    }
 
     const deletedTime = new Date().toISOString();
-    const rawUsername = user?.username || (user?.email ? user.email.split('@')[0] : 'user');
-    const rawEmail = (user?.email || '').trim().toLowerCase();
+    const rawUsername = user?.username || (user?.email ? user.email.split('@')[0] : (typeof userId === 'string' && !userId.includes('@') ? userId : 'user'));
+    const rawEmail = (user?.email || (typeof userId === 'string' && userId.includes('@') ? userId : '')).trim().toLowerCase();
+    const actualUid = user?.id || uid;
 
     // 1. Ensure deleted_accounts table exists in Supabase
     await this.ensureDeletedAccountsTable().catch(() => {});
@@ -356,7 +364,7 @@ class DatabaseManager {
       await dbQuery('deleted_accounts', {
         method: 'POST',
         body: {
-          user_id: uid,
+          user_id: actualUid,
           username: rawUsername,
           email: rawEmail,
           emailid: rawEmail,
@@ -378,7 +386,7 @@ class DatabaseManager {
           email: rawEmail,
           deleted_at: deletedTime,
           username: rawUsername,
-          user_id: uid,
+          user_id: actualUid,
           deleted_time: deletedTime,
         },
       });
@@ -392,7 +400,7 @@ class DatabaseManager {
       await dbQuery('audit_logs', {
         method: 'POST',
         body: {
-          user_id: uid,
+          user_id: actualUid,
           action: 'ACCOUNT_PERMANENTLY_DELETED',
           payload: {
             username: rawUsername,
@@ -418,16 +426,20 @@ class DatabaseManager {
     // 6. Clean up Supabase Auth Admin user if configured
     if (isSupabaseConfigured() && supabase) {
       try {
-        await supabase.auth.admin.deleteUser(uid).catch(() => {});
-        if (user && user.email) {
-          const cleanEmail = user.email.trim().toLowerCase();
+        if (actualUid) {
+          await supabase.auth.admin.deleteUser(actualUid).catch(() => {});
+        }
+        if (uid && uid !== actualUid) {
+          await supabase.auth.admin.deleteUser(uid).catch(() => {});
+        }
+        if (rawEmail) {
           const { data } = await supabase.auth.admin.listUsers({ perPage: 1000 }).catch(() => ({ data: { users: [] } }));
-          const supUser = (data?.users || []).find(u => (u.email || '').toLowerCase() === cleanEmail);
-          if (supUser && supUser.id !== uid) {
+          const supUser = (data?.users || []).find(u => (u.email || '').toLowerCase() === rawEmail);
+          if (supUser && supUser.id) {
             await supabase.auth.admin.deleteUser(supUser.id).catch(() => {});
           }
         }
-        console.log(`[SUPABASE AUTH DELETE] Successfully deleted auth user for ID: ${uid}`);
+        console.log(`[SUPABASE AUTH DELETE] Successfully deleted auth user for ID: ${actualUid}`);
       } catch (supErr) {
         console.warn('[SUPABASE AUTH DELETE NOTICE]:', supErr.message);
       }
@@ -457,13 +469,32 @@ class DatabaseManager {
     ];
 
     for (const table of userTables) {
-      try {
-        await dbQuery(table, { method: 'DELETE', match: { user_id: uid } });
-      } catch (_) {}
+      if (actualUid) {
+        try {
+          await dbQuery(table, { method: 'DELETE', match: { user_id: actualUid } });
+        } catch (_) {}
+      }
+      if (uid && uid !== actualUid) {
+        try {
+          await dbQuery(table, { method: 'DELETE', match: { user_id: uid } });
+        } catch (_) {}
+      }
     }
 
-    // 8. Finally delete profile from profiles table
-    return await dbQuery('profiles', { method: 'DELETE', match: { id: uid } });
+    // 8. Finally delete profile completely from profiles table
+    if (actualUid) {
+      await dbQuery('profiles', { method: 'DELETE', match: { id: actualUid } }).catch(() => {});
+    }
+    if (uid && uid !== actualUid) {
+      await dbQuery('profiles', { method: 'DELETE', match: { id: uid } }).catch(() => {});
+    }
+    if (rawEmail) {
+      await dbQuery('profiles', { method: 'DELETE', match: { email: rawEmail } }).catch(() => {});
+    }
+    if (rawUsername && rawUsername !== 'user') {
+      await dbQuery('profiles', { method: 'DELETE', match: { username: rawUsername } }).catch(() => {});
+    }
+    return true;
   }
 
   // ---------------------------------------------------------------------------

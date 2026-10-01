@@ -44,7 +44,6 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     referred_by_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
     fcm_device_token TEXT,
     account_status VARCHAR(30) DEFAULT 'ACTIVE',
-    deleted_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_login_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -70,7 +69,7 @@ ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS xp INT DEFAULT 0;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS referral_code VARCHAR(50);
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS fcm_device_token TEXT;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS account_status VARCHAR(30) DEFAULT 'ACTIVE';
-ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;
+ALTER TABLE public.profiles DROP COLUMN IF EXISTS deleted_at;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP;
 
 CREATE INDEX IF NOT EXISTS idx_profiles_user_id ON public.profiles(user_id);

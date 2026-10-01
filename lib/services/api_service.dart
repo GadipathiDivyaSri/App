@@ -1638,12 +1638,35 @@ class ApiService {
   }) async {
     try {
       final sessionUser = await getSessionUser();
-      final effectiveUid = userId ?? sessionUser?['id']?.toString();
-      final rawEmail = contact ?? sessionUser?['email']?.toString() ?? sessionUser?['contact']?.toString() ?? '';
-      final rawUsername = sessionUser?['username']?.toString() ??
+      String? effectiveUid = userId ?? sessionUser?['id']?.toString();
+      final rawEmail = (contact ?? sessionUser?['email']?.toString() ?? sessionUser?['contact']?.toString() ?? '').trim().toLowerCase();
+      String rawUsername = (sessionUser?['username']?.toString() ??
           sessionUser?['name']?.toString() ??
-          (rawEmail.contains('@') ? rawEmail.split('@')[0] : 'user');
+          (rawEmail.contains('@') ? rawEmail.split('@')[0] : 'user')).trim();
       final nowIso = DateTime.now().toUtc().toIso8601String();
+
+      // If effectiveUid is missing or fallback 'u_1', query Supabase profiles to resolve the actual user UUID and username
+      if ((effectiveUid == null || effectiveUid.isEmpty || effectiveUid == 'u_1') && rawEmail.isNotEmpty) {
+        try {
+          final pRes = await http.get(
+            Uri.parse('$supabaseUrl/rest/v1/profiles?email=eq.$rawEmail&select=id,username'),
+            headers: {
+              'apikey': supabaseServiceKey,
+              'Authorization': 'Bearer $supabaseServiceKey',
+            },
+          ).timeout(const Duration(seconds: 4));
+          if (pRes.statusCode == 200) {
+            final pList = jsonDecode(pRes.body);
+            if (pList is List && pList.isNotEmpty) {
+              final first = pList.first;
+              if (first['id'] != null) effectiveUid = first['id'].toString();
+              if (first['username'] != null && first['username'].toString().isNotEmpty) {
+                rawUsername = first['username'].toString();
+              }
+            }
+          }
+        } catch (_) {}
+      }
 
       // 1. Send authenticated delete request to backend (/users/me and /account/delete)
       try {
@@ -1678,12 +1701,11 @@ class ApiService {
             'Prefer': 'return=minimal',
           },
           body: jsonEncode({
-            if (effectiveUid != null) 'user_id': effectiveUid,
+            if (effectiveUid != null && effectiveUid.isNotEmpty) 'user_id': effectiveUid,
             'username': rawUsername,
             'email': rawEmail,
             'emailid': rawEmail,
             'deleted_time': nowIso,
-            'deleted_at': nowIso,
             'reason': 'user_requested_permanent_deletion',
           }),
         ).timeout(const Duration(seconds: 8));
@@ -1704,6 +1726,9 @@ class ApiService {
           body: jsonEncode({
             'email': rawEmail,
             'deleted_at': nowIso,
+            'username': rawUsername,
+            if (effectiveUid != null && effectiveUid.isNotEmpty) 'user_id': effectiveUid,
+            'deleted_time': nowIso,
           }),
         ).timeout(const Duration(seconds: 8));
       } catch (tombErr) {
@@ -1721,7 +1746,7 @@ class ApiService {
             'Prefer': 'return=minimal',
           },
           body: jsonEncode({
-            if (effectiveUid != null) 'user_id': effectiveUid,
+            if (effectiveUid != null && effectiveUid.isNotEmpty) 'user_id': effectiveUid,
             'action': 'ACCOUNT_PERMANENTLY_DELETED',
             'payload': {
               'username': rawUsername,
@@ -1737,32 +1762,41 @@ class ApiService {
       }
 
       // 4. Purge all records from Supabase tables
+      final uidsToPurge = <String>[];
       if (effectiveUid != null && effectiveUid.isNotEmpty) {
-        final tablesToPurge = [
-          'tasks',
-          'habits',
-          'habit_logs',
-          'expenses',
-          'monthly_budgets',
-          'calendar_events',
-          'journal_entries',
-          'subjects',
-          'study_items',
-          'study_units',
-          'study_topics',
-          'goals',
-          'milestones',
-          'subscriptions',
-          'referrals',
-          'user_auth_identities',
-          'priority_matrix',
-          'career_nodes',
-          'notes',
-        ];
+        uidsToPurge.add(effectiveUid);
+      }
+      if (userId != null && userId.isNotEmpty && !uidsToPurge.contains(userId)) {
+        uidsToPurge.add(userId);
+      }
+
+      final tablesToPurge = [
+        'tasks',
+        'habits',
+        'habit_logs',
+        'expenses',
+        'monthly_budgets',
+        'calendar_events',
+        'journal_entries',
+        'subjects',
+        'study_items',
+        'study_units',
+        'study_topics',
+        'goals',
+        'milestones',
+        'subscriptions',
+        'referrals',
+        'user_auth_identities',
+        'priority_matrix',
+        'career_nodes',
+        'notes',
+      ];
+
+      for (final uid in uidsToPurge) {
         for (final table in tablesToPurge) {
           try {
             await http.delete(
-              Uri.parse('$supabaseUrl/rest/v1/$table?user_id=eq.$effectiveUid'),
+              Uri.parse('$supabaseUrl/rest/v1/$table?user_id=eq.$uid'),
               headers: {
                 'apikey': supabaseServiceKey,
                 'Authorization': 'Bearer $supabaseServiceKey',
@@ -1770,10 +1804,27 @@ class ApiService {
             ).timeout(const Duration(seconds: 5));
           } catch (_) {}
         }
-        // Purge profile
+      }
+
+      // 5. HARD DELETE PROFILE FROM public.profiles (by ID, by Email, and by Username)
+      for (final uid in uidsToPurge) {
+        if (uid != 'u_1') {
+          try {
+            await http.delete(
+              Uri.parse('$supabaseUrl/rest/v1/profiles?id=eq.$uid'),
+              headers: {
+                'apikey': supabaseServiceKey,
+                'Authorization': 'Bearer $supabaseServiceKey',
+              },
+            ).timeout(const Duration(seconds: 5));
+          } catch (_) {}
+        }
+      }
+
+      if (rawEmail.isNotEmpty) {
         try {
           await http.delete(
-            Uri.parse('$supabaseUrl/rest/v1/profiles?id=eq.$effectiveUid'),
+            Uri.parse('$supabaseUrl/rest/v1/profiles?email=eq.$rawEmail'),
             headers: {
               'apikey': supabaseServiceKey,
               'Authorization': 'Bearer $supabaseServiceKey',
@@ -1782,7 +1833,19 @@ class ApiService {
         } catch (_) {}
       }
 
-      // 5. Always clear local session and auth cache
+      if (rawUsername.isNotEmpty && rawUsername != 'user') {
+        try {
+          await http.delete(
+            Uri.parse('$supabaseUrl/rest/v1/profiles?username=eq.$rawUsername'),
+            headers: {
+              'apikey': supabaseServiceKey,
+              'Authorization': 'Bearer $supabaseServiceKey',
+            },
+          ).timeout(const Duration(seconds: 5));
+        } catch (_) {}
+      }
+
+      // 6. Always clear local session and auth cache
       await clearSession();
 
       return {
