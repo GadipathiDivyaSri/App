@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../config/subscription_config.dart';
 import '../../providers/app_provider.dart';
+import '../../screens/pricing_screen.dart';
 import '../../theme/app_theme.dart';
 import 'command_models.dart';
 import 'smart_assistant_controller.dart';
@@ -62,6 +64,81 @@ class _SmartAssistantScreenState extends State<SmartAssistantScreen> {
   Widget build(BuildContext context) {
     final provider = Provider.of<AppProvider>(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final isPro = provider.user.isPremium || provider.currentPlan == SubscriptionPlanType.pro;
+
+    if (!isPro) {
+      return Scaffold(
+        backgroundColor: isDark ? const Color(0xFF0F101A) : const Color(0xFFF8FAFC),
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 72,
+                    height: 72,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0052FF).withOpacity(0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.smart_toy_rounded,
+                      color: Color(0xFF0052FF),
+                      size: 40,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Wrindha AI Assistant is PRO Only',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      color: isDark ? Colors.white : const Color(0xFF0F172A),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'The autonomous AI Smart Assistant is an advanced feature available exclusively for WrindhaOS Pro subscribers.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const PricingScreen(),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.workspace_premium_rounded, color: Colors.white),
+                      label: const Text(
+                        'Upgrade to PRO for ₹49/mo',
+                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF0052FF),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
 
     final primaryBlue = const Color(0xFF0052FF);
     final assistantBubbleBg = isDark ? const Color(0xFF1E2235) : const Color(0xFFEEF2FF);

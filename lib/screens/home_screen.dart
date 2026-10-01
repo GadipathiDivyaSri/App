@@ -228,10 +228,18 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
 
-              // Bottom AI Assistant Quick Banner
+              // Bottom AI Assistant Quick Banner (PRO EXCLUSIVE)
               GestureDetector(
                 onTap: () {
-                  onTabChange(2); // Switch to Assistant tab in bottom navigation
+                  if (!provider.user.isPremium && provider.currentPlan != SubscriptionPlanType.pro) {
+                    showUpgradeProModal(
+                      context,
+                      featureTitle: 'Wrindha AI Assistant',
+                      limitExplanation: 'The Wrindha AI Smart Assistant is an advanced automated feature available exclusively for WrindhaOS Pro subscribers.',
+                    );
+                  } else {
+                    onTabChange(2); // Switch to Assistant tab in bottom navigation
+                  }
                 },
                 child: Container(
                   margin: const EdgeInsets.only(top: 14),

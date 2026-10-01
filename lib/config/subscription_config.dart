@@ -43,6 +43,7 @@ enum AppFeature {
   careerRoadmap,
   focusTimer,
   analytics,
+  aiAssistant,
 }
 
 extension AppFeatureExtension on AppFeature {
@@ -78,6 +79,8 @@ extension AppFeatureExtension on AppFeature {
         return 'Deep Focus Timer';
       case AppFeature.analytics:
         return 'Analytics & Insights';
+      case AppFeature.aiAssistant:
+        return 'Wrindha AI Smart Assistant';
     }
   }
 
@@ -109,6 +112,8 @@ extension AppFeatureExtension on AppFeature {
         return 'Distraction-free Pomodoro and custom interval timer.';
       case AppFeature.analytics:
         return 'Review your weekly productivity and study trends.';
+      case AppFeature.aiAssistant:
+        return 'Autonomous AI assistant to manage habits, tasks, expenses, and schedule.';
     }
   }
 
@@ -140,6 +145,8 @@ extension AppFeatureExtension on AppFeature {
         return 'Unlock Unlimited To-Do List';
       case AppFeature.calendar:
         return 'Unlock Productivity Calendar';
+      case AppFeature.aiAssistant:
+        return 'Unlock Wrindha AI Smart Assistant';
     }
   }
 
@@ -171,6 +178,8 @@ extension AppFeatureExtension on AppFeature {
         return 'Capture and organize all your daily action items without any limits.';
       case AppFeature.calendar:
         return 'Keep your schedule synchronized and never miss important deadlines.';
+      case AppFeature.aiAssistant:
+        return 'Get full, unlimited access to your personal Wrindha AI Smart Assistant to automate habits, tasks, expenses, and study scheduling.';
     }
   }
 
@@ -202,6 +211,8 @@ extension AppFeatureExtension on AppFeature {
         return Icons.timer_outlined;
       case AppFeature.analytics:
         return Icons.insights_rounded;
+      case AppFeature.aiAssistant:
+        return Icons.smart_toy_rounded;
     }
   }
 }
@@ -268,6 +279,7 @@ class SubscriptionRegistry {
       AppFeature.careerRoadmap,
       AppFeature.focusTimer,
       AppFeature.analytics,
+      AppFeature.aiAssistant,
     },
   );
 

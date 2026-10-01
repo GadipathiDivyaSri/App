@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../config/subscription_config.dart';
+import '../providers/app_provider.dart';
 import '../theme/app_theme.dart';
+import '../widgets/upgrade_pro_modal.dart';
 import 'home_screen.dart';
 import 'todo_screen.dart';
 import 'profile_screen.dart';
@@ -73,7 +77,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 label: 'To Do',
                 isDark: isDark,
               ),
-              // 3. AI Assistant Tab (Robot Icon)
+              // 3. AI Assistant Tab (Robot Icon - PRO EXCLUSIVE)
               _buildNavItem(
                 index: 2,
                 icon: Icons.smart_toy_outlined,
@@ -112,7 +116,20 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     final inactiveColor = isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary;
 
     return GestureDetector(
-      onTap: () => setState(() => _currentIndex = index),
+      onTap: () {
+        if (index == 2) {
+          final provider = Provider.of<AppProvider>(context, listen: false);
+          if (!provider.user.isPremium && provider.currentPlan != SubscriptionPlanType.pro) {
+            showUpgradeProModal(
+              context,
+              featureTitle: 'Wrindha AI Assistant',
+              limitExplanation: 'The Wrindha AI Smart Assistant is an advanced automated feature available exclusively for WrindhaOS Pro subscribers.',
+            );
+            return;
+          }
+        }
+        setState(() => _currentIndex = index);
+      },
       behavior: HitTestBehavior.opaque,
       child: Column(
         mainAxisSize: MainAxisSize.min,
