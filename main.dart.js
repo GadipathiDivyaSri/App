@@ -108117,7 +108117,7 @@ p=A.L(8)
 o=t.p
 r=A.bU(A.a1(n,A.a3(A.a([B.Rb,B.cJ,q,B.a2,A.a1(n,A.n(""+h+"/"+i.gE(j)+" Done",n,n,n,n,B.a5K,n,n,n),B.l,n,n,new A.X(B.x,n,n,p,n,n,B.o),n,n,n,B.ki,n,n,n)],o),B.i,B.h,B.a4,0,n,n),B.l,n,n,new A.X(B.Lw,n,n,r,n,n,B.o),n,n,n,B.OS,n,n,n),n,n)
 return A.dz(f,g,A.a2(A.a([B.ae,r,B.ay,A.ax(i.gaj(j)?A.bU(A.n("No milestone nodes yet.\nTap (+) to add your first roadmap node!",n,n,n,n,A.H(n,n,B.fM,n,n,n,n,n,n,n,n,14,n,n,n,n,n,!0,n,n,n,n,n,n,n,n),B.aN,n,n),n,n):A.x6(new A.axX(this,j,m,l,a,k)),1)],o),B.i,B.h,B.e,0,B.m),n,s)},
-at8(a,b){A.qE(null,new A.axQ(b,a),a,!1,B.a0i,t.z)},
+at8_detail(a,b){A.qE(null,new A.axQ_detail(b,a),a,!1,B.a0i,t.z)},at8(a,b){A.qE(null,new A.axQ(b,a),a,!1,B.a0i,t.z)},
 asS(a){var s=null,r={},q=$.ab()
 r.a=null
 A.fa(s,s,!0,s,new A.axN(r,new A.bW(B.aT,q),new A.bW(B.aT,q),new A.bW(B.aT,q),a),a,s,!0,!0,t.z)}}
@@ -108177,20 +108177,13 @@ if(r)B.b.M(o,A.a([B.a34,B.acf],i))
 return A.EY(g,A.cC(g,A.a2(A.a([n,B.bp,A.a1(g,A.a2(o,B.i,B.h,B.e,0,B.m),B.l,g,B.IR,new A.X(p,g,k,m,g,g,B.o),g,g,g,B.im,g,g,g)],i),B.i,B.h,B.a4,0,B.m),B.u,!1,g,g,g,g,g,g,g,new A.axR(h.a,q,e),g,g,g,g,g,g,g,g,new A.axS(h.d,e,q),g,g,g,g,g,g),g,g,d/2+d*0.28*c-32,g,30+f*110-32,g)},
 $S:658}
 A.axS.prototype={
-$0(){var s,r,q=null,p=this.b
-this.a.a5O(p.a)
-s=this.c
-r=t.R
-s.a0(r).f.a3c()
-r=s.a0(r).f
-s=p.e==="COMPLETED"
-p=p.c
-p=A.n(s?'\u2713 Milestone "'+p+'" marked as Completed!':'Milestone "'+p+'" marked as Planned',q,q,q,q,q,q,q,q)
-r.fh(A.un(q,q,q,s?B.D:B.jL,q,B.C,q,p,q,B.fS,q,q,q,q,q,q,q,q,q,q))},
+$0(){A.Xr.prototype.at8(this.c,this.b)},
 $S:0}
 A.axR.prototype={
 $0(){this.a.at8(this.b,this.c)},
 $S:0}
+A.axQ_detail=function axQ_detail(a,b){this.a=a;this.b=b};
+A.axQ_detail.prototype={$1(a){var s=null,r=this.a,q=A.ax(A.n(r.c,s,s,s,s,B.lL,s,s,s),1),p=r.e==="COMPLETED",o=p?B.tj:B.tc,n=A.L(8),m=p?"Completed \u2713":"In Progress",l=t.p;n=A.a([A.a3(A.a([q,A.a1(s,A.n(m,s,s,s,s,A.H(s,s,p?B.rW:B.fO,s,s,s,s,s,s,s,s,11,s,s,B.z,s,s,!0,s,s,s,s,s,s,s,s),s,s,s),B.l,s,s,new A.X(o,s,s,n,s,s,B.o),s,s,s,B.io,s,s,s)],l),B.i,B.a1,B.e,0,s,s)],l);q=r.d;if(q.length!==0)B.b.M(n,A.a([B.ae,A.n(q,s,s,s,s,B.lO,s,s,s)],l));return new A.au(B.W,A.a2(n,B.w,B.h,B.a4,0,B.m),s)},$S:97};
 A.axQ.prototype={
 $1(a){var s=null,r=this.a,q=A.ax(A.n(r.c,s,s,s,s,B.lL,s,s,s),1),p=r.e==="COMPLETED",o=p?B.tj:B.tc,n=A.L(8),m=p?"Completed \u2713":"In Progress",l=t.p
 n=A.a([A.a3(A.a([q,A.a1(s,A.n(m,s,s,s,s,A.H(s,s,p?B.rW:B.fO,s,s,s,s,s,s,s,s,11,s,s,B.z,s,s,!0,s,s,s,s,s,s,s,s),s,s,s),B.l,s,s,new A.X(o,s,s,n,s,s,B.o),s,s,s,B.io,s,s,s)],l),B.i,B.a1,B.e,0,s,s)],l)

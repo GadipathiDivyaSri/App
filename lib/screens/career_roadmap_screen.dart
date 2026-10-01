@@ -193,7 +193,7 @@ class _CareerRoadmapScreenState extends State<CareerRoadmapScreen> {
                                     top: targetY - 32,
                                     child: GestureDetector(
                                       onTap: () {
-                                        _showNodeOptionsModal(context, node);
+                                        _showNodeDetailsModal(context, node);
                                       },
                                       onLongPress: () {
                                         _showNodeOptionsModal(context, node);
@@ -311,6 +311,108 @@ class _CareerRoadmapScreenState extends State<CareerRoadmapScreen> {
       Icons.work_rounded,
     ];
     return icons[index % icons.length];
+  }
+
+  void _showNodeDetailsModal(BuildContext context, CareerRoadmapNode node) {
+    final provider = Provider.of<AppProvider>(context, listen: false);
+    if (!provider.user.isPremium) {
+      ProUpgradeDialog.showFeatureLockedDialog(context, AppFeature.careerRoadmap);
+      return;
+    }
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.white24 : Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    node.title,
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: node.isCompleted ? const Color(0xFFD1FAE5) : const Color(0xFFFEF3C7),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    node.isCompleted ? 'Completed ✓' : 'Planned',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: node.isCompleted ? const Color(0xFF047857) : const Color(0xFFD97706),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'DESCRIPTION & DEADLINE',
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF94A3B8), letterSpacing: 1.0),
+            ),
+            const SizedBox(height: 6),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF2A2B3D) : const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFCBD5E1).withOpacity(0.4)),
+              ),
+              child: Text(
+                node.description.isNotEmpty ? node.description : 'No description specified for this milestone.',
+                style: TextStyle(
+                  fontSize: 13.5,
+                  height: 1.4,
+                  color: isDark ? Colors.white70 : const Color(0xFF334155),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                const Icon(Icons.touch_app_rounded, size: 16, color: Color(0xFF94A3B8)),
+                const SizedBox(width: 6),
+                const Text(
+                  'Long press node to Edit, Complete, or Delete',
+                  style: TextStyle(fontSize: 11.5, color: Color(0xFF94A3B8), fontStyle: FontStyle.italic),
+                ),
+                const Spacer(),
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Close', style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _showNodeOptionsModal(BuildContext context, CareerRoadmapNode node) {
