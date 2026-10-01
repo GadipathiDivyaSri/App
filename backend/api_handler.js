@@ -1396,28 +1396,54 @@ async function handleApiRequest(req, res) {
   }
 
   // ---------------------------------------------------------------------------
-  // 13. GOALS & CAREER ROADMAP
+  // 13. GOALS
   // ---------------------------------------------------------------------------
-  if ((pathname === '/api/goals' || pathname === '/api/career-roadmap') && method === 'GET') {
+  if (pathname === '/api/goals' && method === 'GET') {
     const goals = await DatabaseManager.getGoals(userId, query.tier || query.timeframe);
     return sendJSON(res, 200, goals);
   }
 
-  if ((pathname === '/api/goals' || pathname === '/api/career-roadmap') && method === 'POST') {
+  if (pathname === '/api/goals' && method === 'POST') {
     const newGoal = await DatabaseManager.createGoal(userId, body);
     return sendJSON(res, 201, newGoal);
   }
 
-  if ((pathname.startsWith('/api/goals/') || pathname.startsWith('/api/career-roadmap/')) && (method === 'PUT' || method === 'PATCH')) {
+  if (pathname.startsWith('/api/goals/') && (method === 'PUT' || method === 'PATCH')) {
     const goalId = pathname.split('/')[3];
     const updated = await DatabaseManager.updateGoal(userId, goalId, body);
     if (!updated) return sendJSON(res, 404, { error: 'Goal not found or unauthorized' });
     return sendJSON(res, 200, updated);
   }
 
-  if ((pathname.startsWith('/api/goals/') || pathname.startsWith('/api/career-roadmap/')) && method === 'DELETE') {
+  if (pathname.startsWith('/api/goals/') && method === 'DELETE') {
     const goalId = pathname.split('/')[3];
     const deleted = await DatabaseManager.deleteGoal(userId, goalId);
+    return sendJSON(res, 200, { success: deleted });
+  }
+
+  // ---------------------------------------------------------------------------
+  // 13B. CAREER ROADMAP (100% ISOLATED)
+  // ---------------------------------------------------------------------------
+  if (pathname === '/api/career-roadmap' && method === 'GET') {
+    const nodes = await DatabaseManager.getCareerNodes(userId);
+    return sendJSON(res, 200, nodes);
+  }
+
+  if (pathname === '/api/career-roadmap' && method === 'POST') {
+    const newNode = await DatabaseManager.createCareerNode(userId, body);
+    return sendJSON(res, 201, newNode);
+  }
+
+  if (pathname.startsWith('/api/career-roadmap/') && (method === 'PUT' || method === 'PATCH')) {
+    const nodeId = pathname.split('/')[3];
+    const updated = await DatabaseManager.updateCareerNode(userId, nodeId, body);
+    if (!updated) return sendJSON(res, 404, { error: 'Career node not found or unauthorized' });
+    return sendJSON(res, 200, updated);
+  }
+
+  if (pathname.startsWith('/api/career-roadmap/') && method === 'DELETE') {
+    const nodeId = pathname.split('/')[3];
+    const deleted = await DatabaseManager.deleteCareerNode(userId, nodeId);
     return sendJSON(res, 200, { success: deleted });
   }
 

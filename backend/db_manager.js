@@ -1009,9 +1009,103 @@ class DatabaseManager {
       section: g.section || 'GOAL',
     }));
     if (!tier) {
-      list = list.filter(g => (g.tier || '').toLowerCase() !== 'roadmap');
+      list = list.filter(g => (g.tier || '').toLowerCase() !== 'roadmap' && (g.section || '').toUpperCase() !== 'CAREER');
     }
     return list;
+  }
+
+  // ---------------------------------------------------------------------------
+  // CAREER ROADMAP NODES (100% DECOUPLED FROM GOALS)
+  // ---------------------------------------------------------------------------
+  static async getCareerNodes(userId) {
+    if (!userId) return [];
+    const uid = ensureUuid(userId);
+    let nodes = [];
+    try {
+      nodes = await dbQuery('career_nodes', { method: 'GET', match: { user_id: uid } });
+    } catch (_) {}
+    if (!nodes || nodes.length === 0) {
+      try {
+        const goals = await dbQuery('goals', { method: 'GET', match: { user_id: uid, section: 'CAREER' } });
+        if (goals && goals.length > 0) {
+          nodes = goals;
+        }
+      } catch (_) {}
+    }
+    return (nodes || []).map(n => ({
+      id: n.id,
+      user_id: n.user_id,
+      userId: n.user_id,
+      title: n.title,
+      description: n.description || '',
+      section: n.section || 'SKILLS',
+      status: n.status || (n.is_completed ? 'COMPLETED' : 'PLANNED'),
+      isCompleted: !!(n.is_completed || n.isCompleted),
+      is_completed: !!(n.is_completed || n.isCompleted),
+      order: n.order ?? 0,
+      createdAt: n.created_at,
+    }));
+  }
+
+  static async createCareerNode(userId, nodeData) {
+    if (!userId) throw new Error('userId is required');
+    const uid = ensureUuid(userId);
+    const newNode = {
+      id: ensureUuid(nodeData.id),
+      user_id: uid,
+      title: nodeData.title || 'New Node',
+      description: nodeData.description || '',
+      section: nodeData.section || 'SKILLS',
+      status: nodeData.status || 'PLANNED',
+      is_completed: !!(nodeData.is_completed || nodeData.isCompleted),
+      order: nodeData.order ?? 0,
+      created_at: new Date().toISOString(),
+    };
+    try {
+      const created = await dbQuery('career_nodes', { method: 'POST', body: newNode, single: true });
+      return created ? { ...created, isCompleted: !!created.is_completed } : newNode;
+    } catch (_) {
+      const fallback = { ...newNode, tier: 'roadmap', section: 'CAREER', category: 'Career' };
+      await dbQuery('goals', { method: 'POST', body: fallback, single: true });
+      return newNode;
+    }
+  }
+
+  static async updateCareerNode(userId, nodeId, updates) {
+    if (!userId || !nodeId) return null;
+    const uid = ensureUuid(userId);
+    const nid = ensureUuid(nodeId);
+    const payload = {};
+    if (updates.title !== undefined) payload.title = updates.title;
+    if (updates.description !== undefined) payload.description = updates.description;
+    if (updates.section !== undefined) payload.section = updates.section;
+    if (updates.status !== undefined) payload.status = updates.status;
+    if (updates.order !== undefined) payload.order = updates.order;
+    if (updates.is_completed !== undefined || updates.isCompleted !== undefined) {
+      payload.is_completed = !!(updates.is_completed ?? updates.isCompleted);
+    }
+    try {
+      const updated = await dbQuery('career_nodes', { method: 'PATCH', match: { id: nid, user_id: uid }, body: payload, single: true });
+      if (updated) return { ...updated, isCompleted: !!updated.is_completed };
+    } catch (_) {}
+    try {
+      const updatedGoal = await dbQuery('goals', { method: 'PATCH', match: { id: nid, user_id: uid }, body: payload, single: true });
+      if (updatedGoal) return { ...updatedGoal, isCompleted: !!updatedGoal.is_completed };
+    } catch (_) {}
+    return null;
+  }
+
+  static async deleteCareerNode(userId, nodeId) {
+    if (!userId || !nodeId) return false;
+    const uid = ensureUuid(userId);
+    const nid = ensureUuid(nodeId);
+    try {
+      await dbQuery('career_nodes', { method: 'DELETE', match: { id: nid, user_id: uid } });
+    } catch (_) {}
+    try {
+      await dbQuery('goals', { method: 'DELETE', match: { id: nid, user_id: uid, section: 'CAREER' } });
+    } catch (_) {}
+    return true;
   }
 
   static async createGoal(userId, goalData) {

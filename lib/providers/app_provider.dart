@@ -668,29 +668,40 @@ class AppProvider extends ChangeNotifier {
       final remote = await ApiService.fetchGoals();
       final validRemote = remote.where((g) =>
         !_deletedItemIds.contains(g.id) &&
-        !_deletedItemIds.contains(g.title.trim().toLowerCase())
+        !_deletedItemIds.contains(g.title.trim().toLowerCase()) &&
+        (g.tier || '').toLowerCase() != 'roadmap' &&
+        (g.section || '').toUpperCase() != 'CAREER'
       ).toList();
-      final Map<String, Goal> goalMap = {for (var g in _goals) if (!_deletedItemIds.contains(g.id)) g.id: g};
-      for (var rg in validRemote) {
-        Goal? local = goalMap[rg.id];
-        if (local == null) {
-          for (var g in goalMap.values) {
-            if (g.title.trim().toLowerCase() == rg.title.trim().toLowerCase()) {
-              local = g;
-              break;
-            }
-          }
-        }
-        if (local != null) {
-          local.isCompleted = local.isCompleted || rg.isCompleted;
-          goalMap[local.id] = local;
-        } else {
-          goalMap[rg.id] = rg;
+      
+      final Map<String, Goal> goalMap = {};
+      final Map<String, String> titleToId = {};
+      
+      for (var g in _goals) {
+        final normTitle = g.title.trim().toLowerCase();
+        if (!_deletedItemIds.contains(g.id) && !_deletedItemIds.contains(normTitle) && (g.tier || '').toLowerCase() != 'roadmap' && (g.section || '').toUpperCase() != 'CAREER') {
+          goalMap[g.id] = g;
+          if (normTitle.isNotEmpty) titleToId[normTitle] = g.id;
         }
       }
+      
+      for (var rg in validRemote) {
+        final normTitle = rg.title.trim().toLowerCase();
+        final existingId = goalMap.containsKey(rg.id) ? rg.id : (normTitle.isNotEmpty ? titleToId[normTitle] : null);
+        if (existingId != null && goalMap.containsKey(existingId)) {
+          final local = goalMap[existingId]!;
+          local.isCompleted = local.isCompleted || rg.isCompleted;
+          goalMap[existingId] = local;
+        } else {
+          goalMap[rg.id] = rg;
+          if (normTitle.isNotEmpty) titleToId[normTitle] = rg.id;
+        }
+      }
+      
       _goals = goalMap.values.where((g) =>
         !_deletedItemIds.contains(g.id) &&
-        !_deletedItemIds.contains(g.title.trim().toLowerCase())
+        !_deletedItemIds.contains(g.title.trim().toLowerCase()) &&
+        (g.tier || '').toLowerCase() != 'roadmap' &&
+        (g.section || '').toUpperCase() != 'CAREER'
       ).toList();
       _saveGoals();
       notifyListeners();
@@ -1358,7 +1369,7 @@ class AppProvider extends ChangeNotifier {
       _notifications = [];
     }
 
-    // Filter out all previously deleted item IDs
+    // Filter out all previously deleted item IDs and cross-contaminated items
     _habits.removeWhere((h) => _deletedItemIds.contains(h.id) || _deletedItemIds.contains(h.title.trim().toLowerCase()));
     _tasks.removeWhere((t) => _deletedItemIds.contains(t.id) || _deletedItemIds.contains(t.title.trim().toLowerCase()));
     _priorityMatrixTasks.removeWhere((t) => _deletedItemIds.contains(t.id) || _deletedItemIds.contains(t.title.trim().toLowerCase()));
@@ -1370,7 +1381,31 @@ class AppProvider extends ChangeNotifier {
     _studyTopics.removeWhere((t) => _deletedItemIds.contains(t.id) || _deletedItemIds.contains(t.title.trim().toLowerCase()));
     _journalEntries.removeWhere((j) => _deletedItemIds.contains(j.id) || _deletedItemIds.contains(j.title.trim().toLowerCase()));
     _careerNodes.removeWhere((n) => _deletedItemIds.contains(n.id) || _deletedItemIds.contains(n.title.trim().toLowerCase()));
-    _goals.removeWhere((g) => _deletedItemIds.contains(g.id) || _deletedItemIds.contains(g.title.trim().toLowerCase()));
+    _goals.removeWhere((g) => _deletedItemIds.contains(g.id) || _deletedItemIds.contains(g.title.trim().toLowerCase()) || (g.tier || '').toLowerCase() == 'roadmap' || (g.section || '').toUpperCase() == 'CAREER');
+
+    // Deduplicate Goals
+    final Map<String, Goal> goalMap = {};
+    final Map<String, String> goalTitleMap = {};
+    for (var g in _goals) {
+      final normTitle = g.title.trim().toLowerCase();
+      if (!goalMap.containsKey(g.id) && (normTitle.isEmpty || !goalTitleMap.containsKey(normTitle))) {
+        goalMap[g.id] = g;
+        if (normTitle.isNotEmpty) goalTitleMap[normTitle] = g.id;
+      }
+    }
+    _goals = goalMap.values.toList();
+
+    // Deduplicate Career Nodes
+    final Map<String, CareerRoadmapNode> careerMap = {};
+    final Map<String, String> careerTitleMap = {};
+    for (var n in _careerNodes) {
+      final normTitle = n.title.trim().toLowerCase();
+      if (!careerMap.containsKey(n.id) && (normTitle.isEmpty || !careerTitleMap.containsKey(normTitle))) {
+        careerMap[n.id] = n;
+        if (normTitle.isNotEmpty) careerTitleMap[normTitle] = n.id;
+      }
+    }
+    _careerNodes = careerMap.values.toList();
 
     recalculateAllSubjectProgress();
     _recalculateMetrics();
@@ -2152,24 +2187,31 @@ class AppProvider extends ChangeNotifier {
         !_deletedItemIds.contains(n.id) &&
         !_deletedItemIds.contains(n.title.trim().toLowerCase())
       ).toList();
-      final Map<String, CareerRoadmapNode> nodeMap = {for (var n in _careerNodes) if (!_deletedItemIds.contains(n.id)) n.id: n};
-      for (var rn in validRemote) {
-        CareerRoadmapNode? local = nodeMap[rn.id];
-        if (local == null) {
-          for (var n in nodeMap.values) {
-            if (n.title.trim().toLowerCase() == rn.title.trim().toLowerCase()) {
-              local = n;
-              break;
-            }
-          }
-        }
-        if (local != null) {
-          local.isCompleted = local.isCompleted || rn.isCompleted;
-          nodeMap[local.id] = local;
-        } else {
-          nodeMap[rn.id] = rn;
+      
+      final Map<String, CareerRoadmapNode> nodeMap = {};
+      final Map<String, String> titleToId = {};
+      
+      for (var n in _careerNodes) {
+        final normTitle = n.title.trim().toLowerCase();
+        if (!_deletedItemIds.contains(n.id) && !_deletedItemIds.contains(normTitle)) {
+          nodeMap[n.id] = n;
+          if (normTitle.isNotEmpty) titleToId[normTitle] = n.id;
         }
       }
+
+      for (var rn in validRemote) {
+        final normTitle = rn.title.trim().toLowerCase();
+        final existingId = nodeMap.containsKey(rn.id) ? rn.id : (normTitle.isNotEmpty ? titleToId[normTitle] : null);
+        if (existingId != null && nodeMap.containsKey(existingId)) {
+          final local = nodeMap[existingId]!;
+          local.isCompleted = local.isCompleted || rn.isCompleted;
+          nodeMap[existingId] = local;
+        } else {
+          nodeMap[rn.id] = rn;
+          if (normTitle.isNotEmpty) titleToId[normTitle] = rn.id;
+        }
+      }
+
       _careerNodes = nodeMap.values.where((n) =>
         !_deletedItemIds.contains(n.id) &&
         !_deletedItemIds.contains(n.title.trim().toLowerCase())
