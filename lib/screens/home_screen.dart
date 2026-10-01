@@ -13,6 +13,8 @@ import 'calendar_screen.dart';
 import 'priority_matrix_screen.dart';
 import 'analytics_screen.dart';
 
+import '../features/smart_assistant/smart_assistant_screen.dart';
+
 class HomeScreen extends StatelessWidget {
   final Function(int) onTabChange;
 
@@ -31,20 +33,20 @@ class HomeScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header with Title
+              // Header with Title & AI Assistant Button
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   RichText(
-                    text: const TextSpan(
+                    text: TextSpan(
                       text: 'Wrindha',
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.w900,
                         letterSpacing: -0.5,
-                        color: AppTheme.lightTextPrimary,
+                        color: isDark ? Colors.white : AppTheme.lightTextPrimary,
                       ),
-                      children: [
+                      children: const [
                         TextSpan(
                           text: 'OS',
                           style: TextStyle(
@@ -52,6 +54,24 @@ class HomeScreen extends StatelessWidget {
                           ),
                         ),
                       ],
+                    ),
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const SmartAssistantScreen(),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.auto_awesome_rounded, size: 16, color: Colors.white),
+                    label: const Text('AI Assistant', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF0D5CE5),
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     ),
                   ),
                 ],
