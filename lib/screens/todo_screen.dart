@@ -260,9 +260,16 @@ class TodoScreen extends StatelessWidget {
           decoration: const InputDecoration(labelText: 'Task Title', border: OutlineInputBorder()),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () {
+              FocusScope.of(ctx).unfocus();
+              Navigator.pop(ctx);
+            },
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
             onPressed: () {
+              FocusScope.of(ctx).unfocus();
               if (titleCtrl.text.trim().isNotEmpty) {
                 provider.editTodoTask(
                   task.id as String,
@@ -370,6 +377,7 @@ class TodoScreen extends StatelessWidget {
                         ),
                       ),
                       onPressed: () {
+                        FocusScope.of(ctx).unfocus();
                         if (titleController.text.trim().isNotEmpty) {
                           Provider.of<AppProvider>(context, listen: false)
                               .addTodoTask(
@@ -396,6 +404,10 @@ class TodoScreen extends StatelessWidget {
           },
         );
       },
-    );
+    ).then((_) {
+      if (context.mounted) {
+        FocusScope.of(context).unfocus();
+      }
+    });
   }
 }

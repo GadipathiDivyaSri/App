@@ -142,14 +142,40 @@ class AppProvider extends ChangeNotifier {
 
   Future<void> syncSubscription() async {
     try {
+      final isLocallyPro = _user.isPremium ||
+          _user.subscriptionPlan.toUpperCase() == 'PRO' ||
+          _subscription.isPro;
+
       final remoteSub = await ApiService.fetchUserSubscription();
       if (remoteSub != null) {
-        if (_user.isPremium && !remoteSub.isPro && remoteSub.status != 'cancelled' && remoteSub.status != 'expired') {
+        if (isLocallyPro || remoteSub.isPro) {
+          _user.isPremium = true;
+          _user.subscriptionPlan = 'PRO';
+          _subscription = UserSubscription(
+            id: remoteSub.id.isNotEmpty ? remoteSub.id : 'sub_pro_${_user.id}',
+            userId: _user.id,
+            plan: 'pro',
+            status: 'active',
+            startedAt: remoteSub.startedAt,
+          );
+          _saveSubscriptionState();
           await ApiService.upgradeSubscription(provider: 'LOCAL_SYNC');
         } else {
           setSubscription(remoteSub);
         }
+      } else if (isLocallyPro) {
+        _user.isPremium = true;
+        _user.subscriptionPlan = 'PRO';
+        _subscription = UserSubscription(
+          id: 'sub_pro_${_user.id}',
+          userId: _user.id,
+          plan: 'pro',
+          status: 'active',
+          startedAt: DateTime.now(),
+        );
+        _saveSubscriptionState();
       }
+      notifyListeners();
     } catch (_) {}
   }
 
@@ -1281,7 +1307,38 @@ class AppProvider extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     final uid = _user.id;
 
-    // 0. Deleted Item IDs
+    // 0. Subscription State Restoration (User-Isolated)
+    final savedIsPremium = prefs.getBool('saved_is_premium_$uid');
+    final savedSubPlan = prefs.getString('saved_sub_plan_$uid');
+    final savedSubJson = prefs.getString('saved_user_subscription_$uid');
+
+    if (savedIsPremium == true || (savedSubPlan != null && savedSubPlan.toUpperCase() == 'PRO')) {
+      _user.isPremium = true;
+      _user.subscriptionPlan = 'PRO';
+      if (savedSubJson != null) {
+        try {
+          _subscription = UserSubscription.fromJson(jsonDecode(savedSubJson));
+        } catch (_) {
+          _subscription = UserSubscription(
+            id: 'sub_pro_$uid',
+            userId: uid,
+            plan: 'pro',
+            status: 'active',
+            startedAt: DateTime.now(),
+          );
+        }
+      } else {
+        _subscription = UserSubscription(
+          id: 'sub_pro_$uid',
+          userId: uid,
+          plan: 'pro',
+          status: 'active',
+          startedAt: DateTime.now(),
+        );
+      }
+    }
+
+    // 0B. Deleted Item IDs
     final deletedList = prefs.getStringList('saved_deleted_ids_$uid');
     if (deletedList != null) {
       _deletedItemIds = deletedList.toSet();
