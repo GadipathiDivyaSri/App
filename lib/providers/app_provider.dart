@@ -695,8 +695,7 @@ class AppProvider extends ChangeNotifier {
       final validRemote = remote.where((g) =>
         !_deletedItemIds.contains(g.id) &&
         !_deletedItemIds.contains(g.title.trim().toLowerCase()) &&
-        (g.tier || '').toLowerCase() != 'roadmap' &&
-        (g.section || '').toUpperCase() != 'CAREER'
+        g.tier.toLowerCase() != 'roadmap'
       ).toList();
       
       final Map<String, Goal> goalMap = {};
@@ -704,7 +703,7 @@ class AppProvider extends ChangeNotifier {
       
       for (var g in _goals) {
         final normTitle = g.title.trim().toLowerCase();
-        if (!_deletedItemIds.contains(g.id) && !_deletedItemIds.contains(normTitle) && (g.tier || '').toLowerCase() != 'roadmap' && (g.section || '').toUpperCase() != 'CAREER') {
+        if (!_deletedItemIds.contains(g.id) && !_deletedItemIds.contains(normTitle) && g.tier.toLowerCase() != 'roadmap') {
           goalMap[g.id] = g;
           if (normTitle.isNotEmpty) titleToId[normTitle] = g.id;
         }
@@ -726,8 +725,7 @@ class AppProvider extends ChangeNotifier {
       _goals = goalMap.values.where((g) =>
         !_deletedItemIds.contains(g.id) &&
         !_deletedItemIds.contains(g.title.trim().toLowerCase()) &&
-        (g.tier || '').toLowerCase() != 'roadmap' &&
-        (g.section || '').toUpperCase() != 'CAREER'
+        g.tier.toLowerCase() != 'roadmap'
       ).toList();
       _saveGoals();
       notifyListeners();
@@ -1415,7 +1413,7 @@ class AppProvider extends ChangeNotifier {
     _studyTopics.removeWhere((t) => _deletedItemIds.contains(t.id) || _deletedItemIds.contains(t.title.trim().toLowerCase()));
     _journalEntries.removeWhere((j) => _deletedItemIds.contains(j.id) || _deletedItemIds.contains(j.title.trim().toLowerCase()));
     _careerNodes.removeWhere((n) => _deletedItemIds.contains(n.id) || _deletedItemIds.contains(n.title.trim().toLowerCase()));
-    _goals.removeWhere((g) => _deletedItemIds.contains(g.id) || _deletedItemIds.contains(g.title.trim().toLowerCase()) || (g.tier || '').toLowerCase() == 'roadmap' || (g.section || '').toUpperCase() == 'CAREER');
+    _goals.removeWhere((g) => _deletedItemIds.contains(g.id) || _deletedItemIds.contains(g.title.trim().toLowerCase()) || g.tier.toLowerCase() == 'roadmap');
 
     // Deduplicate Goals
     final Map<String, Goal> goalMap = {};

@@ -28,6 +28,7 @@ class _PasswordResetOtpScreenState extends State<PasswordResetOtpScreen> {
   Timer? _cooldownTimer;
   final ValueNotifier<int> _secondsRemainingNotifier = ValueNotifier<int>(60);
   final ValueNotifier<bool> _canResendNotifier = ValueNotifier<bool>(false);
+  bool get _canResend => _canResendNotifier.value;
 
   @override
   void initState() {
