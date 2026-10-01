@@ -335,7 +335,7 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: isDark ? Colors.white50 : const Color(0xFF94A3B8),
+                      color: isDark ? Colors.white54 : const Color(0xFF94A3B8),
                     ),
                   ),
                 ],
@@ -551,7 +551,7 @@ class _FocusTimerScreenState extends State<FocusTimerScreen>
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: isDark ? Colors.white50 : const Color(0xFF94A3B8),
+                        color: isDark ? Colors.white54 : const Color(0xFF94A3B8),
                       ),
                     ),
                   ],

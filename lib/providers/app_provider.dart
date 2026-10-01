@@ -763,6 +763,8 @@ class AppProvider extends ChangeNotifier {
   List<Task> _todoTasks = [];
   List<Task> get todoTasks => _todoTasks;
   List<Task> get tasks => _todoTasks; // Compatibility getter returns To-Do tasks
+  List<Task> get _tasks => _todoTasks;
+  set _tasks(List<Task> val) => _todoTasks = val;
 
   List<Task> _organizeTasks = [];
   List<Task> get organizeTasks => _organizeTasks;
@@ -1797,15 +1799,6 @@ class AppProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> _saveTasks() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final jsonList = _tasks.map((t) => t.toJson()).toList();
-      await prefs.setString('saved_tasks_${_user.id}', jsonEncode(jsonList));
-    } catch (e) {
-      debugPrint('Error saving tasks: $e');
-    }
-  }
 
   Future<void> _saveEvents() async {
     try {
