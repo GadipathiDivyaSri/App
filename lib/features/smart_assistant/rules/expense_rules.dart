@@ -72,10 +72,33 @@ class ExpenseRules {
         text: 'You have no expense transactions to delete.',
         isUser: false,
         timestamp: DateTime.now(),
+        suggestionChips: ['Show my expenses', 'How much did I spend this month?'],
       );
     }
 
-    final target = expenses.first;
+    final query = (entities.title ?? '').toLowerCase().trim();
+    ExpenseItem? target;
+    if (query.isNotEmpty && query != 'untitled item') {
+      for (final exp in expenses) {
+        final title = exp.title.toLowerCase();
+        if (title.contains(query) || query.contains(title)) {
+          target = exp;
+          break;
+        }
+      }
+    }
+
+    if (entities.amount != null && entities.amount! > 0) {
+      for (final exp in expenses) {
+        if ((exp.amount - entities.amount!).abs() < 0.01) {
+          target = exp;
+          break;
+        }
+      }
+    }
+
+    target ??= expenses.first;
+
     return AssistantMessage(
       id: 'msg_${DateTime.now().millisecondsSinceEpoch}',
       text: '⚠️ Are you sure you want to delete the expense **"${target.title}" (₹${target.amount.toStringAsFixed(0)})**?',

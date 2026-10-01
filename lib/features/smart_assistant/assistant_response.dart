@@ -262,12 +262,7 @@ class AssistantResponseBuilder {
     }
 
     if (payload == 'RESCHEDULE_OVERDUE_TOMORROW') {
-      final overdue = provider.tasks.where((t) => !t.isCompleted && t.dueDateLabel != 'Today').toList();
-      for (final t in overdue) {
-        t.dueDateLabel = 'Tomorrow';
-        t.dueDate = DateTime.now().add(const Duration(days: 1));
-      }
-      provider.notifyListeners();
+      provider.rescheduleOverdueTasksToTomorrow();
       return AssistantMessage(
         id: 'msg_${DateTime.now().millisecondsSinceEpoch}',
         text: '🗓️ Successfully rescheduled all overdue tasks to Tomorrow.',

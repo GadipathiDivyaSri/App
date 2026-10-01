@@ -801,6 +801,17 @@ class AppProvider extends ChangeNotifier {
   List<Task> get _tasks => _todoTasks;
   set _tasks(List<Task> val) => _todoTasks = val;
 
+  void rescheduleOverdueTasksToTomorrow() {
+    final overdue = _todoTasks.where((t) => !t.isCompleted && t.dueDateLabel != 'Today').toList();
+    for (final t in overdue) {
+      t.dueDateLabel = 'Tomorrow';
+      t.dueDate = DateTime.now().add(const Duration(days: 1));
+      ApiService.createTaskOnBackend(t);
+    }
+    _saveTasks();
+    notifyListeners();
+  }
+
   List<Task> _organizeTasks = [];
   List<Task> get organizeTasks => _organizeTasks;
 

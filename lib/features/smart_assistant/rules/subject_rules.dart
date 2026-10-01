@@ -70,8 +70,18 @@ class SubjectRules {
       );
     }
 
-    final targetSub = subjects.first;
-    final topicTitle = entities.title ?? 'Chapter 1: Foundations';
+    final query = (entities.title ?? '').toLowerCase().trim();
+    StudySubject targetSub = subjects.first;
+    for (final sub in subjects) {
+      if (query.contains(sub.name.toLowerCase())) {
+        targetSub = sub;
+        break;
+      }
+    }
+
+    final topicTitle = (entities.title != null && entities.title != 'Untitled Item')
+        ? entities.title!
+        : 'Chapter 1: Foundations';
 
     final newItem = StudyItem(
       id: 'st_${DateTime.now().millisecondsSinceEpoch}',
@@ -103,10 +113,23 @@ class SubjectRules {
         text: 'All study items and topics are currently completed! Great job.',
         isUser: false,
         timestamp: DateTime.now(),
+        suggestionChips: ['Study summary', 'What should I do now?'],
       );
     }
 
-    final target = items.first;
+    final query = (entities.title ?? '').toLowerCase().trim();
+    StudyItem? target;
+    if (query.isNotEmpty && query != 'untitled item') {
+      for (final item in items) {
+        final title = item.title.toLowerCase();
+        if (title.contains(query) || query.contains(title)) {
+          target = item;
+          break;
+        }
+      }
+    }
+
+    target ??= items.first;
     provider.toggleStudyItem(target.id);
 
     return AssistantMessage(

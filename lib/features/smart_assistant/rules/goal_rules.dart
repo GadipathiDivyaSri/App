@@ -64,6 +64,7 @@ class GoalRules {
   }
 
   static AssistantMessage _completeGoal(ExtractedEntities entities, AppProvider provider) {
+    final query = (entities.title ?? '').toLowerCase().trim();
     final nodes = provider.careerNodes.where((n) => n.section == 'GOAL').toList();
     if (nodes.isEmpty) {
       return AssistantMessage(
@@ -71,10 +72,22 @@ class GoalRules {
         text: 'You have no active goals to mark completed.',
         isUser: false,
         timestamp: DateTime.now(),
+        suggestionChips: ['Create a goal to finish my syllabus', 'Plan my day'],
       );
     }
 
-    final target = nodes.first;
+    CareerRoadmapNode? target;
+    if (query.isNotEmpty && query != 'untitled item') {
+      for (final n in nodes) {
+        final title = n.title.toLowerCase();
+        if (title.contains(query) || query.contains(title)) {
+          target = n;
+          break;
+        }
+      }
+    }
+
+    target ??= nodes.firstWhere((n) => n.status != 'COMPLETED', orElse: () => nodes.first);
     target.status = 'COMPLETED';
     provider.notifyListeners();
 

@@ -31,11 +31,11 @@ class IntentDetector {
   static SmartIntent detectIntent(String normalized) {
     if (normalized.isEmpty) return SmartIntent.greeting;
 
-    // Greetings & Help
-    if (RegExp(r'^(hi|hello|hey|greetings|good morning|good evening|who are you|what can you do)').hasMatch(normalized)) {
+    // Greetings & Help / User Confusion
+    if (RegExp(r'^(hi|hello|hey|greetings|good morning|good evening|who are you|what can you do)$').hasMatch(normalized)) {
       return SmartIntent.greeting;
     }
-    if (RegExp(r'\b(help|commands|guide|instructions|what do you support)\b').hasMatch(normalized)) {
+    if (RegExp(r'\b(help|commands|guide|instructions|what do you support|explain|how to use|i dont understand|i cant understand|didnt understand|dont get it|what can you do)\b').hasMatch(normalized)) {
       return SmartIntent.help;
     }
 
@@ -75,15 +75,50 @@ class IntentDetector {
     }
 
     // -------------------------------------------------------------------------
+    // 2. Habit Commands (Evaluated before general tasks)
+    // -------------------------------------------------------------------------
+    if (RegExp(r'\b(create|add|start|new)\s+(?:a\s+)?habit\b').hasMatch(normalized) ||
+        RegExp(r'\badd habit\b').hasMatch(normalized)) {
+      return SmartIntent.createHabit;
+    }
+
+    if (RegExp(r'\b(mark\s+.*habit\s+(?:as\s+)?(?:done|completed?)|(?:complete|finish|done\s+with|did)\s+.*habit|habit\s+.*(?:done|completed?)|finished\s+.*habit|completed\s+.*habit)\b').hasMatch(normalized) ||
+        RegExp(r'\b(finished meditation|completed reading|done with workout|finished workout|did meditation|reading is done|finished gym|mark my habit done|mark habit done)\b').hasMatch(normalized)) {
+      return SmartIntent.completeHabit;
+    }
+
+    if (RegExp(r'\b(unmark|uncomplete|undo)\s+habit\b').hasMatch(normalized)) {
+      return SmartIntent.uncompleteHabit;
+    }
+
+    if (RegExp(r'\b(delete|remove)\s+habit\b').hasMatch(normalized)) {
+      return SmartIntent.deleteHabit;
+    }
+
+    if (RegExp(r'\b(habit\s+streak|my streak|streaks?)\b').hasMatch(normalized)) {
+      return SmartIntent.getHabitStreak;
+    }
+
+    if (RegExp(r'\b(pending|remaining)\s+habits?\b').hasMatch(normalized) ||
+        RegExp(r'\bwhat habits? (are|is) remaining\b').hasMatch(normalized)) {
+      return SmartIntent.getPendingHabits;
+    }
+
+    if (RegExp(r'\b(show|list|get|view|my)\s+habits?\b').hasMatch(normalized) ||
+        normalized == 'habits') {
+      return SmartIntent.getHabits;
+    }
+
+    // -------------------------------------------------------------------------
     // 1. Task Commands
     // -------------------------------------------------------------------------
     if (RegExp(r'\b(add|create|new|schedule|insert|set up)\s+(?:a\s+)?task\b').hasMatch(normalized) ||
+        RegExp(r'\bremind me to\b').hasMatch(normalized) ||
         (RegExp(r'\b(add|create)\b').hasMatch(normalized) && RegExp(r'\b(assignment|homework|revision|study|task|project)\b').hasMatch(normalized))) {
       return SmartIntent.createTask;
     }
 
-    if (RegExp(r'\b(mark|complete|finish|done with)\s+(?:the\s+)?task\b').hasMatch(normalized) ||
-        RegExp(r'\b(mark\s+.+\s+(?:as\s+)?completed?|finished\s+.+\s+task)\b').hasMatch(normalized)) {
+    if (RegExp(r'\b(mark\s+.*task\s+(?:as\s+)?(?:done|completed?)|(?:complete|finish|done\s+with|did)\s+.*task|task\s+.*(?:done|completed?)|finished\s+.*task|completed\s+.*task|mark my task done|mark task done)\b').hasMatch(normalized)) {
       return SmartIntent.completeTask;
     }
 
@@ -108,40 +143,6 @@ class IntentDetector {
     if (RegExp(r'\b(show|list|get|view|my)\s+tasks?\b').hasMatch(normalized) ||
         normalized == 'tasks') {
       return SmartIntent.getTasks;
-    }
-
-    // -------------------------------------------------------------------------
-    // 2. Habit Commands
-    // -------------------------------------------------------------------------
-    if (RegExp(r'\b(create|add|start|new)\s+(?:a\s+)?habit\b').hasMatch(normalized)) {
-      return SmartIntent.createHabit;
-    }
-
-    if (RegExp(r'\b(mark\s+.+\s+habit\s+completed?|complete\s+(?:my\s+)?habit|finished\s+.+\s+habit|done with\s+.+\s+habit)\b').hasMatch(normalized) ||
-        RegExp(r'\b(finished meditation|completed reading|done with workout|finished workout|did meditation|reading is done|finished gym)\b').hasMatch(normalized)) {
-      return SmartIntent.completeHabit;
-    }
-
-    if (RegExp(r'\b(unmark|uncomplete|undo)\s+habit\b').hasMatch(normalized)) {
-      return SmartIntent.uncompleteHabit;
-    }
-
-    if (RegExp(r'\b(delete|remove)\s+habit\b').hasMatch(normalized)) {
-      return SmartIntent.deleteHabit;
-    }
-
-    if (RegExp(r'\b(habit\s+streak|my streak|streaks?)\b').hasMatch(normalized)) {
-      return SmartIntent.getHabitStreak;
-    }
-
-    if (RegExp(r'\b(pending|remaining)\s+habits?\b').hasMatch(normalized) ||
-        RegExp(r'\bwhat habits? (are|is) remaining\b').hasMatch(normalized)) {
-      return SmartIntent.getPendingHabits;
-    }
-
-    if (RegExp(r'\b(show|list|get|view|my)\s+habits?\b').hasMatch(normalized) ||
-        normalized == 'habits') {
-      return SmartIntent.getHabits;
     }
 
     // -------------------------------------------------------------------------
@@ -171,7 +172,7 @@ class IntentDetector {
       return SmartIntent.createGoal;
     }
 
-    if (RegExp(r'\b(complete|achieved|finished)\s+(?:my\s+)?goal\b').hasMatch(normalized)) {
+    if (RegExp(r'\b(complete|achieved|finished|mark)\s+.*goal\b').hasMatch(normalized)) {
       return SmartIntent.completeGoal;
     }
 
@@ -205,16 +206,16 @@ class IntentDetector {
     // -------------------------------------------------------------------------
     // 6. Subject Planner Commands
     // -------------------------------------------------------------------------
-    if (RegExp(r'\b(add|create)\s+[a-z\s]+\s+as (?:a\s+)?subject\b').hasMatch(normalized) ||
-        RegExp(r'\badd subject\b').hasMatch(normalized)) {
+    if (RegExp(r'\b(add|create)\s+.*as\s+(?:a\s+)?subject\b').hasMatch(normalized) ||
+        RegExp(r'\b(add|create)\s+subject\b').hasMatch(normalized)) {
       return SmartIntent.createSubject;
     }
 
-    if (RegExp(r'\b(add|create)\s+.+\s+to\s+[a-z\s]+\b').hasMatch(normalized) && RegExp(r'\b(topic|chapter|unit)\b').hasMatch(normalized)) {
+    if (RegExp(r'\b(add|create)\s+.*(?:topic|chapter|unit)\b').hasMatch(normalized)) {
       return SmartIntent.createTopic;
     }
 
-    if (RegExp(r'\b(i finished|completed|done with)\s+.+\s+(?:in|chapter|topic|unit)\b').hasMatch(normalized)) {
+    if (RegExp(r'\b(i finished|completed|done with|finish)\s+.*(?:topic|chapter|unit)\b').hasMatch(normalized)) {
       return SmartIntent.completeTopic;
     }
 
@@ -244,7 +245,7 @@ class IntentDetector {
     // -------------------------------------------------------------------------
     // 8. Journal Commands
     // -------------------------------------------------------------------------
-    if (RegExp(r'\b(write in my journal|add journal|log diary|write note|journal entry|dear diary)\b').hasMatch(normalized) ||
+    if (RegExp(r'\b(write in my journal|add journal|log diary|write note|journal entry|dear diary|add note)\b').hasMatch(normalized) ||
         RegExp(r'\btoday was (?:very\s+)?(good|productive|great|bad|tiring|awesome)\b').hasMatch(normalized)) {
       return SmartIntent.createJournalEntry;
     }

@@ -129,7 +129,7 @@ class _PasswordResetOtpScreenState extends State<PasswordResetOtpScreen> {
   }
 
   Future<void> _handleResend() async {
-    if (!_canResend || _isResending) return;
+    if (!_canResendNotifier.value || _isResending) return;
 
     setState(() {
       _isResending = true;
