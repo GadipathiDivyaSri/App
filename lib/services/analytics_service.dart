@@ -543,35 +543,16 @@ class AnalyticsService {
     required List<CareerRoadmapNode> roadmapNodes,
     List<Goal>? pyramidGoals,
   }) {
-    final goalNodes = roadmapNodes.where((n) => n.section == 'GOAL').toList();
-
     int onTrack = 0;
     int needsAttention = 0;
 
     final goalItems = <GoalItemAnalytics>[];
-    for (final g in goalNodes) {
-      final prog = g.isCompleted ? 1.0 : 0.5; // Estimated baseline
-      final status = g.isCompleted ? 'Completed' : (prog >= 0.5 ? 'On Track' : 'Needs Attention');
-      if (g.isCompleted || status == 'On Track') {
-        onTrack++;
-      } else {
-        needsAttention++;
-      }
-      goalItems.add(GoalItemAnalytics(
-        id: g.id,
-        title: g.title,
-        section: g.section,
-        progress: prog,
-        status: status,
-        isCompleted: g.isCompleted,
-      ));
-    }
 
     if (pyramidGoals != null) {
       for (final pg in pyramidGoals) {
-        final prog = pg.isCompleted ? 1.0 : 0.5;
-        final status = pg.isCompleted ? 'Completed' : 'On Track';
-        if (pg.isCompleted || status == 'On Track') {
+        final prog = pg.isCompleted ? 1.0 : 0.0;
+        final status = pg.isCompleted ? 'Completed' : 'Planned';
+        if (pg.isCompleted) {
           onTrack++;
         } else {
           needsAttention++;
@@ -585,6 +566,24 @@ class AnalyticsService {
           isCompleted: pg.isCompleted,
         ));
       }
+    }
+
+    for (final g in roadmapNodes) {
+      final prog = g.isCompleted ? 1.0 : 0.0;
+      final status = g.isCompleted ? 'Completed' : 'Planned';
+      if (g.isCompleted) {
+        onTrack++;
+      } else {
+        needsAttention++;
+      }
+      goalItems.add(GoalItemAnalytics(
+        id: g.id,
+        title: g.title,
+        section: 'Roadmap (${g.section})',
+        progress: prog,
+        status: status,
+        isCompleted: g.isCompleted,
+      ));
     }
 
     final completedCount = goalItems.where((g) => g.isCompleted).length;

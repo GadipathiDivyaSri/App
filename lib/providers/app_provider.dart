@@ -110,6 +110,7 @@ class AppProvider extends ChangeNotifier {
     _subscription = sub;
     _user.subscriptionPlan = sub.plan.toUpperCase();
     _user.isPremium = sub.isPro;
+    _saveSubscriptionState();
     notifyListeners();
   }
 
@@ -123,14 +124,32 @@ class AppProvider extends ChangeNotifier {
       status: 'active',
       startedAt: DateTime.now(),
     );
+    _saveSession();
+    _saveSubscriptionState();
     notifyListeners();
+    ApiService.upgradeSubscription(provider: 'GOOGLE_PLAY');
+  }
+
+  Future<void> _saveSubscriptionState() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('saved_user_subscription_${_user.id}', jsonEncode(_subscription.toJson()));
+      await prefs.setBool('saved_is_premium_${_user.id}', _user.isPremium);
+      await prefs.setString('saved_sub_plan_${_user.id}', _user.subscriptionPlan);
+    } catch (_) {}
   }
 
   Future<void> syncSubscription() async {
-    final remoteSub = await ApiService.fetchUserSubscription();
-    if (remoteSub != null) {
-      setSubscription(remoteSub);
-    }
+    try {
+      final remoteSub = await ApiService.fetchUserSubscription();
+      if (remoteSub != null) {
+        if (_user.isPremium && !remoteSub.isPro && remoteSub.status != 'cancelled' && remoteSub.status != 'expired') {
+          await ApiService.upgradeSubscription(provider: 'LOCAL_SYNC');
+        } else {
+          setSubscription(remoteSub);
+        }
+      }
+    } catch (_) {}
   }
 
   void setUser(UserProfile user, {UserSubscription? subscription}) {
@@ -563,10 +582,16 @@ class AppProvider extends ChangeNotifier {
     }
   }
 
-  void _updateUnitProgress(String unitId) {
-    final unitIdx = _studyUnits.indexWhere((u) => u.id == unitId);
+  void _updateUnitProgress(String unitIdOrTitle) {
+    final cleanId = unitIdOrTitle.trim().toLowerCase();
+    final unitIdx = _studyUnits.indexWhere((u) => u.id.trim().toLowerCase() == cleanId || u.title.trim().toLowerCase() == cleanId);
     if (unitIdx != -1) {
-      final topics = _studyTopics.where((t) => t.unitId == unitId).toList();
+      final uId = _studyUnits[unitIdx].id.trim().toLowerCase();
+      final uTitle = _studyUnits[unitIdx].title.trim().toLowerCase();
+      final topics = _studyTopics.where((t) {
+        final tUnitId = t.unitId.trim().toLowerCase();
+        return tUnitId == uId || tUnitId == uTitle;
+      }).toList();
       if (topics.isEmpty) {
         _studyUnits[unitIdx].progress = 0.0;
         _studyUnits[unitIdx].isCompleted = false;
@@ -1086,7 +1111,13 @@ class AppProvider extends ChangeNotifier {
   }
 
   void deleteExpense(String id) {
-    _expenses.removeWhere((e) => e.id == id);
+    _deletedItemIds.add(id);
+    final idx = _expenses.indexWhere((e) => e.id == id);
+    if (idx != -1) {
+      _deletedItemIds.add(_expenses[idx].title.trim().toLowerCase());
+      _expenses.removeAt(idx);
+    }
+    _saveDeletedItemIds();
     _saveExpenses();
     notifyListeners();
     ApiService.deleteExpenseOnBackend(id);
@@ -2025,20 +2056,40 @@ class AppProvider extends ChangeNotifier {
   Future<void> syncHabitsFromCloud() async {
     try {
       final remoteHabits = await ApiService.fetchHabits();
-      final validRemote = remoteHabits.where((h) => !_deletedItemIds.contains(h.id)).toList();
-      final Map<String, Habit> habitMap = {for (var h in _habits) if (!_deletedItemIds.contains(h.id)) h.id: h};
+      final validRemote = remoteHabits.where((h) =>
+        !_deletedItemIds.contains(h.id) &&
+        !_deletedItemIds.contains(h.title.trim().toLowerCase())
+      ).toList();
+      
+      final Map<String, Habit> habitMap = {};
+      final Map<String, String> titleToId = {};
+
+      for (var h in _habits) {
+        final normTitle = h.title.trim().toLowerCase();
+        if (!_deletedItemIds.contains(h.id) && !_deletedItemIds.contains(normTitle)) {
+          habitMap[h.id] = h;
+          if (normTitle.isNotEmpty) titleToId[normTitle] = h.id;
+        }
+      }
+
       for (var rh in validRemote) {
-        final local = habitMap[rh.id];
-        if (local != null) {
+        final normTitle = rh.title.trim().toLowerCase();
+        final existingId = habitMap.containsKey(rh.id) ? rh.id : (normTitle.isNotEmpty ? titleToId[normTitle] : null);
+        if (existingId != null && habitMap.containsKey(existingId)) {
+          final local = habitMap[existingId]!;
           final mergedHistory = {...local.completionHistory, ...rh.completionHistory}.toList();
           local.completionHistory = mergedHistory;
           local.isCompleted = local.isCompleted || rh.isCompleted;
-          habitMap[rh.id] = local;
+          habitMap[existingId] = local;
         } else {
           habitMap[rh.id] = rh;
+          if (normTitle.isNotEmpty) titleToId[normTitle] = rh.id;
         }
       }
-      _habits = habitMap.values.where((h) => !_deletedItemIds.contains(h.id)).toList();
+      _habits = habitMap.values.where((h) =>
+        !_deletedItemIds.contains(h.id) &&
+        !_deletedItemIds.contains(h.title.trim().toLowerCase())
+      ).toList();
       for (final h in _habits) {
         h.recalculateStreaks(DateTime.now());
       }
@@ -2052,12 +2103,35 @@ class AppProvider extends ChangeNotifier {
   Future<void> syncExpensesFromCloud() async {
     try {
       final remoteExpenses = await ApiService.fetchExpenses();
-      final validRemote = remoteExpenses.where((e) => !_deletedItemIds.contains(e.id)).toList();
-      final Map<String, ExpenseTransaction> expMap = {for (var e in _expenses) if (!_deletedItemIds.contains(e.id)) e.id: e};
-      for (var re in validRemote) {
-        expMap[re.id] = re;
+      final validRemote = remoteExpenses.where((e) =>
+        !_deletedItemIds.contains(e.id) &&
+        !_deletedItemIds.contains(e.title.trim().toLowerCase())
+      ).toList();
+      
+      final Map<String, ExpenseTransaction> expMap = {};
+      final Map<String, String> keyToId = {};
+
+      for (var e in _expenses) {
+        final key = '${e.title.trim().toLowerCase()}_${e.amount}_${e.isIncome}';
+        if (!_deletedItemIds.contains(e.id) && !_deletedItemIds.contains(e.title.trim().toLowerCase())) {
+          expMap[e.id] = e;
+          keyToId[key] = e.id;
+        }
       }
-      _expenses = expMap.values.where((e) => !_deletedItemIds.contains(e.id)).toList();
+
+      for (var re in validRemote) {
+        final key = '${re.title.trim().toLowerCase()}_${re.amount}_${re.isIncome}';
+        final existingId = expMap.containsKey(re.id) ? re.id : keyToId[key];
+        if (existingId == null) {
+          expMap[re.id] = re;
+          keyToId[key] = re.id;
+        }
+      }
+
+      _expenses = expMap.values.where((e) =>
+        !_deletedItemIds.contains(e.id) &&
+        !_deletedItemIds.contains(e.title.trim().toLowerCase())
+      ).toList();
       _saveExpenses();
       notifyListeners();
     } catch (e) {
