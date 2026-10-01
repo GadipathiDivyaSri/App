@@ -33,7 +33,7 @@ class HomeScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header with Title & AI Assistant Button
+              // Header with Title & User Tier Badge
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -56,27 +56,42 @@ class HomeScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const SmartAssistantScreen(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF1E2235) : const Color(0xFFEEF2FF),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: isDark ? const Color(0x332A85FF) : const Color(0xFFCBD5E1),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: provider.user.isPremium ? const Color(0xFF10B981) : const Color(0xFF3B82F6),
+                            shape: BoxShape.circle,
+                          ),
                         ),
-                      );
-                    },
-                    icon: const Icon(Icons.auto_awesome_rounded, size: 16, color: Colors.white),
-                    label: const Text('AI Assistant', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF0D5CE5),
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        const SizedBox(width: 6),
+                        Text(
+                          provider.user.isPremium ? 'PRO Member' : 'Free Tier',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white70 : const Color(0xFF334155),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
               // 6 Module Grid Dashboard Cards
               Expanded(
@@ -210,6 +225,69 @@ class HomeScreen extends StatelessWidget {
                       },
                     ),
                   ],
+                ),
+              ),
+
+              // Bottom AI Assistant Quick Banner
+              GestureDetector(
+                onTap: () {
+                  onTabChange(2); // Switch to Assistant tab in bottom navigation
+                },
+                child: Container(
+                  margin: const EdgeInsets.only(top: 14),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF0052FF), Color(0xFF1E3A8A)],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF0052FF).withOpacity(0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 36,
+                        height: 36,
+                        decoration: const BoxDecoration(
+                          color: Colors.white24,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.smart_toy_rounded, color: Colors.white, size: 20),
+                      ),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Wrindha AI Assistant',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            Text(
+                              'Manage habits, tasks, expenses & schedule',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Colors.white70,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white70, size: 14),
+                    ],
+                  ),
                 ),
               ),
             ],

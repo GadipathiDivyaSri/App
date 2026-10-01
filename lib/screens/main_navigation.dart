@@ -3,6 +3,7 @@ import '../theme/app_theme.dart';
 import 'home_screen.dart';
 import 'todo_screen.dart';
 import 'profile_screen.dart';
+import '../features/smart_assistant/smart_assistant_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -12,21 +13,22 @@ class MainNavigationScreen extends StatefulWidget {
 }
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
-  int _currentIndex = 1; // Default to Home (Center tab)
+  int _currentIndex = 0; // Default to Home
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final pages = [
-      TodoScreen(onNavigateToHome: () {
-        setState(() => _currentIndex = 1);
-      }),
       HomeScreen(onTabChange: (index) {
         setState(() => _currentIndex = index);
       }),
+      TodoScreen(onNavigateToHome: () {
+        setState(() => _currentIndex = 0);
+      }),
+      const SmartAssistantScreen(),
       ProfileScreen(onNavigateToHome: () {
-        setState(() => _currentIndex = 1);
+        setState(() => _currentIndex = 0);
       }),
     ];
 
@@ -36,7 +38,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         children: pages,
       ),
       bottomNavigationBar: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
         decoration: BoxDecoration(
           color: isDark ? AppTheme.darkNavBg : AppTheme.lightNavBg,
           boxShadow: [
@@ -55,25 +57,34 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              // Left Tab: Menu / To-Do
+              // 1. Home Tab
               _buildNavItem(
                 index: 0,
-                icon: Icons.menu_rounded,
-                activeIcon: Icons.menu_rounded,
-                label: 'To Do',
-                isDark: isDark,
-              ),
-              // Center Tab: Home (Floating round button)
-              _buildNavItem(
-                index: 1,
-                icon: Icons.home_rounded,
-                isCenter: true,
+                icon: Icons.home_outlined,
+                activeIcon: Icons.home_rounded,
                 label: 'Home',
                 isDark: isDark,
               ),
-              // Right Tab: Profile
+              // 2. To-Do Tab
+              _buildNavItem(
+                index: 1,
+                icon: Icons.format_list_bulleted_rounded,
+                activeIcon: Icons.task_alt_rounded,
+                label: 'To Do',
+                isDark: isDark,
+              ),
+              // 3. AI Assistant Tab (Robot Icon)
               _buildNavItem(
                 index: 2,
+                icon: Icons.smart_toy_outlined,
+                activeIcon: Icons.smart_toy_rounded,
+                isAssistant: true,
+                label: 'Assistant',
+                isDark: isDark,
+              ),
+              // 4. Profile Tab
+              _buildNavItem(
+                index: 3,
                 icon: Icons.person_outline_rounded,
                 activeIcon: Icons.person_rounded,
                 label: 'Profile',
@@ -90,7 +101,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     required int index,
     required IconData icon,
     IconData? activeIcon,
-    bool isCenter = false,
+    bool isAssistant = false,
     required String label,
     required bool isDark,
   }) {
@@ -106,22 +117,49 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (isCenter)
+          if (isAssistant)
             Container(
-              width: 50,
-              height: 50,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
               decoration: BoxDecoration(
-                color: isDark ? AppTheme.darkPrimary : AppTheme.lightPrimary,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: (isDark ? AppTheme.darkPrimary : AppTheme.lightPrimary).withOpacity(0.35),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
+                color: isSelected
+                    ? const Color(0xFF0052FF)
+                    : (isDark ? const Color(0xFF1E2235) : const Color(0xFFEEF2FF)),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: isSelected
+                    ? [
+                        BoxShadow(
+                          color: const Color(0xFF0052FF).withOpacity(0.35),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        ),
+                      ]
+                    : null,
+                border: Border.all(
+                  color: isSelected
+                      ? const Color(0xFF0052FF)
+                      : (isDark ? const Color(0x332A85FF) : const Color(0xFFCBD5E1)),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    displayIcon,
+                    size: 18,
+                    color: isSelected ? Colors.white : (isDark ? const Color(0xFF93C5FD) : const Color(0xFF0052FF)),
+                  ),
+                  const SizedBox(width: 5),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: isSelected ? Colors.white : (isDark ? const Color(0xFF93C5FD) : const Color(0xFF0052FF)),
+                    ),
                   ),
                 ],
               ),
-              child: Icon(displayIcon, color: Colors.white, size: 26),
             )
           else ...[
             Icon(
