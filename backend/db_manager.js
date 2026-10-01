@@ -139,7 +139,13 @@ class DatabaseManager {
   static async getUserById(userId) {
     if (!userId) return null;
     const uid = ensureUuid(userId);
-    return await dbQuery('profiles', { method: 'GET', match: { id: uid }, single: true });
+    const user = await dbQuery('profiles', { method: 'GET', match: { id: uid }, single: true });
+    if (user && (!user.display_name || user.display_name === 'Student User' || user.display_name === 'Alex Johnson')) {
+      if (user.username && user.username.toLowerCase() !== 'user') {
+        user.display_name = user.username;
+      }
+    }
+    return user;
   }
 
   static async getUserByReferralCode(code) {
@@ -153,6 +159,11 @@ class DatabaseManager {
     let user = await dbQuery('profiles', { method: 'GET', match: { email: clean }, single: true });
     if (!user) {
       user = await dbQuery('profiles', { method: 'GET', match: { username: clean }, single: true });
+    }
+    if (user && (!user.display_name || user.display_name === 'Student User' || user.display_name === 'Alex Johnson')) {
+      if (user.username && user.username.toLowerCase() !== 'user') {
+        user.display_name = user.username;
+      }
     }
 
     // Merge Supabase Auth metadata (passwordHash) if user or password_hash is missing
@@ -198,10 +209,12 @@ class DatabaseManager {
     const cleanUsername = (userData.username || '').trim().toLowerCase();
     const cleanEmail = (userData.email || '').trim().toLowerCase();
 
+    const derivedDisplayName = userData.display_name || userData.name || (cleanUsername ? cleanUsername : (cleanEmail ? cleanEmail.split('@')[0] : 'User'));
+
     const newUser = {
       id: userId,
       username: cleanUsername,
-      display_name: userData.display_name || userData.name || (cleanUsername ? cleanUsername[0].toUpperCase() + cleanUsername.slice(1) : 'Student User'),
+      display_name: derivedDisplayName,
       email: cleanEmail,
       is_premium: !!userData.is_premium,
       subscription_plan: (userData.subscription_plan || 'FREE').toUpperCase(),

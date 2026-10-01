@@ -1388,13 +1388,20 @@ class ApiService {
         username: username,
       );
 
+      final resolvedName = (profile['display_name'] != null &&
+              profile['display_name'].toString().isNotEmpty &&
+              profile['display_name'].toString() != 'Student User' &&
+              profile['display_name'].toString() != 'Alex Johnson')
+          ? profile['display_name'].toString()
+          : (username.isNotEmpty && username.toLowerCase() != 'user' ? username : (cleanEmail.contains('@') ? cleanEmail.split('@')[0] : 'User'));
+
       final userMap = {
         'id': userId,
         'userId': userId,
         'email': cleanEmail,
         'username': username,
-        'name': profile['display_name'] ?? username,
-        'displayName': profile['display_name'] ?? username,
+        'name': resolvedName,
+        'displayName': resolvedName,
         'focusScore': profile['focus_score'] ?? 0,
         'activeStreak': profile['active_streak'] ?? 0,
         'isPremium': profile['is_premium'] == true || profile['subscription_plan'] == 'PRO',
@@ -1514,13 +1521,30 @@ class ApiService {
       }
 
       if (dbProfile != null) {
+        final resolvedUsername = (dbProfile['username'] ?? cachedUser?['username'] ?? '').toString().trim();
+        final rawDbName = (dbProfile['display_name'] ?? dbProfile['full_name'] ?? dbProfile['name'] ?? '').toString().trim();
+        final rawCachedName = (cachedUser?['name'] ?? cachedUser?['displayName'] ?? '').toString().trim();
+
+        String resolvedName = rawDbName;
+        if (resolvedName.isEmpty || resolvedName == 'Student User' || resolvedName == 'Alex Johnson') {
+          if (rawCachedName.isNotEmpty && rawCachedName != 'Student User' && rawCachedName != 'Alex Johnson') {
+            resolvedName = rawCachedName;
+          } else if (resolvedUsername.isNotEmpty && resolvedUsername.toLowerCase() != 'user') {
+            resolvedName = resolvedUsername;
+          } else if (email != null && email.contains('@')) {
+            resolvedName = email.split('@')[0];
+          } else {
+            resolvedName = 'User';
+          }
+        }
+
         final updatedUser = {
           'id': dbProfile['id'] ?? uid,
           'userId': dbProfile['id'] ?? uid,
           'email': dbProfile['email'] ?? email,
-          'username': dbProfile['username'] ?? cachedUser?['username'] ?? '',
-          'name': dbProfile['display_name'] ?? cachedUser?['name'] ?? '',
-          'displayName': dbProfile['display_name'] ?? cachedUser?['displayName'] ?? '',
+          'username': resolvedUsername.isNotEmpty ? resolvedUsername : (cachedUser?['username'] ?? ''),
+          'name': resolvedName,
+          'displayName': resolvedName,
           'focusScore': dbProfile['focus_score'] ?? cachedUser?['focusScore'] ?? 0,
           'activeStreak': dbProfile['active_streak'] ?? cachedUser?['activeStreak'] ?? 0,
           'isPremium': dbProfile['is_premium'] == true || dbProfile['subscription_plan'] == 'PRO',

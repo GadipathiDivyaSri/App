@@ -17,52 +17,60 @@ class PasswordResetOtpScreen extends StatefulWidget {
 }
 
 class _PasswordResetOtpScreenState extends State<PasswordResetOtpScreen> {
-  final List<TextEditingController> _otpControllers =
-      List.generate(6, (_) => TextEditingController());
-  final List<FocusNode> _otpFocusNodes = List.generate(6, (_) => FocusNode());
-  final List<FocusNode> _keyboardFocusNodes = List.generate(6, (_) => FocusNode());
+  final TextEditingController _otpController = TextEditingController();
+  final FocusNode _otpFocusNode = FocusNode();
 
   bool _isLoading = false;
   bool _isResending = false;
   String? _errorMessage;
 
+  // 60-Second Resend Cooldown Timer with ValueNotifiers (prevents whole-page rebuilds while typing)
   Timer? _cooldownTimer;
-  int _secondsRemaining = 60;
-  bool _canResend = false;
+  final ValueNotifier<int> _secondsRemainingNotifier = ValueNotifier<int>(60);
+  final ValueNotifier<bool> _canResendNotifier = ValueNotifier<bool>(false);
 
   @override
   void initState() {
     super.initState();
     _startCooldownTimer();
+    _otpController.addListener(_onOtpChanged);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _otpFocusNode.requestFocus();
+      }
+    });
+  }
+
+  void _onOtpChanged() {
+    if (_errorMessage != null && mounted) {
+      setState(() => _errorMessage = null);
+    }
   }
 
   @override
   void dispose() {
     _cooldownTimer?.cancel();
-    for (var c in _otpControllers) {
-      c.dispose();
-    }
-    for (var f in _otpFocusNodes) {
-      f.dispose();
-    }
-    for (var k in _keyboardFocusNodes) {
-      k.dispose();
-    }
+    _otpController.removeListener(_onOtpChanged);
+    _otpController.dispose();
+    _otpFocusNode.dispose();
+    _secondsRemainingNotifier.dispose();
+    _canResendNotifier.dispose();
     super.dispose();
   }
 
   void _startCooldownTimer() {
-    setState(() {
-      _secondsRemaining = 60;
-      _canResend = false;
-    });
+    _secondsRemainingNotifier.value = 60;
+    _canResendNotifier.value = false;
     _cooldownTimer?.cancel();
     _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (!mounted) return;
-      if (_secondsRemaining > 0) {
-        setState(() => _secondsRemaining--);
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      if (_secondsRemainingNotifier.value > 0) {
+        _secondsRemainingNotifier.value--;
       } else {
-        setState(() => _canResend = true);
+        _canResendNotifier.value = true;
         timer.cancel();
       }
     });
@@ -79,7 +87,7 @@ class _PasswordResetOtpScreenState extends State<PasswordResetOtpScreen> {
   }
 
   String _getOtpCode() {
-    return _otpControllers.map((c) => c.text.trim()).join();
+    return _otpController.text.trim();
   }
 
   Future<void> _handleVerify() async {
@@ -133,10 +141,8 @@ class _PasswordResetOtpScreenState extends State<PasswordResetOtpScreen> {
     setState(() => _isResending = false);
 
     if (res['success'] == true) {
-      for (var c in _otpControllers) {
-        c.clear();
-      }
-      _otpFocusNodes[0].requestFocus();
+      _otpController.clear();
+      _otpFocusNode.requestFocus();
       _startCooldownTimer();
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -241,100 +247,89 @@ class _PasswordResetOtpScreenState extends State<PasswordResetOtpScreen> {
                 const SizedBox(height: 24),
               ],
 
-              // 6-Digit OTP Box Grid
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: List.generate(6, (index) {
-                  return SizedBox(
-                    width: 46,
-                    height: 56,
-                    child: KeyboardListener(
-                      focusNode: _keyboardFocusNodes[index],
-                      onKeyEvent: (KeyEvent event) {
-                        if (event is KeyDownEvent &&
-                            event.logicalKey == LogicalKeyboardKey.backspace) {
-                          if (_otpControllers[index].text.isEmpty && index > 0) {
-                            _otpControllers[index - 1].clear();
-                            _otpFocusNodes[index - 1].requestFocus();
-                          }
-                        }
-                      },
-                      child: TextField(
-                        controller: _otpControllers[index],
-                        focusNode: _otpFocusNodes[index],
-                        keyboardType: TextInputType.number,
-                        textAlign: TextAlign.center,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
-                          LengthLimitingTextInputFormatter(6),
-                        ],
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                          color: isDark ? Colors.white : AppTheme.lightTextPrimary,
-                        ),
-                        decoration: InputDecoration(
-                          counterText: '',
-                          filled: true,
-                          fillColor: isDark ? const Color(0xFF1E2235) : const Color(0xFFF3F4F6),
-                          contentPadding: EdgeInsets.zero,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide.none,
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                              color: isDark ? const Color(0x262A85FF) : const Color(0xFFE5E7EB),
-                              width: 1.5,
-                            ),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                              color: primaryColor,
-                              width: 2,
-                            ),
-                          ),
-                        ),
-                        onChanged: (val) {
-                          final cleanDigits = val.replaceAll(RegExp(r'\D'), '');
-
-                          // Multi-digit paste or SMS auto-fill
-                          if (cleanDigits.length >= 6) {
-                            for (int i = 0; i < 6; i++) {
-                              _otpControllers[i].text = cleanDigits[i];
+              // 6-Digit OTP Input (Single persistent InputConnection - zero keyboard flickering)
+              GestureDetector(
+                onTap: () => _otpFocusNode.requestFocus(),
+                behavior: HitTestBehavior.opaque,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Invisible native TextField keeping single soft keyboard session alive without reconnecting
+                    Opacity(
+                      opacity: 0.0,
+                      child: SizedBox(
+                        height: 56,
+                        child: TextField(
+                          controller: _otpController,
+                          focusNode: _otpFocusNode,
+                          keyboardType: TextInputType.number,
+                          autofillHints: const [AutofillHints.oneTimeCode],
+                          enableInteractiveSelection: false,
+                          showCursor: false,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                            LengthLimitingTextInputFormatter(6),
+                          ],
+                          onChanged: (val) {
+                            if (_errorMessage != null && mounted) {
+                              setState(() => _errorMessage = null);
                             }
-                            _otpFocusNodes[5].requestFocus();
-                            if (_getOtpCode().length == 6) {
+                            if (val.length == 6 && !_isLoading) {
                               _handleVerify();
                             }
-                            return;
-                          }
+                          },
+                        ),
+                      ),
+                    ),
 
-                          // Single digit overtyping on an existing digit
-                          if (cleanDigits.length > 1) {
-                            final lastChar = cleanDigits.substring(cleanDigits.length - 1);
-                            _otpControllers[index].value = TextEditingValue(
-                              text: lastChar,
-                              selection: TextSelection.collapsed(offset: 1),
-                            );
-                          }
+                    // Visual 6-Digit PIN Boxes
+                    IgnorePointer(
+                      child: AnimatedBuilder(
+                        animation: Listenable.merge([_otpController, _otpFocusNode]),
+                        builder: (context, _) {
+                          final currentText = _otpController.text;
+                          final hasFocus = _otpFocusNode.hasFocus;
 
-                          if (val.isNotEmpty && index < 5) {
-                            _otpFocusNodes[index + 1].requestFocus();
-                          } else if (val.isEmpty && index > 0) {
-                            _otpFocusNodes[index - 1].requestFocus();
-                          }
+                          return Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: List.generate(6, (index) {
+                              final isFilled = index < currentText.length;
+                              final char = isFilled ? currentText[index] : '';
+                              final isCurrent = hasFocus &&
+                                  (index == currentText.length || (index == 5 && currentText.length == 6));
 
-                          if (_getOtpCode().length == 6) {
-                            _handleVerify();
-                          }
+                              return Container(
+                                width: 46,
+                                height: 56,
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  color: isDark ? const Color(0xFF1E2235) : const Color(0xFFF3F4F6),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: isCurrent
+                                        ? primaryColor
+                                        : (isFilled
+                                            ? (isDark ? const Color(0x662A85FF) : const Color(0xFFCBD5E1))
+                                            : (isDark ? const Color(0x262A85FF) : const Color(0xFFE5E7EB))),
+                                    width: isCurrent ? 2.0 : 1.5,
+                                  ),
+                                ),
+                                child: Text(
+                                  char,
+                                  style: TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w800,
+                                    color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+                                  ),
+                                ),
+                              );
+                            }),
+                          );
                         },
                       ),
                     ),
-                  );
-                }),
+                  ],
+                ),
               ),
               const SizedBox(height: 32),
 
@@ -371,10 +366,13 @@ class _PasswordResetOtpScreenState extends State<PasswordResetOtpScreen> {
               ),
               const SizedBox(height: 20),
 
-              // Resend Code Action
+              // Resend Code Action (Isolated from page rebuilds)
               Center(
-                child: _canResend
-                    ? GestureDetector(
+                child: ValueListenableBuilder<bool>(
+                  valueListenable: _canResendNotifier,
+                  builder: (context, canResend, _) {
+                    if (canResend) {
+                      return GestureDetector(
                         onTap: _isResending ? null : _handleResend,
                         child: Text(
                           _isResending ? 'Resending...' : 'Resend Code',
@@ -384,15 +382,23 @@ class _PasswordResetOtpScreenState extends State<PasswordResetOtpScreen> {
                             color: primaryColor,
                           ),
                         ),
-                      )
-                    : Text(
-                        'Resend code in ${_secondsRemaining}s',
-                        style: TextStyle(
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.w500,
-                          color: isDark ? Colors.white38 : const Color(0xFF9CA3AF),
-                        ),
-                      ),
+                      );
+                    }
+                    return ValueListenableBuilder<int>(
+                      valueListenable: _secondsRemainingNotifier,
+                      builder: (context, secondsRemaining, _) {
+                        return Text(
+                          'Resend code in ${secondsRemaining}s',
+                          style: TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w500,
+                            color: isDark ? Colors.white38 : const Color(0xFF9CA3AF),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
               ),
             ],
           ),

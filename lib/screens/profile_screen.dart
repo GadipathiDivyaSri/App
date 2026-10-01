@@ -57,7 +57,11 @@ class ProfileScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        user.name,
+                        user.name.isNotEmpty && user.name != 'Student User' && user.name != 'Alex Johnson'
+                            ? user.name
+                            : (user.username.isNotEmpty && user.username != 'user'
+                                ? user.username
+                                : 'User'),
                         style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.w800,
@@ -76,6 +80,17 @@ class ProfileScreen extends StatelessWidget {
                       ),
                     ],
                   ),
+                  if (user.username.isNotEmpty && user.username != 'user') ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      '@${user.username}',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),

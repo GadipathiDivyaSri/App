@@ -192,6 +192,22 @@ function sanitizeUser(user) {
   safe.isPremium = isPro;
   safe.subscription_plan = isPro ? 'PRO' : 'FREE';
   safe.subscriptionPlan = isPro ? 'PRO' : 'FREE';
+
+  const cleanUsername = (safe.username || '').trim();
+  const rawDisplayName = (safe.display_name || safe.name || safe.full_name || '').trim();
+  if (!rawDisplayName || rawDisplayName === 'Student User' || rawDisplayName === 'Alex Johnson') {
+    if (cleanUsername && cleanUsername.toLowerCase() !== 'user' && cleanUsername.toLowerCase() !== 'student user') {
+      safe.display_name = cleanUsername;
+      safe.name = cleanUsername;
+    } else if (safe.email && safe.email.includes('@')) {
+      const emailPrefix = safe.email.split('@')[0];
+      safe.display_name = emailPrefix;
+      safe.name = emailPrefix;
+    }
+  } else {
+    safe.name = rawDisplayName;
+    safe.display_name = rawDisplayName;
+  }
   return safe;
 }
 

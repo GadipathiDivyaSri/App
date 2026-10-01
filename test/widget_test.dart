@@ -12,7 +12,7 @@ void main() {
   test('AppProvider initialization test', () async {
     final provider = AppProvider();
     await Future.delayed(const Duration(milliseconds: 100));
-    expect(provider.user.name, 'Student User');
+    expect(provider.user.name, 'User');
     expect(provider.user.focusScore, 0);
     expect(provider.user.activeStreak, 0);
     expect(provider.tasks.length, 0); // Zero predefined data start!

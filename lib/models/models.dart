@@ -1024,12 +1024,41 @@ class UserProfile {
         json['is_premium'] == true ||
         (json['subscriptionPlan'] ?? json['subscription_plan'] ?? '').toString().toUpperCase() == 'PRO' ||
         (json['subscriptionPlan'] ?? json['subscription_plan'] ?? '').toString().toUpperCase() == 'PREMIUM';
+
+    final rawUsername = (json['username'] ?? '').toString().trim();
+    final rawName = (json['name'] ?? json['display_name'] ?? json['displayName'] ?? json['full_name'] ?? '').toString().trim();
+    final email = (json['email'] ?? json['contact'] ?? '').toString().trim();
+
+    String resolvedUsername = rawUsername;
+    if (resolvedUsername.isEmpty ||
+        resolvedUsername.toLowerCase() == 'user' ||
+        resolvedUsername.toLowerCase() == 'student user') {
+      if (rawName.isNotEmpty && rawName != 'Student User' && rawName != 'Alex Johnson') {
+        resolvedUsername = rawName.toLowerCase().replaceAll(' ', '_');
+      } else if (email.contains('@')) {
+        resolvedUsername = email.split('@')[0].replaceAll(RegExp(r'[^a-zA-Z0-9_]'), '_');
+      } else {
+        resolvedUsername = 'user';
+      }
+    }
+
+    String resolvedName = rawName;
+    if (resolvedName.isEmpty || resolvedName == 'Student User' || resolvedName == 'Alex Johnson') {
+      if (resolvedUsername.isNotEmpty && resolvedUsername.toLowerCase() != 'user') {
+        resolvedName = resolvedUsername;
+      } else if (email.contains('@')) {
+        resolvedName = email.split('@')[0];
+      } else {
+        resolvedName = 'User';
+      }
+    }
+
     return UserProfile(
       id: json['id']?.toString() ?? 'u_1',
-      username: json['username'] ?? (json['name'] ?? 'user').toString().toLowerCase().replaceAll(' ', '_'),
-      email: json['email'] ?? json['contact'] ?? '',
-      name: json['name'] ?? 'Alex Johnson',
-      contact: json['contact'] ?? json['email'] ?? '',
+      username: resolvedUsername,
+      email: email,
+      name: resolvedName,
+      contact: json['contact'] ?? email,
       isEmailVerified: json['isEmailVerified'] ?? json['is_email_verified'] ?? true,
       focusScore: json['focusScore'] ?? json['focus_score'] ?? 0,
       activeStreak: json['activeStreak'] ?? json['active_streak'] ?? 0,

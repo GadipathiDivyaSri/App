@@ -71,7 +71,8 @@ class AppProvider extends ChangeNotifier {
 
   UserProfile _user = UserProfile(
     id: 'u_1',
-    name: 'Student User',
+    name: 'User',
+    username: 'user',
     contact: '',
     focusScore: 0,
     activeStreak: 0,
@@ -853,23 +854,10 @@ class AppProvider extends ChangeNotifier {
     required String token,
   }) {
     _isLoggedIn = true;
-    final plan = (userMap['subscriptionPlan'] ?? userMap['subscription_plan'] ?? '').toString().toUpperCase();
-    final isPro = userMap['isPremium'] == true || plan == 'PRO' || plan == 'PREMIUM';
+    _user = UserProfile.fromJson(userMap);
+    _user.token = token;
+    final isPro = _user.isPremium || _user.subscriptionPlan.toUpperCase() == 'PRO';
 
-    _user = UserProfile(
-      id: userMap['id'] ?? 'u_1',
-      name: userMap['name'] ?? userMap['full_name'] ?? 'Student User',
-      contact: userMap['email'] ?? userMap['username'] ?? '',
-      email: userMap['email'] ?? '',
-      username: userMap['username'] ?? '',
-      focusScore: userMap['focus_score'] ?? userMap['focusScore'] ?? 0,
-      activeStreak: userMap['active_streak'] ?? userMap['activeStreak'] ?? 0,
-      isPremium: isPro,
-      subscriptionPlan: isPro ? 'PRO' : 'FREE',
-      token: token,
-      referralCode: userMap['referral_code'] ?? userMap['referralCode'] ?? 'WRINDHA',
-      referredByCode: userMap['referred_by_code'] ?? userMap['referredByCode'],
-    );
     _subscription = UserSubscription(
       id: 'sub_${_user.id}',
       userId: _user.id,
@@ -898,11 +886,16 @@ class AppProvider extends ChangeNotifier {
   }) {
     _isLoggedIn = true;
     final isPro = isPremium || subscriptionPlan.toUpperCase() == 'PRO' || subscriptionPlan.toUpperCase() == 'PREMIUM';
+    final resolvedUsername = username ?? (name.isNotEmpty && name != 'Student User' ? name.toLowerCase().replaceAll(' ', '_') : (contact.contains('@') ? contact.split('@')[0] : 'user'));
+    final resolvedName = (name.isNotEmpty && name != 'Student User' && name != 'Alex Johnson')
+        ? name
+        : (resolvedUsername.isNotEmpty && resolvedUsername != 'user' ? resolvedUsername : (contact.contains('@') ? contact.split('@')[0] : 'User'));
+
     _user = UserProfile(
       id: id ?? 'u_1',
-      username: username ?? (name.isNotEmpty ? name.toLowerCase().replaceAll(' ', '_') : (contact.contains('@') ? contact.split('@')[0] : 'user')),
+      username: resolvedUsername,
       email: email ?? contact,
-      name: name.isNotEmpty ? name : 'Student User',
+      name: resolvedName,
       contact: contact,
       focusScore: 0,
       activeStreak: 0,
@@ -969,11 +962,16 @@ class AppProvider extends ChangeNotifier {
 
   void signup(String name, String contact, {String? id, String? token, String? refCode, String? username, String? email}) {
     _isLoggedIn = true;
+    final resolvedUsername = username ?? (name.isNotEmpty && name != 'Student User' ? name.toLowerCase().replaceAll(' ', '_') : (contact.contains('@') ? contact.split('@')[0] : 'user'));
+    final resolvedName = (name.isNotEmpty && name != 'Student User' && name != 'Alex Johnson')
+        ? name
+        : (resolvedUsername.isNotEmpty && resolvedUsername != 'user' ? resolvedUsername : (contact.contains('@') ? contact.split('@')[0] : 'User'));
+
     _user = UserProfile(
       id: id ?? 'u_1',
-      username: username ?? name.toLowerCase().replaceAll(' ', '_'),
+      username: resolvedUsername,
       email: email ?? contact,
-      name: name.isNotEmpty ? name : 'Student User',
+      name: resolvedName,
       contact: contact,
       focusScore: 0,
       activeStreak: 0,
@@ -1031,7 +1029,8 @@ class AppProvider extends ChangeNotifier {
     _monthlyBudget = 10000.0;
     _user = UserProfile(
       id: 'u_1',
-      name: 'Student User',
+      name: 'User',
+      username: 'user',
       contact: '',
       focusScore: 0,
       activeStreak: 0,
@@ -1237,6 +1236,10 @@ class AppProvider extends ChangeNotifier {
           _user = UserProfile.fromJson(userMap);
           if (sessionToken != null && sessionToken.isNotEmpty) {
             _user.token = sessionToken;
+          }
+          if ((_user.name.isEmpty || _user.name == 'Student User' || _user.name == 'Alex Johnson') &&
+              _user.username.isNotEmpty && _user.username.toLowerCase() != 'user') {
+            _user.name = _user.username;
           }
           _isLoggedIn = true;
           await _loadUserIsolatedData();
@@ -2319,11 +2322,35 @@ class AppProvider extends ChangeNotifier {
       if (res['user'] != null && res['user'] is Map) {
         final Map<String, dynamic> u = Map<String, dynamic>.from(res['user']);
         bool changed = false;
-        final remoteName = u['display_name'] ?? u['full_name'] ?? u['name'];
-        if (remoteName != null && remoteName.toString().isNotEmpty && remoteName != _user.name) {
-          _user.name = remoteName.toString();
-          changed = true;
+
+        // 1. Sync Username
+        final remoteUsername = (u['username'] ?? '').toString().trim();
+        if (remoteUsername.isNotEmpty &&
+            remoteUsername.toLowerCase() != 'user' &&
+            remoteUsername.toLowerCase() != 'student user') {
+          if (_user.username != remoteUsername) {
+            _user.username = remoteUsername;
+            changed = true;
+          }
         }
+
+        // 2. Sync Name (Strictly guard against 'Student User' / 'Alex Johnson' overwrite)
+        final remoteName = (u['display_name'] ?? u['displayName'] ?? u['full_name'] ?? u['name'] ?? '').toString().trim();
+        final isRemotePlaceholder = remoteName.isEmpty || remoteName == 'Student User' || remoteName == 'Alex Johnson';
+
+        if (!isRemotePlaceholder && remoteName != _user.name) {
+          _user.name = remoteName;
+          changed = true;
+        } else if (isRemotePlaceholder && (_user.name.isEmpty || _user.name == 'Student User' || _user.name == 'Alex Johnson')) {
+          if (_user.username.isNotEmpty && _user.username.toLowerCase() != 'user') {
+            _user.name = _user.username;
+            changed = true;
+          } else if (_user.email.contains('@')) {
+            _user.name = _user.email.split('@')[0];
+            changed = true;
+          }
+        }
+
         if (u['focus_score'] != null && u['focus_score'] is num) {
           _user.focusScore = (u['focus_score'] as num).toInt();
           changed = true;
