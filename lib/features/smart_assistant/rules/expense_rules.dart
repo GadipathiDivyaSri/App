@@ -77,7 +77,7 @@ class ExpenseRules {
     }
 
     final query = (entities.title ?? '').toLowerCase().trim();
-    ExpenseItem? target;
+    ExpenseTransaction? target;
     if (query.isNotEmpty && query != 'untitled item') {
       for (final exp in expenses) {
         final title = exp.title.toLowerCase();
