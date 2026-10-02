@@ -884,10 +884,10 @@ class AppProvider extends ChangeNotifier {
     return !targetMidnight.isBefore(todayMidnight);
   }
 
-  void setAuthenticatedSession({
+  Future<void> setAuthenticatedSession({
     required Map<String, dynamic> userMap,
     required String token,
-  }) {
+  }) async {
     _isLoggedIn = true;
     _user = UserProfile.fromJson(userMap);
     _user.token = token;
@@ -900,8 +900,8 @@ class AppProvider extends ChangeNotifier {
       status: 'active',
       startedAt: DateTime.now(),
     );
-    _saveSession();
-    _loadUserIsolatedData();
+    await _saveSession();
+    await _loadUserIsolatedData();
     syncSubscription();
     syncAllDataFromCloud();
     notifyListeners();
@@ -1146,11 +1146,7 @@ class AppProvider extends ChangeNotifier {
 
   void deleteExpense(String id) {
     _deletedItemIds.add(id);
-    final idx = _expenses.indexWhere((e) => e.id == id);
-    if (idx != -1) {
-      _deletedItemIds.add(_expenses[idx].title.trim().toLowerCase());
-      _expenses.removeAt(idx);
-    }
+    _expenses.removeWhere((e) => e.id == id);
     _saveDeletedItemIds();
     _saveExpenses();
     notifyListeners();
@@ -1203,7 +1199,7 @@ class AppProvider extends ChangeNotifier {
           cachedUser != null &&
           cachedUser['id'] != 'guest_user') {
         ApiService.logAuth('Restoring authenticated session during startup', {'userId': cachedUser['id']});
-        setAuthenticatedSession(userMap: cachedUser, token: storedToken);
+        await setAuthenticatedSession(userMap: cachedUser, token: storedToken);
       }
 
       // Load Theme
@@ -1217,6 +1213,26 @@ class AppProvider extends ChangeNotifier {
         _tasks = decoded.map((item) => Task.fromJson(item)).toList();
       } else {
         _tasks = [];
+      }
+
+      // Load Priority Matrix Tasks (Eager Load on Startup)
+      final eagerPmJson = prefs.getString('saved_priority_matrix_tasks_${_user.id}') ??
+          prefs.getString('saved_priority_matrix_tasks');
+      if (eagerPmJson != null) {
+        try {
+          final List decoded = jsonDecode(eagerPmJson);
+          _priorityMatrixTasks = decoded.map((item) => Task.fromJson(item)).toList();
+        } catch (_) {}
+      }
+
+      // Load Organize Tasks (Eager Load on Startup)
+      final eagerOrgJson = prefs.getString('saved_organize_tasks_${_user.id}') ??
+          prefs.getString('saved_organize_tasks');
+      if (eagerOrgJson != null) {
+        try {
+          final List decoded = jsonDecode(eagerOrgJson);
+          _organizeTasks = decoded.map((item) => Task.fromJson(item)).toList();
+        } catch (_) {}
       }
 
       // Load Calendar Events
@@ -1257,40 +1273,42 @@ class AppProvider extends ChangeNotifier {
             decoded.map((item) => ReferralActivity.fromJson(item)).toList();
       }
 
-      // Load Active Session
-      final sessionUserJson = prefs.getString('saved_session_user') ??
-          prefs.getString('wrindha_auth_user') ??
-          prefs.getString('wrindha_secure_user_profile');
-      final sessionToken = prefs.getString('saved_session_token') ??
-          prefs.getString('wrindha_auth_token') ??
-          prefs.getString('wrindha_secure_jwt_token');
+      // Load Active Session if not already restored
+      if (!_isLoggedIn) {
+        final sessionUserJson = prefs.getString('saved_session_user') ??
+            prefs.getString('wrindha_auth_user') ??
+            prefs.getString('wrindha_secure_user_profile');
+        final sessionToken = prefs.getString('saved_session_token') ??
+            prefs.getString('wrindha_auth_token') ??
+            prefs.getString('wrindha_secure_jwt_token');
 
-      if (sessionUserJson != null && sessionUserJson.isNotEmpty) {
-        try {
-          final Map<String, dynamic> userMap = jsonDecode(sessionUserJson);
-          _user = UserProfile.fromJson(userMap);
-          if (sessionToken != null && sessionToken.isNotEmpty) {
-            _user.token = sessionToken;
+        if (sessionUserJson != null && sessionUserJson.isNotEmpty) {
+          try {
+            final Map<String, dynamic> userMap = jsonDecode(sessionUserJson);
+            _user = UserProfile.fromJson(userMap);
+            if (sessionToken != null && sessionToken.isNotEmpty) {
+              _user.token = sessionToken;
+            }
+            if ((_user.name.isEmpty || _user.name == 'Student User' || _user.name == 'Alex Johnson') &&
+                _user.username.isNotEmpty && _user.username.toLowerCase() != 'user') {
+              _user.name = _user.username;
+            }
+            _isLoggedIn = true;
+            await _loadUserIsolatedData();
+            syncSubscription();
+            syncAllDataFromCloud();
+          } catch (err) {
+            _isLoggedIn = false;
           }
-          if ((_user.name.isEmpty || _user.name == 'Student User' || _user.name == 'Alex Johnson') &&
-              _user.username.isNotEmpty && _user.username.toLowerCase() != 'user') {
-            _user.name = _user.username;
-          }
+        } else if (sessionToken != null && sessionToken.isNotEmpty) {
           _isLoggedIn = true;
+          _user.token = sessionToken;
           await _loadUserIsolatedData();
           syncSubscription();
           syncAllDataFromCloud();
-        } catch (err) {
+        } else {
           _isLoggedIn = false;
         }
-      } else if (sessionToken != null && sessionToken.isNotEmpty) {
-        _isLoggedIn = true;
-        _user.token = sessionToken;
-        await _loadUserIsolatedData();
-        syncSubscription();
-        syncAllDataFromCloud();
-      } else {
-        _isLoggedIn = false;
       }
 
       _recalculateMetrics();
@@ -1365,12 +1383,13 @@ class AppProvider extends ChangeNotifier {
     }
 
     // 2B. Organize Your Tasks / Eisenhower Matrix (Isolated)
-    final organizeJson = prefs.getString('saved_organize_tasks_$uid');
+    final organizeJson = prefs.getString('saved_organize_tasks_$uid') ??
+        (_user.email.isNotEmpty ? prefs.getString('saved_organize_tasks_${_user.email}') : null) ??
+        (_user.username.isNotEmpty ? prefs.getString('saved_organize_tasks_${_user.username}') : null) ??
+        prefs.getString('saved_organize_tasks');
     if (organizeJson != null) {
       final List decoded = jsonDecode(organizeJson);
       _organizeTasks = decoded.map((item) => Task.fromJson(item)).toList();
-    } else {
-      _organizeTasks = [];
     }
 
     // 3. Calendar Events (User-Isolated)
@@ -1451,13 +1470,14 @@ class AppProvider extends ChangeNotifier {
       _careerNodes = [];
     }
 
-    // 8B. Priority Matrix Tasks (Decoupled)
-    final pmTasksJson = prefs.getString('saved_priority_matrix_tasks_$uid');
+    // 8B. Priority Matrix Tasks (Decoupled & Resilient)
+    final pmTasksJson = prefs.getString('saved_priority_matrix_tasks_$uid') ??
+        (_user.email.isNotEmpty ? prefs.getString('saved_priority_matrix_tasks_${_user.email}') : null) ??
+        (_user.username.isNotEmpty ? prefs.getString('saved_priority_matrix_tasks_${_user.username}') : null) ??
+        prefs.getString('saved_priority_matrix_tasks');
     if (pmTasksJson != null) {
       final List decoded = jsonDecode(pmTasksJson);
       _priorityMatrixTasks = decoded.map((item) => Task.fromJson(item)).toList();
-    } else {
-      _priorityMatrixTasks = [];
     }
 
     // 9. Notifications (User-Isolated)
@@ -1469,19 +1489,20 @@ class AppProvider extends ChangeNotifier {
       _notifications = [];
     }
 
-    // Filter out all previously deleted item IDs and cross-contaminated items
-    _habits.removeWhere((h) => _deletedItemIds.contains(h.id) || _deletedItemIds.contains(h.title.trim().toLowerCase()));
-    _tasks.removeWhere((t) => _deletedItemIds.contains(t.id) || _deletedItemIds.contains(t.title.trim().toLowerCase()));
-    _priorityMatrixTasks.removeWhere((t) => _deletedItemIds.contains(t.id) || _deletedItemIds.contains(t.title.trim().toLowerCase()));
-    _calendarEvents.removeWhere((e) => _deletedItemIds.contains(e.id) || _deletedItemIds.contains(e.title.trim().toLowerCase()));
-    _expenses.removeWhere((e) => _deletedItemIds.contains(e.id) || _deletedItemIds.contains(e.title.trim().toLowerCase()));
-    _subjects.removeWhere((s) => _deletedItemIds.contains(s.id) || _deletedItemIds.contains(s.name.trim().toLowerCase()));
-    _studyItems.removeWhere((i) => _deletedItemIds.contains(i.id) || _deletedItemIds.contains(i.title.trim().toLowerCase()));
-    _studyUnits.removeWhere((u) => _deletedItemIds.contains(u.id) || _deletedItemIds.contains(u.title.trim().toLowerCase()));
-    _studyTopics.removeWhere((t) => _deletedItemIds.contains(t.id) || _deletedItemIds.contains(t.title.trim().toLowerCase()));
-    _journalEntries.removeWhere((j) => _deletedItemIds.contains(j.id) || _deletedItemIds.contains(j.title.trim().toLowerCase()));
-    _careerNodes.removeWhere((n) => _deletedItemIds.contains(n.id) || _deletedItemIds.contains(n.title.trim().toLowerCase()));
-    _goals.removeWhere((g) => _deletedItemIds.contains(g.id) || _deletedItemIds.contains(g.title.trim().toLowerCase()) || g.tier.toLowerCase() == 'roadmap');
+    // Filter out all previously deleted item IDs safely by unique ID
+    _habits.removeWhere((h) => _deletedItemIds.contains(h.id));
+    _tasks.removeWhere((t) => _deletedItemIds.contains(t.id));
+    _priorityMatrixTasks.removeWhere((t) => _deletedItemIds.contains(t.id));
+    _organizeTasks.removeWhere((t) => _deletedItemIds.contains(t.id));
+    _calendarEvents.removeWhere((e) => _deletedItemIds.contains(e.id));
+    _expenses.removeWhere((e) => _deletedItemIds.contains(e.id));
+    _subjects.removeWhere((s) => _deletedItemIds.contains(s.id));
+    _studyItems.removeWhere((i) => _deletedItemIds.contains(i.id));
+    _studyUnits.removeWhere((u) => _deletedItemIds.contains(u.id));
+    _studyTopics.removeWhere((t) => _deletedItemIds.contains(t.id));
+    _journalEntries.removeWhere((j) => _deletedItemIds.contains(j.id));
+    _careerNodes.removeWhere((n) => _deletedItemIds.contains(n.id));
+    _goals.removeWhere((g) => _deletedItemIds.contains(g.id) || g.tier.toLowerCase() == 'roadmap');
 
     // Deduplicate Goals
     final Map<String, Goal> goalMap = {};
@@ -1509,6 +1530,7 @@ class AppProvider extends ChangeNotifier {
 
     recalculateAllSubjectProgress();
     _recalculateMetrics();
+    notifyListeners();
     syncAllDataFromCloud();
   }
 
@@ -1579,10 +1601,6 @@ class AppProvider extends ChangeNotifier {
 
   void deleteTodoTask(String taskId) {
     _deletedItemIds.add(taskId);
-    final idx = _todoTasks.indexWhere((t) => t.id == taskId);
-    if (idx != -1) {
-      _deletedItemIds.add(_todoTasks[idx].title.trim().toLowerCase());
-    }
     _saveDeletedItemIds();
     _todoTasks.removeWhere((t) => t.id == taskId);
     _saveTodoTasks();
@@ -1599,8 +1617,21 @@ class AppProvider extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       final jsonList = _todoTasks.map((t) => t.toJson()).toList();
-      await prefs.setString('saved_todo_tasks_${_user.id}', jsonEncode(jsonList));
-      await prefs.setString('saved_tasks_${_user.id}', jsonEncode(jsonList));
+      final encoded = jsonEncode(jsonList);
+      if (_user.id.isNotEmpty) {
+        await prefs.setString('saved_todo_tasks_${_user.id}', encoded);
+        await prefs.setString('saved_tasks_${_user.id}', encoded);
+      }
+      if (_user.email.isNotEmpty) {
+        await prefs.setString('saved_todo_tasks_${_user.email}', encoded);
+        await prefs.setString('saved_tasks_${_user.email}', encoded);
+      }
+      if (_user.username.isNotEmpty) {
+        await prefs.setString('saved_todo_tasks_${_user.username}', encoded);
+        await prefs.setString('saved_tasks_${_user.username}', encoded);
+      }
+      await prefs.setString('saved_todo_tasks', encoded);
+      await prefs.setString('saved_tasks', encoded);
     } catch (e) {
       debugPrint('Error saving todo tasks: $e');
     }
@@ -1626,6 +1657,7 @@ class AppProvider extends ChangeNotifier {
     _organizeTasks.add(newTask);
     _saveOrganizeTasks();
     notifyListeners();
+    ApiService.createTaskOnBackend(newTask);
   }
 
   void toggleOrganizeTaskCompletion(String taskId) {
@@ -1641,26 +1673,28 @@ class AppProvider extends ChangeNotifier {
       }
       _saveOrganizeTasks();
       notifyListeners();
+      ApiService.updateTaskOnBackend(_organizeTasks[index]);
     }
   }
 
   void deleteOrganizeTask(String taskId) {
     _deletedItemIds.add(taskId);
-    final idx = _organizeTasks.indexWhere((t) => t.id == taskId);
-    if (idx != -1) {
-      _deletedItemIds.add(_organizeTasks[idx].title.trim().toLowerCase());
-    }
     _saveDeletedItemIds();
     _organizeTasks.removeWhere((t) => t.id == taskId);
     _saveOrganizeTasks();
     notifyListeners();
+    ApiService.deleteTaskOnBackend(taskId);
   }
 
   Future<void> _saveOrganizeTasks() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final jsonList = _organizeTasks.map((t) => t.toJson()).toList();
-      await prefs.setString('saved_organize_tasks_${_user.id}', jsonEncode(jsonList));
+      final encoded = jsonEncode(jsonList);
+      if (_user.id.isNotEmpty) await prefs.setString('saved_organize_tasks_${_user.id}', encoded);
+      if (_user.email.isNotEmpty) await prefs.setString('saved_organize_tasks_${_user.email}', encoded);
+      if (_user.username.isNotEmpty) await prefs.setString('saved_organize_tasks_${_user.username}', encoded);
+      await prefs.setString('saved_organize_tasks', encoded);
     } catch (e) {
       debugPrint('Error saving organize tasks: $e');
     }
@@ -1691,6 +1725,7 @@ class AppProvider extends ChangeNotifier {
     _priorityMatrixTasks.add(newTask);
     _savePriorityMatrixTasks();
     notifyListeners();
+    ApiService.createTaskOnBackend(newTask);
   }
 
   void editPriorityMatrixTask(
@@ -1710,6 +1745,7 @@ class AppProvider extends ChangeNotifier {
       if (dueTime != null) _priorityMatrixTasks[index].dueTime = dueTime;
       _savePriorityMatrixTasks();
       notifyListeners();
+      ApiService.updateTaskOnBackend(_priorityMatrixTasks[index]);
     }
   }
 
@@ -1726,25 +1762,24 @@ class AppProvider extends ChangeNotifier {
       }
       _savePriorityMatrixTasks();
       notifyListeners();
+      ApiService.updateTaskOnBackend(_priorityMatrixTasks[index]);
     }
   }
 
   void deletePriorityMatrixTask(String taskId) {
     _deletedItemIds.add(taskId);
-    final idx = _priorityMatrixTasks.indexWhere((t) => t.id == taskId);
-    if (idx != -1) {
-      _deletedItemIds.add(_priorityMatrixTasks[idx].title.trim().toLowerCase());
-    }
     _saveDeletedItemIds();
     _priorityMatrixTasks.removeWhere((t) => t.id == taskId);
     _savePriorityMatrixTasks();
     notifyListeners();
+    ApiService.deleteTaskOnBackend(taskId);
   }
 
   void clearPriorityMatrixHistory() {
-    for (var t in _priorityMatrixTasks.where((t) => t.isCompleted)) {
+    final completed = _priorityMatrixTasks.where((t) => t.isCompleted).toList();
+    for (var t in completed) {
       _deletedItemIds.add(t.id);
-      _deletedItemIds.add(t.title.trim().toLowerCase());
+      ApiService.deleteTaskOnBackend(t.id);
     }
     _saveDeletedItemIds();
     _priorityMatrixTasks.removeWhere((t) => t.isCompleted);
@@ -1756,7 +1791,11 @@ class AppProvider extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       final jsonList = _priorityMatrixTasks.map((t) => t.toJson()).toList();
-      await prefs.setString('saved_priority_matrix_tasks_${_user.id}', jsonEncode(jsonList));
+      final encoded = jsonEncode(jsonList);
+      if (_user.id.isNotEmpty) await prefs.setString('saved_priority_matrix_tasks_${_user.id}', encoded);
+      if (_user.email.isNotEmpty) await prefs.setString('saved_priority_matrix_tasks_${_user.email}', encoded);
+      if (_user.username.isNotEmpty) await prefs.setString('saved_priority_matrix_tasks_${_user.username}', encoded);
+      await prefs.setString('saved_priority_matrix_tasks', encoded);
     } catch (e) {
       debugPrint('Error saving priority matrix tasks: $e');
     }
@@ -2083,11 +2122,87 @@ class AppProvider extends ChangeNotifier {
     try {
       final remoteTasks = await ApiService.fetchTasks();
       final validRemote = remoteTasks.where((t) =>
-        !_deletedItemIds.contains(t.id) &&
-        !_deletedItemIds.contains(t.title.trim().toLowerCase())
+        !_deletedItemIds.contains(t.id)
       ).toList();
-      final Map<String, Task> taskMap = {for (var t in _tasks) if (!_deletedItemIds.contains(t.id)) t.id: t};
-      for (var rt in validRemote) {
+
+      // 1. Merge Priority Matrix Tasks
+      final remotePmTasks = validRemote.where((t) =>
+        t.isPriorityMatrixOnly || t.category == 'Priority Matrix'
+      ).toList();
+      if (remotePmTasks.isNotEmpty || _priorityMatrixTasks.isNotEmpty) {
+        final Map<String, Task> pmMap = {
+          for (var t in _priorityMatrixTasks) if (!_deletedItemIds.contains(t.id)) t.id: t
+        };
+        for (var rt in remotePmTasks) {
+          Task? local = pmMap[rt.id];
+          if (local == null) {
+            for (var t in pmMap.values) {
+              if (t.title.trim().toLowerCase() == rt.title.trim().toLowerCase() && t.tag == rt.tag) {
+                local = t;
+                break;
+              }
+            }
+          }
+          if (local != null) {
+            final isComp = local.isCompleted || rt.isCompleted;
+            local.isCompleted = isComp;
+            if (isComp && local.completedDate == null) {
+              local.completedDate = rt.completedDate ?? DateTime.now();
+              local.dueDateLabel = 'Completed';
+            }
+            pmMap[local.id] = local;
+          } else {
+            pmMap[rt.id] = rt;
+          }
+        }
+        _priorityMatrixTasks = pmMap.values.where((t) => !_deletedItemIds.contains(t.id)).toList();
+        _savePriorityMatrixTasks();
+      }
+
+      // 2. Merge Eisenhower / Organize Matrix Tasks
+      final remoteOrgTasks = validRemote.where((t) =>
+        t.category == 'Eisenhower Matrix'
+      ).toList();
+      if (remoteOrgTasks.isNotEmpty || _organizeTasks.isNotEmpty) {
+        final Map<String, Task> orgMap = {
+          for (var t in _organizeTasks) if (!_deletedItemIds.contains(t.id)) t.id: t
+        };
+        for (var rt in remoteOrgTasks) {
+          Task? local = orgMap[rt.id];
+          if (local == null) {
+            for (var t in orgMap.values) {
+              if (t.title.trim().toLowerCase() == rt.title.trim().toLowerCase()) {
+                local = t;
+                break;
+              }
+            }
+          }
+          if (local != null) {
+            final isComp = local.isCompleted || rt.isCompleted;
+            local.isCompleted = isComp;
+            if (isComp && local.completedDate == null) {
+              local.completedDate = rt.completedDate ?? DateTime.now();
+              local.dueDateLabel = 'Completed';
+            }
+            orgMap[local.id] = local;
+          } else {
+            orgMap[rt.id] = rt;
+          }
+        }
+        _organizeTasks = orgMap.values.where((t) => !_deletedItemIds.contains(t.id)).toList();
+        _saveOrganizeTasks();
+      }
+
+      // 3. Merge Regular To-Do Tasks
+      final remoteTodoTasks = validRemote.where((t) =>
+        !t.isPriorityMatrixOnly && t.category != 'Priority Matrix' && t.category != 'Eisenhower Matrix'
+      ).toList();
+      final Map<String, Task> taskMap = {
+        for (var t in _tasks)
+          if (!_deletedItemIds.contains(t.id) && !t.isPriorityMatrixOnly && t.category != 'Priority Matrix' && t.category != 'Eisenhower Matrix')
+            t.id: t
+      };
+      for (var rt in remoteTodoTasks) {
         Task? local = taskMap[rt.id];
         if (local == null) {
           for (var t in taskMap.values) {
@@ -2111,8 +2226,9 @@ class AppProvider extends ChangeNotifier {
       }
       _tasks = taskMap.values.where((t) =>
         !_deletedItemIds.contains(t.id) &&
-        !_deletedItemIds.contains(t.title.trim().toLowerCase()) &&
-        !t.isPriorityMatrixOnly
+        !t.isPriorityMatrixOnly &&
+        t.category != 'Priority Matrix' &&
+        t.category != 'Eisenhower Matrix'
       ).toList();
       _saveTasks();
       _recalculateMetrics();

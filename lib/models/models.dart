@@ -266,19 +266,26 @@ class Task {
         'category': category,
         'tag': tag,
         'dueDateLabel': dueDateLabel,
+        'due_date_label': dueDateLabel,
         'dueDate': dueDate.toIso8601String(),
+        'due_date': dueDate.toIso8601String(),
+        'due_at': dueDate.toIso8601String(),
         'dueTime': dueTime,
+        'due_time': dueTime,
         'priority': priority,
         'isCompleted': isCompleted,
+        'is_completed': isCompleted,
         'completedDate': completedDate?.toIso8601String(),
+        'completed_at': completedDate?.toIso8601String(),
         'isPriorityMatrixOnly': isPriorityMatrixOnly,
+        'is_priority_matrix_only': isPriorityMatrixOnly,
       };
 
   factory Task.fromJson(Map<String, dynamic> json) => Task(
         id: json['id']?.toString() ?? generateUuidV4(),
         title: json['title'] ?? 'Untitled Task',
         category: json['category'] ?? 'Studies',
-        tag: json['tag'] ?? 'STUDY',
+        tag: json['tag']?.toString() ?? 'STUDY',
         dueDateLabel: json['dueDateLabel'] ?? json['due_date_label'] ?? 'Today',
         dueDate: json['dueDate'] != null
             ? (DateTime.tryParse(json['dueDate'].toString()) ?? DateTime.now())
@@ -295,7 +302,9 @@ class Task {
             : (json['completed_at'] != null
                 ? DateTime.tryParse(json['completed_at'].toString())
                 : null),
-        isPriorityMatrixOnly: json['isPriorityMatrixOnly'] == true || json['is_priority_matrix_only'] == true,
+        isPriorityMatrixOnly: json['isPriorityMatrixOnly'] == true ||
+            json['is_priority_matrix_only'] == true ||
+            json['category'] == 'Priority Matrix',
       );
 }
 
