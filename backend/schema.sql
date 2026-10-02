@@ -534,38 +534,8 @@ ALTER TABLE public.study_items ADD COLUMN IF NOT EXISTS order_num INT DEFAULT 1;
 ALTER TABLE public.study_items ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP;
 
 -- -----------------------------------------------------------------------------
--- 9. GOALS, MILESTONES & CAREER ROADMAP
+-- 9. MILESTONES & CAREER ROADMAP
 -- -----------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS public.goals (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-    title TEXT NOT NULL,
-    description TEXT,
-    tier VARCHAR(30) DEFAULT 'short',
-    timeframe VARCHAR(30) DEFAULT 'short',
-    section VARCHAR(50) DEFAULT 'GOAL',
-    category VARCHAR(50) DEFAULT 'General',
-    is_completed BOOLEAN DEFAULT FALSE,
-    target_date DATE,
-    aligned_purpose TEXT,
-    progress_percentage NUMERIC(5, 2) DEFAULT 0.00,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
-ALTER TABLE public.goals ADD COLUMN IF NOT EXISTS title TEXT;
-ALTER TABLE public.goals ADD COLUMN IF NOT EXISTS description TEXT;
-ALTER TABLE public.goals ADD COLUMN IF NOT EXISTS tier VARCHAR(30) DEFAULT 'short';
-ALTER TABLE public.goals ADD COLUMN IF NOT EXISTS timeframe VARCHAR(30) DEFAULT 'short';
-ALTER TABLE public.goals ADD COLUMN IF NOT EXISTS section VARCHAR(50) DEFAULT 'GOAL';
-ALTER TABLE public.goals ADD COLUMN IF NOT EXISTS category VARCHAR(50) DEFAULT 'General';
-ALTER TABLE public.goals ADD COLUMN IF NOT EXISTS is_completed BOOLEAN DEFAULT FALSE;
-ALTER TABLE public.goals ADD COLUMN IF NOT EXISTS target_date DATE;
-ALTER TABLE public.goals ADD COLUMN IF NOT EXISTS aligned_purpose TEXT;
-ALTER TABLE public.goals ADD COLUMN IF NOT EXISTS progress_percentage NUMERIC(5, 2) DEFAULT 0.00;
-ALTER TABLE public.goals ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP;
-
-CREATE INDEX IF NOT EXISTS idx_goals_user_tier ON public.goals(user_id, tier);
 
 DROP VIEW IF EXISTS public.career_roadmap CASCADE;
 CREATE TABLE IF NOT EXISTS public.career_nodes (
@@ -586,7 +556,7 @@ CREATE INDEX IF NOT EXISTS idx_career_nodes_user ON public.career_nodes(user_id)
 CREATE TABLE IF NOT EXISTS public.milestones (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-    goal_id UUID NOT NULL REFERENCES public.goals(id) ON DELETE CASCADE,
+    goal_id UUID,
     title TEXT NOT NULL,
     milestone_title TEXT,
     description TEXT,
@@ -736,8 +706,6 @@ CREATE TRIGGER trg_study_units_updated_at BEFORE UPDATE ON public.study_units FO
 DROP TRIGGER IF EXISTS trg_study_items_updated_at ON public.study_items;
 CREATE TRIGGER trg_study_items_updated_at BEFORE UPDATE ON public.study_items FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
-DROP TRIGGER IF EXISTS trg_goals_updated_at ON public.goals;
-CREATE TRIGGER trg_goals_updated_at BEFORE UPDATE ON public.goals FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
 DROP TRIGGER IF EXISTS trg_milestones_updated_at ON public.milestones;
 CREATE TRIGGER trg_milestones_updated_at BEFORE UPDATE ON public.milestones FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
@@ -765,7 +733,6 @@ ALTER TABLE public.monthly_budgets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.subjects ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.study_units ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.study_items ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.goals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.milestones ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.calendar_events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.journal_entries ENABLE ROW LEVEL SECURITY;
@@ -830,8 +797,6 @@ CREATE POLICY study_units_user_isolation_policy ON public.study_units FOR ALL US
 DROP POLICY IF EXISTS study_items_user_isolation_policy ON public.study_items;
 CREATE POLICY study_items_user_isolation_policy ON public.study_items FOR ALL USING (auth.uid() = user_id OR (auth.jwt() ->> 'role') = 'service_role') WITH CHECK (auth.uid() = user_id OR (auth.jwt() ->> 'role') = 'service_role');
 
-DROP POLICY IF EXISTS goals_user_isolation_policy ON public.goals;
-CREATE POLICY goals_user_isolation_policy ON public.goals FOR ALL USING (auth.uid() = user_id OR (auth.jwt() ->> 'role') = 'service_role') WITH CHECK (auth.uid() = user_id OR (auth.jwt() ->> 'role') = 'service_role');
 
 DROP POLICY IF EXISTS milestones_user_isolation_policy ON public.milestones;
 CREATE POLICY milestones_user_isolation_policy ON public.milestones FOR ALL USING (auth.uid() = user_id OR (auth.jwt() ->> 'role') = 'service_role') WITH CHECK (auth.uid() = user_id OR (auth.jwt() ->> 'role') = 'service_role');
