@@ -8,10 +8,10 @@ import '../widgets/upgrade_pro_modal.dart';
 import '../theme/app_theme.dart';
 import 'personal_growth_screen.dart';
 import 'career_screen.dart';
-import 'goal_pyramid_screen.dart';
 import 'studies_screen.dart';
 import 'calendar_screen.dart';
 import 'priority_matrix_screen.dart';
+import 'focus_timer_screen.dart';
 import 'analytics_screen.dart';
 
 import '../features/smart_assistant/smart_assistant_screen.dart';
@@ -141,33 +141,6 @@ class HomeScreen extends StatelessWidget {
                       },
                     ),
 
-                    // 2B. Strategic Goals (PRO ONLY: AppFeature.goals)
-                    _buildModuleCard(
-                      context,
-                      isDark: isDark,
-                      icon: Icons.military_tech_outlined,
-                      title: 'Strategic Goals',
-                      subtitle: 'Short, Med & Long Goals',
-                      lightCardBg: const Color(0xFFEFF6FF),
-                      lightIconContainerColor: const Color(0xFF2563EB),
-                      isLocked: !provider.hasAccess(AppFeature.goals),
-                      onTap: () {
-                        if (!provider.hasAccess(AppFeature.goals)) {
-                          ProUpgradeDialog.showFeatureLockedDialog(
-                            context,
-                            AppFeature.goals,
-                          );
-                        } else {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const GoalPyramidScreen(),
-                            ),
-                          );
-                        }
-                      },
-                    ),
-
                     // 3. Studies
                     _buildModuleCard(
                       context,
@@ -206,21 +179,20 @@ class HomeScreen extends StatelessWidget {
                       },
                     ),
 
-                    // 5. Priority Matrix (PRO ONLY: AppFeature.priorityMatrix)
+                    // 5. Focus Centre (Directly to the left of Analytics)
                     _buildModuleCard(
                       context,
                       isDark: isDark,
-                      icon: Icons.flag_outlined,
-                      title: 'Priority',
-                      subtitle: 'Priority Matrix',
-                      lightCardBg: AppTheme.pastelPriority,
-                      lightIconContainerColor: AppTheme.pastelPriorityIcon,
-                      isLocked: !provider.hasAccess(AppFeature.priorityMatrix),
+                      icon: Icons.timer_outlined,
+                      title: 'Focus Centre',
+                      subtitle: 'Pomodoro & Timer',
+                      lightCardBg: const Color(0xFFECFDF5),
+                      lightIconContainerColor: const Color(0xFF10B981),
                       onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => const PriorityMatrixScreen(),
+                            builder: (_) => const FocusTimerScreen(),
                           ),
                         );
                       },

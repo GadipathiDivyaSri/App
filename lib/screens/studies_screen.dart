@@ -8,8 +8,6 @@ import '../widgets/premium_lock_banner.dart';
 import '../widgets/upgrade_pro_modal.dart';
 import '../theme/app_theme.dart';
 import 'subject_details_screen.dart';
-import 'focus_timer_screen.dart';
-import 'goal_pyramid_screen.dart';
 import 'subject_planner_screen.dart';
 
 /// Studies Screen for WrindhaOS
@@ -198,57 +196,6 @@ class _StudiesScreenState extends State<StudiesScreen> {
                   ),
                 ),
               ],
-            ),
-            const SizedBox(height: 16),
-
-            // Study Accelerator (Focus Timer: Pomodoro & Stopwatch)
-            InkWell(
-              borderRadius: BorderRadius.circular(16),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const FocusTimerScreen()),
-                );
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1E2235) : Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: isDark ? const Color(0x332A85FF) : const Color(0xFFE2E8F0)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF10B981).withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(Icons.timer_outlined, size: 22, color: Color(0xFF10B981)),
-                    ),
-                    const SizedBox(width: 14),
-                    const Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Focus Timer & Stopwatch', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                          SizedBox(height: 2),
-                          Text('Deep Work Pomodoro (25m) & Millisecond Stopwatch', style: TextStyle(fontSize: 11, color: Colors.grey)),
-                        ],
-                      ),
-                    ),
-                    const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Color(0xFF10B981)),
-                  ],
-                ),
-              ),
             ),
             const SizedBox(height: 20),
 

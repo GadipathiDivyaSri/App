@@ -236,7 +236,6 @@ class AppProvider extends ChangeNotifier {
     _studyUnits = [];
     _studyTopics = [];
     _journalEntries = [];
-    _goals = [];
     _careerNodes = [];
     await ApiService.clearSession();
     await AuthApiService.clearSession();
@@ -749,134 +748,7 @@ class AppProvider extends ChangeNotifier {
   }
 
   // ---------------------------------------------------------------------------
-  // 4. Goals & Strategic Hierarchy (Short, Medium, Long)
-  // ---------------------------------------------------------------------------
-  List<Goal> _goals = [];
-  List<Goal> get goals => _goals.where((g) {
-        final t = g.tier.toLowerCase();
-        return t != 'roadmap' &&
-            t != 'career' &&
-            !t.contains('roadmap') &&
-            !_careerNodes.any((cn) => cn.id == g.id);
-      }).toList();
-
-  List<Goal> get shortGoals => _goals.where((g) {
-        final t = g.tier.toLowerCase();
-        return t == 'short' && !_careerNodes.any((cn) => cn.id == g.id);
-      }).toList();
-
-  List<Goal> get mediumGoals => _goals.where((g) {
-        final t = g.tier.toLowerCase();
-        return t == 'medium' && !_careerNodes.any((cn) => cn.id == g.id);
-      }).toList();
-
-  List<Goal> get longGoals => _goals.where((g) {
-        final t = g.tier.toLowerCase();
-        return t == 'long' && !_careerNodes.any((cn) => cn.id == g.id);
-      }).toList();
-
-  void addGoal(Goal goal) {
-    _goals.add(goal);
-    _saveGoals();
-    notifyListeners();
-    ApiService.createGoalOnBackend(goal);
-  }
-
-  void updateGoal(Goal goal) {
-    final idx = _goals.indexWhere((g) => g.id == goal.id);
-    if (idx != -1) {
-      _goals[idx] = goal;
-      _saveGoals();
-      notifyListeners();
-      ApiService.updateGoalOnBackend(goal);
-    }
-  }
-
-  void toggleGoal(String id) {
-    final idx = _goals.indexWhere((g) => g.id == id);
-    if (idx != -1) {
-      _goals[idx].isCompleted = !_goals[idx].isCompleted;
-      _saveGoals();
-      notifyListeners();
-      ApiService.updateGoalOnBackend(_goals[idx]);
-    }
-  }
-
-  Future<void> deleteGoal(String id) async {
-    final idx = _goals.indexWhere((g) => g.id == id);
-    String? title;
-    if (idx != -1) {
-      title = _goals[idx].title;
-      final titleNorm = title.trim().toLowerCase();
-      _deletedItemIds.add(id);
-      if (titleNorm.isNotEmpty) _deletedItemIds.add(titleNorm);
-    } else {
-      _deletedItemIds.add(id);
-    }
-    _saveDeletedItemIds();
-    _goals.removeWhere((g) => g.id == id);
-    _saveGoals();
-    notifyListeners();
-    await ApiService.deleteGoalOnBackend(id, goalTitle: title);
-  }
-
-  Future<void> fetchGoalsFromBackend() async {
-    try {
-      final remote = await ApiService.fetchGoals();
-      final validRemote = remote.where((g) {
-        final t = g.tier.toLowerCase();
-        return !_deletedItemIds.contains(g.id) &&
-            !_deletedItemIds.contains(g.title.trim().toLowerCase()) &&
-            t != 'roadmap' &&
-            t != 'career' &&
-            !t.contains('roadmap') &&
-            !t.contains('career');
-      }).toList();
-      
-      final Map<String, Goal> goalMap = {};
-      final Map<String, String> titleToId = {};
-      
-      for (var g in _goals) {
-        final normTitle = g.title.trim().toLowerCase();
-        final t = g.tier.toLowerCase();
-        if (!_deletedItemIds.contains(g.id) &&
-            !_deletedItemIds.contains(normTitle) &&
-            t != 'roadmap' &&
-            t != 'career' &&
-            !t.contains('roadmap')) {
-          goalMap[g.id] = g;
-          if (normTitle.isNotEmpty) titleToId[normTitle] = g.id;
-        }
-      }
-      
-      for (var rg in validRemote) {
-        final normTitle = rg.title.trim().toLowerCase();
-        final existingId = goalMap.containsKey(rg.id) ? rg.id : (normTitle.isNotEmpty ? titleToId[normTitle] : null);
-        if (existingId != null && goalMap.containsKey(existingId)) {
-          final local = goalMap[existingId]!;
-          local.isCompleted = rg.isCompleted;
-          goalMap[existingId] = local;
-        } else {
-          goalMap[rg.id] = rg;
-          if (normTitle.isNotEmpty) titleToId[normTitle] = rg.id;
-        }
-      }
-      
-      _goals = goalMap.values.where((g) {
-        final t = g.tier.toLowerCase();
-        return !_deletedItemIds.contains(g.id) &&
-            !_deletedItemIds.contains(g.title.trim().toLowerCase()) &&
-            t != 'roadmap' &&
-            t != 'career' &&
-            !t.contains('roadmap');
-      }).toList();
-      _saveGoals();
-      notifyListeners();
-    } catch (_) {}
-  }
-
-  // ---------------------------------------------------------------------------
-  // 4B. Career Roadmap (Floating & Flexible)
+  // 4. Career Roadmap (Floating & Flexible)
   // ---------------------------------------------------------------------------
   List<CareerRoadmapNode> _careerNodes = [];
   List<CareerRoadmapNode> get careerNodes => _careerNodes;
@@ -1412,7 +1284,6 @@ class AppProvider extends ChangeNotifier {
     _studyUnits = [];
     _studyTopics = [];
     _journalEntries = [];
-    _goals = [];
     _careerNodes = [];
 
     final prefs = await SharedPreferences.getInstance();
@@ -1558,17 +1429,6 @@ class AppProvider extends ChangeNotifier {
       _journalEntries = [];
     }
 
-    // 7. Goals (Strictly User-Isolated)
-    final goalsJson = prefs.getString('saved_goals_$uid') ??
-        (_user.email.isNotEmpty ? prefs.getString('saved_goals_${_user.email}') : null) ??
-        (_user.username.isNotEmpty ? prefs.getString('saved_goals_${_user.username}') : null);
-    if (goalsJson != null) {
-      final List decoded = jsonDecode(goalsJson);
-      _goals = decoded.map((item) => Goal.fromJson(item)).toList();
-    } else {
-      _goals = [];
-    }
-
     // 8. Career Roadmap (Strictly User-Isolated)
     final careerJson = prefs.getString('saved_career_$uid') ??
         (_user.email.isNotEmpty ? prefs.getString('saved_career_${_user.email}') : null) ??
@@ -1613,19 +1473,6 @@ class AppProvider extends ChangeNotifier {
     _studyTopics.removeWhere((t) => _deletedItemIds.contains(t.id));
     _journalEntries.removeWhere((j) => _deletedItemIds.contains(j.id) || _deletedItemIds.contains(j.title.trim().toLowerCase()));
     _careerNodes.removeWhere((n) => _deletedItemIds.contains(n.id) || _deletedItemIds.contains(n.title.trim().toLowerCase()));
-    _goals.removeWhere((g) => _deletedItemIds.contains(g.id) || _deletedItemIds.contains(g.title.trim().toLowerCase()) || g.tier.toLowerCase() == 'roadmap');
-
-    // Deduplicate Goals
-    final Map<String, Goal> goalMap = {};
-    final Map<String, String> goalTitleMap = {};
-    for (var g in _goals) {
-      final normTitle = g.title.trim().toLowerCase();
-      if (!goalMap.containsKey(g.id) && (normTitle.isEmpty || !goalTitleMap.containsKey(normTitle))) {
-        goalMap[g.id] = g;
-        if (normTitle.isNotEmpty) goalTitleMap[normTitle] = g.id;
-      }
-    }
-    _goals = goalMap.values.toList();
 
     // Deduplicate Career Nodes
     final Map<String, CareerRoadmapNode> careerMap = {};
@@ -2276,16 +2123,6 @@ class AppProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> _saveGoals() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final jsonList = _goals.map((g) => g.toJson()).toList();
-      await prefs.setString('saved_goals_${_user.id}', jsonEncode(jsonList));
-    } catch (e) {
-      debugPrint('Error saving goals: $e');
-    }
-  }
-
   // ---------------------------------------------------------------------------
   // CLOUD PERSISTENCE & SYNCHRONIZATION SYSTEM
   // ---------------------------------------------------------------------------
@@ -2311,7 +2148,6 @@ class AppProvider extends ChangeNotifier {
         syncStudyTopicsFromCloud(),
         syncStudyItemsFromCloud(),
         syncCalendarEventsFromCloud(),
-        fetchGoalsFromBackend(),
         syncCareerRoadmapFromCloud(),
         syncJournalEntriesFromCloud(),
         syncUserProfileFromCloud(),

@@ -541,7 +541,6 @@ class AnalyticsService {
   // ---------------------------------------------------------------------------
   static GoalAnalyticsData calculateGoals({
     required List<CareerRoadmapNode> roadmapNodes,
-    List<Goal>? pyramidGoals,
   }) {
     int onTrack = 0;
     int needsAttention = 0;
@@ -549,30 +548,6 @@ class AnalyticsService {
     final goalItems = <GoalItemAnalytics>[];
     final seenIds = <String>{};
 
-    if (pyramidGoals != null) {
-      for (final pg in pyramidGoals) {
-        final t = pg.tier.toLowerCase();
-        if (t == 'roadmap' || t == 'career' || t.contains('roadmap')) continue;
-        if (seenIds.contains(pg.id)) continue;
-        seenIds.add(pg.id);
-
-        final prog = pg.isCompleted ? 1.0 : 0.0;
-        final status = pg.isCompleted ? 'Completed' : 'Planned';
-        if (pg.isCompleted) {
-          onTrack++;
-        } else {
-          needsAttention++;
-        }
-        goalItems.add(GoalItemAnalytics(
-          id: pg.id,
-          title: pg.title,
-          section: 'Pyramid (${pg.tier.toUpperCase()})',
-          progress: prog,
-          status: status,
-          isCompleted: pg.isCompleted,
-        ));
-      }
-    }
 
     for (final g in roadmapNodes) {
       if (seenIds.contains(g.id)) continue;

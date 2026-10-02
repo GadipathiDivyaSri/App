@@ -115,7 +115,6 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
     final goalData = AnalyticsService.calculateGoals(
       roadmapNodes: provider.careerRoadmap,
-      pyramidGoals: provider.goals,
     );
 
     final milestoneData = AnalyticsService.calculateMilestones(
