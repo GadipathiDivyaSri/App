@@ -11,6 +11,7 @@ import 'expense_tracker_screen.dart';
 
 import 'organize_matrix_screen.dart';
 import 'notes_screen.dart';
+import 'goal_pyramid_screen.dart';
 
 class PersonalGrowthScreen extends StatelessWidget {
   const PersonalGrowthScreen({super.key});
@@ -137,7 +138,26 @@ class PersonalGrowthScreen extends StatelessWidget {
                 );
               },
             ),
-            // 3. Organize Matrix (Pro Only)
+            // 3. Strategic Goals (Goal Pyramid)
+            _buildMenuCard(
+              context,
+              category: 'STRATEGY & GOALS',
+              title: 'Strategic Goals',
+              icon: Icons.military_tech_outlined,
+              isDark: isDark,
+              isLocked: !provider.hasAccess(AppFeature.goals),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const GoalPyramidScreen(),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 14),
+
+            // 4. Organize Matrix (Pro Only)
             _buildMenuCard(
               context,
               category: 'ORGANIZATION',
