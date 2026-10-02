@@ -572,8 +572,26 @@ class AppProvider extends ChangeNotifier {
   List<StudyTopic> _studyTopics = [];
   List<StudyTopic> get studyTopics => _studyTopics;
 
-  List<StudyTopic> getTopicsForUnit(String unitIdOrTitle) =>
-      _studyTopics.where((t) => t.unitId == unitIdOrTitle || t.unitId.toLowerCase() == unitIdOrTitle.toLowerCase()).toList();
+  List<StudyTopic> getTopicsForUnit(String unitIdOrTitle) {
+    final clean = unitIdOrTitle.trim().toLowerCase();
+    if (clean.isEmpty) return [];
+
+    final unitMatch = _studyUnits.where((u) =>
+      u.id.trim().toLowerCase() == clean ||
+      u.title.trim().toLowerCase() == clean
+    ).firstOrNull;
+
+    final matchKeys = <String>{clean};
+    if (unitMatch != null) {
+      matchKeys.add(unitMatch.id.trim().toLowerCase());
+      matchKeys.add(unitMatch.title.trim().toLowerCase());
+    }
+
+    return _studyTopics.where((t) {
+      final tUnit = t.unitId.trim().toLowerCase();
+      return matchKeys.contains(tUnit);
+    }).toList();
+  }
 
   void addStudyUnit(StudyUnit unit) {
     _deletedItemIds.remove(unit.id);
@@ -2108,9 +2126,9 @@ class AppProvider extends ChangeNotifier {
 
   Future<void> syncAllDataFromCloud() async {
     if (!_isLoggedIn) return;
-    final token = await ApiService.getSessionToken();
-    if (token == null || token.isEmpty) {
-      // Offline or session token temporarily unavailable: preserve active local state
+    final uid = await ApiService.getEffectiveUserUuid();
+    if (uid == null || uid.isEmpty) {
+      // Offline or unauthenticated user: preserve local state
       return;
     }
     _isSyncing = true;
@@ -2396,11 +2414,20 @@ class AppProvider extends ChangeNotifier {
       final validRemote = remoteUnits.where((u) => !_deletedItemIds.contains(u.id)).toList();
       final Map<String, StudyUnit> unitMap = {for (var u in _studyUnits) if (!_deletedItemIds.contains(u.id)) u.id: u};
       for (var ru in validRemote) {
-        final local = unitMap[ru.id];
+        String? matchKey = ru.id;
+        if (!unitMap.containsKey(matchKey)) {
+          final titleMatch = unitMap.values.where((u) => u.title.trim().toLowerCase() == ru.title.trim().toLowerCase()).firstOrNull;
+          if (titleMatch != null) matchKey = titleMatch.id;
+        }
+
+        final local = unitMap[matchKey];
         if (local != null) {
+          local.title = ru.title.isNotEmpty ? ru.title : local.title;
+          if (ru.description.isNotEmpty) local.description = ru.description;
+          if (ru.subjectId.isNotEmpty) local.subjectId = ru.subjectId;
           local.isCompleted = ru.isCompleted;
           local.progress = ru.progress;
-          unitMap[ru.id] = local;
+          unitMap[matchKey!] = local;
         } else {
           unitMap[ru.id] = ru;
         }
@@ -2420,10 +2447,20 @@ class AppProvider extends ChangeNotifier {
       final validRemote = remoteTopics.where((t) => !_deletedItemIds.contains(t.id)).toList();
       final Map<String, StudyTopic> topicMap = {for (var t in _studyTopics) if (!_deletedItemIds.contains(t.id)) t.id: t};
       for (var rt in validRemote) {
-        final local = topicMap[rt.id];
+        String? matchKey = rt.id;
+        if (!topicMap.containsKey(matchKey)) {
+          final titleMatch = topicMap.values.where((t) => t.title.trim().toLowerCase() == rt.title.trim().toLowerCase()).firstOrNull;
+          if (titleMatch != null) matchKey = titleMatch.id;
+        }
+
+        final local = topicMap[matchKey];
         if (local != null) {
+          local.title = rt.title.isNotEmpty ? rt.title : local.title;
+          if (rt.description.isNotEmpty) local.description = rt.description;
+          if (rt.unitId.isNotEmpty) local.unitId = rt.unitId;
+          if (rt.subjectId.isNotEmpty) local.subjectId = rt.subjectId;
           local.isCompleted = rt.isCompleted;
-          topicMap[rt.id] = local;
+          topicMap[matchKey!] = local;
         } else {
           topicMap[rt.id] = rt;
         }

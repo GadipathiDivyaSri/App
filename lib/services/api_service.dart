@@ -3097,23 +3097,49 @@ class ApiService {
     // 1. Primary: Direct Supabase PostgreSQL
     if (uid != null && uid.isNotEmpty) {
       try {
-        // If subjectId is missing/invalid, look it up from parent unit in Supabase
-        if (topic.subjectId.isEmpty || cleanSubId == '00000000-0000-4000-8000-000000000000') {
-          try {
-            final resUnit = await http.get(
-              Uri.parse('$supabaseUrl/rest/v1/study_units?id=eq.$cleanUnitId&select=subject_id'),
-              headers: {
-                'apikey': supabaseServiceKey,
-                'Authorization': 'Bearer $supabaseServiceKey',
-              },
-            ).timeout(const Duration(seconds: 4));
-            if (resUnit.statusCode == 200) {
-              final list = jsonDecode(resUnit.body);
-              if (list is List && list.isNotEmpty && list[0]['subject_id'] != null) {
-                cleanSubId = list[0]['subject_id'].toString();
-              }
+        // Verify or auto-create parent unit in Supabase to satisfy foreign key constraint
+        final resUnit = await http.get(
+          Uri.parse('$supabaseUrl/rest/v1/study_units?id=eq.$cleanUnitId&select=id,subject_id'),
+          headers: {
+            'apikey': supabaseServiceKey,
+            'Authorization': 'Bearer $supabaseServiceKey',
+          },
+        ).timeout(const Duration(seconds: 4), onTimeout: () => http.Response('[]', 408));
+
+        bool unitExists = false;
+        if (resUnit.statusCode == 200) {
+          final list = jsonDecode(resUnit.body);
+          if (list is List && list.isNotEmpty) {
+            unitExists = true;
+            if (list[0]['subject_id'] != null && list[0]['subject_id'].toString().isNotEmpty) {
+              cleanSubId = list[0]['subject_id'].toString();
             }
-          } catch (_) {}
+          }
+        }
+
+        if (!unitExists) {
+          // Auto-create parent unit stub if missing in Supabase
+          final unitPayload = {
+            'id': cleanUnitId,
+            'subject_id': cleanSubId,
+            'user_id': uid,
+            'title': 'Unit',
+            'description': '',
+            'unit_number': 1,
+            'is_completed': false,
+            'progress': 0.0,
+            'updated_at': DateTime.now().toUtc().toIso8601String(),
+          };
+          await http.post(
+            Uri.parse('$supabaseUrl/rest/v1/study_units'),
+            headers: {
+              'apikey': supabaseServiceKey,
+              'Authorization': 'Bearer $supabaseServiceKey',
+              'Content-Type': 'application/json',
+              'Prefer': 'return=representation, resolution=merge-duplicates',
+            },
+            body: jsonEncode(unitPayload),
+          ).catchError((_) => http.Response('', 500));
         }
 
         final payload = {

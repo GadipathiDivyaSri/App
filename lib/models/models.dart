@@ -713,10 +713,8 @@ class StudyUnit {
       };
 
   factory StudyUnit.fromJson(Map<String, dynamic> json) {
-    final rawId = json['id']?.toString();
-    final cleanId = (rawId != null && rawId.isNotEmpty && !rawId.startsWith('u_'))
-        ? rawId
-        : generateUuidV4();
+    final rawId = json['id']?.toString() ?? '';
+    final cleanId = rawId.isNotEmpty ? rawId : generateUuidV4();
     return StudyUnit(
       id: cleanId,
       subjectId: json['subject_id'] ?? json['subjectId'] ?? '',
@@ -772,10 +770,8 @@ class StudyTopic {
       };
 
   factory StudyTopic.fromJson(Map<String, dynamic> json) {
-    final rawId = json['id']?.toString();
-    final cleanId = (rawId != null && rawId.isNotEmpty && !rawId.startsWith('topic_') && !rawId.startsWith('top_'))
-        ? rawId
-        : generateUuidV4();
+    final rawId = json['id']?.toString() ?? '';
+    final cleanId = rawId.isNotEmpty ? rawId : generateUuidV4();
     return StudyTopic(
       id: cleanId,
       unitId: json['unit_id'] ?? json['unitId'] ?? '',
