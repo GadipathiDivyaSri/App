@@ -734,16 +734,31 @@ class AppProvider extends ChangeNotifier {
   // 4. Goals & Strategic Hierarchy (Short, Medium, Long)
   // ---------------------------------------------------------------------------
   List<Goal> _goals = [];
-  List<Goal> get goals => _goals;
+  List<Goal> get goals => _goals.where((g) {
+        final t = g.tier.toLowerCase();
+        return t != 'roadmap' &&
+            t != 'career' &&
+            !t.contains('roadmap') &&
+            !_careerNodes.any((cn) => cn.id == g.id || cn.title.trim().toLowerCase() == g.title.trim().toLowerCase());
+      }).toList();
 
-  List<Goal> get shortGoals =>
-      _goals.where((g) => g.tier.toLowerCase() == 'short').toList();
+  List<Goal> get shortGoals => _goals.where((g) {
+        final t = g.tier.toLowerCase();
+        return t == 'short' &&
+            !_careerNodes.any((cn) => cn.id == g.id || cn.title.trim().toLowerCase() == g.title.trim().toLowerCase());
+      }).toList();
 
-  List<Goal> get mediumGoals =>
-      _goals.where((g) => g.tier.toLowerCase() == 'medium').toList();
+  List<Goal> get mediumGoals => _goals.where((g) {
+        final t = g.tier.toLowerCase();
+        return t == 'medium' &&
+            !_careerNodes.any((cn) => cn.id == g.id || cn.title.trim().toLowerCase() == g.title.trim().toLowerCase());
+      }).toList();
 
-  List<Goal> get longGoals =>
-      _goals.where((g) => g.tier.toLowerCase() == 'long').toList();
+  List<Goal> get longGoals => _goals.where((g) {
+        final t = g.tier.toLowerCase();
+        return t == 'long' &&
+            !_careerNodes.any((cn) => cn.id == g.id || cn.title.trim().toLowerCase() == g.title.trim().toLowerCase());
+      }).toList();
 
   void addGoal(Goal goal) {
     _goals.add(goal);

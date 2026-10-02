@@ -547,9 +547,20 @@ class AnalyticsService {
     int needsAttention = 0;
 
     final goalItems = <GoalItemAnalytics>[];
+    final seenIds = <String>{};
+    final seenTitles = <String>{};
 
     if (pyramidGoals != null) {
       for (final pg in pyramidGoals) {
+        final normTitle = pg.title.trim().toLowerCase();
+        final t = pg.tier.toLowerCase();
+        if (t == 'roadmap' || t == 'career' || t.contains('roadmap')) continue;
+        if (seenIds.contains(pg.id) || (normTitle.isNotEmpty && seenTitles.contains(normTitle))) {
+          continue;
+        }
+        seenIds.add(pg.id);
+        if (normTitle.isNotEmpty) seenTitles.add(normTitle);
+
         final prog = pg.isCompleted ? 1.0 : 0.0;
         final status = pg.isCompleted ? 'Completed' : 'Planned';
         if (pg.isCompleted) {
@@ -569,6 +580,13 @@ class AnalyticsService {
     }
 
     for (final g in roadmapNodes) {
+      final normTitle = g.title.trim().toLowerCase();
+      if (seenIds.contains(g.id) || (normTitle.isNotEmpty && seenTitles.contains(normTitle))) {
+        continue;
+      }
+      seenIds.add(g.id);
+      if (normTitle.isNotEmpty) seenTitles.add(normTitle);
+
       final prog = g.isCompleted ? 1.0 : 0.0;
       final status = g.isCompleted ? 'Completed' : 'Planned';
       if (g.isCompleted) {

@@ -945,7 +945,10 @@ class Goal {
     final rawTier = (json['tier'] ?? json['timeframe'] ?? '').toString().toLowerCase();
     final rawSection = (json['section'] ?? '').toString().toUpperCase();
     String normalizedTier = 'short';
-    if (rawTier.contains('roadmap') || rawTier.contains('career') || rawSection == 'CAREER') {
+    if (rawTier.contains('roadmap') ||
+        rawTier.contains('career') ||
+        rawSection.isNotEmpty ||
+        json['order'] != null) {
       normalizedTier = 'roadmap';
     } else if (rawTier.contains('med')) {
       normalizedTier = 'medium';
