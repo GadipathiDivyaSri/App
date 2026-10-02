@@ -1059,6 +1059,8 @@ class UserProfile {
 
   Map<String, dynamic> toJson() => {
         'id': id,
+        'userId': id,
+        'user_id': id,
         'username': username,
         'email': email,
         'name': name,
@@ -1110,8 +1112,10 @@ class UserProfile {
       }
     }
 
+    final resolvedId = (json['id'] ?? json['userId'] ?? json['user_id'] ?? json['sub'])?.toString() ?? 'u_1';
+
     return UserProfile(
-      id: json['id']?.toString() ?? 'u_1',
+      id: resolvedId,
       username: resolvedUsername,
       email: email,
       name: resolvedName,

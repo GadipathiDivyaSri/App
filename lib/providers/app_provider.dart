@@ -60,10 +60,33 @@ class AppProvider extends ChangeNotifier {
   Set<String> _deletedItemIds = {};
   Set<String> get deletedItemIds => _deletedItemIds;
 
+  bool _isValidEntityId(String id) {
+    final clean = id.trim();
+    if (clean.isEmpty) return false;
+    final isUuid = (clean.contains('-') && clean.length >= 32) || RegExp(r'^[0-9a-fA-F]{32}$').hasMatch(clean);
+    final isPrefixed = clean.startsWith('task_') ||
+        clean.startsWith('habit_') ||
+        clean.startsWith('sub_') ||
+        clean.startsWith('unit_') ||
+        clean.startsWith('topic_') ||
+        clean.startsWith('item_') ||
+        clean.startsWith('evt_') ||
+        clean.startsWith('exp_') ||
+        clean.startsWith('jnl_') ||
+        clean.startsWith('goal_') ||
+        clean.startsWith('career_') ||
+        clean.startsWith('notif_');
+    return isUuid || isPrefixed;
+  }
+
   Future<void> _saveDeletedItemIds() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setStringList('saved_deleted_ids_${_user.id}', _deletedItemIds.toList());
+      final validIds = _deletedItemIds.where((id) => _isValidEntityId(id)).toList();
+      if (_user.id.isNotEmpty) await prefs.setStringList('saved_deleted_ids_${_user.id}', validIds);
+      if (_user.email.isNotEmpty) await prefs.setStringList('saved_deleted_ids_${_user.email.trim().toLowerCase()}', validIds);
+      if (_user.username.isNotEmpty) await prefs.setStringList('saved_deleted_ids_${_user.username.trim().toLowerCase()}', validIds);
+      await prefs.setStringList('saved_deleted_ids', validIds);
     } catch (e) {
       debugPrint('Error saving deleted item IDs: $e');
     }
@@ -379,12 +402,8 @@ class AppProvider extends ChangeNotifier {
     String? title;
     if (idx != -1) {
       title = _habits[idx].title;
-      final titleNorm = title.trim().toLowerCase();
-      _deletedItemIds.add(id);
-      if (titleNorm.isNotEmpty) _deletedItemIds.add(titleNorm);
-    } else {
-      _deletedItemIds.add(id);
     }
+    _deletedItemIds.add(id);
     _saveDeletedItemIds();
     _habits.removeWhere((h) => h.id == id);
     _saveHabits();
@@ -428,32 +447,25 @@ class AppProvider extends ChangeNotifier {
   }
 
   Future<void> deleteSubject(String id) async {
-    final idx = _subjects.indexWhere((s) => s.id == id);
-    if (idx != -1) {
-      final nameNorm = _subjects[idx].name.trim().toLowerCase();
-      _deletedItemIds.add(id);
-      if (nameNorm.isNotEmpty) _deletedItemIds.add(nameNorm);
-    } else {
-      _deletedItemIds.add(id);
-    }
+    _deletedItemIds.add(id);
     for (var i in _studyItems.where((item) => item.subjectId == id)) {
       _deletedItemIds.add(i.id);
-      if (i.title.trim().isNotEmpty) _deletedItemIds.add(i.title.trim().toLowerCase());
     }
     final childUnits = _studyUnits.where((u) => u.subjectId == id || u.subjectId.toLowerCase() == id.toLowerCase()).toList();
     for (var u in childUnits) {
       _deletedItemIds.add(u.id);
-      if (u.title.trim().isNotEmpty) _deletedItemIds.add(u.title.trim().toLowerCase());
       for (var t in _studyTopics.where((t) => t.unitId == u.id)) {
         _deletedItemIds.add(t.id);
-        if (t.title.trim().isNotEmpty) _deletedItemIds.add(t.title.trim().toLowerCase());
       }
     }
     _saveDeletedItemIds();
     _subjects.removeWhere((s) => s.id == id);
     _studyItems.removeWhere((item) => item.subjectId == id);
+    _studyUnits.removeWhere((u) => u.subjectId == id || u.subjectId.toLowerCase() == id.toLowerCase());
     _saveSubjects();
     _saveStudyItems();
+    _saveStudyUnits();
+    _saveStudyTopics();
     notifyListeners();
     await ApiService.deleteSubjectOnBackend(id);
   }
@@ -482,13 +494,7 @@ class AppProvider extends ChangeNotifier {
 
   Future<void> deleteStudyItem(String id) async {
     final idx = _studyItems.indexWhere((item) => item.id == id);
-    if (idx != -1) {
-      final titleNorm = _studyItems[idx].title.trim().toLowerCase();
-      _deletedItemIds.add(id);
-      if (titleNorm.isNotEmpty) _deletedItemIds.add(titleNorm);
-    } else {
-      _deletedItemIds.add(id);
-    }
+    _deletedItemIds.add(id);
     _saveDeletedItemIds();
     if (idx != -1) {
       final subId = _studyItems[idx].subjectId;
@@ -496,8 +502,8 @@ class AppProvider extends ChangeNotifier {
       _updateSubjectProgress(subId);
       _saveStudyItems();
       notifyListeners();
-      await ApiService.deleteStudyItemOnBackend(id);
     }
+    await ApiService.deleteStudyItemOnBackend(id);
   }
 
   void _updateSubjectProgress(String subjectIdOrName) {
@@ -665,13 +671,7 @@ class AppProvider extends ChangeNotifier {
 
   Future<void> deleteStudyTopic(String topicId) async {
     final idx = _studyTopics.indexWhere((t) => t.id == topicId);
-    if (idx != -1) {
-      final titleNorm = _studyTopics[idx].title.trim().toLowerCase();
-      _deletedItemIds.add(topicId);
-      if (titleNorm.isNotEmpty) _deletedItemIds.add(titleNorm);
-    } else {
-      _deletedItemIds.add(topicId);
-    }
+    _deletedItemIds.add(topicId);
     _saveDeletedItemIds();
     if (idx != -1) {
       final unitId = _studyTopics[idx].unitId;
@@ -679,8 +679,8 @@ class AppProvider extends ChangeNotifier {
       _updateUnitProgress(unitId);
       _saveStudyTopics();
       notifyListeners();
-      await ApiService.deleteStudyTopicOnBackend(topicId);
     }
+    await ApiService.deleteStudyTopicOnBackend(topicId);
   }
 
   void _updateUnitProgress(String unitIdOrTitle) {
@@ -734,12 +734,8 @@ class AppProvider extends ChangeNotifier {
     String? title;
     if (idx != -1) {
       title = _journalEntries[idx].title;
-      final titleNorm = title.trim().toLowerCase();
-      _deletedItemIds.add(id);
-      if (titleNorm.isNotEmpty) _deletedItemIds.add(titleNorm);
-    } else {
-      _deletedItemIds.add(id);
     }
+    _deletedItemIds.add(id);
     _saveDeletedItemIds();
     _journalEntries.removeWhere((j) => j.id == id);
     _saveJournalEntries();
@@ -803,12 +799,8 @@ class AppProvider extends ChangeNotifier {
     String? title;
     if (idx != -1) {
       title = _careerNodes[idx].title;
-      final titleNorm = title.trim().toLowerCase();
-      _deletedItemIds.add(id);
-      if (titleNorm.isNotEmpty) _deletedItemIds.add(titleNorm);
-    } else {
-      _deletedItemIds.add(id);
     }
+    _deletedItemIds.add(id);
     _saveDeletedItemIds();
     _careerNodes.removeWhere((n) => n.id == id);
     _saveCareerNodes();
@@ -1145,14 +1137,7 @@ class AppProvider extends ChangeNotifier {
   }
 
   void deleteExpense(String id) {
-    final idx = _expenses.indexWhere((e) => e.id == id);
-    if (idx != -1) {
-      final titleNorm = _expenses[idx].title.trim().toLowerCase();
-      _deletedItemIds.add(id);
-      if (titleNorm.isNotEmpty) _deletedItemIds.add(titleNorm);
-    } else {
-      _deletedItemIds.add(id);
-    }
+    _deletedItemIds.add(id);
     _expenses.removeWhere((e) => e.id == id);
     _saveDeletedItemIds();
     _saveExpenses();
@@ -1205,61 +1190,65 @@ class AppProvider extends ChangeNotifier {
 
       _monthlyBudget = prefs.getDouble('saved_monthly_budget') ?? 10000.0;
 
-      // Restore authenticated session from secure storage
+      // 1. Instantly load offline/local user-isolated data so the UI renders immediately without wipe
+      await _loadUserIsolatedData();
+
+      // 2. Restore authenticated session from secure storage or local cached storage
       String? storedToken = await AuthApiService.getSessionToken();
       storedToken ??= await ApiService.getSessionToken();
+      storedToken ??= prefs.getString('saved_session_token') ??
+          prefs.getString('wrindha_auth_token') ??
+          prefs.getString('wrindha_secure_jwt_token');
+
       Map<String, dynamic>? cachedUser = await AuthApiService.getCachedUser();
       cachedUser ??= await ApiService.getSessionUser();
-      if (storedToken != null &&
-          storedToken.isNotEmpty &&
-          storedToken != 'guest_token' &&
-          cachedUser != null &&
-          cachedUser['id'] != 'guest_user') {
-        ApiService.logAuth('Restoring authenticated session during startup', {'userId': cachedUser['id']});
-        await setAuthenticatedSession(userMap: cachedUser, token: storedToken);
-      }
-
-      // Load Theme
-      final isDark = prefs.getBool('isDarkTheme') ?? false;
-      _themeMode = isDark ? ThemeMode.dark : ThemeMode.light;
-
-      // Load Active Session if not already restored
-      if (!_isLoggedIn) {
+      if (cachedUser == null) {
         final sessionUserJson = prefs.getString('saved_session_user') ??
             prefs.getString('wrindha_auth_user') ??
             prefs.getString('wrindha_secure_user_profile');
-        final sessionToken = prefs.getString('saved_session_token') ??
-            prefs.getString('wrindha_auth_token') ??
-            prefs.getString('wrindha_secure_jwt_token');
-
         if (sessionUserJson != null && sessionUserJson.isNotEmpty) {
           try {
-            final Map<String, dynamic> userMap = jsonDecode(sessionUserJson);
-            _user = UserProfile.fromJson(userMap);
-            if (sessionToken != null && sessionToken.isNotEmpty) {
-              _user.token = sessionToken;
-            }
-            if ((_user.name.isEmpty || _user.name == 'Student User' || _user.name == 'Alex Johnson') &&
-                _user.username.isNotEmpty && _user.username.toLowerCase() != 'user') {
-              _user.name = _user.username;
-            }
-            _isLoggedIn = true;
-            await _loadUserIsolatedData();
-            syncSubscription();
-            syncAllDataFromCloud();
-          } catch (err) {
-            _isLoggedIn = false;
-          }
-        } else if (sessionToken != null && sessionToken.isNotEmpty) {
-          _isLoggedIn = true;
-          _user.token = sessionToken;
-          await _loadUserIsolatedData();
-          syncSubscription();
-          syncAllDataFromCloud();
-        } else {
-          _isLoggedIn = false;
+            cachedUser = jsonDecode(sessionUserJson);
+          } catch (_) {}
         }
       }
+
+      if (cachedUser != null &&
+          cachedUser['id'] != 'guest_user' &&
+          cachedUser['userId'] != 'guest_user') {
+        ApiService.logAuth('Restoring authenticated session during startup', {
+          'userId': cachedUser['id'] ?? cachedUser['userId'],
+        });
+        _isLoggedIn = true;
+        _user = UserProfile.fromJson(cachedUser);
+        if (storedToken != null && storedToken.isNotEmpty && storedToken != 'guest_token') {
+          _user.token = storedToken;
+        }
+        final isPro = _user.isPremium || _user.subscriptionPlan.toUpperCase() == 'PRO';
+        _subscription = UserSubscription(
+          id: 'sub_${_user.id}',
+          userId: _user.id,
+          plan: isPro ? 'pro' : 'free',
+          status: 'active',
+          startedAt: DateTime.now(),
+        );
+        await _saveSession();
+        await _loadUserIsolatedData();
+        syncSubscription();
+        syncAllDataFromCloud();
+      } else if (storedToken != null &&
+          storedToken.isNotEmpty &&
+          storedToken != 'guest_token') {
+        _isLoggedIn = true;
+        _user.token = storedToken;
+        await _loadUserIsolatedData();
+        syncSubscription();
+        syncAllDataFromCloud();
+      }
+
+      // Load Theme
+      final isDark = prefs.getBool('isDarkTheme') ?? prefs.getBool('is_dark_mode') ?? false;
+      _themeMode = isDark ? ThemeMode.dark : ThemeMode.light;
 
       _recalculateMetrics();
       _isInitialized = true;
@@ -1271,28 +1260,59 @@ class AppProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> _loadUserIsolatedData() async {
-    _habits = [];
-    _todoTasks = [];
-    _organizeTasks = [];
-    _priorityMatrixTasks = [];
-    _calendarEvents = [];
-    _notifications = [];
-    _expenses = [];
-    _subjects = [];
-    _studyItems = [];
-    _studyUnits = [];
-    _studyTopics = [];
-    _journalEntries = [];
-    _careerNodes = [];
+  String? _getPrefWithFallback(SharedPreferences prefs, String keyPrefix) {
+    final uid = _user.id;
+    final email = _user.email.trim().toLowerCase();
+    final username = _user.username.trim().toLowerCase();
 
+    final candidates = [
+      if (uid.isNotEmpty && uid != 'u_1') prefs.getString('${keyPrefix}_$uid'),
+      if (email.isNotEmpty) prefs.getString('${keyPrefix}_$email'),
+      if (username.isNotEmpty) prefs.getString('${keyPrefix}_$username'),
+      prefs.getString('${keyPrefix}_u_1'),
+      prefs.getString(keyPrefix),
+      if (uid == 'u_1') prefs.getString('${keyPrefix}_$uid'),
+    ];
+
+    for (final c in candidates) {
+      if (c != null && c.trim().isNotEmpty && c.trim() != '[]' && c.trim() != '{}') {
+        return c;
+      }
+    }
+    for (final c in candidates) {
+      if (c != null) return c;
+    }
+    return null;
+  }
+
+  Future<void> _savePrefWithFallback(String keyPrefix, String encodedData) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (_user.id.isNotEmpty) await prefs.setString('${keyPrefix}_${_user.id}', encodedData);
+      if (_user.email.isNotEmpty) await prefs.setString('${keyPrefix}_${_user.email.trim().toLowerCase()}', encodedData);
+      if (_user.username.isNotEmpty) await prefs.setString('${keyPrefix}_${_user.username.trim().toLowerCase()}', encodedData);
+      await prefs.setString(keyPrefix, encodedData);
+    } catch (e) {
+      debugPrint('Error saving $keyPrefix: $e');
+    }
+  }
+
+  Future<void> _loadUserIsolatedData() async {
     final prefs = await SharedPreferences.getInstance();
     final uid = _user.id;
+    final email = _user.email.trim().toLowerCase();
+    final username = _user.username.trim().toLowerCase();
 
-    // 0. Subscription State Restoration (User-Isolated)
-    final savedIsPremium = prefs.getBool('saved_is_premium_$uid');
-    final savedSubPlan = prefs.getString('saved_sub_plan_$uid');
-    final savedSubJson = prefs.getString('saved_user_subscription_$uid');
+    // 0. Subscription State Restoration (Multi-key fallback)
+    final savedIsPremium = prefs.getBool('saved_is_premium_$uid') ??
+        (email.isNotEmpty ? prefs.getBool('saved_is_premium_$email') : null) ??
+        prefs.getBool('saved_is_premium_u_1') ??
+        prefs.getBool('saved_is_premium');
+    final savedSubPlan = prefs.getString('saved_sub_plan_$uid') ??
+        (email.isNotEmpty ? prefs.getString('saved_sub_plan_$email') : null) ??
+        prefs.getString('saved_sub_plan_u_1') ??
+        prefs.getString('saved_sub_plan');
+    final savedSubJson = _getPrefWithFallback(prefs, 'saved_user_subscription');
 
     if (savedIsPremium == true || (savedSubPlan != null && savedSubPlan.toUpperCase() == 'PRO')) {
       _user.isPremium = true;
@@ -1320,168 +1340,193 @@ class AppProvider extends ChangeNotifier {
       }
     }
 
-    // 0B. Deleted Item IDs (Strict User-Isolated)
-    final deletedList = prefs.getStringList('saved_deleted_ids_$uid');
+    // 0B. Deleted Item IDs (Strict User-Isolated, ONLY valid entity IDs/UUIDs)
+    final deletedList = prefs.getStringList('saved_deleted_ids_$uid') ??
+        (email.isNotEmpty ? prefs.getStringList('saved_deleted_ids_$email') : null) ??
+        prefs.getStringList('saved_deleted_ids_u_1') ??
+        prefs.getStringList('saved_deleted_ids');
     if (deletedList != null) {
-      _deletedItemIds = deletedList.toSet();
+      _deletedItemIds = deletedList
+          .where((id) => _isValidEntityId(id))
+          .toSet();
     } else {
       _deletedItemIds = {};
     }
 
-    // 1. Habits (Strictly User-Isolated)
-    final habitsJson = prefs.getString('saved_habits_$uid');
-    if (habitsJson != null) {
-      final List decoded = jsonDecode(habitsJson);
-      _habits = decoded.map((item) => Habit.fromJson(item)).toList();
-    } else {
-      _habits = [];
+    // 1. Habits
+    final habitsJson = _getPrefWithFallback(prefs, 'saved_habits');
+    if (habitsJson != null && habitsJson.isNotEmpty) {
+      try {
+        final List decoded = jsonDecode(habitsJson);
+        final parsed = decoded.map((item) => Habit.fromJson(item)).toList();
+        if (parsed.isNotEmpty || _habits.isEmpty) {
+          _habits = parsed;
+        }
+      } catch (_) {}
     }
 
-    // 2. To-Do Tasks (Strictly User-Isolated)
-    final todoJson = prefs.getString('saved_todo_tasks_$uid') ?? prefs.getString('saved_tasks_$uid');
-    if (todoJson != null) {
-      final List decoded = jsonDecode(todoJson);
-      _todoTasks = decoded.map((item) => Task.fromJson(item)).where((t) => !t.isPriorityMatrixOnly).toList();
-    } else {
-      _todoTasks = [];
+    // 2. To-Do Tasks
+    final todoJson = _getPrefWithFallback(prefs, 'saved_todo_tasks') ?? _getPrefWithFallback(prefs, 'saved_tasks');
+    if (todoJson != null && todoJson.isNotEmpty) {
+      try {
+        final List decoded = jsonDecode(todoJson);
+        final parsed = decoded.map((item) => Task.fromJson(item)).where((t) => !t.isPriorityMatrixOnly).toList();
+        if (parsed.isNotEmpty || _todoTasks.isEmpty) {
+          _todoTasks = parsed;
+        }
+      } catch (_) {}
     }
 
-    // 2B. Organize Your Tasks / Eisenhower Matrix (Strictly User-Isolated)
-    final organizeJson = prefs.getString('saved_organize_tasks_$uid') ??
-        (_user.email.isNotEmpty ? prefs.getString('saved_organize_tasks_${_user.email}') : null) ??
-        (_user.username.isNotEmpty ? prefs.getString('saved_organize_tasks_${_user.username}') : null);
-    if (organizeJson != null) {
-      final List decoded = jsonDecode(organizeJson);
-      _organizeTasks = decoded.map((item) => Task.fromJson(item)).toList();
-    } else {
-      _organizeTasks = [];
+    // 2B. Organize Your Tasks / Eisenhower Matrix
+    final organizeJson = _getPrefWithFallback(prefs, 'saved_organize_tasks');
+    if (organizeJson != null && organizeJson.isNotEmpty) {
+      try {
+        final List decoded = jsonDecode(organizeJson);
+        final parsed = decoded.map((item) => Task.fromJson(item)).toList();
+        if (parsed.isNotEmpty || _organizeTasks.isEmpty) {
+          _organizeTasks = parsed;
+        }
+      } catch (_) {}
     }
 
-    // 3. Calendar Events (Strictly User-Isolated)
-    final eventsJson = prefs.getString('saved_events_$uid') ??
-        (_user.email.isNotEmpty ? prefs.getString('saved_events_${_user.email}') : null) ??
-        (_user.username.isNotEmpty ? prefs.getString('saved_events_${_user.username}') : null);
-    if (eventsJson != null) {
-      final List decoded = jsonDecode(eventsJson);
-      _calendarEvents = decoded.map((item) => CalendarEvent.fromJson(item)).toList();
-    } else {
-      _calendarEvents = [];
+    // 3. Calendar Events
+    final eventsJson = _getPrefWithFallback(prefs, 'saved_events');
+    if (eventsJson != null && eventsJson.isNotEmpty) {
+      try {
+        final List decoded = jsonDecode(eventsJson);
+        final parsed = decoded.map((item) => CalendarEvent.fromJson(item)).toList();
+        if (parsed.isNotEmpty || _calendarEvents.isEmpty) {
+          _calendarEvents = parsed;
+        }
+      } catch (_) {}
     }
 
-    // 4. Expenses (Strictly User-Isolated)
-    final expensesJson = prefs.getString('saved_expenses_$uid');
-    if (expensesJson != null) {
-      final List decoded = jsonDecode(expensesJson);
-      _expenses = decoded.map((item) => ExpenseTransaction.fromJson(item)).toList();
-    } else {
-      _expenses = [];
+    // 4. Expenses
+    final expensesJson = _getPrefWithFallback(prefs, 'saved_expenses');
+    if (expensesJson != null && expensesJson.isNotEmpty) {
+      try {
+        final List decoded = jsonDecode(expensesJson);
+        final parsed = decoded.map((item) => ExpenseTransaction.fromJson(item)).toList();
+        if (parsed.isNotEmpty || _expenses.isEmpty) {
+          _expenses = parsed;
+        }
+      } catch (_) {}
     }
 
-    // 5. Subjects & Studies (Strictly User-Isolated)
-    final subjectsJson = prefs.getString('saved_subjects_$uid') ??
-        (_user.email.isNotEmpty ? prefs.getString('saved_subjects_${_user.email}') : null) ??
-        (_user.username.isNotEmpty ? prefs.getString('saved_subjects_${_user.username}') : null);
-    if (subjectsJson != null) {
-      final List decoded = jsonDecode(subjectsJson);
-      _subjects = decoded.map((item) => StudySubject.fromJson(item)).toList();
-    } else {
-      _subjects = [];
+    // 5. Subjects & Studies
+    final subjectsJson = _getPrefWithFallback(prefs, 'saved_subjects');
+    if (subjectsJson != null && subjectsJson.isNotEmpty) {
+      try {
+        final List decoded = jsonDecode(subjectsJson);
+        final parsed = decoded.map((item) => StudySubject.fromJson(item)).toList();
+        if (parsed.isNotEmpty || _subjects.isEmpty) {
+          _subjects = parsed;
+        }
+      } catch (_) {}
     }
 
-    final studyItemsJson = prefs.getString('saved_study_items_$uid') ??
-        (_user.email.isNotEmpty ? prefs.getString('saved_study_items_${_user.email}') : null) ??
-        (_user.username.isNotEmpty ? prefs.getString('saved_study_items_${_user.username}') : null);
-    if (studyItemsJson != null) {
-      final List decoded = jsonDecode(studyItemsJson);
-      _studyItems = decoded.map((item) => StudyItem.fromJson(item)).toList();
-    } else {
-      _studyItems = [];
+    final studyItemsJson = _getPrefWithFallback(prefs, 'saved_study_items');
+    if (studyItemsJson != null && studyItemsJson.isNotEmpty) {
+      try {
+        final List decoded = jsonDecode(studyItemsJson);
+        final parsed = decoded.map((item) => StudyItem.fromJson(item)).toList();
+        if (parsed.isNotEmpty || _studyItems.isEmpty) {
+          _studyItems = parsed;
+        }
+      } catch (_) {}
     }
 
-    final studyUnitsJson = prefs.getString('saved_study_units_$uid') ??
-        (_user.email.isNotEmpty ? prefs.getString('saved_study_units_${_user.email}') : null) ??
-        (_user.username.isNotEmpty ? prefs.getString('saved_study_units_${_user.username}') : null);
-    if (studyUnitsJson != null) {
-      final List decoded = jsonDecode(studyUnitsJson);
-      _studyUnits = decoded.map((item) => StudyUnit.fromJson(item)).toList();
-    } else {
-      _studyUnits = [];
+    final studyUnitsJson = _getPrefWithFallback(prefs, 'saved_study_units');
+    if (studyUnitsJson != null && studyUnitsJson.isNotEmpty) {
+      try {
+        final List decoded = jsonDecode(studyUnitsJson);
+        final parsed = decoded.map((item) => StudyUnit.fromJson(item)).toList();
+        if (parsed.isNotEmpty || _studyUnits.isEmpty) {
+          _studyUnits = parsed;
+        }
+      } catch (_) {}
     }
 
-    final studyTopicsJson = prefs.getString('saved_study_topics_$uid') ??
-        (_user.email.isNotEmpty ? prefs.getString('saved_study_topics_${_user.email}') : null) ??
-        (_user.username.isNotEmpty ? prefs.getString('saved_study_topics_${_user.username}') : null);
-    if (studyTopicsJson != null) {
-      final List decoded = jsonDecode(studyTopicsJson);
-      _studyTopics = decoded.map((item) => StudyTopic.fromJson(item)).toList();
-    } else {
-      _studyTopics = [];
+    final studyTopicsJson = _getPrefWithFallback(prefs, 'saved_study_topics');
+    if (studyTopicsJson != null && studyTopicsJson.isNotEmpty) {
+      try {
+        final List decoded = jsonDecode(studyTopicsJson);
+        final parsed = decoded.map((item) => StudyTopic.fromJson(item)).toList();
+        if (parsed.isNotEmpty || _studyTopics.isEmpty) {
+          _studyTopics = parsed;
+        }
+      } catch (_) {}
     }
 
-    // 6. Journal / Notes (Strictly User-Isolated)
-    final journalJson = prefs.getString('saved_journal_$uid') ??
-        (_user.email.isNotEmpty ? prefs.getString('saved_journal_${_user.email}') : null) ??
-        (_user.username.isNotEmpty ? prefs.getString('saved_journal_${_user.username}') : null);
-    if (journalJson != null) {
-      final List decoded = jsonDecode(journalJson);
-      _journalEntries = decoded.map((item) => JournalEntry.fromJson(item)).toList();
-    } else {
-      _journalEntries = [];
+    // 6. Journal / Notes
+    final journalJson = _getPrefWithFallback(prefs, 'saved_journal');
+    if (journalJson != null && journalJson.isNotEmpty) {
+      try {
+        final List decoded = jsonDecode(journalJson);
+        final parsed = decoded.map((item) => JournalEntry.fromJson(item)).toList();
+        if (parsed.isNotEmpty || _journalEntries.isEmpty) {
+          _journalEntries = parsed;
+        }
+      } catch (_) {}
     }
 
-    // 8. Career Roadmap (Strictly User-Isolated)
-    final careerJson = prefs.getString('saved_career_$uid') ??
-        (_user.email.isNotEmpty ? prefs.getString('saved_career_${_user.email}') : null) ??
-        (_user.username.isNotEmpty ? prefs.getString('saved_career_${_user.username}') : null);
-    if (careerJson != null) {
-      final List decoded = jsonDecode(careerJson);
-      _careerNodes = decoded.map((item) => CareerRoadmapNode.fromJson(item)).toList();
-    } else {
-      _careerNodes = [];
+    // 8. Career Roadmap
+    final careerJson = _getPrefWithFallback(prefs, 'saved_career');
+    if (careerJson != null && careerJson.isNotEmpty) {
+      try {
+        final List decoded = jsonDecode(careerJson);
+        final parsed = decoded.map((item) => CareerRoadmapNode.fromJson(item)).toList();
+        if (parsed.isNotEmpty || _careerNodes.isEmpty) {
+          _careerNodes = parsed;
+        }
+      } catch (_) {}
     }
 
-    // 8B. Priority Matrix Tasks (Strictly User-Isolated)
-    final pmTasksJson = prefs.getString('saved_priority_matrix_tasks_$uid') ??
-        (_user.email.isNotEmpty ? prefs.getString('saved_priority_matrix_tasks_${_user.email}') : null) ??
-        (_user.username.isNotEmpty ? prefs.getString('saved_priority_matrix_tasks_${_user.username}') : null);
-    if (pmTasksJson != null) {
-      final List decoded = jsonDecode(pmTasksJson);
-      _priorityMatrixTasks = decoded.map((item) => Task.fromJson(item)).toList();
-    } else {
-      _priorityMatrixTasks = [];
+    // 8B. Priority Matrix Tasks
+    final pmTasksJson = _getPrefWithFallback(prefs, 'saved_priority_matrix_tasks');
+    if (pmTasksJson != null && pmTasksJson.isNotEmpty) {
+      try {
+        final List decoded = jsonDecode(pmTasksJson);
+        final parsed = decoded.map((item) => Task.fromJson(item)).toList();
+        if (parsed.isNotEmpty || _priorityMatrixTasks.isEmpty) {
+          _priorityMatrixTasks = parsed;
+        }
+      } catch (_) {}
     }
 
-    // 9. Notifications (User-Isolated)
-    final notifsJson = prefs.getString('saved_notifications_$uid');
-    if (notifsJson != null) {
-      final List decoded = jsonDecode(notifsJson);
-      _notifications = decoded.map((item) => AppNotification.fromJson(item)).toList();
-    } else {
-      _notifications = [];
+    // 9. Notifications
+    final notifsJson = _getPrefWithFallback(prefs, 'saved_notifications');
+    if (notifsJson != null && notifsJson.isNotEmpty) {
+      try {
+        final List decoded = jsonDecode(notifsJson);
+        final parsed = decoded.map((item) => AppNotification.fromJson(item)).toList();
+        if (parsed.isNotEmpty || _notifications.isEmpty) {
+          _notifications = parsed;
+        }
+      } catch (_) {}
     }
 
-    // Filter out all previously deleted item IDs safely by unique ID or title
-    _habits.removeWhere((h) => _deletedItemIds.contains(h.id) || _deletedItemIds.contains(h.title.trim().toLowerCase()));
-    _tasks.removeWhere((t) => _deletedItemIds.contains(t.id) || _deletedItemIds.contains(t.title.trim().toLowerCase()));
-    _priorityMatrixTasks.removeWhere((t) => _deletedItemIds.contains(t.id) || _deletedItemIds.contains(t.title.trim().toLowerCase()));
-    _organizeTasks.removeWhere((t) => _deletedItemIds.contains(t.id) || _deletedItemIds.contains(t.title.trim().toLowerCase()));
-    _calendarEvents.removeWhere((e) => _deletedItemIds.contains(e.id) || _deletedItemIds.contains(e.title.trim().toLowerCase()));
-    _expenses.removeWhere((e) => _deletedItemIds.contains(e.id) || _deletedItemIds.contains(e.title.trim().toLowerCase()));
-    _subjects.removeWhere((s) => _deletedItemIds.contains(s.id) || _deletedItemIds.contains(s.name.trim().toLowerCase()));
-    _studyItems.removeWhere((i) => _deletedItemIds.contains(i.id) || _deletedItemIds.contains(i.title.trim().toLowerCase()));
-    _studyUnits.removeWhere((u) => _deletedItemIds.contains(u.id));
-    _studyTopics.removeWhere((t) => _deletedItemIds.contains(t.id));
-    _journalEntries.removeWhere((j) => _deletedItemIds.contains(j.id) || _deletedItemIds.contains(j.title.trim().toLowerCase()));
-    _careerNodes.removeWhere((n) => _deletedItemIds.contains(n.id) || _deletedItemIds.contains(n.title.trim().toLowerCase()));
+    // Filter out strictly by unique IDs (UUIDs)
+    if (_deletedItemIds.isNotEmpty) {
+      _habits.removeWhere((h) => _deletedItemIds.contains(h.id));
+      _tasks.removeWhere((t) => _deletedItemIds.contains(t.id));
+      _priorityMatrixTasks.removeWhere((t) => _deletedItemIds.contains(t.id));
+      _organizeTasks.removeWhere((t) => _deletedItemIds.contains(t.id));
+      _calendarEvents.removeWhere((e) => _deletedItemIds.contains(e.id));
+      _expenses.removeWhere((e) => _deletedItemIds.contains(e.id));
+      _subjects.removeWhere((s) => _deletedItemIds.contains(s.id));
+      _studyItems.removeWhere((i) => _deletedItemIds.contains(i.id));
+      _studyUnits.removeWhere((u) => _deletedItemIds.contains(u.id));
+      _studyTopics.removeWhere((t) => _deletedItemIds.contains(t.id));
+      _journalEntries.removeWhere((j) => _deletedItemIds.contains(j.id));
+      _careerNodes.removeWhere((n) => _deletedItemIds.contains(n.id));
+    }
 
     // Deduplicate Career Nodes
     final Map<String, CareerRoadmapNode> careerMap = {};
-    final Map<String, String> careerTitleMap = {};
     for (var n in _careerNodes) {
-      final normTitle = n.title.trim().toLowerCase();
-      if (!careerMap.containsKey(n.id) && (normTitle.isEmpty || !careerTitleMap.containsKey(normTitle))) {
+      if (!careerMap.containsKey(n.id)) {
         careerMap[n.id] = n;
-        if (normTitle.isNotEmpty) careerTitleMap[normTitle] = n.id;
       }
     }
     _careerNodes = careerMap.values.toList();
@@ -1562,12 +1607,8 @@ class AppProvider extends ChangeNotifier {
     String? title;
     if (idx != -1) {
       title = _todoTasks[idx].title;
-      final titleNorm = title.trim().toLowerCase();
-      _deletedItemIds.add(taskId);
-      if (titleNorm.isNotEmpty) _deletedItemIds.add(titleNorm);
-    } else {
-      _deletedItemIds.add(taskId);
     }
+    _deletedItemIds.add(taskId);
     _saveDeletedItemIds();
     _todoTasks.removeWhere((t) => t.id == taskId);
     _saveTodoTasks();
@@ -1582,21 +1623,10 @@ class AppProvider extends ChangeNotifier {
 
   Future<void> _saveTodoTasks() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
       final jsonList = _todoTasks.map((t) => t.toJson()).toList();
       final encoded = jsonEncode(jsonList);
-      if (_user.id.isNotEmpty) {
-        await prefs.setString('saved_todo_tasks_${_user.id}', encoded);
-        await prefs.setString('saved_tasks_${_user.id}', encoded);
-      }
-      if (_user.email.isNotEmpty) {
-        await prefs.setString('saved_todo_tasks_${_user.email}', encoded);
-        await prefs.setString('saved_tasks_${_user.email}', encoded);
-      }
-      if (_user.username.isNotEmpty) {
-        await prefs.setString('saved_todo_tasks_${_user.username}', encoded);
-        await prefs.setString('saved_tasks_${_user.username}', encoded);
-      }
+      await _savePrefWithFallback('saved_todo_tasks', encoded);
+      await _savePrefWithFallback('saved_tasks', encoded);
     } catch (e) {
       debugPrint('Error saving todo tasks: $e');
     }
@@ -1647,12 +1677,8 @@ class AppProvider extends ChangeNotifier {
     String? title;
     if (idx != -1) {
       title = _organizeTasks[idx].title;
-      final titleNorm = title.trim().toLowerCase();
-      _deletedItemIds.add(taskId);
-      if (titleNorm.isNotEmpty) _deletedItemIds.add(titleNorm);
-    } else {
-      _deletedItemIds.add(taskId);
     }
+    _deletedItemIds.add(taskId);
     _saveDeletedItemIds();
     _organizeTasks.removeWhere((t) => t.id == taskId);
     _saveOrganizeTasks();
@@ -1662,12 +1688,9 @@ class AppProvider extends ChangeNotifier {
 
   Future<void> _saveOrganizeTasks() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
       final jsonList = _organizeTasks.map((t) => t.toJson()).toList();
       final encoded = jsonEncode(jsonList);
-      if (_user.id.isNotEmpty) await prefs.setString('saved_organize_tasks_${_user.id}', encoded);
-      if (_user.email.isNotEmpty) await prefs.setString('saved_organize_tasks_${_user.email}', encoded);
-      if (_user.username.isNotEmpty) await prefs.setString('saved_organize_tasks_${_user.username}', encoded);
+      await _savePrefWithFallback('saved_organize_tasks', encoded);
     } catch (e) {
       debugPrint('Error saving organize tasks: $e');
     }
@@ -1744,12 +1767,8 @@ class AppProvider extends ChangeNotifier {
     String? title;
     if (idx != -1) {
       title = _priorityMatrixTasks[idx].title;
-      final titleNorm = title.trim().toLowerCase();
-      _deletedItemIds.add(taskId);
-      if (titleNorm.isNotEmpty) _deletedItemIds.add(titleNorm);
-    } else {
-      _deletedItemIds.add(taskId);
     }
+    _deletedItemIds.add(taskId);
     _saveDeletedItemIds();
     _priorityMatrixTasks.removeWhere((t) => t.id == taskId);
     _savePriorityMatrixTasks();
@@ -1761,7 +1780,6 @@ class AppProvider extends ChangeNotifier {
     final completed = _priorityMatrixTasks.where((t) => t.isCompleted).toList();
     for (var t in completed) {
       _deletedItemIds.add(t.id);
-      if (t.title.trim().isNotEmpty) _deletedItemIds.add(t.title.trim().toLowerCase());
     }
     _saveDeletedItemIds();
     _priorityMatrixTasks.removeWhere((t) => t.isCompleted);
@@ -1774,7 +1792,6 @@ class AppProvider extends ChangeNotifier {
     final tasksToDelete = List<Task>.from(_todoTasks);
     for (var t in tasksToDelete) {
       _deletedItemIds.add(t.id);
-      if (t.title.trim().isNotEmpty) _deletedItemIds.add(t.title.trim().toLowerCase());
     }
     _saveDeletedItemIds();
     _todoTasks.clear();
@@ -1788,7 +1805,6 @@ class AppProvider extends ChangeNotifier {
     final tasksToDelete = List<Task>.from(_organizeTasks);
     for (var t in tasksToDelete) {
       _deletedItemIds.add(t.id);
-      if (t.title.trim().isNotEmpty) _deletedItemIds.add(t.title.trim().toLowerCase());
     }
     _saveDeletedItemIds();
     _organizeTasks.clear();
@@ -1801,7 +1817,6 @@ class AppProvider extends ChangeNotifier {
     final tasksToDelete = List<Task>.from(_priorityMatrixTasks);
     for (var t in tasksToDelete) {
       _deletedItemIds.add(t.id);
-      if (t.title.trim().isNotEmpty) _deletedItemIds.add(t.title.trim().toLowerCase());
     }
     _saveDeletedItemIds();
     _priorityMatrixTasks.clear();
@@ -1818,12 +1833,9 @@ class AppProvider extends ChangeNotifier {
 
   Future<void> _savePriorityMatrixTasks() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
       final jsonList = _priorityMatrixTasks.map((t) => t.toJson()).toList();
       final encoded = jsonEncode(jsonList);
-      if (_user.id.isNotEmpty) await prefs.setString('saved_priority_matrix_tasks_${_user.id}', encoded);
-      if (_user.email.isNotEmpty) await prefs.setString('saved_priority_matrix_tasks_${_user.email}', encoded);
-      if (_user.username.isNotEmpty) await prefs.setString('saved_priority_matrix_tasks_${_user.username}', encoded);
+      await _savePrefWithFallback('saved_priority_matrix_tasks', encoded);
     } catch (e) {
       debugPrint('Error saving priority matrix tasks: $e');
     }
@@ -1886,12 +1898,8 @@ class AppProvider extends ChangeNotifier {
     String? title;
     if (idx != -1) {
       title = _calendarEvents[idx].title;
-      final titleNorm = title.trim().toLowerCase();
-      _deletedItemIds.add(eventId);
-      if (titleNorm.isNotEmpty) _deletedItemIds.add(titleNorm);
-    } else {
-      _deletedItemIds.add(eventId);
     }
+    _deletedItemIds.add(eventId);
     _saveDeletedItemIds();
     _calendarEvents.removeWhere((e) => e.id == eventId);
     _saveEvents();
@@ -2003,23 +2011,17 @@ class AppProvider extends ChangeNotifier {
   }
   Future<void> _saveHabits() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
       final jsonList = _habits.map((h) => h.toJson()).toList();
-      await prefs.setString('saved_habits_${_user.id}', jsonEncode(jsonList));
+      await _savePrefWithFallback('saved_habits', jsonEncode(jsonList));
     } catch (e) {
       debugPrint('Error saving habits: $e');
     }
   }
 
-
   Future<void> _saveEvents() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
       final jsonList = _calendarEvents.map((e) => e.toJson()).toList();
-      final encoded = jsonEncode(jsonList);
-      if (_user.id.isNotEmpty) await prefs.setString('saved_events_${_user.id}', encoded);
-      if (_user.email.isNotEmpty) await prefs.setString('saved_events_${_user.email}', encoded);
-      if (_user.username.isNotEmpty) await prefs.setString('saved_events_${_user.username}', encoded);
+      await _savePrefWithFallback('saved_events', jsonEncode(jsonList));
     } catch (e) {
       debugPrint('Error saving events: $e');
     }
@@ -2027,9 +2029,8 @@ class AppProvider extends ChangeNotifier {
 
   Future<void> _saveNotifications() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
       final jsonList = _notifications.map((n) => n.toJson()).toList();
-      await prefs.setString('saved_notifications_${_user.id}', jsonEncode(jsonList));
+      await _savePrefWithFallback('saved_notifications', jsonEncode(jsonList));
     } catch (e) {
       debugPrint('Error saving notifications: $e');
     }
@@ -2037,9 +2038,8 @@ class AppProvider extends ChangeNotifier {
 
   Future<void> _saveExpenses() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
       final jsonList = _expenses.map((e) => e.toJson()).toList();
-      await prefs.setString('saved_expenses_${_user.id}', jsonEncode(jsonList));
+      await _savePrefWithFallback('saved_expenses', jsonEncode(jsonList));
     } catch (e) {
       debugPrint('Error saving expenses: $e');
     }
@@ -2047,12 +2047,8 @@ class AppProvider extends ChangeNotifier {
 
   Future<void> _saveSubjects() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
       final jsonList = _subjects.map((s) => s.toJson()).toList();
-      final encoded = jsonEncode(jsonList);
-      if (_user.id.isNotEmpty) await prefs.setString('saved_subjects_${_user.id}', encoded);
-      if (_user.email.isNotEmpty) await prefs.setString('saved_subjects_${_user.email}', encoded);
-      if (_user.username.isNotEmpty) await prefs.setString('saved_subjects_${_user.username}', encoded);
+      await _savePrefWithFallback('saved_subjects', jsonEncode(jsonList));
     } catch (e) {
       debugPrint('Error saving subjects: $e');
     }
@@ -2060,12 +2056,8 @@ class AppProvider extends ChangeNotifier {
 
   Future<void> _saveStudyItems() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
       final jsonList = _studyItems.map((i) => i.toJson()).toList();
-      final encoded = jsonEncode(jsonList);
-      if (_user.id.isNotEmpty) await prefs.setString('saved_study_items_${_user.id}', encoded);
-      if (_user.email.isNotEmpty) await prefs.setString('saved_study_items_${_user.email}', encoded);
-      if (_user.username.isNotEmpty) await prefs.setString('saved_study_items_${_user.username}', encoded);
+      await _savePrefWithFallback('saved_study_items', jsonEncode(jsonList));
     } catch (e) {
       debugPrint('Error saving study items: $e');
     }
@@ -2073,12 +2065,8 @@ class AppProvider extends ChangeNotifier {
 
   Future<void> _saveStudyUnits() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
       final jsonList = _studyUnits.map((u) => u.toJson()).toList();
-      final encoded = jsonEncode(jsonList);
-      if (_user.id.isNotEmpty) await prefs.setString('saved_study_units_${_user.id}', encoded);
-      if (_user.email.isNotEmpty) await prefs.setString('saved_study_units_${_user.email}', encoded);
-      if (_user.username.isNotEmpty) await prefs.setString('saved_study_units_${_user.username}', encoded);
+      await _savePrefWithFallback('saved_study_units', jsonEncode(jsonList));
     } catch (e) {
       debugPrint('Error saving study units: $e');
     }
@@ -2086,12 +2074,8 @@ class AppProvider extends ChangeNotifier {
 
   Future<void> _saveStudyTopics() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
       final jsonList = _studyTopics.map((t) => t.toJson()).toList();
-      final encoded = jsonEncode(jsonList);
-      if (_user.id.isNotEmpty) await prefs.setString('saved_study_topics_${_user.id}', encoded);
-      if (_user.email.isNotEmpty) await prefs.setString('saved_study_topics_${_user.email}', encoded);
-      if (_user.username.isNotEmpty) await prefs.setString('saved_study_topics_${_user.username}', encoded);
+      await _savePrefWithFallback('saved_study_topics', jsonEncode(jsonList));
     } catch (e) {
       debugPrint('Error saving study topics: $e');
     }
@@ -2099,12 +2083,8 @@ class AppProvider extends ChangeNotifier {
 
   Future<void> _saveJournalEntries() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
       final jsonList = _journalEntries.map((j) => j.toJson()).toList();
-      final encoded = jsonEncode(jsonList);
-      if (_user.id.isNotEmpty) await prefs.setString('saved_journal_${_user.id}', encoded);
-      if (_user.email.isNotEmpty) await prefs.setString('saved_journal_${_user.email}', encoded);
-      if (_user.username.isNotEmpty) await prefs.setString('saved_journal_${_user.username}', encoded);
+      await _savePrefWithFallback('saved_journal', jsonEncode(jsonList));
     } catch (e) {
       debugPrint('Error saving journal entries: $e');
     }
@@ -2112,16 +2092,13 @@ class AppProvider extends ChangeNotifier {
 
   Future<void> _saveCareerNodes() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
       final jsonList = _careerNodes.map((n) => n.toJson()).toList();
-      final encoded = jsonEncode(jsonList);
-      if (_user.id.isNotEmpty) await prefs.setString('saved_career_${_user.id}', encoded);
-      if (_user.email.isNotEmpty) await prefs.setString('saved_career_${_user.email}', encoded);
-      if (_user.username.isNotEmpty) await prefs.setString('saved_career_${_user.username}', encoded);
+      await _savePrefWithFallback('saved_career', jsonEncode(jsonList));
     } catch (e) {
       debugPrint('Error saving career nodes: $e');
     }
   }
+
 
   // ---------------------------------------------------------------------------
   // CLOUD PERSISTENCE & SYNCHRONIZATION SYSTEM
@@ -2133,8 +2110,7 @@ class AppProvider extends ChangeNotifier {
     if (!_isLoggedIn) return;
     final token = await ApiService.getSessionToken();
     if (token == null || token.isEmpty) {
-      _isLoggedIn = false;
-      notifyListeners();
+      // Offline or session token temporarily unavailable: preserve active local state
       return;
     }
     _isSyncing = true;
@@ -2182,11 +2158,10 @@ class AppProvider extends ChangeNotifier {
       // 2. Fetch authoritative remote tasks from Supabase
       final remoteTasks = await ApiService.fetchTasks();
 
-      // Ensure any remote tasks that match deleted IDs or titles are deleted on backend
+      // Ensure any remote tasks that match deleted IDs are deleted on backend
       final List<Future> remoteDeletes = [];
       for (var rt in remoteTasks) {
-        if (_deletedItemIds.contains(rt.id) ||
-            _deletedItemIds.contains(rt.title.trim().toLowerCase())) {
+        if (_deletedItemIds.contains(rt.id)) {
           remoteDeletes.add(ApiService.deleteTaskOnBackend(rt.id, taskTitle: rt.title));
         }
       }
@@ -2194,28 +2169,20 @@ class AppProvider extends ChangeNotifier {
         await Future.wait(remoteDeletes);
       }
 
-      final validRemote = remoteTasks.where((t) =>
-        !_deletedItemIds.contains(t.id) &&
-        !_deletedItemIds.contains(t.title.trim().toLowerCase())
-      ).toList();
+      final validRemote = remoteTasks.where((t) => !_deletedItemIds.contains(t.id)).toList();
 
-      // 3. Sync Priority Matrix Tasks (Supabase Authoritative)
+      // 3. Sync Priority Matrix Tasks (Supabase Authoritative + Local Preservation)
       final remotePmTasks = validRemote.where((t) =>
         t.isPriorityMatrixOnly || t.category == 'Priority Matrix'
       ).toList();
 
-      // Find any local tasks that were created offline and not yet present remotely
       final List<Task> pendingPmTasks = [];
       for (var lt in _priorityMatrixTasks) {
-        if (!_deletedItemIds.contains(lt.id) &&
-            !_deletedItemIds.contains(lt.title.trim().toLowerCase())) {
-          final existsRemote = remotePmTasks.any((rt) =>
-            rt.id == lt.id ||
-            (rt.title.trim().toLowerCase() == lt.title.trim().toLowerCase() && rt.tag == lt.tag)
-          );
-          if (!existsRemote && remoteTasks.isEmpty) {
-            // Keep local only if remote returned nothing (offline fallback)
+        if (!_deletedItemIds.contains(lt.id)) {
+          final existsRemote = remotePmTasks.any((rt) => rt.id == lt.id);
+          if (!existsRemote) {
             pendingPmTasks.add(lt);
+            ApiService.createTaskOnBackend(lt);
           }
         }
       }
@@ -2227,21 +2194,18 @@ class AppProvider extends ChangeNotifier {
       _priorityMatrixTasks = pmMap.values.toList();
       _savePriorityMatrixTasks();
 
-      // 4. Sync Eisenhower / Organize Matrix Tasks (Supabase Authoritative)
+      // 4. Sync Eisenhower / Organize Matrix Tasks (Supabase Authoritative + Local Preservation)
       final remoteOrgTasks = validRemote.where((t) =>
         t.category == 'Eisenhower Matrix'
       ).toList();
 
       final List<Task> pendingOrgTasks = [];
       for (var lt in _organizeTasks) {
-        if (!_deletedItemIds.contains(lt.id) &&
-            !_deletedItemIds.contains(lt.title.trim().toLowerCase())) {
-          final existsRemote = remoteOrgTasks.any((rt) =>
-            rt.id == lt.id ||
-            rt.title.trim().toLowerCase() == lt.title.trim().toLowerCase()
-          );
-          if (!existsRemote && remoteTasks.isEmpty) {
+        if (!_deletedItemIds.contains(lt.id)) {
+          final existsRemote = remoteOrgTasks.any((rt) => rt.id == lt.id);
+          if (!existsRemote) {
             pendingOrgTasks.add(lt);
+            ApiService.createTaskOnBackend(lt);
           }
         }
       }
@@ -2253,21 +2217,18 @@ class AppProvider extends ChangeNotifier {
       _organizeTasks = orgMap.values.toList();
       _saveOrganizeTasks();
 
-      // 5. Sync Regular To-Do Tasks (Supabase Authoritative)
+      // 5. Sync Regular To-Do Tasks (Supabase Authoritative + Local Preservation)
       final remoteTodoTasks = validRemote.where((t) =>
         !t.isPriorityMatrixOnly && t.category != 'Priority Matrix' && t.category != 'Eisenhower Matrix'
       ).toList();
 
       final List<Task> pendingTodoTasks = [];
       for (var lt in _todoTasks) {
-        if (!_deletedItemIds.contains(lt.id) &&
-            !_deletedItemIds.contains(lt.title.trim().toLowerCase())) {
-          final existsRemote = remoteTodoTasks.any((rt) =>
-            rt.id == lt.id ||
-            rt.title.trim().toLowerCase() == lt.title.trim().toLowerCase()
-          );
-          if (!existsRemote && remoteTasks.isEmpty) {
+        if (!_deletedItemIds.contains(lt.id)) {
+          final existsRemote = remoteTodoTasks.any((rt) => rt.id == lt.id);
+          if (!existsRemote) {
             pendingTodoTasks.add(lt);
+            ApiService.createTaskOnBackend(lt);
           }
         }
       }
@@ -2289,18 +2250,15 @@ class AppProvider extends ChangeNotifier {
   Future<void> syncHabitsFromCloud() async {
     try {
       final remoteHabits = await ApiService.fetchHabits();
-      final validRemote = remoteHabits.where((h) =>
-        !_deletedItemIds.contains(h.id) &&
-        !_deletedItemIds.contains(h.title.trim().toLowerCase())
-      ).toList();
+      final validRemote = remoteHabits.where((h) => !_deletedItemIds.contains(h.id)).toList();
       
       final Map<String, Habit> habitMap = {};
       final Map<String, String> titleToId = {};
 
       for (var h in _habits) {
-        final normTitle = h.title.trim().toLowerCase();
-        if (!_deletedItemIds.contains(h.id) && !_deletedItemIds.contains(normTitle)) {
+        if (!_deletedItemIds.contains(h.id)) {
           habitMap[h.id] = h;
+          final normTitle = h.title.trim().toLowerCase();
           if (normTitle.isNotEmpty) titleToId[normTitle] = h.id;
         }
       }
@@ -2330,10 +2288,7 @@ class AppProvider extends ChangeNotifier {
           existing.isCompleted = existing.isCompleted || h.isCompleted;
         }
       }
-      _habits = deduplicatedByTitle.values.where((h) =>
-        !_deletedItemIds.contains(h.id) &&
-        !_deletedItemIds.contains(h.title.trim().toLowerCase())
-      ).toList();
+      _habits = deduplicatedByTitle.values.where((h) => !_deletedItemIds.contains(h.id)).toList();
       for (final h in _habits) {
         h.recalculateStreaks(DateTime.now());
       }
@@ -2347,17 +2302,14 @@ class AppProvider extends ChangeNotifier {
   Future<void> syncExpensesFromCloud() async {
     try {
       final remoteExpenses = await ApiService.fetchExpenses();
-      final validRemote = remoteExpenses.where((e) =>
-        !_deletedItemIds.contains(e.id) &&
-        !_deletedItemIds.contains(e.title.trim().toLowerCase())
-      ).toList();
+      final validRemote = remoteExpenses.where((e) => !_deletedItemIds.contains(e.id)).toList();
       
       final Map<String, ExpenseTransaction> expMap = {};
       final Map<String, String> keyToId = {};
 
       for (var e in _expenses) {
         final key = '${e.title.trim().toLowerCase()}_${e.amount}_${e.isIncome}';
-        if (!_deletedItemIds.contains(e.id) && !_deletedItemIds.contains(e.title.trim().toLowerCase())) {
+        if (!_deletedItemIds.contains(e.id)) {
           expMap[e.id] = e;
           keyToId[key] = e.id;
         }
@@ -2372,10 +2324,7 @@ class AppProvider extends ChangeNotifier {
         }
       }
 
-      _expenses = expMap.values.where((e) =>
-        !_deletedItemIds.contains(e.id) &&
-        !_deletedItemIds.contains(e.title.trim().toLowerCase())
-      ).toList();
+      _expenses = expMap.values.where((e) => !_deletedItemIds.contains(e.id)).toList();
       _saveExpenses();
       notifyListeners();
     } catch (e) {
@@ -2386,8 +2335,8 @@ class AppProvider extends ChangeNotifier {
   Future<void> syncSubjectsFromCloud() async {
     try {
       final remoteSubjects = await ApiService.fetchSubjects();
-      final validRemote = remoteSubjects.where((s) => !_deletedItemIds.contains(s.id) && !_deletedItemIds.contains(s.name.trim().toLowerCase())).toList();
-      final Map<String, StudySubject> subMap = {for (var s in _subjects) if (!_deletedItemIds.contains(s.id) && !_deletedItemIds.contains(s.name.trim().toLowerCase())) s.id: s};
+      final validRemote = remoteSubjects.where((s) => !_deletedItemIds.contains(s.id)).toList();
+      final Map<String, StudySubject> subMap = {for (var s in _subjects) if (!_deletedItemIds.contains(s.id)) s.id: s};
       for (var rs in validRemote) {
         final local = subMap[rs.id];
         if (local != null) {
@@ -2397,7 +2346,7 @@ class AppProvider extends ChangeNotifier {
           subMap[rs.id] = rs;
         }
       }
-      _subjects = subMap.values.where((s) => !_deletedItemIds.contains(s.id) && !_deletedItemIds.contains(s.name.trim().toLowerCase())).toList();
+      _subjects = subMap.values.where((s) => !_deletedItemIds.contains(s.id)).toList();
       recalculateAllSubjectProgress();
       _saveSubjects();
       notifyListeners();
@@ -2409,8 +2358,8 @@ class AppProvider extends ChangeNotifier {
   Future<void> syncStudyItemsFromCloud() async {
     try {
       final remoteItems = await ApiService.fetchStudyItems();
-      final validRemote = remoteItems.where((i) => !_deletedItemIds.contains(i.id) && !_deletedItemIds.contains(i.title.trim().toLowerCase())).toList();
-      final Map<String, StudyItem> itemMap = {for (var i in _studyItems) if (!_deletedItemIds.contains(i.id) && !_deletedItemIds.contains(i.title.trim().toLowerCase())) i.id: i};
+      final validRemote = remoteItems.where((i) => !_deletedItemIds.contains(i.id)).toList();
+      final Map<String, StudyItem> itemMap = {for (var i in _studyItems) if (!_deletedItemIds.contains(i.id)) i.id: i};
       for (var ri in validRemote) {
         if (ri.subjectName == 'Subject' || ri.subjectName.isEmpty) {
           final matchedSub = _subjects.firstWhere(
@@ -2432,7 +2381,7 @@ class AppProvider extends ChangeNotifier {
           itemMap[ri.id] = ri;
         }
       }
-      _studyItems = itemMap.values.where((i) => !_deletedItemIds.contains(i.id) && !_deletedItemIds.contains(i.title.trim().toLowerCase())).toList();
+      _studyItems = itemMap.values.where((i) => !_deletedItemIds.contains(i.id)).toList();
       recalculateAllSubjectProgress();
       _saveStudyItems();
       notifyListeners();
@@ -2491,8 +2440,8 @@ class AppProvider extends ChangeNotifier {
   Future<void> syncCalendarEventsFromCloud() async {
     try {
       final remoteEvents = await ApiService.fetchCalendarEvents();
-      final validRemote = remoteEvents.where((e) => !_deletedItemIds.contains(e.id) && !_deletedItemIds.contains(e.title.trim().toLowerCase())).toList();
-      final Map<String, CalendarEvent> evtMap = {for (var e in _calendarEvents) if (!_deletedItemIds.contains(e.id) && !_deletedItemIds.contains(e.title.trim().toLowerCase())) e.id: e};
+      final validRemote = remoteEvents.where((e) => !_deletedItemIds.contains(e.id)).toList();
+      final Map<String, CalendarEvent> evtMap = {for (var e in _calendarEvents) if (!_deletedItemIds.contains(e.id)) e.id: e};
       for (var re in validRemote) {
         final local = evtMap[re.id];
         if (local != null) {
@@ -2507,7 +2456,7 @@ class AppProvider extends ChangeNotifier {
           evtMap[re.id] = re;
         }
       }
-      _calendarEvents = evtMap.values.where((e) => !_deletedItemIds.contains(e.id) && !_deletedItemIds.contains(e.title.trim().toLowerCase())).toList();
+      _calendarEvents = evtMap.values.where((e) => !_deletedItemIds.contains(e.id)).toList();
       _saveEvents();
       notifyListeners();
     } catch (e) {
@@ -2518,18 +2467,15 @@ class AppProvider extends ChangeNotifier {
   Future<void> syncCareerRoadmapFromCloud() async {
     try {
       final remoteNodes = await ApiService.fetchCareerRoadmapNodes();
-      final validRemote = remoteNodes.where((n) =>
-        !_deletedItemIds.contains(n.id) &&
-        !_deletedItemIds.contains(n.title.trim().toLowerCase())
-      ).toList();
+      final validRemote = remoteNodes.where((n) => !_deletedItemIds.contains(n.id)).toList();
       
       final Map<String, CareerRoadmapNode> nodeMap = {};
       final Map<String, String> titleToId = {};
       
       for (var n in _careerNodes) {
-        final normTitle = n.title.trim().toLowerCase();
-        if (!_deletedItemIds.contains(n.id) && !_deletedItemIds.contains(normTitle)) {
+        if (!_deletedItemIds.contains(n.id)) {
           nodeMap[n.id] = n;
+          final normTitle = n.title.trim().toLowerCase();
           if (normTitle.isNotEmpty) titleToId[normTitle] = n.id;
         }
       }
@@ -2547,10 +2493,7 @@ class AppProvider extends ChangeNotifier {
         }
       }
 
-      _careerNodes = nodeMap.values.where((n) =>
-        !_deletedItemIds.contains(n.id) &&
-        !_deletedItemIds.contains(n.title.trim().toLowerCase())
-      ).toList();
+      _careerNodes = nodeMap.values.where((n) => !_deletedItemIds.contains(n.id)).toList();
       _saveCareerNodes();
       notifyListeners();
     } catch (e) {
@@ -2561,12 +2504,12 @@ class AppProvider extends ChangeNotifier {
   Future<void> syncJournalEntriesFromCloud() async {
     try {
       final remoteEntries = await ApiService.fetchJournalEntries();
-      final validRemote = remoteEntries.where((j) => !_deletedItemIds.contains(j.id) && !_deletedItemIds.contains(j.title.trim().toLowerCase())).toList();
-      final Map<String, JournalEntry> entryMap = {for (var j in _journalEntries) if (!_deletedItemIds.contains(j.id) && !_deletedItemIds.contains(j.title.trim().toLowerCase())) j.id: j};
+      final validRemote = remoteEntries.where((j) => !_deletedItemIds.contains(j.id)).toList();
+      final Map<String, JournalEntry> entryMap = {for (var j in _journalEntries) if (!_deletedItemIds.contains(j.id)) j.id: j};
       for (var rj in validRemote) {
         entryMap[rj.id] = rj;
       }
-      _journalEntries = entryMap.values.where((j) => !_deletedItemIds.contains(j.id) && !_deletedItemIds.contains(j.title.trim().toLowerCase())).toList();
+      _journalEntries = entryMap.values.where((j) => !_deletedItemIds.contains(j.id)).toList();
       _saveJournalEntries();
       notifyListeners();
     } catch (e) {
