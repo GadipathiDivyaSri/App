@@ -62,6 +62,9 @@ wrindhaos-backend/node_modules/
 wrindhaos-backend/.env
 wrindhaos-backend/.env.*
 !wrindhaos-backend/.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
 wrindhaos-backend/powershell.cmd
 wrindhaos-backend/powershell.bat
 

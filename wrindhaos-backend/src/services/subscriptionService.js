@@ -41,7 +41,7 @@ async function processGooglePlayPurchase(userId, purchaseToken, productId, ipAdd
     status: playData.status, // ACTIVE | CANCELLED | EXPIRED
     plan: PLANS.PREMIUM,
     auto_renewing: playData.autoRenewing,
-    price: '₹59.00',
+    price: '₹49.00',
     currency: 'INR',
     started_at: new Date(playData.startTimeMillis).toISOString(),
     current_period_start: new Date().toISOString(),
@@ -80,8 +80,8 @@ async function processGooglePlayPurchase(userId, purchaseToken, productId, ipAdd
 /**
  * Process In-App Direct / Mock Checkout with Referral Discount applied
  */
-async function checkoutSubscription(userId, plan = 'PREMIUM', basePrice = 59.0, ipAddress = '127.0.0.1') {
-  const parsedPrice = typeof basePrice === 'number' ? basePrice : parseFloat(basePrice) || 59.0;
+async function checkoutSubscription(userId, plan = 'PREMIUM', basePrice = 49.0, ipAddress = '127.0.0.1') {
+  const parsedPrice = typeof basePrice === 'number' ? basePrice : parseFloat(basePrice) || 49.0;
   
   // 1. Check for Active Referral Reward
   const discountInfo = referralService.getActiveReferralDiscount(userId);

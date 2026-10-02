@@ -48,7 +48,7 @@ async function checkoutSubscription(req, res, next) {
     const result = await subscriptionService.checkoutSubscription(
       userId,
       plan || 'PREMIUM',
-      basePrice || 59.0,
+      basePrice || 49.0,
       req.ip
     );
 

@@ -87,7 +87,7 @@ CREATE TABLE IF NOT EXISTS public.payments (
     purchase_token TEXT,
     product_id VARCHAR(100) DEFAULT 'wrindhaos_premium_monthly',
     provider VARCHAR(50) DEFAULT 'google_play',
-    amount NUMERIC(12, 2) NOT NULL DEFAULT 59.00,
+    amount NUMERIC(12, 2) NOT NULL DEFAULT 49.00,
     currency VARCHAR(10) DEFAULT 'INR',
     status VARCHAR(30) DEFAULT 'SUCCESS',
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP

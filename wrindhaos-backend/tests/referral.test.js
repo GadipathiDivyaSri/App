@@ -105,11 +105,11 @@ test('Referral System: Code Generation, Self-Referral Block, Qualification & 10%
   const checkoutB = await makeRequest(
     '/api/v1/subscriptions/checkout',
     'POST',
-    { plan: 'PREMIUM', basePrice: 59.0 },
+    { plan: 'PREMIUM', basePrice: 49.0 },
     headersB
   );
   assert.strictEqual(checkoutB.statusCode, 200);
-  assert.strictEqual(checkoutB.body.data.pricing.finalAmount, 59.0); // Person B pays standard rate
+  assert.strictEqual(checkoutB.body.data.pricing.finalAmount, 49.0); // Person B pays standard rate
 
   // 6. Verify Person A earned 10% discount
   const summaryA3 = await makeRequest('/api/v1/referrals/me', 'GET', null, headersA);
@@ -117,30 +117,30 @@ test('Referral System: Code Generation, Self-Referral Block, Qualification & 10%
   assert.strictEqual(summaryA3.body.data.pendingReferrals, 0);
   assert.strictEqual(summaryA3.body.data.activeDiscountPercent, 10);
 
-  // 7. Person A checks out their next billing cycle: ₹59 - 10% (₹5.90) = ₹53.10
+  // 7. Person A checks out their next billing cycle: ₹49 - 10% (₹4.90) = ₹44.10
   const checkoutA = await makeRequest(
     '/api/v1/subscriptions/checkout',
     'POST',
-    { plan: 'PREMIUM', basePrice: 59.0 },
+    { plan: 'PREMIUM', basePrice: 49.0 },
     headersA
   );
   assert.strictEqual(checkoutA.statusCode, 200);
-  assert.strictEqual(checkoutA.body.data.pricing.originalPrice, 59.0);
+  assert.strictEqual(checkoutA.body.data.pricing.originalPrice, 49.0);
   assert.strictEqual(checkoutA.body.data.pricing.discountPercentage, 10);
-  assert.strictEqual(checkoutA.body.data.pricing.discountAmount, 5.9);
-  assert.strictEqual(checkoutA.body.data.pricing.finalAmount, 53.1);
+  assert.strictEqual(checkoutA.body.data.pricing.discountAmount, 4.9);
+  assert.strictEqual(checkoutA.body.data.pricing.finalAmount, 44.1);
 
-  // 8. Reward is valid ONLY for that cycle -> Next checkout for Person A is full price ₹59.00
+  // 8. Reward is valid ONLY for that cycle -> Next checkout for Person A is full price ₹49.00
   const summaryA4 = await makeRequest('/api/v1/referrals/me', 'GET', null, headersA);
   assert.strictEqual(summaryA4.body.data.activeDiscountPercent, 0); // Consumed
 
   const checkoutA2 = await makeRequest(
     '/api/v1/subscriptions/checkout',
     'POST',
-    { plan: 'PREMIUM', basePrice: 59.0 },
+    { plan: 'PREMIUM', basePrice: 49.0 },
     headersA
   );
   assert.strictEqual(checkoutA2.statusCode, 200);
   assert.strictEqual(checkoutA2.body.data.pricing.discountPercentage, 0);
-  assert.strictEqual(checkoutA2.body.data.pricing.finalAmount, 59.0);
+  assert.strictEqual(checkoutA2.body.data.pricing.finalAmount, 49.0);
 });
