@@ -822,7 +822,7 @@ class AppProvider extends ChangeNotifier {
         final existingId = goalMap.containsKey(rg.id) ? rg.id : (normTitle.isNotEmpty ? titleToId[normTitle] : null);
         if (existingId != null && goalMap.containsKey(existingId)) {
           final local = goalMap[existingId]!;
-          local.isCompleted = local.isCompleted || rg.isCompleted;
+          local.isCompleted = rg.isCompleted;
           goalMap[existingId] = local;
         } else {
           goalMap[rg.id] = rg;
@@ -2275,11 +2275,13 @@ class AppProvider extends ChangeNotifier {
             }
           }
           if (local != null) {
-            final isComp = local.isCompleted || rt.isCompleted;
-            local.isCompleted = isComp;
-            if (isComp && local.completedDate == null) {
+            local.isCompleted = rt.isCompleted;
+            if (rt.isCompleted) {
               local.completedDate = rt.completedDate ?? DateTime.now();
               local.dueDateLabel = 'Completed';
+            } else {
+              local.completedDate = null;
+              local.dueDateLabel = 'Today';
             }
             pmMap[local.id] = local;
           } else {
@@ -2309,11 +2311,13 @@ class AppProvider extends ChangeNotifier {
             }
           }
           if (local != null) {
-            final isComp = local.isCompleted || rt.isCompleted;
-            local.isCompleted = isComp;
-            if (isComp && local.completedDate == null) {
+            local.isCompleted = rt.isCompleted;
+            if (rt.isCompleted) {
               local.completedDate = rt.completedDate ?? DateTime.now();
               local.dueDateLabel = 'Completed';
+            } else {
+              local.completedDate = null;
+              local.dueDateLabel = 'Today';
             }
             orgMap[local.id] = local;
           } else {
@@ -2344,11 +2348,13 @@ class AppProvider extends ChangeNotifier {
           }
         }
         if (local != null) {
-          final isComp = local.isCompleted || rt.isCompleted;
-          local.isCompleted = isComp;
-          if (isComp && local.completedDate == null) {
+          local.isCompleted = rt.isCompleted;
+          if (rt.isCompleted) {
             local.completedDate = rt.completedDate ?? DateTime.now();
             local.dueDateLabel = 'Completed';
+          } else {
+            local.completedDate = null;
+            local.dueDateLabel = 'Today';
           }
           taskMap[local.id] = local;
         } else {
@@ -2486,7 +2492,7 @@ class AppProvider extends ChangeNotifier {
       for (var ri in validRemote) {
         final local = itemMap[ri.id];
         if (local != null) {
-          local.isCompleted = local.isCompleted || ri.isCompleted;
+          local.isCompleted = ri.isCompleted;
           itemMap[ri.id] = local;
         } else {
           itemMap[ri.id] = ri;
@@ -2509,8 +2515,8 @@ class AppProvider extends ChangeNotifier {
       for (var ru in validRemote) {
         final local = unitMap[ru.id];
         if (local != null) {
-          local.isCompleted = local.isCompleted || ru.isCompleted;
-          local.progress = local.progress > ru.progress ? local.progress : ru.progress;
+          local.isCompleted = ru.isCompleted;
+          local.progress = ru.progress;
           unitMap[ru.id] = local;
         } else {
           unitMap[ru.id] = ru;
@@ -2533,7 +2539,7 @@ class AppProvider extends ChangeNotifier {
       for (var rt in validRemote) {
         final local = topicMap[rt.id];
         if (local != null) {
-          local.isCompleted = local.isCompleted || rt.isCompleted;
+          local.isCompleted = rt.isCompleted;
           topicMap[rt.id] = local;
         } else {
           topicMap[rt.id] = rt;
@@ -2556,7 +2562,7 @@ class AppProvider extends ChangeNotifier {
       for (var re in validRemote) {
         final local = evtMap[re.id];
         if (local != null) {
-          local.isCompleted = local.isCompleted || re.isCompleted;
+          local.isCompleted = re.isCompleted;
           if (local.type.toLowerCase() != 'general' && re.type.toLowerCase() == 'general') {
             re.type = local.type;
           }
@@ -2599,7 +2605,7 @@ class AppProvider extends ChangeNotifier {
         final existingId = nodeMap.containsKey(rn.id) ? rn.id : (normTitle.isNotEmpty ? titleToId[normTitle] : null);
         if (existingId != null && nodeMap.containsKey(existingId)) {
           final local = nodeMap[existingId]!;
-          local.isCompleted = local.isCompleted || rn.isCompleted;
+          local.isCompleted = rn.isCompleted;
           nodeMap[existingId] = local;
         } else {
           nodeMap[rn.id] = rn;

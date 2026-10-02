@@ -9,6 +9,14 @@ String generateUuidV4() {
   return '${hex.substring(0, 8)}-${hex.substring(8, 12)}-${hex.substring(12, 16)}-${hex.substring(16, 20)}-${hex.substring(20, 32)}';
 }
 
+bool parseBool(dynamic value) {
+  if (value == null) return false;
+  if (value is bool) return value;
+  if (value is num) return value != 0;
+  final s = value.toString().trim().toLowerCase();
+  return s == 'true' || s == '1' || s == 't' || s == 'yes' || s == 'completed';
+}
+
 class Habit {
   final String id;
   String title;
@@ -305,14 +313,14 @@ class Task {
                     : DateTime.now())),
         dueTime: json['dueTime'] ?? json['due_time'] ?? '05:00 PM',
         priority: json['priority'] != null ? (int.tryParse(json['priority'].toString()) ?? 1) : 1,
-        isCompleted: json['isCompleted'] ?? json['is_completed'] ?? false,
+        isCompleted: parseBool(json['isCompleted'] ?? json['is_completed']),
         completedDate: json['completedDate'] != null
             ? DateTime.tryParse(json['completedDate'].toString())
             : (json['completed_at'] != null
                 ? DateTime.tryParse(json['completed_at'].toString())
                 : null),
-        isPriorityMatrixOnly: json['isPriorityMatrixOnly'] == true ||
-            json['is_priority_matrix_only'] == true ||
+        isPriorityMatrixOnly: parseBool(json['isPriorityMatrixOnly']) ||
+            parseBool(json['is_priority_matrix_only']) ||
             json['category'] == 'Priority Matrix',
       );
 }
@@ -412,7 +420,7 @@ class CalendarEvent {
       location: json['location'] ?? 'Workspace A',
       type: resolvedType,
       category: parsedCat,
-      isCompleted: json['isCompleted'] ?? json['is_completed'] ?? false,
+      isCompleted: parseBool(json['isCompleted'] ?? json['is_completed']),
     );
   }
 }
@@ -712,7 +720,7 @@ class StudyUnit {
         unitNumber: json['unit_number'] != null
             ? int.tryParse(json['unit_number'].toString()) ?? 1
             : (json['unitNumber'] != null ? int.tryParse(json['unitNumber'].toString()) ?? 1 : 1),
-        isCompleted: !!(json['is_completed'] ?? json['isCompleted'] ?? (json['status'] == 'completed')),
+        isCompleted: parseBool(json['is_completed'] ?? json['isCompleted']) || (json['status'] == 'completed'),
         progress: (json['progress'] is num) ? (json['progress'] as num).toDouble() : 0.0,
       );
 
@@ -763,7 +771,7 @@ class StudyTopic {
         subjectId: json['subject_id'] ?? json['subjectId'] ?? '',
         title: json['title'] ?? 'Topic',
         description: json['description'] ?? '',
-        isCompleted: !!(json['is_completed'] ?? json['isCompleted'] ?? (json['status'] == 'completed')),
+        isCompleted: parseBool(json['is_completed'] ?? json['isCompleted']) || (json['status'] == 'completed'),
       );
 
   Map<String, dynamic> toMap() => toJson();
@@ -814,8 +822,7 @@ class StudyItem {
         ? rawId
         : (rawId != null && rawId.isNotEmpty ? rawId : generateUuidV4());
 
-    final isDone = json['isCompleted'] == true ||
-        json['is_completed'] == true ||
+    final isDone = parseBool(json['isCompleted'] ?? json['is_completed']) ||
         json['status'] == 'completed';
 
     return StudyItem(
@@ -871,8 +878,7 @@ class CareerRoadmapNode {
     final cleanId = (rawId != null && rawId.isNotEmpty && !rawId.startsWith('cr_'))
         ? rawId
         : (rawId != null && rawId.isNotEmpty ? rawId : generateUuidV4());
-    final isDone = json['isCompleted'] == true ||
-        json['is_completed'] == true ||
+    final isDone = parseBool(json['isCompleted'] ?? json['is_completed']) ||
         json['status'] == 'COMPLETED';
 
     return CareerRoadmapNode(
@@ -941,7 +947,7 @@ class Goal {
       title: json['title'] ?? 'Goal',
       description: json['description'] ?? json['aligned_purpose'] ?? '',
       tier: normalizedTier,
-      isCompleted: !!(json['is_completed'] ?? json['isCompleted'] ?? json['is_achieved'] ?? (json['status'] == 'COMPLETED')),
+      isCompleted: parseBool(json['is_completed'] ?? json['isCompleted'] ?? json['is_achieved']) || (json['status'] == 'COMPLETED'),
       targetDate: json['target_date'] != null
           ? DateTime.tryParse(json['target_date'].toString())
           : (json['targetDate'] != null ? DateTime.tryParse(json['targetDate'].toString()) : null),
@@ -992,7 +998,7 @@ class Milestone {
         goalId: json['goal_id'] ?? json['goalId'] ?? '',
         title: json['title'] ?? json['milestone_title'] ?? 'Milestone',
         description: json['description'] ?? '',
-        isCompleted: !!(json['is_completed'] ?? json['isCompleted']),
+        isCompleted: parseBool(json['is_completed'] ?? json['isCompleted']),
         targetDate: json['target_date'] != null
             ? DateTime.tryParse(json['target_date'].toString())
             : (json['targetDate'] != null ? DateTime.tryParse(json['targetDate'].toString()) : null),
