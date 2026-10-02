@@ -8,6 +8,7 @@ import '../widgets/upgrade_pro_modal.dart';
 import '../theme/app_theme.dart';
 import 'personal_growth_screen.dart';
 import 'career_screen.dart';
+import 'goal_pyramid_screen.dart';
 import 'studies_screen.dart';
 import 'calendar_screen.dart';
 import 'priority_matrix_screen.dart';
@@ -120,13 +121,13 @@ class HomeScreen extends StatelessWidget {
                       },
                     ),
 
-                    // 2. Career (PRO ONLY: AppFeature.careerRoadmap & AppFeature.goals)
+                    // 2. Career Roadmap (PRO ONLY: AppFeature.careerRoadmap)
                     _buildModuleCard(
                       context,
                       isDark: isDark,
                       icon: Icons.work_outline_rounded,
-                      title: 'Career',
-                      subtitle: 'Pathways & Goals',
+                      title: 'Career Roadmap',
+                      subtitle: 'Pathways & Milestones',
                       lightCardBg: AppTheme.pastelCareer,
                       lightIconContainerColor: AppTheme.pastelCareerIcon,
                       isLocked: !provider.hasAccess(AppFeature.careerRoadmap),
@@ -137,6 +138,33 @@ class HomeScreen extends StatelessWidget {
                             builder: (_) => const CareerScreen(),
                           ),
                         );
+                      },
+                    ),
+
+                    // 2B. Strategic Goals (PRO ONLY: AppFeature.goals)
+                    _buildModuleCard(
+                      context,
+                      isDark: isDark,
+                      icon: Icons.military_tech_outlined,
+                      title: 'Strategic Goals',
+                      subtitle: 'Short, Med & Long Goals',
+                      lightCardBg: const Color(0xFFEFF6FF),
+                      lightIconContainerColor: const Color(0xFF2563EB),
+                      isLocked: !provider.hasAccess(AppFeature.goals),
+                      onTap: () {
+                        if (!provider.hasAccess(AppFeature.goals)) {
+                          ProUpgradeDialog.showFeatureLockedDialog(
+                            context,
+                            AppFeature.goals,
+                          );
+                        } else {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const GoalPyramidScreen(),
+                            ),
+                          );
+                        }
                       },
                     ),
 
