@@ -145,6 +145,15 @@ class DatabaseManager {
         user.display_name = user.username;
       }
     }
+    if (user) {
+      try {
+        const sub = await dbQuery('subscriptions', { method: 'GET', match: { user_id: uid }, single: true });
+        if (sub && (sub.plan === 'pro' || sub.plan === 'premium') && (sub.status === 'active' || sub.status === 'trial')) {
+          user.is_premium = true;
+          user.subscription_plan = 'PRO';
+        }
+      } catch (_) {}
+    }
     return user;
   }
 
@@ -200,6 +209,15 @@ class DatabaseManager {
     const cachedHash = DatabaseManager.getUserPasswordHash(clean) || (user?.email ? DatabaseManager.getUserPasswordHash(user.email) : null) || (user?.username ? DatabaseManager.getUserPasswordHash(user.username) : null);
     if (user && !user.password_hash && cachedHash) {
       user.password_hash = cachedHash;
+    }
+    if (user) {
+      try {
+        const sub = await dbQuery('subscriptions', { method: 'GET', match: { user_id: user.id }, single: true });
+        if (sub && (sub.plan === 'pro' || sub.plan === 'premium') && (sub.status === 'active' || sub.status === 'trial')) {
+          user.is_premium = true;
+          user.subscription_plan = 'PRO';
+        }
+      } catch (_) {}
     }
     return user;
   }
@@ -343,6 +361,31 @@ class DatabaseManager {
             ADD COLUMN IF NOT EXISTS username TEXT,
             ADD COLUMN IF NOT EXISTS user_id TEXT,
             ADD COLUMN IF NOT EXISTS deleted_time TIMESTAMPTZ DEFAULT now();
+
+          CREATE TABLE IF NOT EXISTS public.career_nodes (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+            title TEXT NOT NULL,
+            description TEXT DEFAULT '',
+            section VARCHAR(50) DEFAULT 'SKILLS',
+            status VARCHAR(50) DEFAULT 'PLANNED',
+            is_completed BOOLEAN DEFAULT FALSE,
+            "order" INTEGER DEFAULT 0,
+            created_at TIMESTAMPTZ DEFAULT now(),
+            updated_at TIMESTAMPTZ DEFAULT now()
+          );
+
+          GRANT ALL ON public.career_nodes TO anon, authenticated, service_role;
+          ALTER TABLE public.career_nodes ENABLE ROW LEVEL SECURITY;
+
+          DO $$
+          BEGIN
+            IF NOT EXISTS (
+              SELECT 1 FROM pg_policies WHERE tablename = 'career_nodes' AND policyname = 'allow_all_career_nodes'
+            ) THEN
+              CREATE POLICY allow_all_career_nodes ON public.career_nodes FOR ALL TO anon, authenticated, service_role USING (true) WITH CHECK (true);
+            END IF;
+          END $$;
 
           NOTIFY pgrst, 'reload schema';
         `);
@@ -1007,7 +1050,7 @@ class DatabaseManager {
     if (!userId) return [];
     const uid = ensureUuid(userId);
     const match = { user_id: uid };
-    if (tier) match.tier = tier.toLowerCase();
+    if (tier && tier !== 'all') match.tier = tier.toLowerCase();
     const goals = await dbQuery('goals', { method: 'GET', match });
     let list = (goals || []).map(g => ({
       ...g,
@@ -1021,9 +1064,12 @@ class DatabaseManager {
       aligned_purpose: g.aligned_purpose,
       section: g.section || 'GOAL',
     }));
-    if (!tier) {
-      list = list.filter(g => (g.tier || '').toLowerCase() !== 'roadmap' && (g.section || '').toUpperCase() !== 'CAREER');
-    }
+    // Exclude any career roadmap nodes from Goal Pyramid queries
+    list = list.filter(g => {
+      const t = (g.tier || '').toLowerCase();
+      const s = (g.section || '').toUpperCase();
+      return t !== 'roadmap' && t !== 'career' && s !== 'CAREER';
+    });
     return list;
   }
 
@@ -1037,14 +1083,6 @@ class DatabaseManager {
     try {
       nodes = await dbQuery('career_nodes', { method: 'GET', match: { user_id: uid } });
     } catch (_) {}
-    if (!nodes || nodes.length === 0) {
-      try {
-        const goals = await dbQuery('goals', { method: 'GET', match: { user_id: uid, section: 'CAREER' } });
-        if (goals && goals.length > 0) {
-          nodes = goals;
-        }
-      } catch (_) {}
-    }
     return (nodes || []).map(n => ({
       id: n.id,
       user_id: n.user_id,
@@ -1077,9 +1115,8 @@ class DatabaseManager {
     try {
       const created = await dbQuery('career_nodes', { method: 'POST', body: newNode, single: true });
       return created ? { ...created, isCompleted: !!created.is_completed } : newNode;
-    } catch (_) {
-      const fallback = { ...newNode, tier: 'roadmap', section: 'CAREER', category: 'Career' };
-      await dbQuery('goals', { method: 'POST', body: fallback, single: true });
+    } catch (err) {
+      console.warn('[createCareerNode warning]:', err.message);
       return newNode;
     }
   }
@@ -1101,10 +1138,6 @@ class DatabaseManager {
       const updated = await dbQuery('career_nodes', { method: 'PATCH', match: { id: nid, user_id: uid }, body: payload, single: true });
       if (updated) return { ...updated, isCompleted: !!updated.is_completed };
     } catch (_) {}
-    try {
-      const updatedGoal = await dbQuery('goals', { method: 'PATCH', match: { id: nid, user_id: uid }, body: payload, single: true });
-      if (updatedGoal) return { ...updatedGoal, isCompleted: !!updatedGoal.is_completed };
-    } catch (_) {}
     return null;
   }
 
@@ -1115,9 +1148,6 @@ class DatabaseManager {
     try {
       await dbQuery('career_nodes', { method: 'DELETE', match: { id: nid, user_id: uid } });
     } catch (_) {}
-    try {
-      await dbQuery('goals', { method: 'DELETE', match: { id: nid, user_id: uid, section: 'CAREER' } });
-    } catch (_) {}
     return true;
   }
 
@@ -1127,9 +1157,9 @@ class DatabaseManager {
 
     const rawTier = (goalData.tier || goalData.timeframe || 'short').toString().toLowerCase();
     let normalizedTier = 'short';
-    if (rawTier.includes('roadmap') || rawTier.includes('career')) normalizedTier = 'roadmap';
-    else if (rawTier.includes('med')) normalizedTier = 'medium';
+    if (rawTier.includes('med')) normalizedTier = 'medium';
     else if (rawTier.includes('long')) normalizedTier = 'long';
+    else normalizedTier = 'short';
 
     const newGoal = {
       id: ensureUuid(goalData.id),
@@ -1137,12 +1167,11 @@ class DatabaseManager {
       title: goalData.title || 'New Goal',
       description: goalData.description || goalData.aligned_purpose || null,
       tier: normalizedTier,
-      section: goalData.section || 'GOAL',
+      section: 'GOAL',
       category: goalData.category || 'General',
       aligned_purpose: goalData.aligned_purpose || goalData.description || null,
       target_date: goalData.target_date || goalData.targetDate || null,
       is_completed: !!(goalData.is_completed || goalData.isCompleted),
-      created_at: new Date().toISOString(),
     };
 
     const created = await dbQuery('goals', { method: 'POST', body: newGoal, single: true });

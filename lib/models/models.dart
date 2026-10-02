@@ -49,20 +49,28 @@ class Habit {
   bool isScheduledForDate(DateTime date) {
     if (status == 'archived' || status == 'paused') return false;
     final dateStr = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-    if (dateStr.compareTo(startDate) < 0) return false;
+    
+    // If it was already completed on this date, it's definitively scheduled
+    if (isCompletedOnDate(dateStr)) return true;
 
     final weekday = date.weekday; // 1 = Mon, 7 = Sun
     final freq = frequency.toUpperCase();
-    if (freq == 'DAILY') return true;
-    if (freq == 'WEEKDAYS') return weekday >= 1 && weekday <= 5;
-    if (freq == 'WEEKENDS') return weekday == 6 || weekday == 7;
-    if (freq == 'CUSTOM') return selectedDays.contains(weekday);
-    if (freq == 'WEEKLY') return weekday == 1;
+    if (freq == 'WEEKDAYS' && (weekday < 1 || weekday > 5)) return false;
+    if (freq == 'WEEKENDS' && (weekday != 6 && weekday != 7)) return false;
+    if (freq == 'CUSTOM' && !selectedDays.contains(weekday)) return false;
+    if (freq == 'WEEKLY' && weekday != 1) return false;
+
+    // Only block if startDate is in the future
+    final todayStr = '${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}-${DateTime.now().day.toString().padLeft(2, '0')}';
+    if (startDate.compareTo(todayStr) > 0 && dateStr.compareTo(startDate) < 0) {
+      return false;
+    }
     return true;
   }
 
   bool isCompletedOnDate(String dateStr) {
-    return completionHistory.contains(dateStr);
+    final clean = dateStr.trim().split('T')[0].split(' ')[0];
+    return completionHistory.any((h) => h.trim().split('T')[0].split(' ')[0] == clean);
   }
 
   void recalculateStreaks([DateTime? asOfDate]) {
@@ -161,7 +169,8 @@ class Habit {
   factory Habit.fromJson(Map<String, dynamic> json) {
     final historyRaw = json['completionHistory'] ?? json['completion_history'] ?? json['history'];
     final history = (historyRaw as List<dynamic>?)
-            ?.map((e) => e.toString())
+            ?.map((e) => e.toString().trim().split('T')[0].split(' ')[0])
+            .where((s) => s.isNotEmpty)
             .toList() ??
         [];
     final daysRaw = json['selectedDays'] ?? json['selected_days'] ?? json['days'];
@@ -171,7 +180,7 @@ class Habit {
         [];
 
     final todayStr = '${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}-${DateTime.now().day.toString().padLeft(2, '0')}';
-    final isDone = history.contains(todayStr) || (json['isCompleted'] == true) || (json['is_completed'] == true);
+    final isDone = history.any((h) => h == todayStr) || (json['isCompleted'] == true) || (json['is_completed'] == true);
 
     return Habit(
       id: json['id']?.toString() ?? 'h_1',
@@ -915,10 +924,16 @@ class Goal {
       };
 
   factory Goal.fromJson(Map<String, dynamic> json) {
-    final rawTier = (json['tier'] ?? json['timeframe'] ?? json['section'] ?? 'short').toString().toLowerCase();
+    final rawTier = (json['tier'] ?? json['timeframe'] ?? '').toString().toLowerCase();
+    final rawSection = (json['section'] ?? '').toString().toUpperCase();
     String normalizedTier = 'short';
-    if (rawTier.contains('med')) normalizedTier = 'medium';
-    else if (rawTier.contains('long') || rawTier.contains('career')) normalizedTier = 'long';
+    if (rawTier.contains('roadmap') || rawTier.contains('career') || rawSection == 'CAREER') {
+      normalizedTier = 'roadmap';
+    } else if (rawTier.contains('med')) {
+      normalizedTier = 'medium';
+    } else if (rawTier.contains('long')) {
+      normalizedTier = 'long';
+    }
 
     return Goal(
       id: json['id'] ?? 'g_${DateTime.now().millisecondsSinceEpoch}',
@@ -1147,10 +1162,20 @@ class UserSubscription {
         'updated_at': updatedAt.toIso8601String(),
       };
 
-  factory UserSubscription.fromJson(Map<String, dynamic> json) => UserSubscription(
+  factory UserSubscription.fromJson(Map<String, dynamic> json) {
+    String rawPlan = (json['plan'] ?? json['plan_tier'] ?? 'free').toString().toLowerCase();
+    final bool hasProFlag = json['isPro'] == true ||
+        json['isPremium'] == true ||
+        json['is_premium'] == true ||
+        (json['subscription_plan'] ?? json['subscriptionPlan'] ?? '').toString().toUpperCase() == 'PRO' ||
+        (json['subscription_plan'] ?? json['subscriptionPlan'] ?? '').toString().toUpperCase() == 'PREMIUM';
+    if (hasProFlag) {
+      rawPlan = 'pro';
+    }
+    return UserSubscription(
         id: json['id'] ?? json['subscription_id'] ?? 'sub_${DateTime.now().millisecondsSinceEpoch}',
         userId: json['user_id'] ?? json['userId'] ?? '',
-        plan: (json['plan'] ?? json['plan_tier'] ?? 'free').toString().toLowerCase(),
+        plan: rawPlan,
         status: (json['status'] ?? 'active').toString().toLowerCase(),
         startedAt: json['started_at'] != null ? (DateTime.tryParse(json['started_at'].toString()) ?? DateTime.now()) : DateTime.now(),
         expiresAt: json['expires_at'] != null ? DateTime.tryParse(json['expires_at'].toString()) : null,
@@ -1159,4 +1184,5 @@ class UserSubscription {
         createdAt: json['created_at'] != null ? (DateTime.tryParse(json['created_at'].toString()) ?? DateTime.now()) : DateTime.now(),
         updatedAt: json['updated_at'] != null ? (DateTime.tryParse(json['updated_at'].toString()) ?? DateTime.now()) : DateTime.now(),
       );
+  }
 }

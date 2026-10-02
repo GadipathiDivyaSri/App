@@ -568,9 +568,20 @@ ALTER TABLE public.goals ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NUL
 CREATE INDEX IF NOT EXISTS idx_goals_user_tier ON public.goals(user_id, tier);
 
 DROP VIEW IF EXISTS public.career_roadmap CASCADE;
-CREATE VIEW public.career_roadmap AS 
-SELECT id, user_id, title, description, tier, timeframe, section, category, is_completed, target_date, aligned_purpose, progress_percentage, created_at, updated_at
-FROM public.goals;
+CREATE TABLE IF NOT EXISTS public.career_nodes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    description TEXT DEFAULT '',
+    section VARCHAR(50) DEFAULT 'SKILLS',
+    status VARCHAR(50) DEFAULT 'PLANNED',
+    is_completed BOOLEAN DEFAULT FALSE,
+    "order" INTEGER DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_career_nodes_user ON public.career_nodes(user_id);
 
 CREATE TABLE IF NOT EXISTS public.milestones (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

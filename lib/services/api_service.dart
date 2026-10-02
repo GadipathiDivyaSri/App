@@ -1968,8 +1968,11 @@ class ApiService {
       final response = await http.get(Uri.parse('$baseUrl/subscription/me'), headers: headers);
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        if (data['success'] == true && data['subscription'] != null) {
-          return UserSubscription.fromJson(data['subscription']);
+        if (data is Map<String, dynamic>) {
+          final subData = data['subscription'] ?? (data['plan'] != null || data['isPro'] != null || data['isPremium'] != null ? data : null);
+          if (subData != null && subData is Map<String, dynamic>) {
+            return UserSubscription.fromJson(subData);
+          }
         }
       }
     } catch (_) {}
@@ -2292,7 +2295,6 @@ class ApiService {
           'title': node.title,
           'description': node.description,
           'section': node.section,
-          'tier': 'roadmap',
           'is_completed': node.isCompleted,
         }),
       );

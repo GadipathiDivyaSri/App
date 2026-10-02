@@ -28,32 +28,31 @@ class GoalRules {
     final title = entities.title ?? 'Achieve Academic Excellence';
     final category = entities.category ?? 'Studies';
 
-    // Add as a high priority roadmap/goal node
-    final newNode = CareerRoadmapNode(
-      id: 'cr_${DateTime.now().millisecondsSinceEpoch}',
-      section: 'GOAL',
+    // Add as a goal in Goal Pyramid
+    final newGoal = Goal(
+      id: 'g_${DateTime.now().millisecondsSinceEpoch}',
       title: title,
       description: 'Goal in $category',
-      status: 'IN_PROGRESS',
-      order: provider.careerNodes.length + 1,
+      tier: 'short',
+      isCompleted: false,
     );
-    provider.addCareerNode(newNode);
+    provider.addGoal(newGoal);
 
     return AssistantMessage(
       id: 'msg_${DateTime.now().millisecondsSinceEpoch}',
-      text: '🎯 Created goal: **"$title"**. It has been linked to your academic & career pyramid.',
+      text: '🎯 Created goal: **"$title"**. It has been added to your Goal Pyramid.',
       isUser: false,
       timestamp: DateTime.now(),
       detectedIntent: SmartIntent.createGoal,
       cardData: ActionCardData(
         type: ActionCardType.goalMeter,
         title: title,
-        subtitle: 'Status: In Progress • Tier 1 Goal',
+        subtitle: 'Status: In Progress • Short Term Goal',
         items: [
           ActionCardItem(
-            id: newNode.id,
+            id: newGoal.id,
             title: title,
-            subtitle: 'Goal • In Progress',
+            subtitle: 'Goal • Short Term',
             icon: Icons.flag_rounded,
             iconColor: const Color(0xFF0D5CE5),
           ),
@@ -65,8 +64,8 @@ class GoalRules {
 
   static AssistantMessage _completeGoal(ExtractedEntities entities, AppProvider provider) {
     final query = (entities.title ?? '').toLowerCase().trim();
-    final nodes = provider.careerNodes.where((n) => n.section == 'GOAL').toList();
-    if (nodes.isEmpty) {
+    final goals = provider.goals;
+    if (goals.isEmpty) {
       return AssistantMessage(
         id: 'msg_${DateTime.now().millisecondsSinceEpoch}',
         text: 'You have no active goals to mark completed.',
@@ -76,20 +75,19 @@ class GoalRules {
       );
     }
 
-    CareerRoadmapNode? target;
+    Goal? target;
     if (query.isNotEmpty && query != 'untitled item') {
-      for (final n in nodes) {
-        final title = n.title.toLowerCase();
+      for (final g in goals) {
+        final title = g.title.toLowerCase();
         if (title.contains(query) || query.contains(title)) {
-          target = n;
+          target = g;
           break;
         }
       }
     }
 
-    target ??= nodes.firstWhere((n) => n.status != 'COMPLETED', orElse: () => nodes.first);
-    target.status = 'COMPLETED';
-    provider.notifyListeners();
+    target ??= goals.firstWhere((g) => !g.isCompleted, orElse: () => goals.first);
+    provider.toggleGoal(target.id);
 
     return AssistantMessage(
       id: 'msg_${DateTime.now().millisecondsSinceEpoch}',
@@ -102,8 +100,8 @@ class GoalRules {
   }
 
   static AssistantMessage _getGoalProgress(AppProvider provider) {
-    final nodes = provider.careerNodes;
-    if (nodes.isEmpty) {
+    final goals = provider.goals;
+    if (goals.isEmpty) {
       return AssistantMessage(
         id: 'msg_${DateTime.now().millisecondsSinceEpoch}',
         text: 'You don\'t have any goals set yet. Tell me a goal to create!',
@@ -113,26 +111,26 @@ class GoalRules {
       );
     }
 
-    final completed = nodes.where((n) => n.status == 'COMPLETED').length;
-    final inProgress = nodes.where((n) => n.status == 'IN_PROGRESS').length;
-    final percent = ((completed / nodes.length) * 100).round();
+    final completed = goals.where((g) => g.isCompleted).length;
+    final inProgress = goals.where((g) => !g.isCompleted).length;
+    final percent = ((completed / goals.length) * 100).round();
 
     return AssistantMessage(
       id: 'msg_${DateTime.now().millisecondsSinceEpoch}',
-      text: '🎯 **Goal Pyramid Progress**:\n• Total Milestones: **${nodes.length}**\n• Completed: **$completed** ($percent%)\n• Active in progress: **$inProgress**',
+      text: '🎯 **Goal Pyramid Progress**:\n• Total Goals: **${goals.length}**\n• Completed: **$completed** ($percent%)\n• Active in progress: **$inProgress**',
       isUser: false,
       timestamp: DateTime.now(),
       detectedIntent: SmartIntent.getGoalProgress,
       cardData: ActionCardData(
         type: ActionCardType.goalMeter,
         title: '$percent% Goals Completed',
-        subtitle: '$completed of ${nodes.length} targets achieved',
-        items: nodes.map((n) => ActionCardItem(
-          id: n.id,
-          title: n.title,
-          subtitle: '${n.section} • ${n.status}',
-          icon: n.status == 'COMPLETED' ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
-          iconColor: n.status == 'COMPLETED' ? const Color(0xFF10B981) : const Color(0xFF0D5CE5),
+        subtitle: '$completed of ${goals.length} targets achieved',
+        items: goals.map((g) => ActionCardItem(
+          id: g.id,
+          title: g.title,
+          subtitle: '${g.tier.toUpperCase()} • ${g.isCompleted ? "COMPLETED" : "IN_PROGRESS"}',
+          icon: g.isCompleted ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
+          iconColor: g.isCompleted ? const Color(0xFF10B981) : const Color(0xFF0D5CE5),
         )).toList(),
       ),
       suggestionChips: ['What should I do for my goal?', 'What should I do now?'],
@@ -140,20 +138,20 @@ class GoalRules {
   }
 
   static AssistantMessage _nextGoalAction(AppProvider provider) {
-    final pendingNodes = provider.careerNodes.where((n) => n.status != 'COMPLETED').toList();
-    if (pendingNodes.isEmpty) {
+    final pendingGoals = provider.goals.where((g) => !g.isCompleted).toList();
+    if (pendingGoals.isEmpty) {
       return AssistantMessage(
         id: 'msg_${DateTime.now().millisecondsSinceEpoch}',
-        text: '🎉 You have completed all existing roadmap goals! Ready to add a new ambitious target?',
+        text: '🎉 You have completed all existing goals! Ready to add a new ambitious target?',
         isUser: false,
         timestamp: DateTime.now(),
       );
     }
 
-    final topNode = pendingNodes.first;
+    final topGoal = pendingGoals.first;
     return AssistantMessage(
       id: 'msg_${DateTime.now().millisecondsSinceEpoch}',
-      text: '🎯 **Next Recommended Goal Action**:\nFocus on **"${topNode.title}"** (${topNode.description.isNotEmpty ? topNode.description : topNode.section}).',
+      text: '🎯 **Next Recommended Goal Action**:\nFocus on **"${topGoal.title}"** (${topGoal.description.isNotEmpty ? topGoal.description : topGoal.tier.toUpperCase()}).',
       isUser: false,
       timestamp: DateTime.now(),
       detectedIntent: SmartIntent.nextGoalAction,
@@ -162,8 +160,8 @@ class GoalRules {
   }
 
   static AssistantMessage _getAllGoals(AppProvider provider) {
-    final nodes = provider.careerNodes;
-    if (nodes.isEmpty) {
+    final goals = provider.goals;
+    if (goals.isEmpty) {
       return AssistantMessage(
         id: 'msg_${DateTime.now().millisecondsSinceEpoch}',
         text: 'You haven\'t set up your goals yet. Tell me a goal to begin!',
@@ -175,20 +173,20 @@ class GoalRules {
 
     return AssistantMessage(
       id: 'msg_${DateTime.now().millisecondsSinceEpoch}',
-      text: '🎯 Here is your active Goal & Milestone Roadmap:',
+      text: '🎯 Here is your active Goal Pyramid:',
       isUser: false,
       timestamp: DateTime.now(),
       detectedIntent: SmartIntent.getGoals,
       cardData: ActionCardData(
         type: ActionCardType.goalMeter,
-        title: 'Roadmap & Goals',
-        subtitle: '${nodes.length} milestones tracked',
-        items: nodes.map((n) => ActionCardItem(
-          id: n.id,
-          title: n.title,
-          subtitle: '${n.section} • ${n.status}',
-          icon: n.status == 'COMPLETED' ? Icons.check_circle_rounded : Icons.flag_rounded,
-          iconColor: n.status == 'COMPLETED' ? const Color(0xFF10B981) : const Color(0xFF0D5CE5),
+        title: 'Goal Pyramid',
+        subtitle: '${goals.length} goals tracked',
+        items: goals.map((g) => ActionCardItem(
+          id: g.id,
+          title: g.title,
+          subtitle: '${g.tier.toUpperCase()} • ${g.isCompleted ? "COMPLETED" : "IN_PROGRESS"}',
+          icon: g.isCompleted ? Icons.check_circle_rounded : Icons.flag_rounded,
+          iconColor: g.isCompleted ? const Color(0xFF10B981) : const Color(0xFF0D5CE5),
         )).toList(),
       ),
       suggestionChips: ['What should I do for my goal?', 'What should I do now?'],

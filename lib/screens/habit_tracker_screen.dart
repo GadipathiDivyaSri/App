@@ -803,10 +803,13 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
     required Color cardBorder,
   }) {
     final now = DateTime.now();
-    // Monday is 1, Sunday is 7 in Dart. Calculate current week's Monday:
-    final monday = DateTime(now.year, now.month, now.day).subtract(Duration(days: now.weekday - 1));
-    final weekDays = List.generate(7, (i) => monday.add(Duration(days: i)));
+    final currentWeekMonday = DateTime(now.year, now.month, now.day).subtract(Duration(days: now.weekday - 1));
+    final viewingMonday = DateTime(_weekStartDate.year, _weekStartDate.month, _weekStartDate.day).subtract(Duration(days: _weekStartDate.weekday - 1));
+    final weekDays = List.generate(7, (i) => viewingMonday.add(Duration(days: i)));
     final dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    final isCurrentWeek = viewingMonday.isAtSameMomentAs(currentWeekMonday);
+
+    final rangeText = '${DateFormat('MMM d').format(viewingMonday)} - ${DateFormat('MMM d').format(weekDays[6])}';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -825,13 +828,64 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                   color: textSecondary,
                 ),
               ),
-              Text(
-                'MON - SUN',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
-                  color: primaryColor,
-                ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (!isCurrentWeek)
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _weekStartDate = DateTime.now();
+                        });
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.only(right: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: primaryColor.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          'This Week',
+                          style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w800, color: primaryColor),
+                        ),
+                      ),
+                    ),
+                  // Previous Week Button
+                  InkWell(
+                    borderRadius: BorderRadius.circular(8),
+                    onTap: () {
+                      setState(() {
+                        _weekStartDate = viewingMonday.subtract(const Duration(days: 7));
+                      });
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: Icon(Icons.chevron_left_rounded, size: 20, color: textSecondary),
+                    ),
+                  ),
+                  Text(
+                    rangeText,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      color: primaryColor,
+                    ),
+                  ),
+                  // Next Week Button
+                  InkWell(
+                    borderRadius: BorderRadius.circular(8),
+                    onTap: () {
+                      setState(() {
+                        _weekStartDate = viewingMonday.add(const Duration(days: 7));
+                      });
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: Icon(Icons.chevron_right_rounded, size: 20, color: textSecondary),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -955,8 +1009,9 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                                 final isToday = d.day == now.day && d.month == now.month && d.year == now.year;
 
                                 return GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
                                   onTap: () {
-                                    if (isScheduled && habit.status != 'paused') {
+                                    if (habit.status != 'paused') {
                                       provider.toggleHabit(habit.id, targetDate: d);
                                     }
                                   },

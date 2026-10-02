@@ -1177,9 +1177,21 @@ async function handleApiRequest(req, res) {
   // ---------------------------------------------------------------------------
   if ((pathname === '/api/users/me' || pathname === '/api/user/profile') && method === 'GET') {
     const sub = await DatabaseManager.getUserSubscription(userId);
+    const userToReturn = { ...currentUser };
+    if (sub && sub.isPro) {
+      userToReturn.is_premium = true;
+      userToReturn.subscription_plan = 'PRO';
+    }
+    const safeUser = sanitizeUser(userToReturn);
+    if (sub && sub.isPro) {
+      safeUser.is_premium = true;
+      safeUser.isPremium = true;
+      safeUser.subscription_plan = 'PRO';
+      safeUser.subscriptionPlan = 'PRO';
+    }
     return sendJSON(res, 200, {
       success: true,
-      user: sanitizeUser(currentUser),
+      user: safeUser,
       subscription: sub,
     });
   }
@@ -1211,7 +1223,15 @@ async function handleApiRequest(req, res) {
   // ---------------------------------------------------------------------------
   if ((pathname === '/api/subscription/me' || pathname === '/api/subscription') && method === 'GET') {
     const sub = await DatabaseManager.getUserSubscription(userId);
-    return sendJSON(res, 200, sub);
+    return sendJSON(res, 200, {
+      success: true,
+      subscription: sub,
+      isPro: sub.isPro,
+      isPremium: sub.isPro,
+      plan: sub.plan,
+      status: sub.status,
+      ...sub,
+    });
   }
 
   if ((pathname === '/api/subscription/upgrade' || pathname === '/api/subscription/verify-play-purchase') && method === 'POST') {
@@ -1222,6 +1242,11 @@ async function handleApiRequest(req, res) {
       success: true,
       message: 'Subscription upgraded to Pro!',
       subscription: sub,
+      isPro: true,
+      isPremium: true,
+      plan: 'pro',
+      status: 'active',
+      ...sub,
     });
   }
 

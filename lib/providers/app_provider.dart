@@ -148,7 +148,7 @@ class AppProvider extends ChangeNotifier {
 
       final remoteSub = await ApiService.fetchUserSubscription();
       if (remoteSub != null) {
-        if (isLocallyPro || remoteSub.isPro) {
+        if (remoteSub.isPro || isLocallyPro) {
           _user.isPremium = true;
           _user.subscriptionPlan = 'PRO';
           _subscription = UserSubscription(
@@ -158,8 +158,11 @@ class AppProvider extends ChangeNotifier {
             status: 'active',
             startedAt: remoteSub.startedAt,
           );
-          _saveSubscriptionState();
-          await ApiService.upgradeSubscription(provider: 'LOCAL_SYNC');
+          await _saveSession();
+          await _saveSubscriptionState();
+          if (!remoteSub.isPro) {
+            await ApiService.upgradeSubscription(provider: 'LOCAL_SYNC');
+          }
         } else {
           setSubscription(remoteSub);
         }
@@ -173,7 +176,8 @@ class AppProvider extends ChangeNotifier {
           status: 'active',
           startedAt: DateTime.now(),
         );
-        _saveSubscriptionState();
+        await _saveSession();
+        await _saveSubscriptionState();
       }
       notifyListeners();
     } catch (_) {}
@@ -181,16 +185,22 @@ class AppProvider extends ChangeNotifier {
 
   void setUser(UserProfile user, {UserSubscription? subscription}) {
     _user = user;
+    final isPro = user.isPremium || user.subscriptionPlan.toUpperCase() == 'PRO';
     if (subscription != null) {
       _subscription = subscription;
     } else {
       _subscription = UserSubscription(
         id: 'sub_${user.id}',
         userId: user.id,
-        plan: user.isPremium || user.subscriptionPlan.toUpperCase() == 'PRO' ? 'pro' : 'free',
+        plan: isPro ? 'pro' : 'free',
         status: 'active',
         startedAt: DateTime.now(),
       );
+    }
+    if (isPro) {
+      _user.isPremium = true;
+      _user.subscriptionPlan = 'PRO';
+      _saveSubscriptionState();
     }
     _isLoggedIn = true;
     _saveSession();
@@ -329,14 +339,13 @@ class AppProvider extends ChangeNotifier {
     final idx = _habits.indexWhere((h) => h.id == id);
     if (idx != -1) {
       final habit = _habits[idx];
-      final isCurrentlyCompleted = habit.completionHistory.contains(dateStr);
+      final isCurrentlyCompleted = habit.isCompletedOnDate(dateStr);
 
       if (isCurrentlyCompleted) {
-        habit.completionHistory.remove(dateStr);
+        habit.completionHistory.removeWhere((d) => d.trim().split('T')[0].split(' ')[0] == dateStr);
       } else {
-        if (!habit.completionHistory.contains(dateStr)) {
-          habit.completionHistory.add(dateStr);
-        }
+        habit.completionHistory.removeWhere((d) => d.trim().split('T')[0].split(' ')[0] == dateStr);
+        habit.completionHistory.add(dateStr);
       }
 
       habit.recalculateStreaks(DateTime.now());
@@ -718,18 +727,27 @@ class AppProvider extends ChangeNotifier {
   Future<void> fetchGoalsFromBackend() async {
     try {
       final remote = await ApiService.fetchGoals();
-      final validRemote = remote.where((g) =>
-        !_deletedItemIds.contains(g.id) &&
-        !_deletedItemIds.contains(g.title.trim().toLowerCase()) &&
-        g.tier.toLowerCase() != 'roadmap'
-      ).toList();
+      final validRemote = remote.where((g) {
+        final t = g.tier.toLowerCase();
+        return !_deletedItemIds.contains(g.id) &&
+            !_deletedItemIds.contains(g.title.trim().toLowerCase()) &&
+            t != 'roadmap' &&
+            t != 'career' &&
+            !t.contains('roadmap') &&
+            !t.contains('career');
+      }).toList();
       
       final Map<String, Goal> goalMap = {};
       final Map<String, String> titleToId = {};
       
       for (var g in _goals) {
         final normTitle = g.title.trim().toLowerCase();
-        if (!_deletedItemIds.contains(g.id) && !_deletedItemIds.contains(normTitle) && g.tier.toLowerCase() != 'roadmap') {
+        final t = g.tier.toLowerCase();
+        if (!_deletedItemIds.contains(g.id) &&
+            !_deletedItemIds.contains(normTitle) &&
+            t != 'roadmap' &&
+            t != 'career' &&
+            !t.contains('roadmap')) {
           goalMap[g.id] = g;
           if (normTitle.isNotEmpty) titleToId[normTitle] = g.id;
         }
@@ -748,11 +766,14 @@ class AppProvider extends ChangeNotifier {
         }
       }
       
-      _goals = goalMap.values.where((g) =>
-        !_deletedItemIds.contains(g.id) &&
-        !_deletedItemIds.contains(g.title.trim().toLowerCase()) &&
-        g.tier.toLowerCase() != 'roadmap'
-      ).toList();
+      _goals = goalMap.values.where((g) {
+        final t = g.tier.toLowerCase();
+        return !_deletedItemIds.contains(g.id) &&
+            !_deletedItemIds.contains(g.title.trim().toLowerCase()) &&
+            t != 'roadmap' &&
+            t != 'career' &&
+            !t.contains('roadmap');
+      }).toList();
       _saveGoals();
       notifyListeners();
     } catch (_) {}
@@ -1161,8 +1182,17 @@ class AppProvider extends ChangeNotifier {
 
   Future<void> checkoutSubscription(String plan, double basePrice) async {
     _user.isPremium = true;
+    _user.subscriptionPlan = 'PRO';
     _user.activeDiscountPercent = 0;
-    _saveSession();
+    _subscription = UserSubscription(
+      id: 'sub_pro_${_user.id}',
+      userId: _user.id,
+      plan: 'pro',
+      status: 'active',
+      startedAt: DateTime.now(),
+    );
+    await _saveSession();
+    await _saveSubscriptionState();
     notifyListeners();
     await ApiService.upgradeSubscription(provider: 'GOOGLE_PLAY');
   }
@@ -1177,7 +1207,8 @@ class AppProvider extends ChangeNotifier {
       status: 'active',
       startedAt: DateTime.now(),
     );
-    _saveSession();
+    await _saveSession();
+    await _saveSubscriptionState();
     notifyListeners();
     await ApiService.upgradeSubscription(provider: provider);
   }
@@ -2521,6 +2552,29 @@ class AppProvider extends ChangeNotifier {
       if (res['user'] != null && res['user'] is Map) {
         final Map<String, dynamic> u = Map<String, dynamic>.from(res['user']);
         bool changed = false;
+
+        // Restore Pro Subscription on reinstall or profile sync
+        final isRemotePro = u['is_premium'] == true ||
+            u['isPremium'] == true ||
+            (u['subscription_plan'] ?? u['subscriptionPlan'] ?? '').toString().toUpperCase() == 'PRO' ||
+            (res['subscription'] != null &&
+                (res['subscription']['isPro'] == true ||
+                 res['subscription']['isPremium'] == true ||
+                 (res['subscription']['plan'] ?? '').toString().toLowerCase() == 'pro'));
+
+        if (isRemotePro && (!_user.isPremium || _user.subscriptionPlan != 'PRO' || !_subscription.isPro)) {
+          _user.isPremium = true;
+          _user.subscriptionPlan = 'PRO';
+          _subscription = UserSubscription(
+            id: 'sub_pro_${_user.id}',
+            userId: _user.id,
+            plan: 'pro',
+            status: 'active',
+            startedAt: DateTime.now(),
+          );
+          await _saveSubscriptionState();
+          changed = true;
+        }
 
         // 1. Sync Username
         final remoteUsername = (u['username'] ?? '').toString().trim();
