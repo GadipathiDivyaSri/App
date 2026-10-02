@@ -1248,7 +1248,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> {
                     }
                     provider.addHabit(
                       Habit(
-                        id: 'h_${DateTime.now().millisecondsSinceEpoch}',
+                        id: generateUuidV4(),
                         title: text,
                         category: category,
                         frequency: frequency,

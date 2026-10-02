@@ -25,7 +25,12 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final provider = Provider.of<AppProvider>(context);
 
-    final subKey = widget.subjectId.isNotEmpty ? widget.subjectId : widget.subjectName;
+    final sMatch = provider.subjects.where((s) =>
+      (widget.subjectId.isNotEmpty && s.id.toLowerCase() == widget.subjectId.toLowerCase()) ||
+      s.name.toLowerCase() == widget.subjectName.toLowerCase()
+    ).firstOrNull;
+    final effSubId = widget.subjectId.isNotEmpty ? widget.subjectId : (sMatch?.id ?? '');
+    final subKey = effSubId.isNotEmpty ? effSubId : widget.subjectName;
     final units = provider.getUnitsForSubject(subKey);
 
     return Scaffold(

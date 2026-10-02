@@ -128,6 +128,7 @@ class _SubjectPlannerScreenState extends State<SubjectPlannerScreen> {
           MaterialPageRoute(
             builder: (_) => SubjectDetailsScreen(
               subjectName: sub['name'] as String,
+              subjectId: sub['id'] as String? ?? '',
             ),
           ),
         );

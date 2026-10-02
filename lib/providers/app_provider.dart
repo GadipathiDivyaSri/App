@@ -375,10 +375,12 @@ class AppProvider extends ChangeNotifier {
     }
   }
 
-  void deleteHabit(String id) {
+  Future<void> deleteHabit(String id) async {
     final idx = _habits.indexWhere((h) => h.id == id);
+    String? title;
     if (idx != -1) {
-      final titleNorm = _habits[idx].title.trim().toLowerCase();
+      title = _habits[idx].title;
+      final titleNorm = title.trim().toLowerCase();
       _deletedItemIds.add(id);
       if (titleNorm.isNotEmpty) _deletedItemIds.add(titleNorm);
     } else {
@@ -389,7 +391,7 @@ class AppProvider extends ChangeNotifier {
     _saveHabits();
     _recalculateMetrics();
     notifyListeners();
-    ApiService.deleteHabitOnBackend(id);
+    await ApiService.deleteHabitOnBackend(id, habitTitle: title);
   }
 
   // ---------------------------------------------------------------------------
@@ -545,8 +547,22 @@ class AppProvider extends ChangeNotifier {
   List<StudyUnit> _studyUnits = [];
   List<StudyUnit> get studyUnits => _studyUnits;
 
-  List<StudyUnit> getUnitsForSubject(String subjectIdOrName) =>
-      _studyUnits.where((u) => u.subjectId == subjectIdOrName || u.subjectId.toLowerCase() == subjectIdOrName.toLowerCase()).toList();
+  List<StudyUnit> getUnitsForSubject(String subjectIdOrName) {
+    final clean = subjectIdOrName.trim().toLowerCase();
+    final matchingIds = _subjects
+        .where((s) => s.id.trim().toLowerCase() == clean || s.name.trim().toLowerCase() == clean)
+        .map((s) => s.id.toLowerCase())
+        .toSet();
+    final matchingNames = _subjects
+        .where((s) => s.id.trim().toLowerCase() == clean || s.name.trim().toLowerCase() == clean)
+        .map((s) => s.name.toLowerCase())
+        .toSet();
+
+    return _studyUnits.where((u) {
+      final uSub = u.subjectId.trim().toLowerCase();
+      return uSub == clean || matchingIds.contains(uSub) || matchingNames.contains(uSub);
+    }).toList();
+  }
 
   List<StudyTopic> _studyTopics = [];
   List<StudyTopic> get studyTopics => _studyTopics;
@@ -555,6 +571,9 @@ class AppProvider extends ChangeNotifier {
       _studyTopics.where((t) => t.unitId == unitIdOrTitle || t.unitId.toLowerCase() == unitIdOrTitle.toLowerCase()).toList();
 
   void addStudyUnit(StudyUnit unit) {
+    _deletedItemIds.remove(unit.id);
+    _deletedItemIds.remove(unit.title.trim().toLowerCase());
+    _saveDeletedItemIds();
     _studyUnits.add(unit);
     _updateSubjectProgress(unit.subjectId);
     _saveStudyUnits();
@@ -592,16 +611,13 @@ class AppProvider extends ChangeNotifier {
 
   Future<void> deleteStudyUnit(String unitId) async {
     final idx = _studyUnits.indexWhere((u) => u.id == unitId);
+    String? title;
     if (idx != -1) {
-      final titleNorm = _studyUnits[idx].title.trim().toLowerCase();
-      _deletedItemIds.add(unitId);
-      if (titleNorm.isNotEmpty) _deletedItemIds.add(titleNorm);
-    } else {
-      _deletedItemIds.add(unitId);
+      title = _studyUnits[idx].title;
     }
+    _deletedItemIds.add(unitId);
     for (var t in _studyTopics.where((t) => t.unitId == unitId)) {
       _deletedItemIds.add(t.id);
-      if (t.title.trim().isNotEmpty) _deletedItemIds.add(t.title.trim().toLowerCase());
     }
     _saveDeletedItemIds();
     String? subjectId;
@@ -616,7 +632,7 @@ class AppProvider extends ChangeNotifier {
     _saveStudyUnits();
     _saveStudyTopics();
     notifyListeners();
-    await ApiService.deleteStudyUnitOnBackend(unitId);
+    await ApiService.deleteStudyUnitOnBackend(unitId, unitTitle: title);
   }
 
   void addStudyTopic(StudyTopic topic) {
@@ -714,10 +730,12 @@ class AppProvider extends ChangeNotifier {
     }
   }
 
-  void deleteJournalEntry(String id) {
+  Future<void> deleteJournalEntry(String id) async {
     final idx = _journalEntries.indexWhere((j) => j.id == id);
+    String? title;
     if (idx != -1) {
-      final titleNorm = _journalEntries[idx].title.trim().toLowerCase();
+      title = _journalEntries[idx].title;
+      final titleNorm = title.trim().toLowerCase();
       _deletedItemIds.add(id);
       if (titleNorm.isNotEmpty) _deletedItemIds.add(titleNorm);
     } else {
@@ -727,7 +745,7 @@ class AppProvider extends ChangeNotifier {
     _journalEntries.removeWhere((j) => j.id == id);
     _saveJournalEntries();
     notifyListeners();
-    ApiService.deleteJournalEntryOnBackend(id);
+    await ApiService.deleteJournalEntryOnBackend(id, entryTitle: title);
   }
 
   // ---------------------------------------------------------------------------
@@ -906,10 +924,12 @@ class AppProvider extends ChangeNotifier {
     }
   }
 
-  void deleteCareerNode(String id) {
+  Future<void> deleteCareerNode(String id) async {
     final idx = _careerNodes.indexWhere((n) => n.id == id);
+    String? title;
     if (idx != -1) {
-      final titleNorm = _careerNodes[idx].title.trim().toLowerCase();
+      title = _careerNodes[idx].title;
+      final titleNorm = title.trim().toLowerCase();
       _deletedItemIds.add(id);
       if (titleNorm.isNotEmpty) _deletedItemIds.add(titleNorm);
     } else {
@@ -919,7 +939,7 @@ class AppProvider extends ChangeNotifier {
     _careerNodes.removeWhere((n) => n.id == id);
     _saveCareerNodes();
     notifyListeners();
-    ApiService.deleteCareerNodeOnBackend(id);
+    await ApiService.deleteCareerNodeOnBackend(id, nodeTitle: title);
   }
 
   // ---------------------------------------------------------------------------
@@ -1485,7 +1505,9 @@ class AppProvider extends ChangeNotifier {
     }
 
     // 5. Subjects & Studies (Strictly User-Isolated)
-    final subjectsJson = prefs.getString('saved_subjects_$uid');
+    final subjectsJson = prefs.getString('saved_subjects_$uid') ??
+        (_user.email.isNotEmpty ? prefs.getString('saved_subjects_${_user.email}') : null) ??
+        (_user.username.isNotEmpty ? prefs.getString('saved_subjects_${_user.username}') : null);
     if (subjectsJson != null) {
       final List decoded = jsonDecode(subjectsJson);
       _subjects = decoded.map((item) => StudySubject.fromJson(item)).toList();
@@ -1493,7 +1515,9 @@ class AppProvider extends ChangeNotifier {
       _subjects = [];
     }
 
-    final studyItemsJson = prefs.getString('saved_study_items_$uid');
+    final studyItemsJson = prefs.getString('saved_study_items_$uid') ??
+        (_user.email.isNotEmpty ? prefs.getString('saved_study_items_${_user.email}') : null) ??
+        (_user.username.isNotEmpty ? prefs.getString('saved_study_items_${_user.username}') : null);
     if (studyItemsJson != null) {
       final List decoded = jsonDecode(studyItemsJson);
       _studyItems = decoded.map((item) => StudyItem.fromJson(item)).toList();
@@ -1501,7 +1525,9 @@ class AppProvider extends ChangeNotifier {
       _studyItems = [];
     }
 
-    final studyUnitsJson = prefs.getString('saved_study_units_$uid');
+    final studyUnitsJson = prefs.getString('saved_study_units_$uid') ??
+        (_user.email.isNotEmpty ? prefs.getString('saved_study_units_${_user.email}') : null) ??
+        (_user.username.isNotEmpty ? prefs.getString('saved_study_units_${_user.username}') : null);
     if (studyUnitsJson != null) {
       final List decoded = jsonDecode(studyUnitsJson);
       _studyUnits = decoded.map((item) => StudyUnit.fromJson(item)).toList();
@@ -1509,7 +1535,9 @@ class AppProvider extends ChangeNotifier {
       _studyUnits = [];
     }
 
-    final studyTopicsJson = prefs.getString('saved_study_topics_$uid');
+    final studyTopicsJson = prefs.getString('saved_study_topics_$uid') ??
+        (_user.email.isNotEmpty ? prefs.getString('saved_study_topics_${_user.email}') : null) ??
+        (_user.username.isNotEmpty ? prefs.getString('saved_study_topics_${_user.username}') : null);
     if (studyTopicsJson != null) {
       final List decoded = jsonDecode(studyTopicsJson);
       _studyTopics = decoded.map((item) => StudyTopic.fromJson(item)).toList();
@@ -1518,7 +1546,9 @@ class AppProvider extends ChangeNotifier {
     }
 
     // 6. Journal / Notes (Strictly User-Isolated)
-    final journalJson = prefs.getString('saved_journal_$uid');
+    final journalJson = prefs.getString('saved_journal_$uid') ??
+        (_user.email.isNotEmpty ? prefs.getString('saved_journal_${_user.email}') : null) ??
+        (_user.username.isNotEmpty ? prefs.getString('saved_journal_${_user.username}') : null);
     if (journalJson != null) {
       final List decoded = jsonDecode(journalJson);
       _journalEntries = decoded.map((item) => JournalEntry.fromJson(item)).toList();
@@ -1527,7 +1557,9 @@ class AppProvider extends ChangeNotifier {
     }
 
     // 7. Goals (Strictly User-Isolated)
-    final goalsJson = prefs.getString('saved_goals_$uid');
+    final goalsJson = prefs.getString('saved_goals_$uid') ??
+        (_user.email.isNotEmpty ? prefs.getString('saved_goals_${_user.email}') : null) ??
+        (_user.username.isNotEmpty ? prefs.getString('saved_goals_${_user.username}') : null);
     if (goalsJson != null) {
       final List decoded = jsonDecode(goalsJson);
       _goals = decoded.map((item) => Goal.fromJson(item)).toList();
@@ -1536,7 +1568,9 @@ class AppProvider extends ChangeNotifier {
     }
 
     // 8. Career Roadmap (Strictly User-Isolated)
-    final careerJson = prefs.getString('saved_career_$uid');
+    final careerJson = prefs.getString('saved_career_$uid') ??
+        (_user.email.isNotEmpty ? prefs.getString('saved_career_${_user.email}') : null) ??
+        (_user.username.isNotEmpty ? prefs.getString('saved_career_${_user.username}') : null);
     if (careerJson != null) {
       final List decoded = jsonDecode(careerJson);
       _careerNodes = decoded.map((item) => CareerRoadmapNode.fromJson(item)).toList();
@@ -1573,8 +1607,8 @@ class AppProvider extends ChangeNotifier {
     _expenses.removeWhere((e) => _deletedItemIds.contains(e.id) || _deletedItemIds.contains(e.title.trim().toLowerCase()));
     _subjects.removeWhere((s) => _deletedItemIds.contains(s.id) || _deletedItemIds.contains(s.name.trim().toLowerCase()));
     _studyItems.removeWhere((i) => _deletedItemIds.contains(i.id) || _deletedItemIds.contains(i.title.trim().toLowerCase()));
-    _studyUnits.removeWhere((u) => _deletedItemIds.contains(u.id) || _deletedItemIds.contains(u.title.trim().toLowerCase()));
-    _studyTopics.removeWhere((t) => _deletedItemIds.contains(t.id) || _deletedItemIds.contains(t.title.trim().toLowerCase()));
+    _studyUnits.removeWhere((u) => _deletedItemIds.contains(u.id));
+    _studyTopics.removeWhere((t) => _deletedItemIds.contains(t.id));
     _journalEntries.removeWhere((j) => _deletedItemIds.contains(j.id) || _deletedItemIds.contains(j.title.trim().toLowerCase()));
     _careerNodes.removeWhere((n) => _deletedItemIds.contains(n.id) || _deletedItemIds.contains(n.title.trim().toLowerCase()));
     _goals.removeWhere((g) => _deletedItemIds.contains(g.id) || _deletedItemIds.contains(g.title.trim().toLowerCase()) || g.tier.toLowerCase() == 'roadmap');
@@ -1998,10 +2032,12 @@ class AppProvider extends ChangeNotifier {
     }
   }
 
-  void deleteCalendarEvent(String eventId) {
+  Future<void> deleteCalendarEvent(String eventId) async {
     final idx = _calendarEvents.indexWhere((e) => e.id == eventId);
+    String? title;
     if (idx != -1) {
-      final titleNorm = _calendarEvents[idx].title.trim().toLowerCase();
+      title = _calendarEvents[idx].title;
+      final titleNorm = title.trim().toLowerCase();
       _deletedItemIds.add(eventId);
       if (titleNorm.isNotEmpty) _deletedItemIds.add(titleNorm);
     } else {
@@ -2011,7 +2047,7 @@ class AppProvider extends ChangeNotifier {
     _calendarEvents.removeWhere((e) => e.id == eventId);
     _saveEvents();
     notifyListeners();
-    ApiService.deleteCalendarEventOnBackend(eventId);
+    await ApiService.deleteCalendarEventOnBackend(eventId, eventTitle: title);
   }
 
   // Notification Operations
@@ -2164,7 +2200,10 @@ class AppProvider extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       final jsonList = _subjects.map((s) => s.toJson()).toList();
-      await prefs.setString('saved_subjects_${_user.id}', jsonEncode(jsonList));
+      final encoded = jsonEncode(jsonList);
+      if (_user.id.isNotEmpty) await prefs.setString('saved_subjects_${_user.id}', encoded);
+      if (_user.email.isNotEmpty) await prefs.setString('saved_subjects_${_user.email}', encoded);
+      if (_user.username.isNotEmpty) await prefs.setString('saved_subjects_${_user.username}', encoded);
     } catch (e) {
       debugPrint('Error saving subjects: $e');
     }
@@ -2174,7 +2213,10 @@ class AppProvider extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       final jsonList = _studyItems.map((i) => i.toJson()).toList();
-      await prefs.setString('saved_study_items_${_user.id}', jsonEncode(jsonList));
+      final encoded = jsonEncode(jsonList);
+      if (_user.id.isNotEmpty) await prefs.setString('saved_study_items_${_user.id}', encoded);
+      if (_user.email.isNotEmpty) await prefs.setString('saved_study_items_${_user.email}', encoded);
+      if (_user.username.isNotEmpty) await prefs.setString('saved_study_items_${_user.username}', encoded);
     } catch (e) {
       debugPrint('Error saving study items: $e');
     }
@@ -2184,7 +2226,10 @@ class AppProvider extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       final jsonList = _studyUnits.map((u) => u.toJson()).toList();
-      await prefs.setString('saved_study_units_${_user.id}', jsonEncode(jsonList));
+      final encoded = jsonEncode(jsonList);
+      if (_user.id.isNotEmpty) await prefs.setString('saved_study_units_${_user.id}', encoded);
+      if (_user.email.isNotEmpty) await prefs.setString('saved_study_units_${_user.email}', encoded);
+      if (_user.username.isNotEmpty) await prefs.setString('saved_study_units_${_user.username}', encoded);
     } catch (e) {
       debugPrint('Error saving study units: $e');
     }
@@ -2194,7 +2239,10 @@ class AppProvider extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       final jsonList = _studyTopics.map((t) => t.toJson()).toList();
-      await prefs.setString('saved_study_topics_${_user.id}', jsonEncode(jsonList));
+      final encoded = jsonEncode(jsonList);
+      if (_user.id.isNotEmpty) await prefs.setString('saved_study_topics_${_user.id}', encoded);
+      if (_user.email.isNotEmpty) await prefs.setString('saved_study_topics_${_user.email}', encoded);
+      if (_user.username.isNotEmpty) await prefs.setString('saved_study_topics_${_user.username}', encoded);
     } catch (e) {
       debugPrint('Error saving study topics: $e');
     }
@@ -2204,7 +2252,10 @@ class AppProvider extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       final jsonList = _journalEntries.map((j) => j.toJson()).toList();
-      await prefs.setString('saved_journal_${_user.id}', jsonEncode(jsonList));
+      final encoded = jsonEncode(jsonList);
+      if (_user.id.isNotEmpty) await prefs.setString('saved_journal_${_user.id}', encoded);
+      if (_user.email.isNotEmpty) await prefs.setString('saved_journal_${_user.email}', encoded);
+      if (_user.username.isNotEmpty) await prefs.setString('saved_journal_${_user.username}', encoded);
     } catch (e) {
       debugPrint('Error saving journal entries: $e');
     }
@@ -2214,7 +2265,10 @@ class AppProvider extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       final jsonList = _careerNodes.map((n) => n.toJson()).toList();
-      await prefs.setString('saved_career_${_user.id}', jsonEncode(jsonList));
+      final encoded = jsonEncode(jsonList);
+      if (_user.id.isNotEmpty) await prefs.setString('saved_career_${_user.id}', encoded);
+      if (_user.email.isNotEmpty) await prefs.setString('saved_career_${_user.email}', encoded);
+      if (_user.username.isNotEmpty) await prefs.setString('saved_career_${_user.username}', encoded);
     } catch (e) {
       debugPrint('Error saving career nodes: $e');
     }
@@ -2427,7 +2481,18 @@ class AppProvider extends ChangeNotifier {
           if (normTitle.isNotEmpty) titleToId[normTitle] = rh.id;
         }
       }
-      _habits = habitMap.values.where((h) =>
+      final Map<String, Habit> deduplicatedByTitle = {};
+      for (var h in habitMap.values) {
+        final t = h.title.trim().toLowerCase();
+        if (!deduplicatedByTitle.containsKey(t)) {
+          deduplicatedByTitle[t] = h;
+        } else {
+          final existing = deduplicatedByTitle[t]!;
+          existing.completionHistory = {...existing.completionHistory, ...h.completionHistory}.toList();
+          existing.isCompleted = existing.isCompleted || h.isCompleted;
+        }
+      }
+      _habits = deduplicatedByTitle.values.where((h) =>
         !_deletedItemIds.contains(h.id) &&
         !_deletedItemIds.contains(h.title.trim().toLowerCase())
       ).toList();
@@ -2541,8 +2606,8 @@ class AppProvider extends ChangeNotifier {
   Future<void> syncStudyUnitsFromCloud() async {
     try {
       final remoteUnits = await ApiService.fetchStudyUnits();
-      final validRemote = remoteUnits.where((u) => !_deletedItemIds.contains(u.id) && !_deletedItemIds.contains(u.title.trim().toLowerCase())).toList();
-      final Map<String, StudyUnit> unitMap = {for (var u in _studyUnits) if (!_deletedItemIds.contains(u.id) && !_deletedItemIds.contains(u.title.trim().toLowerCase())) u.id: u};
+      final validRemote = remoteUnits.where((u) => !_deletedItemIds.contains(u.id)).toList();
+      final Map<String, StudyUnit> unitMap = {for (var u in _studyUnits) if (!_deletedItemIds.contains(u.id)) u.id: u};
       for (var ru in validRemote) {
         final local = unitMap[ru.id];
         if (local != null) {
@@ -2553,7 +2618,7 @@ class AppProvider extends ChangeNotifier {
           unitMap[ru.id] = ru;
         }
       }
-      _studyUnits = unitMap.values.where((u) => !_deletedItemIds.contains(u.id) && !_deletedItemIds.contains(u.title.trim().toLowerCase())).toList();
+      _studyUnits = unitMap.values.where((u) => !_deletedItemIds.contains(u.id)).toList();
       _saveStudyUnits();
       recalculateAllSubjectProgress();
       notifyListeners();
@@ -2565,8 +2630,8 @@ class AppProvider extends ChangeNotifier {
   Future<void> syncStudyTopicsFromCloud() async {
     try {
       final remoteTopics = await ApiService.fetchStudyTopics();
-      final validRemote = remoteTopics.where((t) => !_deletedItemIds.contains(t.id) && !_deletedItemIds.contains(t.title.trim().toLowerCase())).toList();
-      final Map<String, StudyTopic> topicMap = {for (var t in _studyTopics) if (!_deletedItemIds.contains(t.id) && !_deletedItemIds.contains(t.title.trim().toLowerCase())) t.id: t};
+      final validRemote = remoteTopics.where((t) => !_deletedItemIds.contains(t.id)).toList();
+      final Map<String, StudyTopic> topicMap = {for (var t in _studyTopics) if (!_deletedItemIds.contains(t.id)) t.id: t};
       for (var rt in validRemote) {
         final local = topicMap[rt.id];
         if (local != null) {
@@ -2576,7 +2641,7 @@ class AppProvider extends ChangeNotifier {
           topicMap[rt.id] = rt;
         }
       }
-      _studyTopics = topicMap.values.where((t) => !_deletedItemIds.contains(t.id) && !_deletedItemIds.contains(t.title.trim().toLowerCase())).toList();
+      _studyTopics = topicMap.values.where((t) => !_deletedItemIds.contains(t.id)).toList();
       _saveStudyTopics();
       recalculateAllSubjectProgress();
       notifyListeners();
