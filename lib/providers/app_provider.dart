@@ -1234,6 +1234,7 @@ class AppProvider extends ChangeNotifier {
       );
       _saveExpenses();
       notifyListeners();
+      ApiService.updateExpenseOnBackend(_expenses[index]);
     }
   }
 

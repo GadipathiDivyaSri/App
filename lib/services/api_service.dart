@@ -3028,6 +3028,30 @@ class ApiService {
     );
   }
 
+  static Future<Map<String, dynamic>> updateExpenseOnBackend(ExpenseTransaction expense) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.patch(
+        Uri.parse('$baseUrl/expenses/${expense.id}'),
+        headers: headers,
+        body: jsonEncode({
+          'id': expense.id,
+          'title': expense.title,
+          'category': expense.category,
+          'amount': expense.amount,
+          'is_income': expense.isIncome,
+          'isIncome': expense.isIncome,
+          'payment_method': expense.paymentMethod,
+          'paymentMethod': expense.paymentMethod,
+          'date': expense.date.toIso8601String(),
+        }),
+      );
+      return {'statusCode': response.statusCode, 'data': jsonDecode(response.body)};
+    } catch (e) {
+      return {'statusCode': 500, 'data': {'error': e.toString()}};
+    }
+  }
+
   static Future<Map<String, dynamic>> deleteExpenseOnBackend(String expenseId) async {
     try {
       final headers = await _getHeaders();
