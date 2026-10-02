@@ -1825,6 +1825,49 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void clearAllTodoTasks() {
+    for (var t in _todoTasks) {
+      _deletedItemIds.add(t.id);
+      ApiService.deleteTaskOnBackend(t.id);
+    }
+    _saveDeletedItemIds();
+    _todoTasks.clear();
+    _saveTodoTasks();
+    _recalculateMetrics();
+    notifyListeners();
+    ApiService.deleteAllTasksOnBackend();
+  }
+
+  void clearAllOrganizeTasks() {
+    for (var t in _organizeTasks) {
+      _deletedItemIds.add(t.id);
+      ApiService.deleteTaskOnBackend(t.id);
+    }
+    _saveDeletedItemIds();
+    _organizeTasks.clear();
+    _saveOrganizeTasks();
+    notifyListeners();
+    ApiService.deleteAllTasksOnBackend();
+  }
+
+  void clearAllPriorityMatrixTasks() {
+    for (var t in _priorityMatrixTasks) {
+      _deletedItemIds.add(t.id);
+      ApiService.deleteTaskOnBackend(t.id);
+    }
+    _saveDeletedItemIds();
+    _priorityMatrixTasks.clear();
+    _savePriorityMatrixTasks();
+    notifyListeners();
+    ApiService.deleteAllTasksOnBackend();
+  }
+
+  void clearAllTasks() {
+    clearAllTodoTasks();
+    clearAllOrganizeTasks();
+    clearAllPriorityMatrixTasks();
+  }
+
   Future<void> _savePriorityMatrixTasks() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -2557,10 +2600,12 @@ class AppProvider extends ChangeNotifier {
         final isRemotePro = u['is_premium'] == true ||
             u['isPremium'] == true ||
             (u['subscription_plan'] ?? u['subscriptionPlan'] ?? '').toString().toUpperCase() == 'PRO' ||
+            (u['subscription_plan'] ?? u['subscriptionPlan'] ?? '').toString().toUpperCase() == 'PREMIUM' ||
             (res['subscription'] != null &&
                 (res['subscription']['isPro'] == true ||
                  res['subscription']['isPremium'] == true ||
-                 (res['subscription']['plan'] ?? '').toString().toLowerCase() == 'pro'));
+                 (res['subscription']['plan'] ?? '').toString().toLowerCase() == 'pro' ||
+                 (res['subscription']['plan'] ?? '').toString().toLowerCase() == 'premium'));
 
         if (isRemotePro && (!_user.isPremium || _user.subscriptionPlan != 'PRO' || !_subscription.isPro)) {
           _user.isPremium = true;
@@ -2572,6 +2617,7 @@ class AppProvider extends ChangeNotifier {
             status: 'active',
             startedAt: DateTime.now(),
           );
+          await _saveSession();
           await _saveSubscriptionState();
           changed = true;
         }

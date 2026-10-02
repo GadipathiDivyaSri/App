@@ -52,7 +52,8 @@ async function dbQuery(table, options = {}) {
         return data;
       }
       if (method === 'POST') {
-        const { data, error } = await query.upsert(body).select();
+        const upsertOpts = options.onConflict ? { onConflict: options.onConflict } : undefined;
+        const { data, error } = await query.upsert(body, upsertOpts).select();
         if (error) throw error;
         return single ? (data ? data[0] : null) : data;
       }
@@ -82,6 +83,8 @@ async function dbQuery(table, options = {}) {
       const params = new URLSearchParams();
       for (const [k, v] of Object.entries(match)) params.append(k, `eq.${v}`);
       endpoint += `?${params.toString()}`;
+    } else if (method === 'POST' && options.onConflict) {
+      endpoint += `?on_conflict=${options.onConflict}`;
     }
 
     const res = await fetch(endpoint, {
@@ -581,7 +584,8 @@ class DatabaseManager {
   static async upgradeSubscription(userId, plan = 'pro', paymentProvider = 'GOOGLE_PLAY') {
     if (!userId) throw new Error('userId is required');
     const uid = ensureUuid(userId);
-    const planName = plan.toLowerCase() === 'pro' || plan.toLowerCase() === 'premium' ? 'premium' : 'free';
+    const isProPlan = plan.toLowerCase() === 'pro' || plan.toLowerCase() === 'premium';
+    const planName = isProPlan ? 'premium' : 'free';
 
     const subPayload = {
       user_id: uid,
@@ -593,7 +597,7 @@ class DatabaseManager {
       updated_at: new Date().toISOString(),
     };
 
-    await dbQuery('subscriptions', { method: 'POST', body: subPayload });
+    await dbQuery('subscriptions', { method: 'POST', body: subPayload, onConflict: 'user_id' });
     await this.updateUser(uid, { is_premium: true, subscription_plan: 'PRO' });
 
     return await this.getUserSubscription(uid);
@@ -656,7 +660,10 @@ class DatabaseManager {
       payload.is_completed = !!(updates.is_completed ?? updates.isCompleted);
     }
 
-    const updated = await dbQuery('tasks', { method: 'PATCH', match: { id: tid, user_id: uid }, body: payload, single: true });
+    let updated = await dbQuery('tasks', { method: 'PATCH', match: { id: tid, user_id: uid }, body: payload, single: true });
+    if (!updated && tid !== taskId) {
+      updated = await dbQuery('tasks', { method: 'PATCH', match: { id: taskId, user_id: uid }, body: payload, single: true });
+    }
     return updated ? { ...updated, userId: uid, isCompleted: updated.is_completed } : null;
   }
 
@@ -664,7 +671,17 @@ class DatabaseManager {
     if (!userId || !taskId) return false;
     const uid = ensureUuid(userId);
     const tid = ensureUuid(taskId);
-    return await dbQuery('tasks', { method: 'DELETE', match: { id: tid, user_id: uid } });
+    let deleted = await dbQuery('tasks', { method: 'DELETE', match: { id: tid, user_id: uid } });
+    if (!deleted && tid !== taskId) {
+      deleted = await dbQuery('tasks', { method: 'DELETE', match: { id: taskId, user_id: uid } });
+    }
+    return !!deleted;
+  }
+
+  static async deleteAllTasks(userId) {
+    if (!userId) return false;
+    const uid = ensureUuid(userId);
+    return await dbQuery('tasks', { method: 'DELETE', match: { user_id: uid } });
   }
 
   // ---------------------------------------------------------------------------

@@ -1221,7 +1221,7 @@ async function handleApiRequest(req, res) {
   // ---------------------------------------------------------------------------
   // 8. SUBSCRIPTION & BILLING
   // ---------------------------------------------------------------------------
-  if ((pathname === '/api/subscription/me' || pathname === '/api/subscription') && method === 'GET') {
+  if ((pathname === '/api/subscription/me' || pathname === '/api/subscription' || pathname === '/api/subscription-me' || pathname === '/api/subscription/' || pathname === '/api/subscription-me/') && method === 'GET') {
     const sub = await DatabaseManager.getUserSubscription(userId);
     return sendJSON(res, 200, {
       success: true,
@@ -1234,7 +1234,7 @@ async function handleApiRequest(req, res) {
     });
   }
 
-  if ((pathname === '/api/subscription/upgrade' || pathname === '/api/subscription/verify-play-purchase') && method === 'POST') {
+  if ((pathname === '/api/subscription/upgrade' || pathname === '/api/subscription' || pathname === '/api/subscription-upgrade' || pathname === '/api/subscription/verify-play-purchase' || pathname === '/api/subscription/upgrade/') && method === 'POST') {
     const provider = body.paymentProvider || body.provider || 'GOOGLE_PLAY';
     const txnId = body.orderId || body.transactionId || `txn_${Date.now()}`;
     const sub = await DatabaseManager.upgradeSubscription(userId, 'pro', provider, txnId);
@@ -1254,25 +1254,32 @@ async function handleApiRequest(req, res) {
   // ---------------------------------------------------------------------------
   // 9. TASKS
   // ---------------------------------------------------------------------------
-  if (pathname === '/api/tasks' && method === 'GET') {
+  if ((pathname === '/api/tasks' || pathname === '/api/tasks/') && method === 'GET') {
     const tasks = await DatabaseManager.getTasks(userId);
     return sendJSON(res, 200, tasks);
   }
 
-  if (pathname === '/api/tasks' && method === 'POST') {
+  if ((pathname === '/api/tasks' || pathname === '/api/tasks/') && method === 'POST') {
     const newTask = await DatabaseManager.createTask(userId, body);
     return sendJSON(res, 201, newTask);
   }
 
-  if (pathname.startsWith('/api/tasks/') && (method === 'PUT' || method === 'PATCH')) {
-    const taskId = pathname.split('/')[3];
+  if ((pathname.startsWith('/api/tasks/') || pathname === '/api/tasks' || pathname === '/api/tasks/') && (method === 'PUT' || method === 'PATCH')) {
+    const taskId = pathname.startsWith('/api/tasks/') ? pathname.split('/')[3] : (query.id || query.taskId || (body && (body.id || body.taskId)));
+    if (!taskId) return sendJSON(res, 400, { error: 'Task ID is required' });
     const updated = await DatabaseManager.updateTask(userId, taskId, body);
     if (!updated) return sendJSON(res, 404, { error: 'Task not found or unauthorized' });
     return sendJSON(res, 200, updated);
   }
 
-  if (pathname.startsWith('/api/tasks/') && method === 'DELETE') {
-    const taskId = pathname.split('/')[3];
+  if ((pathname.startsWith('/api/tasks/') || pathname === '/api/tasks' || pathname === '/api/tasks/') && method === 'DELETE') {
+    const isAll = query.all === 'true' || query.clearAll === 'true' || (body && (body.all === true || body.clearAll === true));
+    if (isAll) {
+      await DatabaseManager.deleteAllTasks(userId);
+      return sendJSON(res, 200, { success: true, message: 'All tasks deleted permanently' });
+    }
+    const taskId = pathname.startsWith('/api/tasks/') ? pathname.split('/')[3] : (query.id || query.taskId || (body && (body.id || body.taskId)));
+    if (!taskId) return sendJSON(res, 400, { error: 'Task ID is required' });
     const deleted = await DatabaseManager.deleteTask(userId, taskId);
     return sendJSON(res, 200, { success: deleted });
   }

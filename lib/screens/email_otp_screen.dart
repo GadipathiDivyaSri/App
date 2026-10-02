@@ -138,13 +138,17 @@ class _EmailOtpScreenState extends State<EmailOtpScreen> {
         final provider = Provider.of<AppProvider>(context, listen: false);
         final profile = UserProfile.fromJson(userMap);
         profile.token = token;
+        final isProProfile = profile.isPremium || profile.subscriptionPlan.toUpperCase() == 'PRO';
         if (res['subscription'] != null) {
           final subMap = res['subscription'];
           final isProSub = (subMap['isPro'] == true || subMap['isPremium'] == true || (subMap['plan'] ?? '').toString().toLowerCase() == 'pro' || (subMap['plan'] ?? '').toString().toLowerCase() == 'premium');
-          if (isProSub) {
+          if (isProSub || isProProfile) {
             profile.isPremium = true;
             profile.subscriptionPlan = 'PRO';
           }
+        } else if (isProProfile) {
+          profile.isPremium = true;
+          profile.subscriptionPlan = 'PRO';
         }
         provider.setUser(profile);
       }

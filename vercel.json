@@ -6,48 +6,80 @@
       "destination": "/api/health"
     },
     {
+      "source": "/api/subscription/me",
+      "destination": "/api/subscription-me"
+    },
+    {
+      "source": "/api/subscription/upgrade",
+      "destination": "/api/subscription-upgrade"
+    },
+    {
+      "source": "/api/subscription-me",
+      "destination": "/api/subscription-me"
+    },
+    {
+      "source": "/api/subscription-upgrade",
+      "destination": "/api/subscription-upgrade"
+    },
+    {
+      "source": "/api/subscription",
+      "destination": "/api/subscription"
+    },
+    {
+      "source": "/api/tasks/:path*",
+      "destination": "/api/tasks?id=:path*"
+    },
+    {
+      "source": "/api/tasks",
+      "destination": "/api/tasks"
+    },
+    {
       "source": "/api/auth/login-initiate",
-      "destination": "/api/auth/login-initiate"
+      "destination": "/api/auth-login-initiate"
     },
     {
       "source": "/api/auth/login-verify",
-      "destination": "/api/auth/login-verify"
+      "destination": "/api/auth-login-verify"
     },
     {
       "source": "/api/auth/login",
-      "destination": "/api/auth/login"
+      "destination": "/api/auth-login"
     },
     {
       "source": "/api/auth/refresh-token",
-      "destination": "/api/auth/refresh-token"
+      "destination": "/api/auth-refresh-token"
     },
     {
       "source": "/api/auth/register-initiate",
-      "destination": "/api/auth/register-initiate"
+      "destination": "/api/auth-register-initiate"
     },
     {
       "source": "/api/auth/register-verify",
-      "destination": "/api/auth/register-verify"
+      "destination": "/api/auth-register-verify"
     },
     {
       "source": "/api/auth/forgot-password/initiate",
-      "destination": "/api/auth/forgot-password/initiate"
+      "destination": "/api/auth-forgot-password-initiate"
     },
     {
       "source": "/api/auth/forgot-password/verify-otp",
-      "destination": "/api/auth/forgot-password/verify-otp"
+      "destination": "/api/auth-forgot-password-verify-otp"
     },
     {
       "source": "/api/auth/forgot-password/reset",
-      "destination": "/api/auth/forgot-password/reset"
+      "destination": "/api/auth-forgot-password-reset"
     },
     {
       "source": "/api/users/me",
-      "destination": "/api/users/me"
+      "destination": "/api/users-me"
     },
     {
       "source": "/api/account/delete",
-      "destination": "/api/account/delete"
+      "destination": "/api/account-delete"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "/api/[...path]?path=:path*"
     },
     {
       "source": "/api/(.*)",
