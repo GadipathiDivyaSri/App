@@ -147,9 +147,14 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
       ),
     ).then((newUnit) {
       if (newUnit != null && newUnit is Map<String, dynamic>) {
+        String effSubId = widget.subjectId;
+        if (effSubId.isEmpty) {
+          final sMatch = provider.subjects.where((s) => s.name.toLowerCase() == widget.subjectName.toLowerCase()).firstOrNull;
+          if (sMatch != null) effSubId = sMatch.id;
+        }
         final u = StudyUnit(
           id: generateUuidV4(),
-          subjectId: subKey,
+          subjectId: effSubId.isNotEmpty ? effSubId : subKey,
           title: newUnit['title'] as String? ?? 'New Unit',
           description: newUnit['desc'] as String? ?? '',
         );

@@ -399,10 +399,24 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
                 ),
                 onPressed: () {
                   if (titleCtrl.text.trim().isNotEmpty) {
+                    String effUnitId = widget.unitId;
+                    String effSubId = widget.subjectId;
+                    if (effUnitId.isEmpty) {
+                      final uMatch = provider.studyUnits.where((u) => u.title.toLowerCase() == widget.unitTitle.toLowerCase()).firstOrNull;
+                      if (uMatch != null) {
+                        effUnitId = uMatch.id;
+                        if (effSubId.isEmpty) effSubId = uMatch.subjectId;
+                      }
+                    }
+                    if (effSubId.isEmpty && effUnitId.isNotEmpty) {
+                      final uMatch = provider.studyUnits.where((u) => u.id == effUnitId).firstOrNull;
+                      if (uMatch != null) effSubId = uMatch.subjectId;
+                    }
+
                     final newTopic = StudyTopic(
-                      id: 'topic_${DateTime.now().millisecondsSinceEpoch}',
-                      unitId: uKey,
-                      subjectId: widget.subjectId,
+                      id: generateUuidV4(),
+                      unitId: effUnitId.isNotEmpty ? effUnitId : uKey,
+                      subjectId: effSubId,
                       title: titleCtrl.text.trim(),
                       subtitle: 'Added just now',
                     );

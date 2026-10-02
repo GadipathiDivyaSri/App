@@ -426,7 +426,7 @@ class AppProvider extends ChangeNotifier {
     }
   }
 
-  void deleteSubject(String id) {
+  Future<void> deleteSubject(String id) async {
     final idx = _subjects.indexWhere((s) => s.id == id);
     if (idx != -1) {
       final nameNorm = _subjects[idx].name.trim().toLowerCase();
@@ -454,7 +454,7 @@ class AppProvider extends ChangeNotifier {
     _saveSubjects();
     _saveStudyItems();
     notifyListeners();
-    ApiService.deleteSubjectOnBackend(id);
+    await ApiService.deleteSubjectOnBackend(id);
   }
 
   List<StudyItem> _studyItems = [];
@@ -479,7 +479,7 @@ class AppProvider extends ChangeNotifier {
     }
   }
 
-  void deleteStudyItem(String id) {
+  Future<void> deleteStudyItem(String id) async {
     final idx = _studyItems.indexWhere((item) => item.id == id);
     if (idx != -1) {
       final titleNorm = _studyItems[idx].title.trim().toLowerCase();
@@ -495,7 +495,7 @@ class AppProvider extends ChangeNotifier {
       _updateSubjectProgress(subId);
       _saveStudyItems();
       notifyListeners();
-      ApiService.deleteStudyItemOnBackend(id);
+      await ApiService.deleteStudyItemOnBackend(id);
     }
   }
 
@@ -590,7 +590,7 @@ class AppProvider extends ChangeNotifier {
     }
   }
 
-  void deleteStudyUnit(String unitId) {
+  Future<void> deleteStudyUnit(String unitId) async {
     final idx = _studyUnits.indexWhere((u) => u.id == unitId);
     if (idx != -1) {
       final titleNorm = _studyUnits[idx].title.trim().toLowerCase();
@@ -616,7 +616,7 @@ class AppProvider extends ChangeNotifier {
     _saveStudyUnits();
     _saveStudyTopics();
     notifyListeners();
-    ApiService.deleteStudyUnitOnBackend(unitId);
+    await ApiService.deleteStudyUnitOnBackend(unitId);
   }
 
   void addStudyTopic(StudyTopic topic) {
@@ -648,7 +648,7 @@ class AppProvider extends ChangeNotifier {
     }
   }
 
-  void deleteStudyTopic(String topicId) {
+  Future<void> deleteStudyTopic(String topicId) async {
     final idx = _studyTopics.indexWhere((t) => t.id == topicId);
     if (idx != -1) {
       final titleNorm = _studyTopics[idx].title.trim().toLowerCase();
@@ -664,7 +664,7 @@ class AppProvider extends ChangeNotifier {
       _updateUnitProgress(unitId);
       _saveStudyTopics();
       notifyListeners();
-      ApiService.deleteStudyTopicOnBackend(topicId);
+      await ApiService.deleteStudyTopicOnBackend(topicId);
     }
   }
 
@@ -1662,10 +1662,12 @@ class AppProvider extends ChangeNotifier {
     toggleTodoTaskCompletion(taskId);
   }
 
-  void deleteTodoTask(String taskId) {
+  Future<void> deleteTodoTask(String taskId) async {
     final idx = _todoTasks.indexWhere((t) => t.id == taskId);
+    String? title;
     if (idx != -1) {
-      final titleNorm = _todoTasks[idx].title.trim().toLowerCase();
+      title = _todoTasks[idx].title;
+      final titleNorm = title.trim().toLowerCase();
       _deletedItemIds.add(taskId);
       if (titleNorm.isNotEmpty) _deletedItemIds.add(titleNorm);
     } else {
@@ -1676,11 +1678,11 @@ class AppProvider extends ChangeNotifier {
     _saveTodoTasks();
     _recalculateMetrics();
     notifyListeners();
-    ApiService.deleteTaskOnBackend(taskId);
+    await ApiService.deleteTaskOnBackend(taskId, taskTitle: title);
   }
 
-  void deleteTask(String taskId) {
-    deleteTodoTask(taskId);
+  Future<void> deleteTask(String taskId) async {
+    await deleteTodoTask(taskId);
   }
 
   Future<void> _saveTodoTasks() async {
@@ -1745,10 +1747,12 @@ class AppProvider extends ChangeNotifier {
     }
   }
 
-  void deleteOrganizeTask(String taskId) {
+  Future<void> deleteOrganizeTask(String taskId) async {
     final idx = _organizeTasks.indexWhere((t) => t.id == taskId);
+    String? title;
     if (idx != -1) {
-      final titleNorm = _organizeTasks[idx].title.trim().toLowerCase();
+      title = _organizeTasks[idx].title;
+      final titleNorm = title.trim().toLowerCase();
       _deletedItemIds.add(taskId);
       if (titleNorm.isNotEmpty) _deletedItemIds.add(titleNorm);
     } else {
@@ -1758,7 +1762,7 @@ class AppProvider extends ChangeNotifier {
     _organizeTasks.removeWhere((t) => t.id == taskId);
     _saveOrganizeTasks();
     notifyListeners();
-    ApiService.deleteTaskOnBackend(taskId);
+    await ApiService.deleteTaskOnBackend(taskId, taskTitle: title);
   }
 
   Future<void> _saveOrganizeTasks() async {
@@ -1840,10 +1844,12 @@ class AppProvider extends ChangeNotifier {
     }
   }
 
-  void deletePriorityMatrixTask(String taskId) {
+  Future<void> deletePriorityMatrixTask(String taskId) async {
     final idx = _priorityMatrixTasks.indexWhere((t) => t.id == taskId);
+    String? title;
     if (idx != -1) {
-      final titleNorm = _priorityMatrixTasks[idx].title.trim().toLowerCase();
+      title = _priorityMatrixTasks[idx].title;
+      final titleNorm = title.trim().toLowerCase();
       _deletedItemIds.add(taskId);
       if (titleNorm.isNotEmpty) _deletedItemIds.add(titleNorm);
     } else {
@@ -1853,66 +1859,66 @@ class AppProvider extends ChangeNotifier {
     _priorityMatrixTasks.removeWhere((t) => t.id == taskId);
     _savePriorityMatrixTasks();
     notifyListeners();
-    ApiService.deleteTaskOnBackend(taskId);
+    await ApiService.deleteTaskOnBackend(taskId, taskTitle: title);
   }
 
-  void clearPriorityMatrixHistory() {
+  Future<void> clearPriorityMatrixHistory() async {
     final completed = _priorityMatrixTasks.where((t) => t.isCompleted).toList();
     for (var t in completed) {
       _deletedItemIds.add(t.id);
       if (t.title.trim().isNotEmpty) _deletedItemIds.add(t.title.trim().toLowerCase());
-      ApiService.deleteTaskOnBackend(t.id);
     }
     _saveDeletedItemIds();
     _priorityMatrixTasks.removeWhere((t) => t.isCompleted);
     _savePriorityMatrixTasks();
     notifyListeners();
+    await Future.wait(completed.map((t) => ApiService.deleteTaskOnBackend(t.id, taskTitle: t.title)));
   }
 
-  void clearAllTodoTasks() {
-    for (var t in _todoTasks) {
+  Future<void> clearAllTodoTasks() async {
+    final tasksToDelete = List<Task>.from(_todoTasks);
+    for (var t in tasksToDelete) {
       _deletedItemIds.add(t.id);
       if (t.title.trim().isNotEmpty) _deletedItemIds.add(t.title.trim().toLowerCase());
-      ApiService.deleteTaskOnBackend(t.id);
     }
     _saveDeletedItemIds();
     _todoTasks.clear();
     _saveTodoTasks();
     _recalculateMetrics();
     notifyListeners();
-    ApiService.deleteAllTasksOnBackend();
+    await ApiService.deleteAllTasksOnBackend();
   }
 
-  void clearAllOrganizeTasks() {
-    for (var t in _organizeTasks) {
+  Future<void> clearAllOrganizeTasks() async {
+    final tasksToDelete = List<Task>.from(_organizeTasks);
+    for (var t in tasksToDelete) {
       _deletedItemIds.add(t.id);
       if (t.title.trim().isNotEmpty) _deletedItemIds.add(t.title.trim().toLowerCase());
-      ApiService.deleteTaskOnBackend(t.id);
     }
     _saveDeletedItemIds();
     _organizeTasks.clear();
     _saveOrganizeTasks();
     notifyListeners();
-    ApiService.deleteAllTasksOnBackend();
+    await ApiService.deleteAllTasksOnBackend();
   }
 
-  void clearAllPriorityMatrixTasks() {
-    for (var t in _priorityMatrixTasks) {
+  Future<void> clearAllPriorityMatrixTasks() async {
+    final tasksToDelete = List<Task>.from(_priorityMatrixTasks);
+    for (var t in tasksToDelete) {
       _deletedItemIds.add(t.id);
       if (t.title.trim().isNotEmpty) _deletedItemIds.add(t.title.trim().toLowerCase());
-      ApiService.deleteTaskOnBackend(t.id);
     }
     _saveDeletedItemIds();
     _priorityMatrixTasks.clear();
     _savePriorityMatrixTasks();
     notifyListeners();
-    ApiService.deleteAllTasksOnBackend();
+    await ApiService.deleteAllTasksOnBackend();
   }
 
-  void clearAllTasks() {
-    clearAllTodoTasks();
-    clearAllOrganizeTasks();
-    clearAllPriorityMatrixTasks();
+  Future<void> clearAllTasks() async {
+    await clearAllTodoTasks();
+    await clearAllOrganizeTasks();
+    await clearAllPriorityMatrixTasks();
   }
 
   Future<void> _savePriorityMatrixTasks() async {
@@ -2259,21 +2265,29 @@ class AppProvider extends ChangeNotifier {
   Future<void> syncTasksFromCloud() async {
     try {
       // 1. Flush any pending offline deletions to Supabase
+      final List<Future> flushDeletes = [];
       for (final delId in _deletedItemIds) {
         if (delId.contains('-') && delId.length == 36) {
-          ApiService.deleteTaskOnBackend(delId);
+          flushDeletes.add(ApiService.deleteTaskOnBackend(delId));
         }
+      }
+      if (flushDeletes.isNotEmpty) {
+        await Future.wait(flushDeletes);
       }
 
       // 2. Fetch authoritative remote tasks from Supabase
       final remoteTasks = await ApiService.fetchTasks();
 
       // Ensure any remote tasks that match deleted IDs or titles are deleted on backend
+      final List<Future> remoteDeletes = [];
       for (var rt in remoteTasks) {
         if (_deletedItemIds.contains(rt.id) ||
             _deletedItemIds.contains(rt.title.trim().toLowerCase())) {
-          ApiService.deleteTaskOnBackend(rt.id);
+          remoteDeletes.add(ApiService.deleteTaskOnBackend(rt.id, taskTitle: rt.title));
         }
+      }
+      if (remoteDeletes.isNotEmpty) {
+        await Future.wait(remoteDeletes);
       }
 
       final validRemote = remoteTasks.where((t) =>
@@ -2483,9 +2497,21 @@ class AppProvider extends ChangeNotifier {
       final validRemote = remoteItems.where((i) => !_deletedItemIds.contains(i.id) && !_deletedItemIds.contains(i.title.trim().toLowerCase())).toList();
       final Map<String, StudyItem> itemMap = {for (var i in _studyItems) if (!_deletedItemIds.contains(i.id) && !_deletedItemIds.contains(i.title.trim().toLowerCase())) i.id: i};
       for (var ri in validRemote) {
+        if (ri.subjectName == 'Subject' || ri.subjectName.isEmpty) {
+          final matchedSub = _subjects.firstWhere(
+            (s) => s.id == ri.subjectId,
+            orElse: () => StudySubject(id: '', name: 'Subject'),
+          );
+          if (matchedSub.name != 'Subject') {
+            ri.subjectName = matchedSub.name;
+          }
+        }
         final local = itemMap[ri.id];
         if (local != null) {
           local.isCompleted = ri.isCompleted;
+          if (ri.subjectName != 'Subject' && ri.subjectName.isNotEmpty) {
+            local.subjectName = ri.subjectName;
+          }
           itemMap[ri.id] = local;
         } else {
           itemMap[ri.id] = ri;

@@ -712,17 +712,23 @@ class StudyUnit {
         'progress': progress,
       };
 
-  factory StudyUnit.fromJson(Map<String, dynamic> json) => StudyUnit(
-        id: json['id'] ?? 'u_${DateTime.now().millisecondsSinceEpoch}',
-        subjectId: json['subject_id'] ?? json['subjectId'] ?? '',
-        title: json['title'] ?? 'Unit',
-        description: json['description'] ?? json['desc'] ?? '',
-        unitNumber: json['unit_number'] != null
-            ? int.tryParse(json['unit_number'].toString()) ?? 1
-            : (json['unitNumber'] != null ? int.tryParse(json['unitNumber'].toString()) ?? 1 : 1),
-        isCompleted: parseBool(json['is_completed'] ?? json['isCompleted']) || (json['status'] == 'completed'),
-        progress: (json['progress'] is num) ? (json['progress'] as num).toDouble() : 0.0,
-      );
+  factory StudyUnit.fromJson(Map<String, dynamic> json) {
+    final rawId = json['id']?.toString();
+    final cleanId = (rawId != null && rawId.isNotEmpty && !rawId.startsWith('u_'))
+        ? rawId
+        : generateUuidV4();
+    return StudyUnit(
+      id: cleanId,
+      subjectId: json['subject_id'] ?? json['subjectId'] ?? '',
+      title: json['title'] ?? 'Unit',
+      description: json['description'] ?? json['desc'] ?? '',
+      unitNumber: json['unit_number'] != null
+          ? int.tryParse(json['unit_number'].toString()) ?? 1
+          : (json['unitNumber'] != null ? int.tryParse(json['unitNumber'].toString()) ?? 1 : 1),
+      isCompleted: parseBool(json['is_completed'] ?? json['isCompleted']) || (json['status'] == 'completed'),
+      progress: (json['progress'] is num) ? (json['progress'] as num).toDouble() : 0.0,
+    );
+  }
 
   Map<String, dynamic> toMap() => toJson();
   factory StudyUnit.fromMap(Map<String, dynamic> map) => StudyUnit.fromJson(map);
@@ -765,14 +771,20 @@ class StudyTopic {
         'isCompleted': isCompleted,
       };
 
-  factory StudyTopic.fromJson(Map<String, dynamic> json) => StudyTopic(
-        id: json['id'] ?? 'top_${DateTime.now().millisecondsSinceEpoch}',
-        unitId: json['unit_id'] ?? json['unitId'] ?? '',
-        subjectId: json['subject_id'] ?? json['subjectId'] ?? '',
-        title: json['title'] ?? 'Topic',
-        description: json['description'] ?? '',
-        isCompleted: parseBool(json['is_completed'] ?? json['isCompleted']) || (json['status'] == 'completed'),
-      );
+  factory StudyTopic.fromJson(Map<String, dynamic> json) {
+    final rawId = json['id']?.toString();
+    final cleanId = (rawId != null && rawId.isNotEmpty && !rawId.startsWith('topic_') && !rawId.startsWith('top_'))
+        ? rawId
+        : generateUuidV4();
+    return StudyTopic(
+      id: cleanId,
+      unitId: json['unit_id'] ?? json['unitId'] ?? '',
+      subjectId: json['subject_id'] ?? json['subjectId'] ?? '',
+      title: json['title'] ?? 'Topic',
+      description: json['description'] ?? '',
+      isCompleted: parseBool(json['is_completed'] ?? json['isCompleted']) || (json['status'] == 'completed'),
+    );
+  }
 
   Map<String, dynamic> toMap() => toJson();
   factory StudyTopic.fromMap(Map<String, dynamic> map) => StudyTopic.fromJson(map);

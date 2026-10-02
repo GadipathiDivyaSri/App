@@ -2415,28 +2415,72 @@ class ApiService {
     return {'success': false};
   }
 
-  /// Subjects API (Free plan limit: Max 2 Subjects)
+  /// Subjects API (Direct Supabase Integration)
   static Future<Map<String, dynamic>> createSubjectOnBackend(dynamic nameOrSubject, [String? code]) async {
+    final uid = await getEffectiveUserUuid();
+    bool savedToSupabase = false;
+
+    StudySubject subject;
+    if (nameOrSubject is StudySubject) {
+      subject = nameOrSubject;
+    } else {
+      subject = StudySubject(
+        id: generateUuidV4(),
+        name: nameOrSubject.toString(),
+        code: code ?? '',
+      );
+    }
+
+    final cleanId = ensureUuid(subject.id);
+
+    // 1. Primary: Direct Supabase PostgreSQL
+    if (uid != null && uid.isNotEmpty) {
+      try {
+        final hexColor = '#${(subject.colorHex & 0xFFFFFF).toRadixString(16).padLeft(6, '0')}';
+        final payload = {
+          'id': cleanId,
+          'user_id': uid,
+          'name': subject.name,
+          'code': subject.code,
+          'color_hex': hexColor,
+          'updated_at': DateTime.now().toUtc().toIso8601String(),
+        };
+        final res = await http.post(
+          Uri.parse('$supabaseUrl/rest/v1/subjects'),
+          headers: {
+            'apikey': supabaseServiceKey,
+            'Authorization': 'Bearer $supabaseServiceKey',
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation, resolution=merge-duplicates',
+          },
+          body: jsonEncode(payload),
+        ).timeout(const Duration(seconds: 8), onTimeout: () => http.Response('{"error":"timeout"}', 408));
+
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          savedToSupabase = true;
+          debugPrint('[ApiService] Subject $cleanId saved to Supabase (Status: ${res.statusCode})');
+        } else {
+          debugPrint('[ApiService] Subject Supabase insert failed: HTTP ${res.statusCode} -> ${res.body}');
+        }
+      } catch (e) {
+        debugPrint('[ApiService] Exception saving subject to Supabase: $e');
+      }
+    }
+
+    // 2. Secondary: Inform Vercel
     try {
       final headers = await _getHeaders();
-      Map<String, dynamic> payload;
-      if (nameOrSubject is StudySubject) {
-        payload = nameOrSubject.toJson();
-      } else {
-        payload = {'name': nameOrSubject.toString(), 'code': code ?? ''};
-      }
-      final response = await http.post(
+      http.post(
         Uri.parse('$baseUrl/subjects'),
         headers: headers,
-        body: jsonEncode(payload),
-      );
-      return {
-        'statusCode': response.statusCode,
-        'data': jsonDecode(response.body),
-      };
-    } catch (e) {
-      return {'statusCode': 500, 'data': {'success': false, 'message': '$e'}};
-    }
+        body: jsonEncode(subject.toJson()),
+      ).catchError((_) => http.Response('', 500));
+    } catch (_) {}
+
+    return {
+      'statusCode': savedToSupabase ? 200 : 500,
+      'data': {'success': savedToSupabase},
+    };
   }
 
   /// Pro Goal Creation API
@@ -2640,74 +2684,67 @@ class ApiService {
   // STUDY UNITS & TOPICS API (SUPABASE BACKEND SYNC)
   // ---------------------------------------------------------------------------
   static Future<List<StudyUnit>> fetchStudyUnits({String? subjectId}) async {
-    final token = await getSessionToken();
-    final user = await getSessionUser();
-    final uid = user?['id']?.toString() ?? user?['userId']?.toString();
-    if ((token == null || token.isEmpty) && (uid == null || uid.isEmpty)) return [];
+    final uid = await getEffectiveUserUuid();
+    if (uid == null || uid.isEmpty) return [];
 
+    // 1. Primary: Direct Supabase PostgreSQL
+    try {
+      var url = '$supabaseUrl/rest/v1/study_units?user_id=eq.$uid&select=*';
+      if (subjectId != null && subjectId.isNotEmpty) {
+        final cleanSubId = ensureUuid(subjectId);
+        url += '&subject_id=eq.$cleanSubId';
+      }
+      final res = await http.get(
+        Uri.parse(url),
+        headers: {
+          'apikey': supabaseServiceKey,
+          'Authorization': 'Bearer $supabaseServiceKey',
+        },
+      ).timeout(const Duration(seconds: 8), onTimeout: () => http.Response('[]', 408));
+      if (res.statusCode == 200) {
+        final List<dynamic> list = jsonDecode(res.body);
+        return list.map((json) => StudyUnit.fromJson(json)).toList();
+      }
+    } catch (e) {
+      debugPrint('[ApiService] Error fetching study units from Supabase: $e');
+    }
+
+    // 2. Secondary fallback
     try {
       final headers = await _getHeaders();
       final uri = Uri.parse('$baseUrl/study-units').replace(queryParameters: subjectId != null ? {'subjectId': subjectId} : null);
-      final response = await http.get(uri, headers: headers).timeout(const Duration(seconds: 8));
+      final response = await http.get(uri, headers: headers).timeout(const Duration(seconds: 5));
       if (response.statusCode == 200) {
         final List<dynamic> list = jsonDecode(response.body);
         return list.map((json) => StudyUnit.fromMap(json)).toList();
       }
     } catch (_) {}
 
-    // Direct Supabase Fallback
-    if (uid != null && uid.isNotEmpty) {
-      try {
-        var url = '$supabaseUrl/rest/v1/study_units?user_id=eq.$uid&select=*';
-        if (subjectId != null && subjectId.isNotEmpty) {
-          url += '&subject_id=eq.$subjectId';
-        }
-        final res = await http.get(
-          Uri.parse(url),
-          headers: {
-            'apikey': supabaseServiceKey,
-            'Authorization': 'Bearer $supabaseServiceKey',
-          },
-        ).timeout(const Duration(seconds: 8));
-        if (res.statusCode == 200) {
-          final List<dynamic> list = jsonDecode(res.body);
-          return list.map((json) => StudyUnit.fromMap(json)).toList();
-        }
-      } catch (_) {}
-    }
     return [];
   }
 
   static Future<Map<String, dynamic>> createStudyUnitOnBackend(StudyUnit unit) async {
-    try {
-      final headers = await _getHeaders();
-      final response = await http.post(
-        Uri.parse('$baseUrl/study-units'),
-        headers: headers,
-        body: jsonEncode(unit.toMap()),
-      ).timeout(const Duration(seconds: 8));
-      if (response.statusCode >= 200 && response.statusCode < 300) {
-        return {'statusCode': response.statusCode, 'data': jsonDecode(response.body)};
-      }
-    } catch (_) {}
+    final uid = await getEffectiveUserUuid();
+    final cleanUnitId = ensureUuid(unit.id);
+    final cleanSubId = ensureUuid(unit.subjectId);
+    bool saved = false;
 
-    // Direct Supabase Fallback
-    try {
-      final user = await getSessionUser();
-      final uid = user?['id']?.toString() ?? user?['userId']?.toString();
-      if (uid != null && uid.isNotEmpty) {
+    // 1. Primary: Direct Supabase PostgreSQL
+    if (uid != null && uid.isNotEmpty) {
+      try {
         final payload = {
-          'id': unit.id,
+          'id': cleanUnitId,
           'user_id': uid,
-          'subject_id': unit.subjectId,
+          'subject_id': cleanSubId,
           'title': unit.title,
           'description': unit.description,
           'progress': unit.progress,
           'is_completed': unit.isCompleted,
           'status': unit.isCompleted ? 'completed' : 'pending',
+          'unit_number': unit.unitNumber,
           'updated_at': DateTime.now().toUtc().toIso8601String(),
         };
-        await http.post(
+        final res = await http.post(
           Uri.parse('$supabaseUrl/rest/v1/study_units'),
           headers: {
             'apikey': supabaseServiceKey,
@@ -2717,114 +2754,146 @@ class ApiService {
           },
           body: jsonEncode(payload),
         ).timeout(const Duration(seconds: 8));
+
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          saved = true;
+          debugPrint('[ApiService] Unit $cleanUnitId saved to Supabase');
+        } else {
+          debugPrint('[ApiService] Unit insert failed: HTTP ${res.statusCode} -> ${res.body}');
+        }
+      } catch (e) {
+        debugPrint('[ApiService] Error saving unit to Supabase: $e');
       }
+    }
+
+    // 2. Secondary: Inform Vercel
+    try {
+      final headers = await _getHeaders();
+      http.post(
+        Uri.parse('$baseUrl/study-units'),
+        headers: headers,
+        body: jsonEncode(unit.toMap()),
+      ).catchError((_) => http.Response('', 500));
     } catch (_) {}
-    return {'statusCode': 200, 'data': {'success': true}};
+
+    return {'statusCode': saved ? 200 : 500, 'data': {'success': saved}};
   }
 
   static Future<Map<String, dynamic>> deleteStudyUnitOnBackend(String unitId) async {
+    final uid = await getEffectiveUserUuid();
+    final cleanUnitId = ensureUuid(unitId);
+
+    // 1. Primary: Direct Supabase
+    if (uid != null && uid.isNotEmpty) {
+      try {
+        await http.delete(
+          Uri.parse('$supabaseUrl/rest/v1/study_topics?unit_id=eq.$cleanUnitId&user_id=eq.$uid'),
+          headers: {'apikey': supabaseServiceKey, 'Authorization': 'Bearer $supabaseServiceKey'},
+        ).catchError((_) => http.Response('', 500));
+
+        await http.delete(
+          Uri.parse('$supabaseUrl/rest/v1/study_units?id=eq.$cleanUnitId&user_id=eq.$uid'),
+          headers: {'apikey': supabaseServiceKey, 'Authorization': 'Bearer $supabaseServiceKey'},
+        ).timeout(const Duration(seconds: 8));
+      } catch (e) {
+        debugPrint('[ApiService] Error deleting unit: $e');
+      }
+    }
+
+    // 2. Secondary: Vercel
     try {
       final headers = await _getHeaders();
-      final response = await http.delete(
-        Uri.parse('$baseUrl/study-units/$unitId'),
+      http.delete(
+        Uri.parse('$baseUrl/study-units/$cleanUnitId'),
         headers: headers,
-      ).timeout(const Duration(seconds: 8));
-      if (response.statusCode >= 200 && response.statusCode < 300) {
-        return {'statusCode': response.statusCode, 'data': jsonDecode(response.body)};
-      }
+      ).catchError((_) => http.Response('', 500));
     } catch (_) {}
 
-    // Direct Supabase Fallback
-    try {
-      final user = await getSessionUser();
-      final uid = user?['id']?.toString() ?? user?['userId']?.toString();
-      if (uid != null && uid.isNotEmpty) {
-        await http.delete(
-          Uri.parse('$supabaseUrl/rest/v1/study_topics?unit_id=eq.$unitId&user_id=eq.$uid'),
-          headers: {
-            'apikey': supabaseServiceKey,
-            'Authorization': 'Bearer $supabaseServiceKey',
-          },
-        ).timeout(const Duration(seconds: 8));
-        await http.delete(
-          Uri.parse('$supabaseUrl/rest/v1/study_units?id=eq.$unitId&user_id=eq.$uid'),
-          headers: {
-            'apikey': supabaseServiceKey,
-            'Authorization': 'Bearer $supabaseServiceKey',
-          },
-        ).timeout(const Duration(seconds: 8));
-      }
-    } catch (_) {}
     return {'statusCode': 200, 'data': {'success': true}};
   }
 
   static Future<List<StudyTopic>> fetchStudyTopics({String? unitId}) async {
-    final token = await getSessionToken();
-    final user = await getSessionUser();
-    final uid = user?['id']?.toString() ?? user?['userId']?.toString();
-    if ((token == null || token.isEmpty) && (uid == null || uid.isEmpty)) return [];
+    final uid = await getEffectiveUserUuid();
+    if (uid == null || uid.isEmpty) return [];
 
+    // 1. Primary: Direct Supabase
+    try {
+      var url = '$supabaseUrl/rest/v1/study_topics?user_id=eq.$uid&select=*';
+      if (unitId != null && unitId.isNotEmpty) {
+        final cleanUnitId = ensureUuid(unitId);
+        url += '&unit_id=eq.$cleanUnitId';
+      }
+      final res = await http.get(
+        Uri.parse(url),
+        headers: {
+          'apikey': supabaseServiceKey,
+          'Authorization': 'Bearer $supabaseServiceKey',
+        },
+      ).timeout(const Duration(seconds: 8), onTimeout: () => http.Response('[]', 408));
+      if (res.statusCode == 200) {
+        final List<dynamic> list = jsonDecode(res.body);
+        return list.map((json) => StudyTopic.fromJson(json)).toList();
+      }
+    } catch (e) {
+      debugPrint('[ApiService] Error fetching topics from Supabase: $e');
+    }
+
+    // 2. Secondary: Vercel
     try {
       final headers = await _getHeaders();
       final uri = Uri.parse('$baseUrl/study-topics').replace(queryParameters: unitId != null ? {'unitId': unitId} : null);
-      final response = await http.get(uri, headers: headers).timeout(const Duration(seconds: 8));
+      final response = await http.get(uri, headers: headers).timeout(const Duration(seconds: 5));
       if (response.statusCode == 200) {
         final List<dynamic> list = jsonDecode(response.body);
         return list.map((json) => StudyTopic.fromMap(json)).toList();
       }
     } catch (_) {}
 
-    // Direct Supabase Fallback
-    if (uid != null && uid.isNotEmpty) {
-      try {
-        var url = '$supabaseUrl/rest/v1/study_topics?user_id=eq.$uid&select=*';
-        if (unitId != null && unitId.isNotEmpty) {
-          url += '&unit_id=eq.$unitId';
-        }
-        final res = await http.get(
-          Uri.parse(url),
-          headers: {
-            'apikey': supabaseServiceKey,
-            'Authorization': 'Bearer $supabaseServiceKey',
-          },
-        ).timeout(const Duration(seconds: 8));
-        if (res.statusCode == 200) {
-          final List<dynamic> list = jsonDecode(res.body);
-          return list.map((json) => StudyTopic.fromMap(json)).toList();
-        }
-      } catch (_) {}
-    }
     return [];
   }
 
   static Future<Map<String, dynamic>> createStudyTopicOnBackend(StudyTopic topic) async {
-    try {
-      final headers = await _getHeaders();
-      final response = await http.post(
-        Uri.parse('$baseUrl/study-topics'),
-        headers: headers,
-        body: jsonEncode(topic.toMap()),
-      ).timeout(const Duration(seconds: 8));
-      if (response.statusCode >= 200 && response.statusCode < 300) {
-        return {'statusCode': response.statusCode, 'data': jsonDecode(response.body)};
-      }
-    } catch (_) {}
+    final uid = await getEffectiveUserUuid();
+    final cleanTopicId = ensureUuid(topic.id);
+    final cleanUnitId = ensureUuid(topic.unitId);
+    String cleanSubId = ensureUuid(topic.subjectId);
+    bool saved = false;
 
-    // Direct Supabase Fallback
-    try {
-      final user = await getSessionUser();
-      final uid = user?['id']?.toString() ?? user?['userId']?.toString();
-      if (uid != null && uid.isNotEmpty) {
+    // 1. Primary: Direct Supabase PostgreSQL
+    if (uid != null && uid.isNotEmpty) {
+      try {
+        // If subjectId is missing/invalid, look it up from parent unit in Supabase
+        if (topic.subjectId.isEmpty || cleanSubId == '00000000-0000-4000-8000-000000000000') {
+          try {
+            final resUnit = await http.get(
+              Uri.parse('$supabaseUrl/rest/v1/study_units?id=eq.$cleanUnitId&select=subject_id'),
+              headers: {
+                'apikey': supabaseServiceKey,
+                'Authorization': 'Bearer $supabaseServiceKey',
+              },
+            ).timeout(const Duration(seconds: 4));
+            if (resUnit.statusCode == 200) {
+              final list = jsonDecode(resUnit.body);
+              if (list is List && list.isNotEmpty && list[0]['subject_id'] != null) {
+                cleanSubId = list[0]['subject_id'].toString();
+              }
+            }
+          } catch (_) {}
+        }
+
         final payload = {
-          'id': topic.id,
+          'id': cleanTopicId,
+          'unit_id': cleanUnitId,
+          'subject_id': cleanSubId,
           'user_id': uid,
-          'unit_id': topic.unitId,
           'title': topic.title,
+          'description': topic.description,
           'is_completed': topic.isCompleted,
           'status': topic.isCompleted ? 'completed' : 'pending',
           'updated_at': DateTime.now().toUtc().toIso8601String(),
         };
-        await http.post(
+
+        final res = await http.post(
           Uri.parse('$supabaseUrl/rest/v1/study_topics'),
           headers: {
             'apikey': supabaseServiceKey,
@@ -2834,42 +2903,53 @@ class ApiService {
           },
           body: jsonEncode(payload),
         ).timeout(const Duration(seconds: 8));
+
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          saved = true;
+          debugPrint('[ApiService] Topic $cleanTopicId saved to Supabase (Status: ${res.statusCode})');
+        } else {
+          debugPrint('[ApiService] Failed creating topic on Supabase: HTTP ${res.statusCode} -> ${res.body}');
+        }
+      } catch (e) {
+        debugPrint('[ApiService] Error saving topic to Supabase: $e');
       }
+    }
+
+    // 2. Secondary: Inform Vercel
+    try {
+      final headers = await _getHeaders();
+      http.post(
+        Uri.parse('$baseUrl/study-topics'),
+        headers: headers,
+        body: jsonEncode(topic.toMap()),
+      ).catchError((_) => http.Response('', 500));
     } catch (_) {}
-    return {'statusCode': 200, 'data': {'success': true}};
+
+    return {'statusCode': saved ? 200 : 500, 'data': {'success': saved}};
   }
 
   static Future<Map<String, dynamic>> toggleStudyTopicOnBackend(String topicId) async {
-    try {
-      final headers = await _getHeaders();
-      final response = await http.post(
-        Uri.parse('$baseUrl/study-topics/$topicId/toggle'),
-        headers: headers,
-      ).timeout(const Duration(seconds: 8));
-      if (response.statusCode >= 200 && response.statusCode < 300) {
-        return {'statusCode': response.statusCode, 'data': jsonDecode(response.body)};
-      }
-    } catch (_) {}
+    final uid = await getEffectiveUserUuid();
+    final cleanTopicId = ensureUuid(topicId);
+    bool toggled = false;
 
-    // Direct Supabase Fallback
-    try {
-      final user = await getSessionUser();
-      final uid = user?['id']?.toString() ?? user?['userId']?.toString();
-      if (uid != null && uid.isNotEmpty) {
+    // 1. Primary: Direct Supabase
+    if (uid != null && uid.isNotEmpty) {
+      try {
         final res = await http.get(
-          Uri.parse('$supabaseUrl/rest/v1/study_topics?id=eq.$topicId&user_id=eq.$uid'),
+          Uri.parse('$supabaseUrl/rest/v1/study_topics?id=eq.$cleanTopicId&user_id=eq.$uid&select=is_completed'),
           headers: {
             'apikey': supabaseServiceKey,
             'Authorization': 'Bearer $supabaseServiceKey',
           },
-        ).timeout(const Duration(seconds: 8));
+        ).timeout(const Duration(seconds: 6));
         if (res.statusCode == 200) {
           final List list = jsonDecode(res.body);
           if (list.isNotEmpty) {
             final currComp = !!(list[0]['is_completed'] ?? false);
             final newComp = !currComp;
-            await http.patch(
-              Uri.parse('$supabaseUrl/rest/v1/study_topics?id=eq.$topicId&user_id=eq.$uid'),
+            final patchRes = await http.patch(
+              Uri.parse('$supabaseUrl/rest/v1/study_topics?id=eq.$cleanTopicId&user_id=eq.$uid'),
               headers: {
                 'apikey': supabaseServiceKey,
                 'Authorization': 'Bearer $supabaseServiceKey',
@@ -2878,42 +2958,61 @@ class ApiService {
               body: jsonEncode({
                 'is_completed': newComp,
                 'status': newComp ? 'completed' : 'pending',
+                'completed_at': newComp ? DateTime.now().toUtc().toIso8601String() : null,
                 'updated_at': DateTime.now().toUtc().toIso8601String(),
               }),
-            ).timeout(const Duration(seconds: 8));
+            ).timeout(const Duration(seconds: 6));
+            if (patchRes.statusCode >= 200 && patchRes.statusCode < 300) {
+              toggled = true;
+            }
           }
         }
+      } catch (e) {
+        debugPrint('[ApiService] Error toggling topic on Supabase: $e');
       }
+    }
+
+    // 2. Secondary: Vercel
+    try {
+      final headers = await _getHeaders();
+      http.post(
+        Uri.parse('$baseUrl/study-topics/$cleanTopicId/toggle'),
+        headers: headers,
+      ).catchError((_) => http.Response('', 500));
     } catch (_) {}
-    return {'statusCode': 200, 'data': {'success': true}};
+
+    return {'statusCode': toggled ? 200 : 500, 'data': {'success': toggled}};
   }
 
   static Future<Map<String, dynamic>> deleteStudyTopicOnBackend(String topicId) async {
-    try {
-      final headers = await _getHeaders();
-      final response = await http.delete(
-        Uri.parse('$baseUrl/study-topics/$topicId'),
-        headers: headers,
-      ).timeout(const Duration(seconds: 8));
-      if (response.statusCode >= 200 && response.statusCode < 300) {
-        return {'statusCode': response.statusCode, 'data': jsonDecode(response.body)};
-      }
-    } catch (_) {}
+    final uid = await getEffectiveUserUuid();
+    final cleanTopicId = ensureUuid(topicId);
 
-    // Direct Supabase Fallback
-    try {
-      final user = await getSessionUser();
-      final uid = user?['id']?.toString() ?? user?['userId']?.toString();
-      if (uid != null && uid.isNotEmpty) {
-        await http.delete(
-          Uri.parse('$supabaseUrl/rest/v1/study_topics?id=eq.$topicId&user_id=eq.$uid'),
+    // 1. Primary: Direct Supabase
+    if (uid != null && uid.isNotEmpty) {
+      try {
+        final res = await http.delete(
+          Uri.parse('$supabaseUrl/rest/v1/study_topics?id=eq.$cleanTopicId&user_id=eq.$uid'),
           headers: {
             'apikey': supabaseServiceKey,
             'Authorization': 'Bearer $supabaseServiceKey',
           },
         ).timeout(const Duration(seconds: 8));
+        debugPrint('[ApiService] Study topic $cleanTopicId deleted from Supabase (Status: ${res.statusCode})');
+      } catch (e) {
+        debugPrint('[ApiService] Error deleting topic from Supabase: $e');
       }
+    }
+
+    // 2. Secondary: Vercel
+    try {
+      final headers = await _getHeaders();
+      http.delete(
+        Uri.parse('$baseUrl/study-topics/$cleanTopicId'),
+        headers: headers,
+      ).catchError((_) => http.Response('', 500));
     } catch (_) {}
+
     return {'statusCode': 200, 'data': {'success': true}};
   }
 
@@ -3078,8 +3177,9 @@ class ApiService {
     };
   }
 
-  static Future<Map<String, dynamic>> deleteTaskOnBackend(String taskId) async {
+  static Future<Map<String, dynamic>> deleteTaskOnBackend(String taskId, {String? taskTitle}) async {
     final cleanTaskId = ensureUuid(taskId);
+    final uid = await getEffectiveUserUuid();
     bool supabaseDeleted = false;
 
     // 1. Primary: Direct Supabase PostgreSQL Record Deletion (Source of Truth)
@@ -3103,6 +3203,18 @@ class ApiService {
       if (cleanTaskId != taskId && taskId.isNotEmpty) {
         await http.delete(
           Uri.parse('$supabaseUrl/rest/v1/tasks?id=eq.$taskId'),
+          headers: {
+            'apikey': supabaseServiceKey,
+            'Authorization': 'Bearer $supabaseServiceKey',
+          },
+        ).catchError((_) => http.Response('', 500));
+      }
+
+      // If taskTitle is provided and user is authenticated, also purge by title and user_id to ensure NO orphan task remains
+      if (taskTitle != null && taskTitle.trim().isNotEmpty && uid != null && uid.isNotEmpty) {
+        final encodedTitle = Uri.encodeComponent(taskTitle.trim());
+        await http.delete(
+          Uri.parse('$supabaseUrl/rest/v1/tasks?title=eq.$encodedTitle&user_id=eq.$uid'),
           headers: {
             'apikey': supabaseServiceKey,
             'Authorization': 'Bearer $supabaseServiceKey',
@@ -3282,128 +3394,314 @@ class ApiService {
   // 9. SUBJECTS REST APIS (Production-Ready Cloud Sync)
   // ---------------------------------------------------------------------------
   static Future<List<StudySubject>> fetchSubjects() async {
-    final token = await getSessionToken();
-    if (token == null || token.isEmpty) return [];
-    try {
-      final headers = await _getHeaders();
-      final response = await http.get(Uri.parse('$baseUrl/subjects'), headers: headers);
-      if (response.statusCode == 200) {
-        final List<dynamic> list = jsonDecode(response.body);
-        return list.map((json) => StudySubject.fromJson(json)).toList();
-      }
-    } catch (_) {}
-    return [];
-  }
-
-  static Future<Map<String, dynamic>> deleteSubjectOnBackend(String subjectId) async {
-    try {
-      final headers = await _getHeaders();
-      await http.delete(
-        Uri.parse('$baseUrl/subjects/$subjectId'),
-        headers: headers,
-      ).timeout(const Duration(seconds: 6), onTimeout: () => http.Response('', 408));
-    } catch (_) {}
-
-    try {
-      final user = await getSessionUser();
-      final uid = user?['id']?.toString() ?? user?['userId']?.toString();
-      if (uid != null && uid.isNotEmpty) {
-        await http.delete(
-          Uri.parse('$supabaseUrl/rest/v1/subjects?id=eq.$subjectId&user_id=eq.$uid'),
+    final uid = await getEffectiveUserUuid();
+    if (uid != null && uid.isNotEmpty) {
+      try {
+        final res = await http.get(
+          Uri.parse('$supabaseUrl/rest/v1/subjects?user_id=eq.$uid&select=*&order=created_at.asc'),
           headers: {
             'apikey': supabaseServiceKey,
             'Authorization': 'Bearer $supabaseServiceKey',
           },
-        ).timeout(const Duration(seconds: 6), onTimeout: () => http.Response('', 408));
+        ).timeout(const Duration(seconds: 8), onTimeout: () => http.Response('[]', 408));
+        if (res.statusCode == 200) {
+          final List<dynamic> list = jsonDecode(res.body);
+          if (list.isNotEmpty) {
+            return list.map((json) => StudySubject.fromJson(json)).toList();
+          }
+        }
+      } catch (e) {
+        debugPrint('[ApiService] Error fetching subjects from Supabase: $e');
       }
+    }
+
+    // Secondary fallback
+    final token = await getSessionToken();
+    if (token != null && token.isNotEmpty) {
+      try {
+        final headers = await _getHeaders();
+        final response = await http.get(Uri.parse('$baseUrl/subjects'), headers: headers).timeout(const Duration(seconds: 5));
+        if (response.statusCode == 200) {
+          final List<dynamic> list = jsonDecode(response.body);
+          return list.map((json) => StudySubject.fromJson(json)).toList();
+        }
+      } catch (_) {}
+    }
+    return [];
+  }
+
+  static Future<Map<String, dynamic>> deleteSubjectOnBackend(String subjectId) async {
+    final uid = await getEffectiveUserUuid();
+    final cleanId = ensureUuid(subjectId);
+
+    // 1. Primary: Direct Supabase Cascading Deletion
+    if (uid != null && uid.isNotEmpty) {
+      try {
+        // Delete child study items
+        await http.delete(
+          Uri.parse('$supabaseUrl/rest/v1/study_items?subject_id=eq.$cleanId&user_id=eq.$uid'),
+          headers: {'apikey': supabaseServiceKey, 'Authorization': 'Bearer $supabaseServiceKey'},
+        ).catchError((_) => http.Response('', 500));
+
+        // Delete child study topics
+        await http.delete(
+          Uri.parse('$supabaseUrl/rest/v1/study_topics?subject_id=eq.$cleanId&user_id=eq.$uid'),
+          headers: {'apikey': supabaseServiceKey, 'Authorization': 'Bearer $supabaseServiceKey'},
+        ).catchError((_) => http.Response('', 500));
+
+        // Delete child study units
+        await http.delete(
+          Uri.parse('$supabaseUrl/rest/v1/study_units?subject_id=eq.$cleanId&user_id=eq.$uid'),
+          headers: {'apikey': supabaseServiceKey, 'Authorization': 'Bearer $supabaseServiceKey'},
+        ).catchError((_) => http.Response('', 500));
+
+        // Delete subject itself
+        final res = await http.delete(
+          Uri.parse('$supabaseUrl/rest/v1/subjects?id=eq.$cleanId&user_id=eq.$uid'),
+          headers: {'apikey': supabaseServiceKey, 'Authorization': 'Bearer $supabaseServiceKey'},
+        ).timeout(const Duration(seconds: 8));
+
+        debugPrint('[ApiService] Subject $cleanId deleted from Supabase (Status: ${res.statusCode})');
+      } catch (e) {
+        debugPrint('[ApiService] Error deleting subject from Supabase: $e');
+      }
+    }
+
+    // 2. Secondary: Inform Vercel
+    try {
+      final headers = await _getHeaders();
+      await http.delete(
+        Uri.parse('$baseUrl/subjects/$cleanId'),
+        headers: headers,
+      ).timeout(const Duration(seconds: 5), onTimeout: () => http.Response('', 408));
     } catch (_) {}
+
     return {'statusCode': 200, 'data': {'success': true}};
   }
 
   static Future<Map<String, dynamic>> updateSubjectOnBackend(StudySubject subject) async {
+    final uid = await getEffectiveUserUuid();
+    final cleanId = ensureUuid(subject.id);
+    bool updatedOnSupabase = false;
+
+    if (uid != null && uid.isNotEmpty) {
+      try {
+        final hexColor = '#${(subject.colorHex & 0xFFFFFF).toRadixString(16).padLeft(6, '0')}';
+        final res = await http.patch(
+          Uri.parse('$supabaseUrl/rest/v1/subjects?id=eq.$cleanId&user_id=eq.$uid'),
+          headers: {
+            'apikey': supabaseServiceKey,
+            'Authorization': 'Bearer $supabaseServiceKey',
+            'Content-Type': 'application/json',
+          },
+          body: jsonEncode({
+            'name': subject.name,
+            'code': subject.code,
+            'color_hex': hexColor,
+            'updated_at': DateTime.now().toUtc().toIso8601String(),
+          }),
+        ).timeout(const Duration(seconds: 8));
+
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          updatedOnSupabase = true;
+          debugPrint('[ApiService] Subject $cleanId updated on Supabase');
+        }
+      } catch (e) {
+        debugPrint('[ApiService] Error updating subject on Supabase: $e');
+      }
+    }
+
+    // Secondary: Inform Vercel
     try {
       final headers = await _getHeaders();
-      final response = await http.put(
-        Uri.parse('$baseUrl/subjects/${subject.id}'),
+      await http.put(
+        Uri.parse('$baseUrl/subjects/$cleanId'),
         headers: headers,
         body: jsonEncode(subject.toJson()),
-      );
-      return {'statusCode': response.statusCode, 'data': jsonDecode(response.body)};
-    } catch (e) {
-      return {'statusCode': 500, 'data': {'error': e.toString()}};
-    }
+      ).catchError((_) => http.Response('', 500));
+    } catch (_) {}
+
+    return {'statusCode': updatedOnSupabase ? 200 : 500, 'data': {'success': updatedOnSupabase}};
   }
 
   // ---------------------------------------------------------------------------
   // 9B. STUDY ITEMS REST APIS (Production-Ready Cloud Sync)
   // ---------------------------------------------------------------------------
   static Future<List<StudyItem>> fetchStudyItems({String? subjectId}) async {
-    final token = await getSessionToken();
-    if (token == null || token.isEmpty) return [];
-    try {
-      final headers = await _getHeaders();
-      final uri = Uri.parse('$baseUrl/study-items').replace(
-        queryParameters: subjectId != null ? {'subjectId': subjectId} : null,
-      );
-      final response = await http.get(uri, headers: headers);
-      if (response.statusCode == 200) {
-        final List<dynamic> list = jsonDecode(response.body);
-        return list.map((json) => StudyItem.fromJson(json)).toList();
-      }
-    } catch (_) {}
-    return [];
-  }
-
-  static Future<Map<String, dynamic>> createStudyItemOnBackend(StudyItem item) async {
-    try {
-      final headers = await _getHeaders();
-      final response = await http.post(
-        Uri.parse('$baseUrl/study-items'),
-        headers: headers,
-        body: jsonEncode(item.toJson()),
-      );
-      return {'statusCode': response.statusCode, 'data': jsonDecode(response.body)};
-    } catch (e) {
-      return {'statusCode': 500, 'data': {'error': e.toString()}};
-    }
-  }
-
-  static Future<Map<String, dynamic>> updateStudyItemOnBackend(StudyItem item) async {
-    try {
-      final headers = await _getHeaders();
-      final response = await http.put(
-        Uri.parse('$baseUrl/study-items/${item.id}'),
-        headers: headers,
-        body: jsonEncode(item.toJson()),
-      );
-      return {'statusCode': response.statusCode, 'data': jsonDecode(response.body)};
-    } catch (e) {
-      return {'statusCode': 500, 'data': {'error': e.toString()}};
-    }
-  }
-
-  static Future<Map<String, dynamic>> deleteStudyItemOnBackend(String itemId) async {
-    try {
-      final headers = await _getHeaders();
-      await http.delete(
-        Uri.parse('$baseUrl/study-items/$itemId'),
-        headers: headers,
-      ).timeout(const Duration(seconds: 6), onTimeout: () => http.Response('', 408));
-    } catch (_) {}
-
-    try {
-      final user = await getSessionUser();
-      final uid = user?['id']?.toString() ?? user?['userId']?.toString();
-      if (uid != null && uid.isNotEmpty) {
-        await http.delete(
-          Uri.parse('$supabaseUrl/rest/v1/study_items?id=eq.$itemId&user_id=eq.$uid'),
+    final uid = await getEffectiveUserUuid();
+    if (uid != null && uid.isNotEmpty) {
+      try {
+        var url = '$supabaseUrl/rest/v1/study_items?user_id=eq.$uid&select=*&order=due_at.asc';
+        if (subjectId != null && subjectId.isNotEmpty) {
+          final cleanSubId = ensureUuid(subjectId);
+          url += '&subject_id=eq.$cleanSubId';
+        }
+        final res = await http.get(
+          Uri.parse(url),
           headers: {
             'apikey': supabaseServiceKey,
             'Authorization': 'Bearer $supabaseServiceKey',
           },
-        ).timeout(const Duration(seconds: 6), onTimeout: () => http.Response('', 408));
+        ).timeout(const Duration(seconds: 8), onTimeout: () => http.Response('[]', 408));
+        if (res.statusCode == 200) {
+          final List<dynamic> list = jsonDecode(res.body);
+          if (list.isNotEmpty) {
+            return list.map((json) => StudyItem.fromJson(json)).toList();
+          }
+        }
+      } catch (e) {
+        debugPrint('[ApiService] Error fetching study items from Supabase: $e');
       }
+    }
+
+    // Secondary fallback
+    final token = await getSessionToken();
+    if (token != null && token.isNotEmpty) {
+      try {
+        final headers = await _getHeaders();
+        final uri = Uri.parse('$baseUrl/study-items').replace(
+          queryParameters: subjectId != null ? {'subjectId': subjectId} : null,
+        );
+        final response = await http.get(uri, headers: headers).timeout(const Duration(seconds: 5));
+        if (response.statusCode == 200) {
+          final List<dynamic> list = jsonDecode(response.body);
+          return list.map((json) => StudyItem.fromJson(json)).toList();
+        }
+      } catch (_) {}
+    }
+    return [];
+  }
+
+  static Future<Map<String, dynamic>> createStudyItemOnBackend(StudyItem item) async {
+    final uid = await getEffectiveUserUuid();
+    final cleanItemId = ensureUuid(item.id);
+    final cleanSubId = ensureUuid(item.subjectId);
+    bool savedToSupabase = false;
+
+    if (uid != null && uid.isNotEmpty) {
+      try {
+        final payload = {
+          'id': cleanItemId,
+          'user_id': uid,
+          'subject_id': cleanSubId,
+          'title': item.title,
+          'description': '',
+          'type': item.type.toUpperCase(),
+          'is_completed': item.isCompleted,
+          'status': item.isCompleted ? 'completed' : 'pending',
+          'due_at': item.dueDate.toIso8601String(),
+          'due_date': item.dueDate.toIso8601String(),
+          'updated_at': DateTime.now().toUtc().toIso8601String(),
+        };
+        final res = await http.post(
+          Uri.parse('$supabaseUrl/rest/v1/study_items'),
+          headers: {
+            'apikey': supabaseServiceKey,
+            'Authorization': 'Bearer $supabaseServiceKey',
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation, resolution=merge-duplicates',
+          },
+          body: jsonEncode(payload),
+        ).timeout(const Duration(seconds: 8));
+
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          savedToSupabase = true;
+          debugPrint('[ApiService] Study item $cleanItemId saved to Supabase (Status: ${res.statusCode})');
+        } else {
+          debugPrint('[ApiService] Supabase study item save failed: HTTP ${res.statusCode} -> ${res.body}');
+        }
+      } catch (e) {
+        debugPrint('[ApiService] Error saving study item to Supabase: $e');
+      }
+    }
+
+    try {
+      final headers = await _getHeaders();
+      await http.post(
+        Uri.parse('$baseUrl/study-items'),
+        headers: headers,
+        body: jsonEncode(item.toJson()),
+      ).catchError((_) => http.Response('', 500));
     } catch (_) {}
+
+    return {'statusCode': savedToSupabase ? 200 : 500, 'data': {'success': savedToSupabase}};
+  }
+
+  static Future<Map<String, dynamic>> updateStudyItemOnBackend(StudyItem item) async {
+    final uid = await getEffectiveUserUuid();
+    final cleanItemId = ensureUuid(item.id);
+    final cleanSubId = ensureUuid(item.subjectId);
+    bool updatedOnSupabase = false;
+
+    if (uid != null && uid.isNotEmpty) {
+      try {
+        final res = await http.patch(
+          Uri.parse('$supabaseUrl/rest/v1/study_items?id=eq.$cleanItemId&user_id=eq.$uid'),
+          headers: {
+            'apikey': supabaseServiceKey,
+            'Authorization': 'Bearer $supabaseServiceKey',
+            'Content-Type': 'application/json',
+          },
+          body: jsonEncode({
+            'subject_id': cleanSubId,
+            'title': item.title,
+            'type': item.type.toUpperCase(),
+            'is_completed': item.isCompleted,
+            'status': item.isCompleted ? 'completed' : 'pending',
+            'due_at': item.dueDate.toIso8601String(),
+            'due_date': item.dueDate.toIso8601String(),
+            'updated_at': DateTime.now().toUtc().toIso8601String(),
+          }),
+        ).timeout(const Duration(seconds: 8));
+
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          updatedOnSupabase = true;
+          debugPrint('[ApiService] Study item $cleanItemId updated on Supabase');
+        }
+      } catch (e) {
+        debugPrint('[ApiService] Error updating study item on Supabase: $e');
+      }
+    }
+
+    try {
+      final headers = await _getHeaders();
+      await http.put(
+        Uri.parse('$baseUrl/study-items/$cleanItemId'),
+        headers: headers,
+        body: jsonEncode(item.toJson()),
+      ).catchError((_) => http.Response('', 500));
+    } catch (_) {}
+
+    return {'statusCode': updatedOnSupabase ? 200 : 500, 'data': {'success': updatedOnSupabase}};
+  }
+
+  static Future<Map<String, dynamic>> deleteStudyItemOnBackend(String itemId) async {
+    final uid = await getEffectiveUserUuid();
+    final cleanItemId = ensureUuid(itemId);
+
+    if (uid != null && uid.isNotEmpty) {
+      try {
+        final res = await http.delete(
+          Uri.parse('$supabaseUrl/rest/v1/study_items?id=eq.$cleanItemId&user_id=eq.$uid'),
+          headers: {
+            'apikey': supabaseServiceKey,
+            'Authorization': 'Bearer $supabaseServiceKey',
+          },
+        ).timeout(const Duration(seconds: 8), onTimeout: () => http.Response('', 408));
+        debugPrint('[ApiService] Study item $cleanItemId deleted from Supabase (Status: ${res.statusCode})');
+      } catch (e) {
+        debugPrint('[ApiService] Error deleting study item from Supabase: $e');
+      }
+    }
+
+    try {
+      final headers = await _getHeaders();
+      await http.delete(
+        Uri.parse('$baseUrl/study-items/$cleanItemId'),
+        headers: headers,
+      ).timeout(const Duration(seconds: 5), onTimeout: () => http.Response('', 408));
+    } catch (_) {}
+
     return {'statusCode': 200, 'data': {'success': true}};
   }
 

@@ -295,8 +295,7 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
             if (_completedTasks.isEmpty)
               _buildEmptySectionCard(context, 'No completed tasks yet.')
             else
-              ..._completedTasks.map((t) => _buildCompletedTaskCard(
-                  context, t['title'] as String, t['tag'] as String? ?? 'DONE', const Color(0xFF10B981))),
+              ..._completedTasks.map((t) => _buildCompletedTaskCard(context, t)),
             const SizedBox(height: 70),
           ],
         ),
@@ -911,51 +910,79 @@ class _PriorityMatrixScreenState extends State<PriorityMatrixScreen> {
     );
   }
 
-  Widget _buildCompletedTaskCard(
-      BuildContext context, String title, String tag, Color tagColor) {
+  Widget _buildCompletedTaskCard(BuildContext context, Map<String, dynamic> task) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final provider = Provider.of<AppProvider>(context, listen: false);
+    final taskId = task['id'] as String? ?? '';
+    final title = task['title'] as String? ?? '';
+    final tag = task['tag'] as String? ?? 'DONE';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1E1F2B) : const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? Colors.white10 : const Color(0xFFE2E8F0),
+        ),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white70 : const Color(0xFF64748B),
-                ),
-              ),
-              const SizedBox(height: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF2A2B3D) : const Color(0xFFF1F5F9),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  tag,
-                  style: const TextStyle(
-                    fontSize: 9,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.8,
-                    color: Color(0xFF94A3B8),
+          IconButton(
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+            icon: const Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 22),
+            tooltip: 'Uncomplete / Restore to Matrix',
+            onPressed: () {
+              if (taskId.isNotEmpty) {
+                provider.togglePriorityMatrixTaskCompletion(taskId);
+              }
+            },
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    decoration: TextDecoration.lineThrough,
+                    color: isDark ? Colors.white60 : const Color(0xFF64748B),
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 4),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF2A2B3D) : const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    tag,
+                    style: const TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.8,
+                      color: Color(0xFF94A3B8),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-          const Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 22),
+          IconButton(
+            icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent, size: 20),
+            tooltip: 'Delete Permanently',
+            onPressed: () {
+              if (taskId.isNotEmpty) {
+                provider.deletePriorityMatrixTask(taskId);
+              }
+            },
+          ),
         ],
       ),
     );
