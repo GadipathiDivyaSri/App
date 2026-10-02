@@ -1495,6 +1495,12 @@ async function handleApiRequest(req, res) {
     return sendJSON(res, 201, newEvent);
   }
 
+  if ((pathname.startsWith('/api/calendar/') || pathname.startsWith('/api/calendar/events/')) && (method === 'PUT' || method === 'PATCH')) {
+    const eventId = pathname.split('/').pop();
+    const updated = await DatabaseManager.updateCalendarEvent(userId, eventId, body);
+    return sendJSON(res, 200, updated || { success: true });
+  }
+
   if ((pathname.startsWith('/api/calendar/') || pathname.startsWith('/api/calendar/events/')) && method === 'DELETE') {
     const eventId = pathname.split('/').pop();
     const deleted = await DatabaseManager.deleteCalendarEvent(userId, eventId);

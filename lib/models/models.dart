@@ -378,9 +378,21 @@ class CalendarEvent {
 
     final start = parseDate(json['startTime'] ?? json['start_time'], json['event_date'], DateTime.now());
     final end = parseDate(json['endTime'] ?? json['end_time'], json['event_date'], start.add(const Duration(hours: 1)));
-    final parsedType = json['type'] ?? json['event_type'] ?? json['type_name'] ?? 'Task';
-    final rawCat = json['category'] ?? json['event_category'];
-    final parsedCat = (rawCat != null && rawCat.toString().isNotEmpty) ? rawCat.toString() : parsedType;
+    final rawType = (json['type'] ?? json['event_type'] ?? json['type_name'] ?? '').toString().trim();
+    final rawCat = (json['category'] ?? json['event_category'] ?? '').toString().trim();
+
+    String resolvedType = 'Task';
+    if (rawType.isNotEmpty && rawType.toLowerCase() != 'general') {
+      resolvedType = rawType;
+    } else if (rawCat.isNotEmpty && rawCat.toLowerCase() != 'general') {
+      resolvedType = rawCat;
+    }
+
+    if (resolvedType.toLowerCase() == 'meeting') resolvedType = 'Meeting';
+    if (resolvedType.toLowerCase() == 'task') resolvedType = 'Task';
+    if (resolvedType.toLowerCase() == 'focus session') resolvedType = 'Focus Session';
+
+    final parsedCat = (rawCat.isNotEmpty && rawCat.toLowerCase() != 'general') ? rawCat : resolvedType;
 
     return CalendarEvent(
       id: json['id']?.toString() ?? generateUuidV4(),
@@ -389,8 +401,8 @@ class CalendarEvent {
       startTime: start,
       endTime: end,
       location: json['location'] ?? 'Workspace A',
-      type: parsedType.toString(),
-      category: parsedCat.toString(),
+      type: resolvedType,
+      category: parsedCat,
       isCompleted: json['isCompleted'] ?? json['is_completed'] ?? false,
     );
   }

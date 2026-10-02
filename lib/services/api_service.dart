@@ -2734,7 +2734,39 @@ class ApiService {
           'end_time': event.endTime.toIso8601String(),
           'location': event.location,
           'type': event.type,
+          'event_type': event.type,
           'category': event.category,
+          'event_category': event.category,
+          'isCompleted': event.isCompleted,
+          'is_completed': event.isCompleted,
+        }),
+      );
+      return {'statusCode': response.statusCode, 'data': jsonDecode(response.body)};
+    } catch (e) {
+      return {'statusCode': 500, 'data': {'error': e.toString()}};
+    }
+  }
+
+  static Future<Map<String, dynamic>> updateCalendarEventOnBackend(CalendarEvent event) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.patch(
+        Uri.parse('$baseUrl/calendar/${event.id}'),
+        headers: headers,
+        body: jsonEncode({
+          'title': event.title,
+          'description': event.description,
+          'startTime': event.startTime.toIso8601String(),
+          'endTime': event.endTime.toIso8601String(),
+          'start_time': event.startTime.toIso8601String(),
+          'end_time': event.endTime.toIso8601String(),
+          'location': event.location,
+          'type': event.type,
+          'event_type': event.type,
+          'category': event.category,
+          'event_category': event.category,
+          'isCompleted': event.isCompleted,
+          'is_completed': event.isCompleted,
         }),
       );
       return {'statusCode': response.statusCode, 'data': jsonDecode(response.body)};

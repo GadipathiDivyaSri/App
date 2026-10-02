@@ -992,6 +992,7 @@ class AppProvider extends ChangeNotifier {
       );
       _saveEvents();
       notifyListeners();
+      ApiService.updateCalendarEventOnBackend(_calendarEvents[index]);
     }
   }
 
@@ -1235,12 +1236,17 @@ class AppProvider extends ChangeNotifier {
         } catch (_) {}
       }
 
-      // Load Calendar Events
-      final eventsJson = prefs.getString('saved_events');
+      // Load Calendar Events (Eager Load on Startup with User & Fallback Keys)
+      final eventsJson = (_user.id.isNotEmpty ? prefs.getString('saved_events_${_user.id}') : null) ??
+          prefs.getString('saved_events');
       if (eventsJson != null) {
-        final List decoded = jsonDecode(eventsJson);
-        _calendarEvents =
-            decoded.map((item) => CalendarEvent.fromJson(item)).toList();
+        try {
+          final List decoded = jsonDecode(eventsJson);
+          _calendarEvents =
+              decoded.map((item) => CalendarEvent.fromJson(item)).toList();
+        } catch (_) {
+          _calendarEvents = [];
+        }
       } else {
         _calendarEvents = [];
       }
@@ -1392,13 +1398,14 @@ class AppProvider extends ChangeNotifier {
       _organizeTasks = decoded.map((item) => Task.fromJson(item)).toList();
     }
 
-    // 3. Calendar Events (User-Isolated)
-    final eventsJson = prefs.getString('saved_events_$uid');
+    // 3. Calendar Events (User-Isolated with Fallbacks)
+    final eventsJson = prefs.getString('saved_events_$uid') ??
+        (_user.email.isNotEmpty ? prefs.getString('saved_events_${_user.email}') : null) ??
+        (_user.username.isNotEmpty ? prefs.getString('saved_events_${_user.username}') : null) ??
+        prefs.getString('saved_events');
     if (eventsJson != null) {
       final List decoded = jsonDecode(eventsJson);
       _calendarEvents = decoded.map((item) => CalendarEvent.fromJson(item)).toList();
-    } else {
-      _calendarEvents = [];
     }
 
     // 4. Expenses (User-Isolated)
@@ -1849,6 +1856,7 @@ class AppProvider extends ChangeNotifier {
       _saveEvents();
       _recalculateMetrics();
       notifyListeners();
+      ApiService.updateCalendarEventOnBackend(_calendarEvents[index]);
     }
   }
 
@@ -1978,7 +1986,11 @@ class AppProvider extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       final jsonList = _calendarEvents.map((e) => e.toJson()).toList();
-      await prefs.setString('saved_events_${_user.id}', jsonEncode(jsonList));
+      final encoded = jsonEncode(jsonList);
+      if (_user.id.isNotEmpty) await prefs.setString('saved_events_${_user.id}', encoded);
+      if (_user.email.isNotEmpty) await prefs.setString('saved_events_${_user.email}', encoded);
+      if (_user.username.isNotEmpty) await prefs.setString('saved_events_${_user.username}', encoded);
+      await prefs.setString('saved_events', encoded);
     } catch (e) {
       debugPrint('Error saving events: $e');
     }
@@ -2426,6 +2438,11 @@ class AppProvider extends ChangeNotifier {
         final local = evtMap[re.id];
         if (local != null) {
           local.isCompleted = local.isCompleted || re.isCompleted;
+          if (local.type.toLowerCase() != 'general' && re.type.toLowerCase() == 'general') {
+            re.type = local.type;
+          }
+          local.type = re.type.toLowerCase() != 'general' && re.type.isNotEmpty ? re.type : local.type;
+          local.category = local.type;
           evtMap[re.id] = local;
         } else {
           evtMap[re.id] = re;

@@ -53,32 +53,18 @@ class ProfileScreen extends StatelessWidget {
             Center(
               child: Column(
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        user.name.isNotEmpty && user.name != 'Student User' && user.name != 'Alex Johnson'
-                            ? user.name
-                            : (user.username.isNotEmpty && user.username != 'user'
-                                ? user.username
-                                : 'User'),
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                          color: isDark ? Colors.white : AppTheme.textPrimary,
-                        ),
-                      ),
-                      IconButton(
-                        icon: Icon(
-                          Icons.edit_outlined,
-                          size: 18,
-                          color: isDark ? AppTheme.darkIconGlow : AppTheme.primaryAccent,
-                        ),
-                        onPressed: () {
-                          _showEditNameDialog(context, provider);
-                        },
-                      ),
-                    ],
+                  Text(
+                    user.name.isNotEmpty && user.name != 'Student User' && user.name != 'Alex Johnson'
+                        ? user.name
+                        : (user.username.isNotEmpty && user.username != 'user'
+                            ? user.username
+                            : 'User'),
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      color: isDark ? Colors.white : AppTheme.textPrimary,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
                   if (user.username.isNotEmpty && user.username != 'user') ...[
                     const SizedBox(height: 2),

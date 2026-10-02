@@ -1231,8 +1231,16 @@ class DatabaseManager {
       const et = e.end_time || '11:00:00';
       const startTimeIso = e.startTime || (st.includes('T') ? st : `${d}T${st}`);
       const endTimeIso = e.endTime || (et.includes('T') ? et : `${d}T${et}`);
-      const eventType = e.type || e.event_type || e.type_name || 'Focus Session';
-      const cat = e.category || 'General';
+      
+      let eventType = e.event_type || e.type || e.type_name;
+      if (!eventType || eventType.toLowerCase() === 'general') {
+        if (e.category && e.category.toLowerCase() !== 'general') {
+          eventType = e.category;
+        } else {
+          eventType = 'Task';
+        }
+      }
+      const cat = (e.category && e.category.toLowerCase() !== 'general') ? e.category : eventType;
 
       return {
         ...e,
@@ -1240,6 +1248,7 @@ class DatabaseManager {
         startTime: startTimeIso,
         endTime: endTimeIso,
         type: eventType,
+        event_type: eventType,
         category: cat,
       };
     });
@@ -1265,8 +1274,8 @@ class DatabaseManager {
     if (startTimeStr.length === 5) startTimeStr += ':00';
     if (endTimeStr.length === 5) endTimeStr += ':00';
 
-    const eventType = eventData.type || eventData.event_type || 'Focus Session';
-    const category = eventData.category || 'General';
+    const eventType = eventData.event_type || eventData.type || eventData.category || 'Meeting';
+    const category = eventData.category || eventType || 'General';
 
     const newEvent = {
       id: ensureUuid(eventData.id),
@@ -1277,6 +1286,7 @@ class DatabaseManager {
       start_time: startTimeStr,
       end_time: endTimeStr,
       category: category,
+      event_type: eventType,
       location: eventData.location || 'Workspace A',
       is_all_day: !!(eventData.is_all_day ?? eventData.isAllDay),
       created_at: new Date().toISOString(),
@@ -1294,8 +1304,43 @@ class DatabaseManager {
       startTime: isoStart,
       endTime: isoEnd,
       type: eventType,
+      event_type: eventType,
       category: category,
     };
+  }
+
+  static async updateCalendarEvent(userId, eventId, updates) {
+    if (!userId || !eventId) return null;
+    const uid = ensureUuid(userId);
+    const eid = ensureUuid(eventId);
+
+    const payload = { updated_at: new Date().toISOString() };
+    if (updates.title !== undefined) payload.title = updates.title;
+    if (updates.description !== undefined) payload.description = updates.description;
+    if (updates.location !== undefined) payload.location = updates.location;
+    if (updates.type !== undefined || updates.event_type !== undefined) {
+      payload.event_type = updates.event_type || updates.type;
+    }
+    if (updates.category !== undefined) payload.category = updates.category;
+    if (updates.is_completed !== undefined || updates.isCompleted !== undefined) {
+      payload.is_completed = !!(updates.is_completed ?? updates.isCompleted);
+    }
+    if (updates.startTime || updates.start_time) {
+      const st = updates.startTime || updates.start_time;
+      if (st.includes('T')) {
+        payload.event_date = st.split('T')[0];
+        payload.start_time = st.split('T')[1].substring(0, 8);
+      }
+    }
+    if (updates.endTime || updates.end_time) {
+      const et = updates.endTime || updates.end_time;
+      if (et.includes('T')) {
+        payload.end_time = et.split('T')[1].substring(0, 8);
+      }
+    }
+
+    const updated = await dbQuery('calendar_events', { method: 'PATCH', match: { id: eid, user_id: uid }, body: payload, single: true });
+    return updated || null;
   }
 
   static async deleteCalendarEvent(userId, eventId) {

@@ -650,7 +650,7 @@ class CalendarScreen extends StatelessWidget {
     final titleCtrl = TextEditingController(text: event.title);
     final descCtrl = TextEditingController(text: event.description);
     final locationCtrl = TextEditingController(text: event.location);
-    String type = event.type;
+    String type = event.type == 'Meeting' ? 'Meeting' : 'Task';
 
     showModalBottomSheet(
       context: context,
@@ -658,46 +658,71 @@ class CalendarScreen extends StatelessWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
-          top: 24,
-          left: 20,
-          right: 20,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Edit Event', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 16),
-            TextField(controller: titleCtrl, decoration: const InputDecoration(labelText: 'Event Title', border: OutlineInputBorder())),
-            const SizedBox(height: 12),
-            TextField(controller: descCtrl, decoration: const InputDecoration(labelText: 'Description', border: OutlineInputBorder())),
-            const SizedBox(height: 12),
-            TextField(controller: locationCtrl, decoration: const InputDecoration(labelText: 'Location', border: OutlineInputBorder())),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0D5CE5)),
-                onPressed: () {
-                  if (titleCtrl.text.trim().isNotEmpty) {
-                    provider.editCalendarEvent(
-                      event.id,
-                      titleCtrl.text.trim(),
-                      descCtrl.text.trim(),
-                      locationCtrl.text.trim(),
-                      type,
-                    );
-                    Navigator.pop(ctx);
-                  }
-                },
-                child: const Text('Save Changes', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setStateModal) => Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
+            top: 24,
+            left: 20,
+            right: 20,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Edit Event', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+              TextField(controller: titleCtrl, decoration: const InputDecoration(labelText: 'Event Title', border: OutlineInputBorder())),
+              const SizedBox(height: 12),
+              TextField(controller: descCtrl, decoration: const InputDecoration(labelText: 'Description', border: OutlineInputBorder())),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(controller: locationCtrl, decoration: const InputDecoration(labelText: 'Location', border: OutlineInputBorder())),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      value: type,
+                      decoration: const InputDecoration(
+                        labelText: 'Type',
+                        border: OutlineInputBorder(),
+                      ),
+                      items: const [
+                        DropdownMenuItem(value: 'Meeting', child: Text('Meeting')),
+                        DropdownMenuItem(value: 'Task', child: Text('Task')),
+                      ],
+                      onChanged: (val) {
+                        if (val != null) setStateModal(() => type = val);
+                      },
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0D5CE5)),
+                  onPressed: () {
+                    if (titleCtrl.text.trim().isNotEmpty) {
+                      provider.editCalendarEvent(
+                        event.id,
+                        titleCtrl.text.trim(),
+                        descCtrl.text.trim(),
+                        locationCtrl.text.trim(),
+                        type,
+                      );
+                      Navigator.pop(ctx);
+                    }
+                  },
+                  child: const Text('Save Changes', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
