@@ -2,16 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../config/subscription_config.dart';
 import '../providers/app_provider.dart';
-import '../widgets/pro_feature_guard.dart';
-import '../widgets/pro_upgrade_dialog.dart';
-import '../widgets/upgrade_pro_modal.dart';
 import '../theme/app_theme.dart';
 import 'habit_tracker_screen.dart';
 import 'expense_tracker_screen.dart';
 
 import 'organize_matrix_screen.dart';
 import 'notes_screen.dart';
-import 'goal_pyramid_screen.dart';
 
 class PersonalGrowthScreen extends StatelessWidget {
   const PersonalGrowthScreen({super.key});
@@ -134,23 +130,6 @@ class PersonalGrowthScreen extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                     builder: (_) => const ExpenseTrackerScreen(),
-                  ),
-                );
-              },
-            ),
-            // 3. Strategic Goals (Goal Pyramid)
-            _buildMenuCard(
-              context,
-              category: 'STRATEGY & GOALS',
-              title: 'Strategic Goals',
-              icon: Icons.military_tech_outlined,
-              isDark: isDark,
-              isLocked: !provider.hasAccess(AppFeature.goals),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const GoalPyramidScreen(),
                   ),
                 );
               },
