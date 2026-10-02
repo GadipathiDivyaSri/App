@@ -739,25 +739,22 @@ class AppProvider extends ChangeNotifier {
         return t != 'roadmap' &&
             t != 'career' &&
             !t.contains('roadmap') &&
-            !_careerNodes.any((cn) => cn.id == g.id || cn.title.trim().toLowerCase() == g.title.trim().toLowerCase());
+            !_careerNodes.any((cn) => cn.id == g.id);
       }).toList();
 
   List<Goal> get shortGoals => _goals.where((g) {
         final t = g.tier.toLowerCase();
-        return t == 'short' &&
-            !_careerNodes.any((cn) => cn.id == g.id || cn.title.trim().toLowerCase() == g.title.trim().toLowerCase());
+        return t == 'short' && !_careerNodes.any((cn) => cn.id == g.id);
       }).toList();
 
   List<Goal> get mediumGoals => _goals.where((g) {
         final t = g.tier.toLowerCase();
-        return t == 'medium' &&
-            !_careerNodes.any((cn) => cn.id == g.id || cn.title.trim().toLowerCase() == g.title.trim().toLowerCase());
+        return t == 'medium' && !_careerNodes.any((cn) => cn.id == g.id);
       }).toList();
 
   List<Goal> get longGoals => _goals.where((g) {
         final t = g.tier.toLowerCase();
-        return t == 'long' &&
-            !_careerNodes.any((cn) => cn.id == g.id || cn.title.trim().toLowerCase() == g.title.trim().toLowerCase());
+        return t == 'long' && !_careerNodes.any((cn) => cn.id == g.id);
       }).toList();
 
   void addGoal(Goal goal) {

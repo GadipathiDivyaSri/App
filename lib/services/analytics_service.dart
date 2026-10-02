@@ -136,7 +136,7 @@ class AnalyticsService {
     if (totalStudyTasks > 0 && totalStudyTasksCompleted == totalStudyTasks) {
       insights.add(AnalyticsInsight(
         title: 'Academic Milestone Reached',
-        message: 'All ${totalStudyTasks} scheduled tasks and assignments in this period are 100% completed!',
+        message: 'All $totalStudyTasks scheduled tasks and assignments in this period are 100% completed!',
         icon: Icons.school_rounded,
         sentiment: InsightSentiment.positive,
       ));
@@ -548,18 +548,13 @@ class AnalyticsService {
 
     final goalItems = <GoalItemAnalytics>[];
     final seenIds = <String>{};
-    final seenTitles = <String>{};
 
     if (pyramidGoals != null) {
       for (final pg in pyramidGoals) {
-        final normTitle = pg.title.trim().toLowerCase();
         final t = pg.tier.toLowerCase();
         if (t == 'roadmap' || t == 'career' || t.contains('roadmap')) continue;
-        if (seenIds.contains(pg.id) || (normTitle.isNotEmpty && seenTitles.contains(normTitle))) {
-          continue;
-        }
+        if (seenIds.contains(pg.id)) continue;
         seenIds.add(pg.id);
-        if (normTitle.isNotEmpty) seenTitles.add(normTitle);
 
         final prog = pg.isCompleted ? 1.0 : 0.0;
         final status = pg.isCompleted ? 'Completed' : 'Planned';
@@ -580,12 +575,8 @@ class AnalyticsService {
     }
 
     for (final g in roadmapNodes) {
-      final normTitle = g.title.trim().toLowerCase();
-      if (seenIds.contains(g.id) || (normTitle.isNotEmpty && seenTitles.contains(normTitle))) {
-        continue;
-      }
+      if (seenIds.contains(g.id)) continue;
       seenIds.add(g.id);
-      if (normTitle.isNotEmpty) seenTitles.add(normTitle);
 
       final prog = g.isCompleted ? 1.0 : 0.0;
       final status = g.isCompleted ? 'Completed' : 'Planned';
