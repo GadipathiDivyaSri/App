@@ -802,10 +802,12 @@ class AppProvider extends ChangeNotifier {
     }
   }
 
-  void deleteGoal(String id) {
+  Future<void> deleteGoal(String id) async {
     final idx = _goals.indexWhere((g) => g.id == id);
+    String? title;
     if (idx != -1) {
-      final titleNorm = _goals[idx].title.trim().toLowerCase();
+      title = _goals[idx].title;
+      final titleNorm = title.trim().toLowerCase();
       _deletedItemIds.add(id);
       if (titleNorm.isNotEmpty) _deletedItemIds.add(titleNorm);
     } else {
@@ -815,7 +817,7 @@ class AppProvider extends ChangeNotifier {
     _goals.removeWhere((g) => g.id == id);
     _saveGoals();
     notifyListeners();
-    ApiService.deleteGoalOnBackend(id);
+    await ApiService.deleteGoalOnBackend(id, goalTitle: title);
   }
 
   Future<void> fetchGoalsFromBackend() async {

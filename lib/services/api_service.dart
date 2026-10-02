@@ -2731,28 +2731,57 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> deleteGoalOnBackend(String goalId) async {
-    try {
-      final headers = await _getHeaders();
-      await http.delete(
-        Uri.parse('$baseUrl/goals/$goalId'),
-        headers: headers,
-      ).timeout(const Duration(seconds: 6), onTimeout: () => http.Response('', 408));
-    } catch (_) {}
+  static Future<Map<String, dynamic>> deleteGoalOnBackend(String goalId, {String? goalTitle}) async {
+    final uid = await getEffectiveUserUuid();
+    final cleanId = ensureUuid(goalId);
 
-    try {
-      final user = await getSessionUser();
-      final uid = user?['id']?.toString() ?? user?['userId']?.toString();
-      if (uid != null && uid.isNotEmpty) {
+    if (uid != null && uid.isNotEmpty) {
+      try {
+        // 1. Delete from Supabase 'goals' table by clean UUID
         await http.delete(
-          Uri.parse('$supabaseUrl/rest/v1/goals?id=eq.$goalId&user_id=eq.$uid'),
+          Uri.parse('$supabaseUrl/rest/v1/goals?id=eq.$cleanId&user_id=eq.$uid'),
           headers: {
             'apikey': supabaseServiceKey,
             'Authorization': 'Bearer $supabaseServiceKey',
           },
-        ).timeout(const Duration(seconds: 6), onTimeout: () => http.Response('', 408));
+        ).timeout(const Duration(seconds: 8));
+
+        // 2. If cleanId != goalId, also delete with raw goalId
+        if (cleanId != goalId) {
+          await http.delete(
+            Uri.parse('$supabaseUrl/rest/v1/goals?id=eq.$goalId&user_id=eq.$uid'),
+            headers: {
+              'apikey': supabaseServiceKey,
+              'Authorization': 'Bearer $supabaseServiceKey',
+            },
+          ).catchError((_) => http.Response('', 500));
+        }
+
+        // 3. Title fallback deletion if provided
+        if (goalTitle != null && goalTitle.trim().isNotEmpty) {
+          final encTitle = Uri.encodeComponent(goalTitle.trim());
+          await http.delete(
+            Uri.parse('$supabaseUrl/rest/v1/goals?title=eq.$encTitle&user_id=eq.$uid'),
+            headers: {
+              'apikey': supabaseServiceKey,
+              'Authorization': 'Bearer $supabaseServiceKey',
+            },
+          ).catchError((_) => http.Response('', 500));
+        }
+        debugPrint('[ApiService] Goal $cleanId deleted from Supabase goals table');
+      } catch (e) {
+        debugPrint('[ApiService] Error deleting goal from Supabase: $e');
       }
+    }
+
+    try {
+      final headers = await _getHeaders();
+      await http.delete(
+        Uri.parse('$baseUrl/goals/$cleanId'),
+        headers: headers,
+      ).timeout(const Duration(seconds: 5), onTimeout: () => http.Response('', 408));
     } catch (_) {}
+
     return {'statusCode': 200, 'data': {'success': true}};
   }
 
