@@ -2823,7 +2823,7 @@ class ApiService {
       }
 
       final headers = await _getHeaders();
-      await http.post(
+      final response = await http.post(
         Uri.parse('$baseUrl/career-roadmap'),
         headers: headers,
         body: jsonEncode({
@@ -2832,6 +2832,7 @@ class ApiService {
           'description': node.description,
           'section': node.section,
           'is_completed': node.isCompleted,
+        }),
       ).timeout(const Duration(seconds: 5), onTimeout: () => http.Response('{}', 408));
       return {'statusCode': response.statusCode, 'data': jsonDecode(response.body)};
     } catch (e) {
