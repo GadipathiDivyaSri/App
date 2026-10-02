@@ -1061,6 +1061,146 @@ class DatabaseManager {
   }
 
   // ---------------------------------------------------------------------------
+  // STUDY UNITS & TOPICS (DIRECT POSTGRESQL CRUD)
+  // ---------------------------------------------------------------------------
+  static async getStudyUnits(userId, subjectId = null) {
+    if (!userId) return [];
+    const uid = ensureUuid(userId);
+    const match = { user_id: uid };
+    if (subjectId) match.subject_id = ensureUuid(subjectId);
+    const units = await dbQuery('study_units', { method: 'GET', match });
+    return (units || []).map(u => ({
+      id: u.id,
+      user_id: u.user_id,
+      subject_id: u.subject_id,
+      subjectId: u.subject_id,
+      title: u.title || u.unit_title || 'Unit',
+      description: u.description || '',
+      progress: Number(u.progress) || 0.0,
+      isCompleted: !!(u.is_completed || u.isCompleted || u.status === 'completed'),
+      orderNum: u.order_num || u.unit_number || 1,
+    }));
+  }
+
+  static async createStudyUnit(userId, unitData) {
+    if (!userId) throw new Error('userId is required');
+    const uid = ensureUuid(userId);
+    const sid = unitData.subject_id || unitData.subjectId;
+    const newUnit = {
+      id: ensureUuid(unitData.id),
+      user_id: uid,
+      subject_id: sid ? ensureUuid(sid) : uid,
+      title: unitData.title || unitData.unit_title || 'New Unit',
+      description: unitData.description || '',
+      progress: Number(unitData.progress) || 0.0,
+      is_completed: !!(unitData.is_completed || unitData.isCompleted),
+      status: (unitData.is_completed || unitData.isCompleted) ? 'completed' : 'pending',
+      created_at: new Date().toISOString(),
+    };
+    const created = await dbQuery('study_units', { method: 'POST', body: newUnit, single: true });
+    const res = created || newUnit;
+    return {
+      ...res,
+      subjectId: res.subject_id,
+      isCompleted: !!res.is_completed,
+    };
+  }
+
+  static async updateStudyUnit(userId, unitId, updates) {
+    if (!userId || !unitId) return null;
+    const uid = ensureUuid(userId);
+    const unid = ensureUuid(unitId);
+    const payload = {};
+    if (updates.title !== undefined) payload.title = updates.title;
+    if (updates.description !== undefined) payload.description = updates.description;
+    if (updates.progress !== undefined) payload.progress = updates.progress;
+    if (updates.is_completed !== undefined || updates.isCompleted !== undefined) {
+      const isComp = !!(updates.is_completed ?? updates.isCompleted);
+      payload.is_completed = isComp;
+      payload.status = isComp ? 'completed' : 'pending';
+    }
+    const updated = await dbQuery('study_units', { method: 'PATCH', match: { id: unid, user_id: uid }, body: payload, single: true });
+    return updated ? {
+      ...updated,
+      subjectId: updated.subject_id,
+      isCompleted: !!updated.is_completed,
+    } : null;
+  }
+
+  static async deleteStudyUnit(userId, unitId) {
+    if (!userId || !unitId) return false;
+    const uid = ensureUuid(userId);
+    const unid = ensureUuid(unitId);
+    await dbQuery('study_topics', { method: 'DELETE', match: { unit_id: unid, user_id: uid } });
+    return await dbQuery('study_units', { method: 'DELETE', match: { id: unid, user_id: uid } });
+  }
+
+  static async getStudyTopics(userId, unitId = null) {
+    if (!userId) return [];
+    const uid = ensureUuid(userId);
+    const match = { user_id: uid };
+    if (unitId) match.unit_id = ensureUuid(unitId);
+    const topics = await dbQuery('study_topics', { method: 'GET', match });
+    return (topics || []).map(t => ({
+      id: t.id,
+      user_id: t.user_id,
+      unit_id: t.unit_id,
+      unitId: t.unit_id,
+      title: t.title || 'Topic',
+      isCompleted: !!(t.is_completed || t.isCompleted || t.status === 'completed'),
+    }));
+  }
+
+  static async createStudyTopic(userId, topicData) {
+    if (!userId) throw new Error('userId is required');
+    const uid = ensureUuid(userId);
+    const unid = topicData.unit_id || topicData.unitId;
+    const newTopic = {
+      id: ensureUuid(topicData.id),
+      user_id: uid,
+      unit_id: unid ? ensureUuid(unid) : uid,
+      title: topicData.title || 'New Topic',
+      is_completed: !!(topicData.is_completed || topicData.isCompleted),
+      status: (topicData.is_completed || topicData.isCompleted) ? 'completed' : 'pending',
+      created_at: new Date().toISOString(),
+    };
+    const created = await dbQuery('study_topics', { method: 'POST', body: newTopic, single: true });
+    const res = created || newTopic;
+    return {
+      ...res,
+      unitId: res.unit_id,
+      isCompleted: !!res.is_completed,
+    };
+  }
+
+  static async toggleStudyTopic(userId, topicId) {
+    if (!userId || !topicId) return null;
+    const uid = ensureUuid(userId);
+    const tid = ensureUuid(topicId);
+    const existing = await dbQuery('study_topics', { method: 'GET', match: { id: tid, user_id: uid }, single: true });
+    if (!existing) return null;
+    const newComp = !existing.is_completed;
+    const updated = await dbQuery('study_topics', {
+      method: 'PATCH',
+      match: { id: tid, user_id: uid },
+      body: { is_completed: newComp, status: newComp ? 'completed' : 'pending' },
+      single: true,
+    });
+    return updated ? {
+      ...updated,
+      unitId: updated.unit_id,
+      isCompleted: !!updated.is_completed,
+    } : null;
+  }
+
+  static async deleteStudyTopic(userId, topicId) {
+    if (!userId || !topicId) return false;
+    const uid = ensureUuid(userId);
+    const tid = ensureUuid(topicId);
+    return await dbQuery('study_topics', { method: 'DELETE', match: { id: tid, user_id: uid } });
+  }
+
+  // ---------------------------------------------------------------------------
   // GOALS & MILESTONES (DIRECT POSTGRESQL CRUD)
   // ---------------------------------------------------------------------------
   static async getGoals(userId, tier = null) {

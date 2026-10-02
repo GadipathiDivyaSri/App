@@ -224,6 +224,20 @@ class AppProvider extends ChangeNotifier {
     );
     _subscription = UserSubscription.defaultFree('u_guest');
     _deletedItemIds = {};
+    _habits = [];
+    _todoTasks = [];
+    _organizeTasks = [];
+    _priorityMatrixTasks = [];
+    _calendarEvents = [];
+    _notifications = [];
+    _expenses = [];
+    _subjects = [];
+    _studyItems = [];
+    _studyUnits = [];
+    _studyTopics = [];
+    _journalEntries = [];
+    _goals = [];
+    _careerNodes = [];
     await ApiService.clearSession();
     await AuthApiService.clearSession();
     try {
@@ -1359,6 +1373,21 @@ class AppProvider extends ChangeNotifier {
   }
 
   Future<void> _loadUserIsolatedData() async {
+    _habits = [];
+    _todoTasks = [];
+    _organizeTasks = [];
+    _priorityMatrixTasks = [];
+    _calendarEvents = [];
+    _notifications = [];
+    _expenses = [];
+    _subjects = [];
+    _studyItems = [];
+    _studyUnits = [];
+    _studyTopics = [];
+    _journalEntries = [];
+    _goals = [];
+    _careerNodes = [];
+
     final prefs = await SharedPreferences.getInstance();
     final uid = _user.id;
 
