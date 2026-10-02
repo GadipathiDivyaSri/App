@@ -1862,7 +1862,6 @@ class ApiService {
         'study_items',
         'study_units',
         'study_topics',
-        'goals',
         'milestones',
         'subscriptions',
         'referrals',
