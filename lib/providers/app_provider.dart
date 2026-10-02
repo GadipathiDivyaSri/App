@@ -2286,6 +2286,13 @@ class AppProvider extends ChangeNotifier {
         final existingId = habitMap.containsKey(rh.id) ? rh.id : (normTitle.isNotEmpty ? titleToId[normTitle] : null);
         if (existingId != null && habitMap.containsKey(existingId)) {
           final local = habitMap[existingId]!;
+          local.title = rh.title.isNotEmpty ? rh.title : local.title;
+          local.description = rh.description.isNotEmpty ? rh.description : local.description;
+          local.category = rh.category;
+          local.frequency = rh.frequency;
+          if (rh.selectedDays.isNotEmpty) local.selectedDays = rh.selectedDays;
+          local.colorHex = rh.colorHex;
+          local.iconName = rh.iconName;
           final mergedHistory = {...local.completionHistory, ...rh.completionHistory}.toList();
           local.completionHistory = mergedHistory;
           local.isCompleted = local.isCompleted || rh.isCompleted;
@@ -2480,15 +2487,28 @@ class AppProvider extends ChangeNotifier {
       final validRemote = remoteEvents.where((e) => !_deletedItemIds.contains(e.id)).toList();
       final Map<String, CalendarEvent> evtMap = {for (var e in _calendarEvents) if (!_deletedItemIds.contains(e.id)) e.id: e};
       for (var re in validRemote) {
-        final local = evtMap[re.id];
+        String? matchKey = re.id;
+        if (!evtMap.containsKey(matchKey)) {
+          final titleMatch = evtMap.values.where((e) =>
+            e.title.trim().toLowerCase() == re.title.trim().toLowerCase() &&
+            e.startTime.year == re.startTime.year &&
+            e.startTime.month == re.startTime.month &&
+            e.startTime.day == re.startTime.day
+          ).firstOrNull;
+          if (titleMatch != null) matchKey = titleMatch.id;
+        }
+
+        final local = evtMap[matchKey];
         if (local != null) {
-          local.isCompleted = re.isCompleted;
-          if (local.type.toLowerCase() != 'general' && re.type.toLowerCase() == 'general') {
-            re.type = local.type;
-          }
-          local.type = re.type.toLowerCase() != 'general' && re.type.isNotEmpty ? re.type : local.type;
+          local.title = re.title.isNotEmpty ? re.title : local.title;
+          local.description = re.description;
+          local.startTime = re.startTime;
+          local.endTime = re.endTime;
+          local.location = re.location.isNotEmpty ? re.location : local.location;
+          local.type = (re.type.isNotEmpty && re.type.toLowerCase() != 'general') ? re.type : local.type;
           local.category = local.type;
-          evtMap[re.id] = local;
+          local.isCompleted = re.isCompleted;
+          evtMap[matchKey!] = local;
         } else {
           evtMap[re.id] = re;
         }
@@ -2522,6 +2542,11 @@ class AppProvider extends ChangeNotifier {
         final existingId = nodeMap.containsKey(rn.id) ? rn.id : (normTitle.isNotEmpty ? titleToId[normTitle] : null);
         if (existingId != null && nodeMap.containsKey(existingId)) {
           final local = nodeMap[existingId]!;
+          local.title = rn.title.isNotEmpty ? rn.title : local.title;
+          local.description = rn.description;
+          local.section = rn.section;
+          local.status = rn.status;
+          local.order = rn.order;
           local.isCompleted = rn.isCompleted;
           nodeMap[existingId] = local;
         } else {
@@ -2544,7 +2569,28 @@ class AppProvider extends ChangeNotifier {
       final validRemote = remoteEntries.where((j) => !_deletedItemIds.contains(j.id)).toList();
       final Map<String, JournalEntry> entryMap = {for (var j in _journalEntries) if (!_deletedItemIds.contains(j.id)) j.id: j};
       for (var rj in validRemote) {
-        entryMap[rj.id] = rj;
+        String? matchKey = rj.id;
+        if (!entryMap.containsKey(matchKey)) {
+          final titleMatch = entryMap.values.where((j) =>
+            j.title.trim().toLowerCase() == rj.title.trim().toLowerCase() &&
+            j.date.year == rj.date.year &&
+            j.date.month == rj.date.month &&
+            j.date.day == rj.date.day
+          ).firstOrNull;
+          if (titleMatch != null) matchKey = titleMatch.id;
+        }
+
+        final local = entryMap[matchKey];
+        if (local != null) {
+          local.title = rj.title.isNotEmpty ? rj.title : local.title;
+          local.content = rj.content.isNotEmpty ? rj.content : local.content;
+          local.date = rj.date;
+          local.mood = rj.mood.isNotEmpty ? rj.mood : local.mood;
+          if (rj.tags.isNotEmpty) local.tags = rj.tags;
+          entryMap[matchKey!] = local;
+        } else {
+          entryMap[rj.id] = rj;
+        }
       }
       _journalEntries = entryMap.values.where((j) => !_deletedItemIds.contains(j.id)).toList();
       _saveJournalEntries();
