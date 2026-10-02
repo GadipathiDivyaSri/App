@@ -79,16 +79,14 @@ class BillingService extends ChangeNotifier {
     }
 
     // Subscribe to continuous purchase updates if not already subscribed
-    if (_purchaseSubscription == null) {
-      _purchaseSubscription = _iap.purchaseStream.listen(
-        _handlePurchaseUpdates,
-        onDone: () => _purchaseSubscription?.cancel(),
-        onError: (error) {
-          errorMessage = error.toString();
-          notifyListeners();
-        },
-      );
-    }
+    _purchaseSubscription ??= _iap.purchaseStream.listen(
+      _handlePurchaseUpdates,
+      onDone: () => _purchaseSubscription?.cancel(),
+      onError: (error) {
+        errorMessage = error.toString();
+        notifyListeners();
+      },
+    );
 
     try {
       final ProductDetailsResponse response = await _iap.queryProductDetails({proSubscriptionId}).timeout(

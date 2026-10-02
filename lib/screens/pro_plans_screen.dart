@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../config/subscription_config.dart';
 import '../providers/app_provider.dart';
 import '../services/billing_service.dart';
-import '../theme/app_theme.dart';
 
 /// Dedicated WrindhaOS Pro Plans Screen
 /// 

@@ -1428,9 +1428,7 @@ class ApiService {
       }
 
       var profile = verified['profile'];
-      if (profile == null) {
-        profile = await _fetchSupabaseProfileByEmailOrUsername(cleanEmail);
-      }
+      profile ??= await _fetchSupabaseProfileByEmailOrUsername(cleanEmail);
       if (profile == null) {
         return {'success': false, 'message': 'User profile not found. Please log in again.'};
       }
@@ -2720,7 +2718,7 @@ class ApiService {
       ).timeout(const Duration(seconds: 5), onTimeout: () => http.Response('{}', 408));
       return {'statusCode': response.statusCode, 'data': jsonDecode(response.body)};
     } catch (e) {
-      return {'statusCode': 200, 'data': {'success': true}};
+      return {'statusCode': saved ? 200 : 500, 'data': {'success': saved}};
     }
   }
 
