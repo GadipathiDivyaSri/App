@@ -1663,7 +1663,14 @@ class AppProvider extends ChangeNotifier {
   }
 
   void deleteTodoTask(String taskId) {
-    _deletedItemIds.add(taskId);
+    final idx = _todoTasks.indexWhere((t) => t.id == taskId);
+    if (idx != -1) {
+      final titleNorm = _todoTasks[idx].title.trim().toLowerCase();
+      _deletedItemIds.add(taskId);
+      if (titleNorm.isNotEmpty) _deletedItemIds.add(titleNorm);
+    } else {
+      _deletedItemIds.add(taskId);
+    }
     _saveDeletedItemIds();
     _todoTasks.removeWhere((t) => t.id == taskId);
     _saveTodoTasks();
@@ -2251,125 +2258,111 @@ class AppProvider extends ChangeNotifier {
 
   Future<void> syncTasksFromCloud() async {
     try {
+      // 1. Flush any pending offline deletions to Supabase
+      for (final delId in _deletedItemIds) {
+        if (delId.contains('-') && delId.length == 36) {
+          ApiService.deleteTaskOnBackend(delId);
+        }
+      }
+
+      // 2. Fetch authoritative remote tasks from Supabase
       final remoteTasks = await ApiService.fetchTasks();
+
+      // Ensure any remote tasks that match deleted IDs or titles are deleted on backend
+      for (var rt in remoteTasks) {
+        if (_deletedItemIds.contains(rt.id) ||
+            _deletedItemIds.contains(rt.title.trim().toLowerCase())) {
+          ApiService.deleteTaskOnBackend(rt.id);
+        }
+      }
+
       final validRemote = remoteTasks.where((t) =>
-        !_deletedItemIds.contains(t.id)
+        !_deletedItemIds.contains(t.id) &&
+        !_deletedItemIds.contains(t.title.trim().toLowerCase())
       ).toList();
 
-      // 1. Merge Priority Matrix Tasks
+      // 3. Sync Priority Matrix Tasks (Supabase Authoritative)
       final remotePmTasks = validRemote.where((t) =>
         t.isPriorityMatrixOnly || t.category == 'Priority Matrix'
       ).toList();
-      if (remotePmTasks.isNotEmpty || _priorityMatrixTasks.isNotEmpty) {
-        final Map<String, Task> pmMap = {
-          for (var t in _priorityMatrixTasks) if (!_deletedItemIds.contains(t.id)) t.id: t
-        };
-        for (var rt in remotePmTasks) {
-          Task? local = pmMap[rt.id];
-          if (local == null) {
-            for (var t in pmMap.values) {
-              if (t.title.trim().toLowerCase() == rt.title.trim().toLowerCase() && t.tag == rt.tag) {
-                local = t;
-                break;
-              }
-            }
-          }
-          if (local != null) {
-            local.isCompleted = rt.isCompleted;
-            if (rt.isCompleted) {
-              local.completedDate = rt.completedDate ?? DateTime.now();
-              local.dueDateLabel = 'Completed';
-            } else {
-              local.completedDate = null;
-              local.dueDateLabel = 'Today';
-            }
-            pmMap[local.id] = local;
-          } else {
-            pmMap[rt.id] = rt;
+
+      // Find any local tasks that were created offline and not yet present remotely
+      final List<Task> pendingPmTasks = [];
+      for (var lt in _priorityMatrixTasks) {
+        if (!_deletedItemIds.contains(lt.id) &&
+            !_deletedItemIds.contains(lt.title.trim().toLowerCase())) {
+          final existsRemote = remotePmTasks.any((rt) =>
+            rt.id == lt.id ||
+            (rt.title.trim().toLowerCase() == lt.title.trim().toLowerCase() && rt.tag == lt.tag)
+          );
+          if (!existsRemote && remoteTasks.isEmpty) {
+            // Keep local only if remote returned nothing (offline fallback)
+            pendingPmTasks.add(lt);
           }
         }
-        _priorityMatrixTasks = pmMap.values.where((t) => !_deletedItemIds.contains(t.id)).toList();
-        _savePriorityMatrixTasks();
       }
 
-      // 2. Merge Eisenhower / Organize Matrix Tasks
+      final Map<String, Task> pmMap = {
+        for (var t in remotePmTasks) t.id: t,
+        for (var t in pendingPmTasks) t.id: t,
+      };
+      _priorityMatrixTasks = pmMap.values.toList();
+      _savePriorityMatrixTasks();
+
+      // 4. Sync Eisenhower / Organize Matrix Tasks (Supabase Authoritative)
       final remoteOrgTasks = validRemote.where((t) =>
         t.category == 'Eisenhower Matrix'
       ).toList();
-      if (remoteOrgTasks.isNotEmpty || _organizeTasks.isNotEmpty) {
-        final Map<String, Task> orgMap = {
-          for (var t in _organizeTasks) if (!_deletedItemIds.contains(t.id)) t.id: t
-        };
-        for (var rt in remoteOrgTasks) {
-          Task? local = orgMap[rt.id];
-          if (local == null) {
-            for (var t in orgMap.values) {
-              if (t.title.trim().toLowerCase() == rt.title.trim().toLowerCase()) {
-                local = t;
-                break;
-              }
-            }
-          }
-          if (local != null) {
-            local.isCompleted = rt.isCompleted;
-            if (rt.isCompleted) {
-              local.completedDate = rt.completedDate ?? DateTime.now();
-              local.dueDateLabel = 'Completed';
-            } else {
-              local.completedDate = null;
-              local.dueDateLabel = 'Today';
-            }
-            orgMap[local.id] = local;
-          } else {
-            orgMap[rt.id] = rt;
+
+      final List<Task> pendingOrgTasks = [];
+      for (var lt in _organizeTasks) {
+        if (!_deletedItemIds.contains(lt.id) &&
+            !_deletedItemIds.contains(lt.title.trim().toLowerCase())) {
+          final existsRemote = remoteOrgTasks.any((rt) =>
+            rt.id == lt.id ||
+            rt.title.trim().toLowerCase() == lt.title.trim().toLowerCase()
+          );
+          if (!existsRemote && remoteTasks.isEmpty) {
+            pendingOrgTasks.add(lt);
           }
         }
-        _organizeTasks = orgMap.values.where((t) => !_deletedItemIds.contains(t.id)).toList();
-        _saveOrganizeTasks();
       }
 
-      // 3. Merge Regular To-Do Tasks
+      final Map<String, Task> orgMap = {
+        for (var t in remoteOrgTasks) t.id: t,
+        for (var t in pendingOrgTasks) t.id: t,
+      };
+      _organizeTasks = orgMap.values.toList();
+      _saveOrganizeTasks();
+
+      // 5. Sync Regular To-Do Tasks (Supabase Authoritative)
       final remoteTodoTasks = validRemote.where((t) =>
         !t.isPriorityMatrixOnly && t.category != 'Priority Matrix' && t.category != 'Eisenhower Matrix'
       ).toList();
-      final Map<String, Task> taskMap = {
-        for (var t in _tasks)
-          if (!_deletedItemIds.contains(t.id) && !t.isPriorityMatrixOnly && t.category != 'Priority Matrix' && t.category != 'Eisenhower Matrix')
-            t.id: t
-      };
-      for (var rt in remoteTodoTasks) {
-        Task? local = taskMap[rt.id];
-        if (local == null) {
-          for (var t in taskMap.values) {
-            if (t.title.trim().toLowerCase() == rt.title.trim().toLowerCase()) {
-              local = t;
-              break;
-            }
+
+      final List<Task> pendingTodoTasks = [];
+      for (var lt in _todoTasks) {
+        if (!_deletedItemIds.contains(lt.id) &&
+            !_deletedItemIds.contains(lt.title.trim().toLowerCase())) {
+          final existsRemote = remoteTodoTasks.any((rt) =>
+            rt.id == lt.id ||
+            rt.title.trim().toLowerCase() == lt.title.trim().toLowerCase()
+          );
+          if (!existsRemote && remoteTasks.isEmpty) {
+            pendingTodoTasks.add(lt);
           }
-        }
-        if (local != null) {
-          local.isCompleted = rt.isCompleted;
-          if (rt.isCompleted) {
-            local.completedDate = rt.completedDate ?? DateTime.now();
-            local.dueDateLabel = 'Completed';
-          } else {
-            local.completedDate = null;
-            local.dueDateLabel = 'Today';
-          }
-          taskMap[local.id] = local;
-        } else {
-          taskMap[rt.id] = rt;
         }
       }
-      _tasks = taskMap.values.where((t) =>
-        !_deletedItemIds.contains(t.id) &&
-        !t.isPriorityMatrixOnly &&
-        t.category != 'Priority Matrix' &&
-        t.category != 'Eisenhower Matrix'
-      ).toList();
-      _saveTasks();
+
+      final Map<String, Task> todoMap = {
+        for (var t in remoteTodoTasks) t.id: t,
+        for (var t in pendingTodoTasks) t.id: t,
+      };
+      _todoTasks = todoMap.values.toList();
+      _saveTodoTasks();
       _recalculateMetrics();
       notifyListeners();
+      debugPrint('[AppProvider] Tasks successfully synchronized with Supabase source of truth');
     } catch (e) {
       debugPrint('[AppProvider] syncTasksFromCloud error: $e');
     }

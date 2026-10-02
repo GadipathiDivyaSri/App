@@ -59,11 +59,67 @@ class ApiService {
     debugPrint(buffer.toString());
   }
 
+  /// Ensures any string ID is formatted as a valid RFC 4122 UUID v4.
+  /// If it is already a UUID, returns lowercase string.
+  /// If not, deterministically generates a UUID v4 via SHA-256 hash.
+  static String ensureUuid(String? id) {
+    if (id == null || id.trim().isEmpty) return generateUuidV4();
+    final str = id.trim();
+    if (RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$').hasMatch(str)) {
+      return str.toLowerCase();
+    }
+    final bytes = utf8.encode(str);
+    final digest = sha256.convert(bytes).toString();
+    return '${digest.substring(0, 8)}-${digest.substring(8, 12)}-4${digest.substring(13, 16)}-a${digest.substring(17, 20)}-${digest.substring(20, 32)}';
+  }
+
+  /// Resolves the authenticated user's actual Supabase UUID.
+  /// Guarantees that Postgres never receives 'u_1', 'u_guest', or invalid UUID strings.
+  static Future<String?> getEffectiveUserUuid() async {
+    final user = await getSessionUser();
+    String? uid = user?['id']?.toString() ?? user?['userId']?.toString();
+    if (uid != null && uid.isNotEmpty && uid != 'u_1' && uid != 'u_guest') {
+      if (RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$').hasMatch(uid)) {
+        return uid.toLowerCase();
+      }
+    }
+    // Check email in session user to resolve actual UUID from Supabase profiles
+    final email = (user?['email']?.toString() ?? user?['contact']?.toString() ?? '').trim().toLowerCase();
+    if (email.isNotEmpty && email.contains('@')) {
+      try {
+        final res = await http.get(
+          Uri.parse('$supabaseUrl/rest/v1/profiles?email=eq.$email&select=id'),
+          headers: {
+            'apikey': supabaseServiceKey,
+            'Authorization': 'Bearer $supabaseServiceKey',
+          },
+        ).timeout(const Duration(seconds: 4));
+        if (res.statusCode == 200) {
+          final List list = jsonDecode(res.body);
+          if (list.isNotEmpty && list[0]['id'] != null) {
+            final resolvedId = list[0]['id'].toString().toLowerCase();
+            // Cache back into SharedPreferences
+            if (user != null) {
+              user['id'] = resolvedId;
+              user['userId'] = resolvedId;
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.setString(_userKey, jsonEncode(user));
+            }
+            return resolvedId;
+          }
+        }
+      } catch (_) {}
+    }
+    if (uid != null && uid.isNotEmpty && uid != 'u_1' && uid != 'u_guest') {
+      return ensureUuid(uid);
+    }
+    return null;
+  }
+
   /// Helper to generate authenticated HTTP headers
   static Future<Map<String, String>> _getHeaders() async {
     final token = await getSessionToken();
-    final user = await getSessionUser();
-    final uid = user?['id']?.toString() ?? user?['userId']?.toString();
+    final uid = await getEffectiveUserUuid();
     return {
       'Content-Type': 'application/json',
       if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
@@ -1962,8 +2018,9 @@ class ApiService {
   // ---------------------------------------------------------------------------
   static Future<UserSubscription?> fetchUserSubscription() async {
     final token = await getSessionToken();
+    final uid = await getEffectiveUserUuid();
     final user = await getSessionUser();
-    final uid = user?['id']?.toString() ?? user?['userId']?.toString();
+    final email = (user?['email']?.toString() ?? user?['contact']?.toString() ?? '').trim().toLowerCase();
 
     // 1. Try Vercel Backend Endpoints
     if (token != null && token.isNotEmpty) {
@@ -2035,6 +2092,35 @@ class ApiService {
               return UserSubscription(
                 id: 'sub_$uid',
                 userId: uid,
+                plan: 'pro',
+                status: 'active',
+                startedAt: DateTime.now(),
+              );
+            }
+          }
+        }
+      } catch (_) {}
+    } else if (email.isNotEmpty && email.contains('@')) {
+      // 4. Query Profiles by Email directly if UID is uninitialized
+      try {
+        final profRes = await http.get(
+          Uri.parse('$supabaseUrl/rest/v1/profiles?email=eq.$email&select=id,is_premium,subscription_plan'),
+          headers: {
+            'apikey': supabaseServiceKey,
+            'Authorization': 'Bearer $supabaseServiceKey',
+          },
+        ).timeout(const Duration(seconds: 6), onTimeout: () => http.Response('[]', 408));
+
+        if (profRes.statusCode == 200) {
+          final List profs = jsonDecode(profRes.body);
+          if (profs.isNotEmpty && profs[0] is Map<String, dynamic>) {
+            final p = profs[0];
+            final planStr = (p['subscription_plan'] ?? '').toString().toUpperCase();
+            if (p['is_premium'] == true || planStr == 'PRO' || planStr == 'PREMIUM') {
+              final resolvedUid = p['id']?.toString() ?? 'sub_user';
+              return UserSubscription(
+                id: 'sub_$resolvedUid',
+                userId: resolvedUid,
                 plan: 'pro',
                 status: 'active',
                 startedAt: DateTime.now(),
@@ -2832,15 +2918,36 @@ class ApiService {
   }
 
   // ---------------------------------------------------------------------------
-  // TASKS API (SUPABASE BACKEND SYNC)
+  // TASKS API (SUPABASE SOURCE OF TRUTH + CLOUD SYNC)
   // ---------------------------------------------------------------------------
   static Future<List<Task>> fetchTasks() async {
+    final uid = await getEffectiveUserUuid();
     final token = await getSessionToken();
-    final user = await getSessionUser();
-    final uid = user?['id']?.toString() ?? user?['userId']?.toString();
-    if ((token == null || token.isEmpty) && (uid == null || uid.isEmpty)) return [];
 
-    // 1. Try Vercel Backend
+    // 1. Primary: Direct Supabase PostgreSQL Query (Source of Truth)
+    if (uid != null && uid.isNotEmpty) {
+      try {
+        final res = await http.get(
+          Uri.parse('$supabaseUrl/rest/v1/tasks?user_id=eq.$uid&select=*&order=created_at.desc'),
+          headers: {
+            'apikey': supabaseServiceKey,
+            'Authorization': 'Bearer $supabaseServiceKey',
+          },
+        ).timeout(const Duration(seconds: 8), onTimeout: () => http.Response('[]', 408));
+
+        if (res.statusCode == 200) {
+          final List<dynamic> list = jsonDecode(res.body);
+          debugPrint('[ApiService] Successfully fetched ${list.length} tasks from Supabase for user $uid');
+          return list.map((json) => Task.fromJson(json)).toList();
+        } else {
+          debugPrint('[ApiService] Supabase fetchTasks returned ${res.statusCode}: ${res.body}');
+        }
+      } catch (e) {
+        debugPrint('[ApiService] Error fetching tasks from Supabase: $e');
+      }
+    }
+
+    // 2. Secondary Fallback: Vercel Backend
     if (token != null && token.isNotEmpty) {
       try {
         final headers = await _getHeaders();
@@ -2854,54 +2961,31 @@ class ApiService {
       } catch (_) {}
     }
 
-    // 2. Direct Supabase Fallback
-    if (uid != null && uid.isNotEmpty) {
-      try {
-        final res = await http.get(
-          Uri.parse('$supabaseUrl/rest/v1/tasks?user_id=eq.$uid&select=*'),
-          headers: {
-            'apikey': supabaseServiceKey,
-            'Authorization': 'Bearer $supabaseServiceKey',
-          },
-        ).timeout(const Duration(seconds: 8), onTimeout: () => http.Response('[]', 408));
-        if (res.statusCode == 200) {
-          final List<dynamic> list = jsonDecode(res.body);
-          return list.map((json) => Task.fromJson(json)).toList();
-        }
-      } catch (_) {}
-    }
     return [];
   }
 
   static Future<Map<String, dynamic>> createTaskOnBackend(Task task) async {
-    try {
-      final headers = await _getHeaders();
-      final response = await http.post(
-        Uri.parse('$baseUrl/tasks'),
-        headers: headers,
-        body: jsonEncode(task.toJson()),
-      ).timeout(const Duration(seconds: 8), onTimeout: () => http.Response('{"error":"timeout"}', 408));
-      if (response.statusCode >= 200 && response.statusCode < 300) {
-        return {'statusCode': response.statusCode, 'data': jsonDecode(response.body)};
-      }
-    } catch (_) {}
+    final cleanTaskId = ensureUuid(task.id);
+    final uid = await getEffectiveUserUuid();
+    bool createdOnSupabase = false;
 
-    // Direct Supabase Fallback
-    try {
-      final user = await getSessionUser();
-      final uid = user?['id']?.toString() ?? user?['userId']?.toString();
-      if (uid != null && uid.isNotEmpty) {
+    // 1. Primary: Direct Supabase PostgreSQL Insertion/Upsert
+    if (uid != null && uid.isNotEmpty) {
+      try {
         final payload = {
-          'id': task.id,
+          'id': cleanTaskId,
           'user_id': uid,
           'title': task.title,
+          'description': '',
           'category': task.category,
           'priority': task.priority,
+          'quadrant': task.priority == 1 ? 'q1_do_first' : (task.priority == 2 ? 'q2_schedule' : 'q3_delegate'),
           'is_completed': task.isCompleted,
           'due_at': task.dueDate.toIso8601String(),
           'updated_at': DateTime.now().toUtc().toIso8601String(),
         };
-        await http.post(
+
+        final res = await http.post(
           Uri.parse('$supabaseUrl/rest/v1/tasks'),
           headers: {
             'apikey': supabaseServiceKey,
@@ -2910,115 +2994,175 @@ class ApiService {
             'Prefer': 'return=representation, resolution=merge-duplicates',
           },
           body: jsonEncode(payload),
-        ).timeout(const Duration(seconds: 8), onTimeout: () => http.Response('', 408));
+        ).timeout(const Duration(seconds: 8), onTimeout: () => http.Response('{"error":"timeout"}', 408));
+
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          createdOnSupabase = true;
+          debugPrint('[ApiService] Task $cleanTaskId created in Supabase (Status: ${res.statusCode})');
+        } else {
+          debugPrint('[ApiService] Failed creating task in Supabase: HTTP ${res.statusCode} -> ${res.body}');
+        }
+      } catch (e) {
+        debugPrint('[ApiService] Error saving task to Supabase: $e');
       }
+    }
+
+    // 2. Secondary: Inform Vercel backend asynchronously
+    try {
+      final headers = await _getHeaders();
+      http.post(
+        Uri.parse('$baseUrl/tasks'),
+        headers: headers,
+        body: jsonEncode(task.toJson()),
+      ).catchError((_) => http.Response('', 500));
     } catch (_) {}
-    return {'statusCode': 200, 'data': {'success': true}};
+
+    return {
+      'statusCode': createdOnSupabase ? 200 : 500,
+      'data': {'success': createdOnSupabase},
+    };
   }
 
   static Future<Map<String, dynamic>> updateTaskOnBackend(Task task) async {
+    final cleanTaskId = ensureUuid(task.id);
+    bool updatedOnSupabase = false;
+
+    // 1. Primary: Direct Supabase Update
     try {
-      final headers = await _getHeaders();
-      var response = await http.patch(
-        Uri.parse('$baseUrl/tasks/${task.id}'),
-        headers: headers,
-        body: jsonEncode(task.toJson()),
+      final res = await http.patch(
+        Uri.parse('$supabaseUrl/rest/v1/tasks?id=eq.$cleanTaskId'),
+        headers: {
+          'apikey': supabaseServiceKey,
+          'Authorization': 'Bearer $supabaseServiceKey',
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation',
+        },
+        body: jsonEncode({
+          'title': task.title,
+          'category': task.category,
+          'priority': task.priority,
+          'quadrant': task.priority == 1 ? 'q1_do_first' : (task.priority == 2 ? 'q2_schedule' : 'q3_delegate'),
+          'is_completed': task.isCompleted,
+          'due_at': task.dueDate.toIso8601String(),
+          if (task.isCompleted && task.completedDate != null)
+            'completed_at': task.completedDate!.toIso8601String()
+          else if (!task.isCompleted)
+            'completed_at': null,
+          'updated_at': DateTime.now().toUtc().toIso8601String(),
+        }),
       ).timeout(const Duration(seconds: 8), onTimeout: () => http.Response('{"error":"timeout"}', 408));
 
-      if (response.statusCode != 200 && response.statusCode != 204) {
-        response = await http.patch(
-          Uri.parse('$baseUrl/tasks?id=${task.id}'),
-          headers: headers,
-          body: jsonEncode(task.toJson()),
-        ).timeout(const Duration(seconds: 8), onTimeout: () => http.Response('{"error":"timeout"}', 408));
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        updatedOnSupabase = true;
+        debugPrint('[ApiService] Task $cleanTaskId updated in Supabase (Status: ${res.statusCode})');
+      } else {
+        debugPrint('[ApiService] Supabase task update returned HTTP ${res.statusCode}: ${res.body}');
       }
-      if (response.statusCode >= 200 && response.statusCode < 300) {
-        return {'statusCode': response.statusCode, 'data': jsonDecode(response.body)};
-      }
+    } catch (e) {
+      debugPrint('[ApiService] Error updating task in Supabase: $e');
+    }
+
+    // 2. Secondary: Inform Vercel backend
+    try {
+      final headers = await _getHeaders();
+      http.patch(
+        Uri.parse('$baseUrl/tasks/$cleanTaskId'),
+        headers: headers,
+        body: jsonEncode(task.toJson()),
+      ).catchError((_) => http.Response('', 500));
     } catch (_) {}
 
-    // Direct Supabase Fallback
-    try {
-      final user = await getSessionUser();
-      final uid = user?['id']?.toString() ?? user?['userId']?.toString();
-      if (uid != null && uid.isNotEmpty) {
-        await http.patch(
-          Uri.parse('$supabaseUrl/rest/v1/tasks?id=eq.${task.id}&user_id=eq.$uid'),
-          headers: {
-            'apikey': supabaseServiceKey,
-            'Authorization': 'Bearer $supabaseServiceKey',
-            'Content-Type': 'application/json',
-          },
-          body: jsonEncode({
-            'title': task.title,
-            'category': task.category,
-            'priority': task.priority,
-            'is_completed': task.isCompleted,
-            'due_at': task.dueDate.toIso8601String(),
-            'updated_at': DateTime.now().toUtc().toIso8601String(),
-          }),
-        ).timeout(const Duration(seconds: 8), onTimeout: () => http.Response('', 408));
-      }
-    } catch (_) {}
-    return {'statusCode': 200, 'data': {'success': true}};
+    return {
+      'statusCode': updatedOnSupabase ? 200 : 500,
+      'data': {'success': updatedOnSupabase},
+    };
   }
 
   static Future<Map<String, dynamic>> deleteTaskOnBackend(String taskId) async {
+    final cleanTaskId = ensureUuid(taskId);
+    bool supabaseDeleted = false;
+
+    // 1. Primary: Direct Supabase PostgreSQL Record Deletion (Source of Truth)
     try {
-      final headers = await _getHeaders();
-      // 1. Try URL parameter
-      var response = await http.delete(
-        Uri.parse('$baseUrl/tasks/$taskId'),
-        headers: headers,
+      final res = await http.delete(
+        Uri.parse('$supabaseUrl/rest/v1/tasks?id=eq.$cleanTaskId'),
+        headers: {
+          'apikey': supabaseServiceKey,
+          'Authorization': 'Bearer $supabaseServiceKey',
+        },
       ).timeout(const Duration(seconds: 8), onTimeout: () => http.Response('{"error":"timeout"}', 408));
 
-      // 2. Try Query parameter
-      if (response.statusCode != 200 && response.statusCode != 204) {
-        response = await http.delete(
-          Uri.parse('$baseUrl/tasks?id=$taskId'),
-          headers: headers,
-        ).timeout(const Duration(seconds: 8), onTimeout: () => http.Response('{"error":"timeout"}', 408));
+      if (res.statusCode == 200 || res.statusCode == 204) {
+        supabaseDeleted = true;
+        debugPrint('[ApiService] Task $cleanTaskId permanently deleted from Supabase (Status: ${res.statusCode})');
+      } else {
+        debugPrint('[ApiService] Supabase delete failed: HTTP ${res.statusCode} -> ${res.body}');
       }
-    } catch (_) {}
 
-    // 3. Guaranteed Direct Supabase REST API Fallback
-    try {
-      final user = await getSessionUser();
-      final uid = user?['id']?.toString() ?? user?['userId']?.toString();
-      if (uid != null && uid.isNotEmpty) {
+      // If original taskId was different from cleanTaskId, also delete by original taskId
+      if (cleanTaskId != taskId && taskId.isNotEmpty) {
         await http.delete(
-          Uri.parse('$supabaseUrl/rest/v1/tasks?id=eq.$taskId&user_id=eq.$uid'),
+          Uri.parse('$supabaseUrl/rest/v1/tasks?id=eq.$taskId'),
           headers: {
             'apikey': supabaseServiceKey,
             'Authorization': 'Bearer $supabaseServiceKey',
           },
-        ).timeout(const Duration(seconds: 8), onTimeout: () => http.Response('', 408));
+        ).catchError((_) => http.Response('', 500));
       }
+    } catch (e) {
+      debugPrint('[ApiService] Exception deleting task from Supabase: $e');
+    }
+
+    // 2. Secondary: Inform Vercel backend
+    try {
+      final headers = await _getHeaders();
+      http.delete(
+        Uri.parse('$baseUrl/tasks/$cleanTaskId'),
+        headers: headers,
+      ).catchError((_) => http.Response('', 500));
+      http.delete(
+        Uri.parse('$baseUrl/tasks?id=$cleanTaskId'),
+        headers: headers,
+      ).catchError((_) => http.Response('', 500));
     } catch (_) {}
-    return {'statusCode': 200, 'data': {'success': true}};
+
+    return {
+      'statusCode': supabaseDeleted ? 200 : 500,
+      'data': {'success': supabaseDeleted},
+    };
   }
 
   static Future<void> deleteAllTasksOnBackend() async {
-    try {
-      final headers = await _getHeaders();
-      await http.delete(
-        Uri.parse('$baseUrl/tasks?all=true'),
-        headers: headers,
-      ).timeout(const Duration(seconds: 8), onTimeout: () => http.Response('', 408));
-    } catch (_) {}
+    final uid = await getEffectiveUserUuid();
 
-    try {
-      final user = await getSessionUser();
-      final uid = user?['id']?.toString() ?? user?['userId']?.toString();
-      if (uid != null && uid.isNotEmpty) {
-        await http.delete(
+    // 1. Primary: Direct Supabase deletion for this user
+    if (uid != null && uid.isNotEmpty) {
+      try {
+        final res = await http.delete(
           Uri.parse('$supabaseUrl/rest/v1/tasks?user_id=eq.$uid'),
           headers: {
             'apikey': supabaseServiceKey,
             'Authorization': 'Bearer $supabaseServiceKey',
           },
         ).timeout(const Duration(seconds: 8), onTimeout: () => http.Response('', 408));
+
+        if (res.statusCode == 200 || res.statusCode == 204) {
+          debugPrint('[ApiService] All tasks permanently deleted from Supabase for user $uid');
+        } else {
+          debugPrint('[ApiService] Failed deleting all tasks on Supabase: HTTP ${res.statusCode} -> ${res.body}');
+        }
+      } catch (e) {
+        debugPrint('[ApiService] Error deleting all tasks from Supabase: $e');
       }
+    }
+
+    // 2. Secondary: Vercel backend
+    try {
+      final headers = await _getHeaders();
+      await http.delete(
+        Uri.parse('$baseUrl/tasks?all=true'),
+        headers: headers,
+      ).timeout(const Duration(seconds: 8), onTimeout: () => http.Response('', 408));
     } catch (_) {}
   }
 
