@@ -2171,17 +2171,7 @@ class AppProvider extends ChangeNotifier {
 
       // 2. Fetch authoritative remote tasks from Supabase
       final remoteTasks = await ApiService.fetchTasks();
-
-      // Ensure any remote tasks that match deleted IDs are deleted on backend
-      final List<Future> remoteDeletes = [];
-      for (var rt in remoteTasks) {
-        if (_deletedItemIds.contains(rt.id)) {
-          remoteDeletes.add(ApiService.deleteTaskOnBackend(rt.id, taskTitle: rt.title));
-        }
-      }
-      if (remoteDeletes.isNotEmpty) {
-        await Future.wait(remoteDeletes);
-      }
+      if (remoteTasks == null) return;
 
       final validRemote = remoteTasks.where((t) => !_deletedItemIds.contains(t.id)).toList();
 
@@ -2264,6 +2254,7 @@ class AppProvider extends ChangeNotifier {
   Future<void> syncHabitsFromCloud() async {
     try {
       final remoteHabits = await ApiService.fetchHabits();
+      if (remoteHabits == null) return;
       final validRemote = remoteHabits.where((h) => !_deletedItemIds.contains(h.id)).toList();
       
       final Map<String, Habit> habitMap = {};

@@ -3317,7 +3317,7 @@ class ApiService {
   // ---------------------------------------------------------------------------
   // TASKS API (SUPABASE SOURCE OF TRUTH + CLOUD SYNC)
   // ---------------------------------------------------------------------------
-  static Future<List<Task>> fetchTasks() async {
+  static Future<List<Task>?> fetchTasks() async {
     final uid = await getEffectiveUserUuid();
     final token = await getSessionToken();
 
@@ -3330,7 +3330,7 @@ class ApiService {
             'apikey': supabaseServiceKey,
             'Authorization': 'Bearer $supabaseServiceKey',
           },
-        ).timeout(const Duration(seconds: 8), onTimeout: () => http.Response('[]', 408));
+        ).timeout(const Duration(seconds: 8), onTimeout: () => http.Response('{"error":"timeout"}', 408));
 
         if (res.statusCode == 200) {
           final List<dynamic> list = jsonDecode(res.body);
@@ -3350,7 +3350,7 @@ class ApiService {
         final headers = await _getHeaders();
         final response = await http
             .get(Uri.parse('$baseUrl/tasks'), headers: headers)
-            .timeout(const Duration(seconds: 8), onTimeout: () => http.Response('[]', 408));
+            .timeout(const Duration(seconds: 8), onTimeout: () => http.Response('{"error":"timeout"}', 408));
         if (response.statusCode == 200) {
           final List<dynamic> list = jsonDecode(response.body);
           return list.map((json) => Task.fromJson(json)).toList();
@@ -3358,7 +3358,7 @@ class ApiService {
       } catch (_) {}
     }
 
-    return [];
+    return null;
   }
 
   static Future<Map<String, dynamic>> createTaskOnBackend(Task task) async {
@@ -4059,55 +4059,7 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> updateCalendarEventOnBackend(CalendarEvent event) async {
-    final uid = await getEffectiveUserUuid();
-    final cleanId = ensureUuid(event.id);
-
-    if (uid != null && uid.isNotEmpty) {
-      try {
-        final dateStr = event.startTime.toIso8601String().split('T')[0];
-        final startTimeStr = '${event.startTime.hour.toString().padLeft(2, '0')}:${event.startTime.minute.toString().padLeft(2, '0')}:${event.startTime.second.toString().padLeft(2, '0')}';
-        final endTimeStr = '${event.endTime.hour.toString().padLeft(2, '0')}:${event.endTime.minute.toString().padLeft(2, '0')}:${event.endTime.second.toString().padLeft(2, '0')}';
-
-        await http.patch(
-          Uri.parse('$supabaseUrl/rest/v1/calendar_events?id=eq.$cleanId&user_id=eq.$uid'),
-          headers: {
-            'apikey': supabaseServiceKey,
-            'Authorization': 'Bearer $supabaseServiceKey',
-            'Content-Type': 'application/json',
-          },
-          body: jsonEncode({
-            'title': event.title,
-            'description': event.description,
-            'event_date': dateStr,
-            'start_time': startTimeStr,
-            'end_time': endTimeStr,
-            'location': event.location,
-            'event_type': event.type,
-            'category': event.category,
-            'updated_at': DateTime.now().toUtc().toIso8601String(),
-          }),
-        ).timeout(const Duration(seconds: 8));
-      } catch (_) {}
-    }
-
-    try {
-      final headers = await _getHeaders();
-      await http.patch(
-        Uri.parse('$baseUrl/calendar/$cleanId'),
-        headers: headers,
-        body: jsonEncode({
-          'title': event.title,
-          'description': event.description,
-          'startTime': event.startTime.toIso8601String(),
-          'endTime': event.endTime.toIso8601String(),
-          'location': event.location,
-          'type': event.type,
-          'category': event.category,
-        }),
-      ).catchError((_) => http.Response('', 500));
-    } catch (_) {}
-
-    return {'statusCode': 200, 'data': {'success': true}};
+    return createCalendarEventOnBackend(event);
   }
 
   static Future<Map<String, dynamic>> deleteCalendarEventOnBackend(String eventId, {String? eventTitle}) async {
@@ -4258,46 +4210,7 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> updateJournalEntryOnBackend(JournalEntry entry) async {
-    final uid = await getEffectiveUserUuid();
-    final cleanId = ensureUuid(entry.id);
-
-    if (uid != null && uid.isNotEmpty) {
-      try {
-        await http.patch(
-          Uri.parse('$supabaseUrl/rest/v1/journal_entries?id=eq.$cleanId&user_id=eq.$uid'),
-          headers: {
-            'apikey': supabaseServiceKey,
-            'Authorization': 'Bearer $supabaseServiceKey',
-            'Content-Type': 'application/json',
-          },
-          body: jsonEncode({
-            'title': entry.title,
-            'content': entry.content,
-            'content_ciphertext': entry.content,
-            'entry_date': entry.date.toIso8601String().split('T')[0],
-            'mood': entry.mood,
-            'updated_at': DateTime.now().toUtc().toIso8601String(),
-          }),
-        ).timeout(const Duration(seconds: 8));
-      } catch (_) {}
-    }
-
-    try {
-      final headers = await _getHeaders();
-      await http.put(
-        Uri.parse('$baseUrl/journal/$cleanId'),
-        headers: headers,
-        body: jsonEncode({
-          'title': entry.title,
-          'content': entry.content,
-          'content_ciphertext': entry.content,
-          'entry_date': entry.date.toIso8601String().split('T')[0],
-          'mood': entry.mood,
-        }),
-      ).catchError((_) => http.Response('', 500));
-    } catch (_) {}
-
-    return {'statusCode': 200, 'data': {'success': true}};
+    return createJournalEntryOnBackend(entry);
   }
 
   static Future<Map<String, dynamic>> deleteJournalEntryOnBackend(String journalId, {String? entryTitle}) async {
