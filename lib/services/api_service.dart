@@ -2495,29 +2495,66 @@ class ApiService {
     }
   }
 
-  /// Toggle habit completion for a specific date
   static Future<Map<String, dynamic>> toggleHabitCompletionOnBackend(
     String habitId, {
     required String date,
     bool? isCompleted,
   }) async {
+    final uid = await getEffectiveUserUuid();
+    final cleanId = ensureUuid(habitId);
+    bool saved = false;
+
+    if (uid != null && uid.isNotEmpty) {
+      try {
+        final cleanDate = date.trim().split('T')[0].split(' ')[0];
+        if (isCompleted == true) {
+          final payload = {
+            'id': ensureUuid('${cleanId}_$cleanDate'),
+            'user_id': uid,
+            'habit_id': cleanId,
+            'completion_date': cleanDate,
+            'status': 'completed',
+            'completed_at': DateTime.now().toUtc().toIso8601String(),
+          };
+          final res = await http.post(
+            Uri.parse('$supabaseUrl/rest/v1/habit_logs'),
+            headers: {
+              'apikey': supabaseServiceKey,
+              'Authorization': 'Bearer $supabaseServiceKey',
+              'Content-Type': 'application/json',
+              'Prefer': 'return=representation, resolution=merge-duplicates',
+            },
+            body: jsonEncode(payload),
+          ).timeout(const Duration(seconds: 5), onTimeout: () => http.Response('', 408));
+          if (res.statusCode >= 200 && res.statusCode < 300) saved = true;
+        } else {
+          final res = await http.delete(
+            Uri.parse('$supabaseUrl/rest/v1/habit_logs?habit_id=eq.$cleanId&user_id=eq.$uid&completion_date=eq.$cleanDate'),
+            headers: {
+              'apikey': supabaseServiceKey,
+              'Authorization': 'Bearer $supabaseServiceKey',
+            },
+          ).timeout(const Duration(seconds: 5), onTimeout: () => http.Response('', 408));
+          if (res.statusCode >= 200 && res.statusCode < 300) saved = true;
+        }
+      } catch (e) {
+        debugPrint('[ApiService] Error toggling habit log on Supabase: $e');
+      }
+    }
+
     try {
       final headers = await _getHeaders();
-      final response = await http.post(
-        Uri.parse('$baseUrl/habits/$habitId/toggle'),
+      http.post(
+        Uri.parse('$baseUrl/habits/$cleanId/toggle'),
         headers: headers,
         body: jsonEncode({
           'date': date,
           if (isCompleted != null) 'status': isCompleted ? 'completed' : 'uncompleted',
         }),
-      );
-      return {
-        'statusCode': response.statusCode,
-        'data': jsonDecode(response.body),
-      };
-    } catch (e) {
-      return {'statusCode': 500, 'data': {'success': false, 'message': '$e'}};
-    }
+      ).catchError((_) => http.Response('', 500));
+    } catch (_) {}
+
+    return {'statusCode': saved ? 200 : 500, 'data': {'success': saved}};
   }
 
   /// Fetch habit analytics summary
@@ -3384,58 +3421,7 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> updateTaskOnBackend(Task task) async {
-    final cleanTaskId = ensureUuid(task.id);
-    bool updatedOnSupabase = false;
-
-    // 1. Primary: Direct Supabase Update
-    try {
-      final res = await http.patch(
-        Uri.parse('$supabaseUrl/rest/v1/tasks?id=eq.$cleanTaskId'),
-        headers: {
-          'apikey': supabaseServiceKey,
-          'Authorization': 'Bearer $supabaseServiceKey',
-          'Content-Type': 'application/json',
-          'Prefer': 'return=representation',
-        },
-        body: jsonEncode({
-          'title': task.title,
-          'category': task.category,
-          'priority': task.priority,
-          'quadrant': task.priority == 1 ? 'q1_do_first' : (task.priority == 2 ? 'q2_schedule' : 'q3_delegate'),
-          'is_completed': task.isCompleted,
-          'due_at': task.dueDate.toIso8601String(),
-          if (task.isCompleted && task.completedDate != null)
-            'completed_at': task.completedDate!.toIso8601String()
-          else if (!task.isCompleted)
-            'completed_at': null,
-          'updated_at': DateTime.now().toUtc().toIso8601String(),
-        }),
-      ).timeout(const Duration(seconds: 8), onTimeout: () => http.Response('{"error":"timeout"}', 408));
-
-      if (res.statusCode >= 200 && res.statusCode < 300) {
-        updatedOnSupabase = true;
-        debugPrint('[ApiService] Task $cleanTaskId updated in Supabase (Status: ${res.statusCode})');
-      } else {
-        debugPrint('[ApiService] Supabase task update returned HTTP ${res.statusCode}: ${res.body}');
-      }
-    } catch (e) {
-      debugPrint('[ApiService] Error updating task in Supabase: $e');
-    }
-
-    // 2. Secondary: Inform Vercel backend
-    try {
-      final headers = await _getHeaders();
-      http.patch(
-        Uri.parse('$baseUrl/tasks/$cleanTaskId'),
-        headers: headers,
-        body: jsonEncode(task.toJson()),
-      ).catchError((_) => http.Response('', 500));
-    } catch (_) {}
-
-    return {
-      'statusCode': updatedOnSupabase ? 200 : 500,
-      'data': {'success': updatedOnSupabase},
-    };
+    return createTaskOnBackend(task);
   }
 
   static Future<Map<String, dynamic>> deleteTaskOnBackend(String taskId, {String? taskTitle}) async {

@@ -83,10 +83,8 @@ class AppProvider extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       final validIds = _deletedItemIds.where((id) => _isValidEntityId(id)).toList();
-      if (_user.id.isNotEmpty) await prefs.setStringList('saved_deleted_ids_${_user.id}', validIds);
+      if (_user.id.isNotEmpty && _user.id != 'u_1') await prefs.setStringList('saved_deleted_ids_${_user.id}', validIds);
       if (_user.email.isNotEmpty) await prefs.setStringList('saved_deleted_ids_${_user.email.trim().toLowerCase()}', validIds);
-      if (_user.username.isNotEmpty) await prefs.setStringList('saved_deleted_ids_${_user.username.trim().toLowerCase()}', validIds);
-      await prefs.setStringList('saved_deleted_ids', validIds);
     } catch (e) {
       debugPrint('Error saving deleted item IDs: $e');
     }
@@ -1358,11 +1356,9 @@ class AppProvider extends ChangeNotifier {
       }
     }
 
-    // 0B. Deleted Item IDs (Strict User-Isolated, ONLY valid entity IDs/UUIDs)
-    final deletedList = prefs.getStringList('saved_deleted_ids_$uid') ??
-        (email.isNotEmpty ? prefs.getStringList('saved_deleted_ids_$email') : null) ??
-        prefs.getStringList('saved_deleted_ids_u_1') ??
-        prefs.getStringList('saved_deleted_ids');
+    // 0B. Deleted Item IDs (Strict User-Isolated)
+    final deletedList = (uid.isNotEmpty && uid != 'u_1') ? prefs.getStringList('saved_deleted_ids_$uid') :
+        (email.isNotEmpty ? prefs.getStringList('saved_deleted_ids_$email') : null);
     if (deletedList != null) {
       _deletedItemIds = deletedList
           .where((id) => _isValidEntityId(id))
