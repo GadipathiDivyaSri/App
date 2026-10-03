@@ -8,6 +8,8 @@ import '../widgets/pro_upgrade_dialog.dart';
 import '../widgets/premium_lock_banner.dart';
 import '../theme/app_theme.dart';
 
+import 'priority_matrix_screen.dart';
+
 /// Eisenhower Matrix Screen for WrindhaOS
 /// 
 /// 4 Quadrants:
@@ -58,6 +60,18 @@ class _OrganizeMatrixScreenState extends State<OrganizeMatrixScreen> {
             fontWeight: FontWeight.w800,
           ),
         ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.grid_view_rounded, color: textPrimary),
+            tooltip: 'Switch to Priority Matrix',
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => const PriorityMatrixScreen()),
+              );
+            },
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),

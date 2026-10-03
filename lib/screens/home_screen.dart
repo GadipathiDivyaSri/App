@@ -11,6 +11,7 @@ import 'career_screen.dart';
 import 'studies_screen.dart';
 import 'calendar_screen.dart';
 import 'priority_matrix_screen.dart';
+import 'organize_matrix_screen.dart';
 import 'focus_timer_screen.dart';
 import 'analytics_screen.dart';
 
@@ -179,7 +180,61 @@ class HomeScreen extends StatelessWidget {
                       },
                     ),
 
-                    // 5. Focus Centre (Directly to the left of Analytics)
+                    // 5. Priority Matrix (PRO ONLY: AppFeature.priorityMatrix)
+                    _buildModuleCard(
+                      context,
+                      isDark: isDark,
+                      icon: Icons.grid_view_rounded,
+                      title: 'Priority Matrix',
+                      subtitle: '3-Tier Urgency',
+                      lightCardBg: const Color(0xFFF0F9FF),
+                      lightIconContainerColor: const Color(0xFF0284C7),
+                      isLocked: !provider.hasAccess(AppFeature.priorityMatrix),
+                      onTap: () {
+                        if (!provider.hasAccess(AppFeature.priorityMatrix)) {
+                          ProUpgradeDialog.showFeatureLockedDialog(
+                            context,
+                            AppFeature.priorityMatrix,
+                          );
+                        } else {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const PriorityMatrixScreen(),
+                            ),
+                          );
+                        }
+                      },
+                    ),
+
+                    // 6. Organize Tasks (PRO ONLY: AppFeature.eisenhowerMatrix)
+                    _buildModuleCard(
+                      context,
+                      isDark: isDark,
+                      icon: Icons.dashboard_customize_rounded,
+                      title: 'Organize Tasks',
+                      subtitle: 'Eisenhower 4-Quadrant',
+                      lightCardBg: const Color(0xFFFFF7ED),
+                      lightIconContainerColor: const Color(0xFFEA580C),
+                      isLocked: !provider.hasAccess(AppFeature.eisenhowerMatrix),
+                      onTap: () {
+                        if (!provider.hasAccess(AppFeature.eisenhowerMatrix)) {
+                          ProUpgradeDialog.showFeatureLockedDialog(
+                            context,
+                            AppFeature.eisenhowerMatrix,
+                          );
+                        } else {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const OrganizeMatrixScreen(),
+                            ),
+                          );
+                        }
+                      },
+                    ),
+
+                    // 7. Focus Centre
                     _buildModuleCard(
                       context,
                       isDark: isDark,
@@ -198,7 +253,7 @@ class HomeScreen extends StatelessWidget {
                       },
                     ),
 
-                    // 6. Analytics (PRO ONLY: AppFeature.analytics)
+                    // 8. Analytics (PRO ONLY: AppFeature.analytics)
                     _buildModuleCard(
                       context,
                       isDark: isDark,
