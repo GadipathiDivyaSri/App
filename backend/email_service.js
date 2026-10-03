@@ -6,9 +6,10 @@ const https = require('https');
  * Verified Sender: noreply@wrindhaos.in | Domain: wrindhaos.in | Template: global_otp
  */
 async function sendEmailOtp({ email, otpCode, type = 'Verification' }) {
-  console.log(`[EMAIL DISPATCHER] [${type}] Target: ${email} | Code: [${otpCode}] | From: noreply@wrindhaos.in`);
+  const maskedOtp = otpCode && otpCode.length >= 4 ? `${otpCode.slice(0, 2)}****` : '******';
+  console.log(`[EMAIL DISPATCHER] [${type}] Target: ${email} | Code: [${maskedOtp}] | From: noreply@wrindhaos.in`);
 
-  const authkey = process.env.MSG91_AUTH_KEY || '563368AbE6Nls32x6a9703baP1';
+  const authkey = (process.env.MSG91_AUTH_KEY || '').trim();
   const domain = process.env.EMAIL_DOMAIN || 'wrindhaos.in';
   const fromEmail = process.env.EMAIL_FROM_ADDRESS || 'noreply@wrindhaos.in';
   const templateId = process.env.MSG91_OTP_TEMPLATE_ID || 'global_otp';

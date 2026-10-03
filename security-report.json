@@ -1,0 +1,1609 @@
+{
+  "version": "1.74.0",
+  "scan_time": "2026-10-03T14:33:23.521Z",
+  "target": "WrindhaOS Full Stack (Flutter, Express, Supabase Postgres)",
+  "results": [
+    {
+      "check_id": "rules.security.hardcoded-supabase-service-key",
+      "path": "backend/.env",
+      "start": {
+        "line": 12,
+        "col": 14
+      },
+      "end": {
+        "line": 12,
+        "col": 34
+      },
+      "extra": {
+        "message": "Hardcoded Supabase Service Role or Anon JWT token detected. Exposing service role tokens bypasses all RLS policies.",
+        "severity": "ERROR",
+        "metadata": {
+          "cwe": "CWE-798",
+          "owasp": "A07:2021-Identification and Authentication Failures"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.hardcoded-supabase-service-key",
+      "path": "backend/.env",
+      "start": {
+        "line": 13,
+        "col": 19
+      },
+      "end": {
+        "line": 13,
+        "col": 39
+      },
+      "extra": {
+        "message": "Hardcoded Supabase Service Role or Anon JWT token detected. Exposing service role tokens bypasses all RLS policies.",
+        "severity": "ERROR",
+        "metadata": {
+          "cwe": "CWE-798",
+          "owasp": "A07:2021-Identification and Authentication Failures"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.hardcoded-supabase-service-key",
+      "path": "backend/.env",
+      "start": {
+        "line": 14,
+        "col": 27
+      },
+      "end": {
+        "line": 14,
+        "col": 47
+      },
+      "extra": {
+        "message": "Hardcoded Supabase Service Role or Anon JWT token detected. Exposing service role tokens bypasses all RLS policies.",
+        "severity": "ERROR",
+        "metadata": {
+          "cwe": "CWE-798",
+          "owasp": "A07:2021-Identification and Authentication Failures"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.database-password-in-uri",
+      "path": "backend/.env",
+      "start": {
+        "line": 15,
+        "col": 14
+      },
+      "end": {
+        "line": 15,
+        "col": 34
+      },
+      "extra": {
+        "message": "Plaintext database password found in connection URI.",
+        "severity": "ERROR",
+        "metadata": {
+          "cwe": "CWE-798",
+          "owasp": "A07:2021-Identification and Authentication Failures"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sensitive-data-logging",
+      "path": "backend/api_handler.js",
+      "start": {
+        "line": 53,
+        "col": 7
+      },
+      "end": {
+        "line": 53,
+        "col": 27
+      },
+      "extra": {
+        "message": "Sensitive user credential or token potentially printed to system/console logs.",
+        "severity": "WARNING",
+        "metadata": {
+          "cwe": "CWE-532",
+          "owasp": "A09:2021-Security Logging and Monitoring Failures"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sensitive-data-logging",
+      "path": "backend/api_handler.js",
+      "start": {
+        "line": 81,
+        "col": 7
+      },
+      "end": {
+        "line": 81,
+        "col": 27
+      },
+      "extra": {
+        "message": "Sensitive user credential or token potentially printed to system/console logs.",
+        "severity": "WARNING",
+        "metadata": {
+          "cwe": "CWE-532",
+          "owasp": "A09:2021-Security Logging and Monitoring Failures"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sensitive-data-logging",
+      "path": "backend/api_handler.js",
+      "start": {
+        "line": 105,
+        "col": 7
+      },
+      "end": {
+        "line": 105,
+        "col": 27
+      },
+      "extra": {
+        "message": "Sensitive user credential or token potentially printed to system/console logs.",
+        "severity": "WARNING",
+        "metadata": {
+          "cwe": "CWE-532",
+          "owasp": "A09:2021-Security Logging and Monitoring Failures"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sensitive-data-logging",
+      "path": "backend/api_handler.js",
+      "start": {
+        "line": 399,
+        "col": 5
+      },
+      "end": {
+        "line": 399,
+        "col": 25
+      },
+      "extra": {
+        "message": "Sensitive user credential or token potentially printed to system/console logs.",
+        "severity": "WARNING",
+        "metadata": {
+          "cwe": "CWE-532",
+          "owasp": "A09:2021-Security Logging and Monitoring Failures"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sensitive-data-logging",
+      "path": "backend/api_handler.js",
+      "start": {
+        "line": 442,
+        "col": 5
+      },
+      "end": {
+        "line": 442,
+        "col": 25
+      },
+      "extra": {
+        "message": "Sensitive user credential or token potentially printed to system/console logs.",
+        "severity": "WARNING",
+        "metadata": {
+          "cwe": "CWE-532",
+          "owasp": "A09:2021-Security Logging and Monitoring Failures"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sensitive-data-logging",
+      "path": "backend/api_handler.js",
+      "start": {
+        "line": 642,
+        "col": 5
+      },
+      "end": {
+        "line": 642,
+        "col": 25
+      },
+      "extra": {
+        "message": "Sensitive user credential or token potentially printed to system/console logs.",
+        "severity": "WARNING",
+        "metadata": {
+          "cwe": "CWE-532",
+          "owasp": "A09:2021-Security Logging and Monitoring Failures"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sensitive-data-logging",
+      "path": "backend/api_handler.js",
+      "start": {
+        "line": 797,
+        "col": 5
+      },
+      "end": {
+        "line": 797,
+        "col": 25
+      },
+      "extra": {
+        "message": "Sensitive user credential or token potentially printed to system/console logs.",
+        "severity": "WARNING",
+        "metadata": {
+          "cwe": "CWE-532",
+          "owasp": "A09:2021-Security Logging and Monitoring Failures"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sensitive-data-logging",
+      "path": "backend/api_handler.js",
+      "start": {
+        "line": 869,
+        "col": 5
+      },
+      "end": {
+        "line": 869,
+        "col": 25
+      },
+      "extra": {
+        "message": "Sensitive user credential or token potentially printed to system/console logs.",
+        "severity": "WARNING",
+        "metadata": {
+          "cwe": "CWE-532",
+          "owasp": "A09:2021-Security Logging and Monitoring Failures"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sensitive-data-logging",
+      "path": "backend/api_handler.js",
+      "start": {
+        "line": 878,
+        "col": 7
+      },
+      "end": {
+        "line": 878,
+        "col": 27
+      },
+      "extra": {
+        "message": "Sensitive user credential or token potentially printed to system/console logs.",
+        "severity": "WARNING",
+        "metadata": {
+          "cwe": "CWE-532",
+          "owasp": "A09:2021-Security Logging and Monitoring Failures"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sensitive-data-logging",
+      "path": "backend/db_manager.js",
+      "start": {
+        "line": 264,
+        "col": 7
+      },
+      "end": {
+        "line": 264,
+        "col": 27
+      },
+      "extra": {
+        "message": "Sensitive user credential or token potentially printed to system/console logs.",
+        "severity": "WARNING",
+        "metadata": {
+          "cwe": "CWE-532",
+          "owasp": "A09:2021-Security Logging and Monitoring Failures"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sensitive-data-logging",
+      "path": "backend/db_manager.js",
+      "start": {
+        "line": 300,
+        "col": 9
+      },
+      "end": {
+        "line": 300,
+        "col": 29
+      },
+      "extra": {
+        "message": "Sensitive user credential or token potentially printed to system/console logs.",
+        "severity": "WARNING",
+        "metadata": {
+          "cwe": "CWE-532",
+          "owasp": "A09:2021-Security Logging and Monitoring Failures"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.missing-user-ownership-check",
+      "path": "backend/db_manager.js",
+      "start": {
+        "line": 506,
+        "col": 18
+      },
+      "end": {
+        "line": 506,
+        "col": 38
+      },
+      "extra": {
+        "message": "Potential IDOR: Mutating record strictly by ID without matching user_id filter.",
+        "severity": "WARNING",
+        "metadata": {
+          "cwe": "CWE-639",
+          "owasp": "A01:2021-Broken Access Control"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.missing-user-ownership-check",
+      "path": "backend/db_manager.js",
+      "start": {
+        "line": 514,
+        "col": 18
+      },
+      "end": {
+        "line": 514,
+        "col": 38
+      },
+      "extra": {
+        "message": "Potential IDOR: Mutating record strictly by ID without matching user_id filter.",
+        "severity": "WARNING",
+        "metadata": {
+          "cwe": "CWE-639",
+          "owasp": "A01:2021-Broken Access Control"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.missing-user-ownership-check",
+      "path": "backend/db_manager.js",
+      "start": {
+        "line": 600,
+        "col": 27
+      },
+      "end": {
+        "line": 600,
+        "col": 47
+      },
+      "extra": {
+        "message": "Potential IDOR: Mutating record strictly by ID without matching user_id filter.",
+        "severity": "WARNING",
+        "metadata": {
+          "cwe": "CWE-639",
+          "owasp": "A01:2021-Broken Access Control"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.missing-user-ownership-check",
+      "path": "backend/db_manager.js",
+      "start": {
+        "line": 608,
+        "col": 18
+      },
+      "end": {
+        "line": 608,
+        "col": 38
+      },
+      "extra": {
+        "message": "Potential IDOR: Mutating record strictly by ID without matching user_id filter.",
+        "severity": "WARNING",
+        "metadata": {
+          "cwe": "CWE-639",
+          "owasp": "A01:2021-Broken Access Control"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.missing-user-ownership-check",
+      "path": "backend/db_manager.js",
+      "start": {
+        "line": 1110,
+        "col": 25
+      },
+      "end": {
+        "line": 1110,
+        "col": 45
+      },
+      "extra": {
+        "message": "Potential IDOR: Mutating record strictly by ID without matching user_id filter.",
+        "severity": "WARNING",
+        "metadata": {
+          "cwe": "CWE-639",
+          "owasp": "A01:2021-Broken Access Control"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.missing-user-ownership-check",
+      "path": "backend/db_manager.js",
+      "start": {
+        "line": 1112,
+        "col": 23
+      },
+      "end": {
+        "line": 1112,
+        "col": 43
+      },
+      "extra": {
+        "message": "Potential IDOR: Mutating record strictly by ID without matching user_id filter.",
+        "severity": "WARNING",
+        "metadata": {
+          "cwe": "CWE-639",
+          "owasp": "A01:2021-Broken Access Control"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.missing-user-ownership-check",
+      "path": "backend/db_manager.js",
+      "start": {
+        "line": 1126,
+        "col": 25
+      },
+      "end": {
+        "line": 1126,
+        "col": 45
+      },
+      "extra": {
+        "message": "Potential IDOR: Mutating record strictly by ID without matching user_id filter.",
+        "severity": "WARNING",
+        "metadata": {
+          "cwe": "CWE-639",
+          "owasp": "A01:2021-Broken Access Control"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.missing-user-ownership-check",
+      "path": "backend/db_manager.js",
+      "start": {
+        "line": 1128,
+        "col": 23
+      },
+      "end": {
+        "line": 1128,
+        "col": 43
+      },
+      "extra": {
+        "message": "Potential IDOR: Mutating record strictly by ID without matching user_id filter.",
+        "severity": "WARNING",
+        "metadata": {
+          "cwe": "CWE-639",
+          "owasp": "A01:2021-Broken Access Control"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sensitive-data-logging",
+      "path": "backend/services/auth_2fa.js",
+      "start": {
+        "line": 13,
+        "col": 3
+      },
+      "end": {
+        "line": 13,
+        "col": 23
+      },
+      "extra": {
+        "message": "Sensitive user credential or token potentially printed to system/console logs.",
+        "severity": "WARNING",
+        "metadata": {
+          "cwe": "CWE-532",
+          "owasp": "A09:2021-Security Logging and Monitoring Failures"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sql-string-concatenation",
+      "path": "canvaskit/canvaskit.js",
+      "start": {
+        "line": 138,
+        "col": 240
+      },
+      "end": {
+        "line": 138,
+        "col": 260
+      },
+      "extra": {
+        "message": "Potential SQL Injection: Direct string concatenation detected in SQL statement. Use parameterized queries.",
+        "severity": "ERROR",
+        "metadata": {
+          "cwe": "CWE-89",
+          "owasp": "A03:2021-Injection"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sql-string-concatenation",
+      "path": "canvaskit/chromium/canvaskit.js",
+      "start": {
+        "line": 137,
+        "col": 231
+      },
+      "end": {
+        "line": 137,
+        "col": 251
+      },
+      "extra": {
+        "message": "Potential SQL Injection: Direct string concatenation detected in SQL statement. Use parameterized queries.",
+        "severity": "ERROR",
+        "metadata": {
+          "cwe": "CWE-89",
+          "owasp": "A03:2021-Injection"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sql-string-concatenation",
+      "path": "canvaskit/experimental_webparagraph/canvaskit.js",
+      "start": {
+        "line": 118,
+        "col": 138
+      },
+      "end": {
+        "line": 118,
+        "col": 158
+      },
+      "extra": {
+        "message": "Potential SQL Injection: Direct string concatenation detected in SQL statement. Use parameterized queries.",
+        "severity": "ERROR",
+        "metadata": {
+          "cwe": "CWE-89",
+          "owasp": "A03:2021-Injection"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sql-string-concatenation",
+      "path": "canvaskit/webparagraph/canvaskit.js",
+      "start": {
+        "line": 118,
+        "col": 138
+      },
+      "end": {
+        "line": 118,
+        "col": 158
+      },
+      "extra": {
+        "message": "Potential SQL Injection: Direct string concatenation detected in SQL statement. Use parameterized queries.",
+        "severity": "ERROR",
+        "metadata": {
+          "cwe": "CWE-89",
+          "owasp": "A03:2021-Injection"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sql-string-concatenation",
+      "path": "canvaskit/wimp.js",
+      "start": {
+        "line": 26,
+        "col": 64
+      },
+      "end": {
+        "line": 26,
+        "col": 84
+      },
+      "extra": {
+        "message": "Potential SQL Injection: Direct string concatenation detected in SQL statement. Use parameterized queries.",
+        "severity": "ERROR",
+        "metadata": {
+          "cwe": "CWE-89",
+          "owasp": "A03:2021-Injection"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sql-string-concatenation",
+      "path": "docs/canvaskit/canvaskit/canvaskit.js",
+      "start": {
+        "line": 138,
+        "col": 240
+      },
+      "end": {
+        "line": 138,
+        "col": 260
+      },
+      "extra": {
+        "message": "Potential SQL Injection: Direct string concatenation detected in SQL statement. Use parameterized queries.",
+        "severity": "ERROR",
+        "metadata": {
+          "cwe": "CWE-89",
+          "owasp": "A03:2021-Injection"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sql-string-concatenation",
+      "path": "docs/canvaskit/canvaskit/chromium/canvaskit.js",
+      "start": {
+        "line": 137,
+        "col": 231
+      },
+      "end": {
+        "line": 137,
+        "col": 251
+      },
+      "extra": {
+        "message": "Potential SQL Injection: Direct string concatenation detected in SQL statement. Use parameterized queries.",
+        "severity": "ERROR",
+        "metadata": {
+          "cwe": "CWE-89",
+          "owasp": "A03:2021-Injection"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sql-string-concatenation",
+      "path": "docs/canvaskit/canvaskit/experimental_webparagraph/canvaskit.js",
+      "start": {
+        "line": 118,
+        "col": 138
+      },
+      "end": {
+        "line": 118,
+        "col": 158
+      },
+      "extra": {
+        "message": "Potential SQL Injection: Direct string concatenation detected in SQL statement. Use parameterized queries.",
+        "severity": "ERROR",
+        "metadata": {
+          "cwe": "CWE-89",
+          "owasp": "A03:2021-Injection"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sql-string-concatenation",
+      "path": "docs/canvaskit/canvaskit/webparagraph/canvaskit.js",
+      "start": {
+        "line": 118,
+        "col": 138
+      },
+      "end": {
+        "line": 118,
+        "col": 158
+      },
+      "extra": {
+        "message": "Potential SQL Injection: Direct string concatenation detected in SQL statement. Use parameterized queries.",
+        "severity": "ERROR",
+        "metadata": {
+          "cwe": "CWE-89",
+          "owasp": "A03:2021-Injection"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sql-string-concatenation",
+      "path": "docs/canvaskit/canvaskit/wimp.js",
+      "start": {
+        "line": 26,
+        "col": 64
+      },
+      "end": {
+        "line": 26,
+        "col": 84
+      },
+      "extra": {
+        "message": "Potential SQL Injection: Direct string concatenation detected in SQL statement. Use parameterized queries.",
+        "severity": "ERROR",
+        "metadata": {
+          "cwe": "CWE-89",
+          "owasp": "A03:2021-Injection"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sql-string-concatenation",
+      "path": "docs/canvaskit/canvaskit.js",
+      "start": {
+        "line": 138,
+        "col": 240
+      },
+      "end": {
+        "line": 138,
+        "col": 260
+      },
+      "extra": {
+        "message": "Potential SQL Injection: Direct string concatenation detected in SQL statement. Use parameterized queries.",
+        "severity": "ERROR",
+        "metadata": {
+          "cwe": "CWE-89",
+          "owasp": "A03:2021-Injection"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sql-string-concatenation",
+      "path": "docs/canvaskit/chromium/canvaskit.js",
+      "start": {
+        "line": 137,
+        "col": 231
+      },
+      "end": {
+        "line": 137,
+        "col": 251
+      },
+      "extra": {
+        "message": "Potential SQL Injection: Direct string concatenation detected in SQL statement. Use parameterized queries.",
+        "severity": "ERROR",
+        "metadata": {
+          "cwe": "CWE-89",
+          "owasp": "A03:2021-Injection"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sql-string-concatenation",
+      "path": "docs/canvaskit/experimental_webparagraph/canvaskit.js",
+      "start": {
+        "line": 118,
+        "col": 138
+      },
+      "end": {
+        "line": 118,
+        "col": 158
+      },
+      "extra": {
+        "message": "Potential SQL Injection: Direct string concatenation detected in SQL statement. Use parameterized queries.",
+        "severity": "ERROR",
+        "metadata": {
+          "cwe": "CWE-89",
+          "owasp": "A03:2021-Injection"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sql-string-concatenation",
+      "path": "docs/canvaskit/webparagraph/canvaskit.js",
+      "start": {
+        "line": 118,
+        "col": 138
+      },
+      "end": {
+        "line": 118,
+        "col": 158
+      },
+      "extra": {
+        "message": "Potential SQL Injection: Direct string concatenation detected in SQL statement. Use parameterized queries.",
+        "severity": "ERROR",
+        "metadata": {
+          "cwe": "CWE-89",
+          "owasp": "A03:2021-Injection"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sql-string-concatenation",
+      "path": "docs/canvaskit/wimp.js",
+      "start": {
+        "line": 26,
+        "col": 64
+      },
+      "end": {
+        "line": 26,
+        "col": 84
+      },
+      "extra": {
+        "message": "Potential SQL Injection: Direct string concatenation detected in SQL statement. Use parameterized queries.",
+        "severity": "ERROR",
+        "metadata": {
+          "cwe": "CWE-89",
+          "owasp": "A03:2021-Injection"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sensitive-data-logging",
+      "path": "docs/index.html",
+      "start": {
+        "line": 70,
+        "col": 7
+      },
+      "end": {
+        "line": 70,
+        "col": 27
+      },
+      "extra": {
+        "message": "Sensitive user credential or token potentially printed to system/console logs.",
+        "severity": "WARNING",
+        "metadata": {
+          "cwe": "CWE-532",
+          "owasp": "A09:2021-Security Logging and Monitoring Failures"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sensitive-data-logging",
+      "path": "docs/index.html",
+      "start": {
+        "line": 99,
+        "col": 7
+      },
+      "end": {
+        "line": 99,
+        "col": 27
+      },
+      "extra": {
+        "message": "Sensitive user credential or token potentially printed to system/console logs.",
+        "severity": "WARNING",
+        "metadata": {
+          "cwe": "CWE-532",
+          "owasp": "A09:2021-Security Logging and Monitoring Failures"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sensitive-data-logging",
+      "path": "index.html",
+      "start": {
+        "line": 74,
+        "col": 7
+      },
+      "end": {
+        "line": 74,
+        "col": 27
+      },
+      "extra": {
+        "message": "Sensitive user credential or token potentially printed to system/console logs.",
+        "severity": "WARNING",
+        "metadata": {
+          "cwe": "CWE-532",
+          "owasp": "A09:2021-Security Logging and Monitoring Failures"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sensitive-data-logging",
+      "path": "index.html",
+      "start": {
+        "line": 103,
+        "col": 7
+      },
+      "end": {
+        "line": 103,
+        "col": 27
+      },
+      "extra": {
+        "message": "Sensitive user credential or token potentially printed to system/console logs.",
+        "severity": "WARNING",
+        "metadata": {
+          "cwe": "CWE-532",
+          "owasp": "A09:2021-Security Logging and Monitoring Failures"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.msg91-auth-key",
+      "path": "lib/config/msg91_config.dart",
+      "start": {
+        "line": 4,
+        "col": 23
+      },
+      "end": {
+        "line": 4,
+        "col": 43
+      },
+      "extra": {
+        "message": "Hardcoded SMS/OTP service provider API credential detected.",
+        "severity": "WARNING",
+        "metadata": {
+          "cwe": "CWE-798",
+          "owasp": "A07:2021-Identification and Authentication Failures"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.hardcoded-supabase-service-key",
+      "path": "lib/services/api_service.dart",
+      "start": {
+        "line": 12,
+        "col": 8
+      },
+      "end": {
+        "line": 12,
+        "col": 28
+      },
+      "extra": {
+        "message": "Hardcoded Supabase Service Role or Anon JWT token detected. Exposing service role tokens bypasses all RLS policies.",
+        "severity": "ERROR",
+        "metadata": {
+          "cwe": "CWE-798",
+          "owasp": "A07:2021-Identification and Authentication Failures"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sensitive-data-logging",
+      "path": "test/test_full_quality_suite.js",
+      "start": {
+        "line": 155,
+        "col": 3
+      },
+      "end": {
+        "line": 155,
+        "col": 23
+      },
+      "extra": {
+        "message": "Sensitive user credential or token potentially printed to system/console logs.",
+        "severity": "WARNING",
+        "metadata": {
+          "cwe": "CWE-532",
+          "owasp": "A09:2021-Security Logging and Monitoring Failures"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sensitive-data-logging",
+      "path": "web/index.html",
+      "start": {
+        "line": 74,
+        "col": 7
+      },
+      "end": {
+        "line": 74,
+        "col": 27
+      },
+      "extra": {
+        "message": "Sensitive user credential or token potentially printed to system/console logs.",
+        "severity": "WARNING",
+        "metadata": {
+          "cwe": "CWE-532",
+          "owasp": "A09:2021-Security Logging and Monitoring Failures"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sensitive-data-logging",
+      "path": "web/index.html",
+      "start": {
+        "line": 103,
+        "col": 7
+      },
+      "end": {
+        "line": 103,
+        "col": 27
+      },
+      "extra": {
+        "message": "Sensitive user credential or token potentially printed to system/console logs.",
+        "severity": "WARNING",
+        "metadata": {
+          "cwe": "CWE-532",
+          "owasp": "A09:2021-Security Logging and Monitoring Failures"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sql-string-concatenation",
+      "path": "wrindhaos-backend/public/admin/assets/index-Ccm8XPeg.js",
+      "start": {
+        "line": 17,
+        "col": 962
+      },
+      "end": {
+        "line": 17,
+        "col": 982
+      },
+      "extra": {
+        "message": "Potential SQL Injection: Direct string concatenation detected in SQL statement. Use parameterized queries.",
+        "severity": "ERROR",
+        "metadata": {
+          "cwe": "CWE-89",
+          "owasp": "A03:2021-Injection"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sql-string-concatenation",
+      "path": "wrindhaos-backend/public/admin/assets/index-Ccm8XPeg.js",
+      "start": {
+        "line": 48,
+        "col": 4117
+      },
+      "end": {
+        "line": 48,
+        "col": 4137
+      },
+      "extra": {
+        "message": "Potential SQL Injection: Direct string concatenation detected in SQL statement. Use parameterized queries.",
+        "severity": "ERROR",
+        "metadata": {
+          "cwe": "CWE-89",
+          "owasp": "A03:2021-Injection"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sql-string-concatenation",
+      "path": "wrindhaos-backend/public/admin/assets/index-Ccm8XPeg.js",
+      "start": {
+        "line": 55,
+        "col": 2643
+      },
+      "end": {
+        "line": 55,
+        "col": 2663
+      },
+      "extra": {
+        "message": "Potential SQL Injection: Direct string concatenation detected in SQL statement. Use parameterized queries.",
+        "severity": "ERROR",
+        "metadata": {
+          "cwe": "CWE-89",
+          "owasp": "A03:2021-Injection"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sql-string-concatenation",
+      "path": "wrindhaos-backend/public/admin/assets/index-Ccm8XPeg.js",
+      "start": {
+        "line": 60,
+        "col": 16335
+      },
+      "end": {
+        "line": 60,
+        "col": 16355
+      },
+      "extra": {
+        "message": "Potential SQL Injection: Direct string concatenation detected in SQL statement. Use parameterized queries.",
+        "severity": "ERROR",
+        "metadata": {
+          "cwe": "CWE-89",
+          "owasp": "A03:2021-Injection"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sql-string-concatenation",
+      "path": "wrindhaos-backend/public/admin/assets/index-Ccm8XPeg.js",
+      "start": {
+        "line": 61,
+        "col": 14605
+      },
+      "end": {
+        "line": 61,
+        "col": 14625
+      },
+      "extra": {
+        "message": "Potential SQL Injection: Direct string concatenation detected in SQL statement. Use parameterized queries.",
+        "severity": "ERROR",
+        "metadata": {
+          "cwe": "CWE-89",
+          "owasp": "A03:2021-Injection"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sql-string-concatenation",
+      "path": "wrindhaos-backend/public/admin/assets/index-Ccm8XPeg.js",
+      "start": {
+        "line": 77,
+        "col": 27182
+      },
+      "end": {
+        "line": 77,
+        "col": 27202
+      },
+      "extra": {
+        "message": "Potential SQL Injection: Direct string concatenation detected in SQL statement. Use parameterized queries.",
+        "severity": "ERROR",
+        "metadata": {
+          "cwe": "CWE-89",
+          "owasp": "A03:2021-Injection"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sql-string-concatenation",
+      "path": "wrindhaos-backend/public/admin/assets/index-Ccm8XPeg.js",
+      "start": {
+        "line": 689,
+        "col": 72781
+      },
+      "end": {
+        "line": 689,
+        "col": 72801
+      },
+      "extra": {
+        "message": "Potential SQL Injection: Direct string concatenation detected in SQL statement. Use parameterized queries.",
+        "severity": "ERROR",
+        "metadata": {
+          "cwe": "CWE-89",
+          "owasp": "A03:2021-Injection"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sql-string-concatenation",
+      "path": "wrindhaos-backend/public/admin/assets/index-Ccm8XPeg.js",
+      "start": {
+        "line": 691,
+        "col": 2289
+      },
+      "end": {
+        "line": 691,
+        "col": 2309
+      },
+      "extra": {
+        "message": "Potential SQL Injection: Direct string concatenation detected in SQL statement. Use parameterized queries.",
+        "severity": "ERROR",
+        "metadata": {
+          "cwe": "CWE-89",
+          "owasp": "A03:2021-Injection"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sql-string-concatenation",
+      "path": "wrindhaos-backend/public/admin/assets/index-Ccm8XPeg.js",
+      "start": {
+        "line": 693,
+        "col": 15109
+      },
+      "end": {
+        "line": 693,
+        "col": 15129
+      },
+      "extra": {
+        "message": "Potential SQL Injection: Direct string concatenation detected in SQL statement. Use parameterized queries.",
+        "severity": "ERROR",
+        "metadata": {
+          "cwe": "CWE-89",
+          "owasp": "A03:2021-Injection"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sql-string-concatenation",
+      "path": "wrindhaos-backend/public/admin/assets/index-Ccm8XPeg.js",
+      "start": {
+        "line": 710,
+        "col": 6213
+      },
+      "end": {
+        "line": 710,
+        "col": 6233
+      },
+      "extra": {
+        "message": "Potential SQL Injection: Direct string concatenation detected in SQL statement. Use parameterized queries.",
+        "severity": "ERROR",
+        "metadata": {
+          "cwe": "CWE-89",
+          "owasp": "A03:2021-Injection"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sql-string-concatenation",
+      "path": "wrindhaos-backend/public/admin/assets/index-Ccm8XPeg.js",
+      "start": {
+        "line": 756,
+        "col": 13826
+      },
+      "end": {
+        "line": 756,
+        "col": 13846
+      },
+      "extra": {
+        "message": "Potential SQL Injection: Direct string concatenation detected in SQL statement. Use parameterized queries.",
+        "severity": "ERROR",
+        "metadata": {
+          "cwe": "CWE-89",
+          "owasp": "A03:2021-Injection"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sql-string-concatenation",
+      "path": "wrindhaos-backend/public/admin/assets/index-Ccm8XPeg.js",
+      "start": {
+        "line": 757,
+        "col": 34681
+      },
+      "end": {
+        "line": 757,
+        "col": 34701
+      },
+      "extra": {
+        "message": "Potential SQL Injection: Direct string concatenation detected in SQL statement. Use parameterized queries.",
+        "severity": "ERROR",
+        "metadata": {
+          "cwe": "CWE-89",
+          "owasp": "A03:2021-Injection"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sql-string-concatenation",
+      "path": "wrindhaos-backend/public/admin/assets/index-Ccm8XPeg.js",
+      "start": {
+        "line": 765,
+        "col": 6415
+      },
+      "end": {
+        "line": 765,
+        "col": 6435
+      },
+      "extra": {
+        "message": "Potential SQL Injection: Direct string concatenation detected in SQL statement. Use parameterized queries.",
+        "severity": "ERROR",
+        "metadata": {
+          "cwe": "CWE-89",
+          "owasp": "A03:2021-Injection"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sensitive-data-logging",
+      "path": "wrindhaos-backend/server.js",
+      "start": {
+        "line": 10,
+        "col": 3
+      },
+      "end": {
+        "line": 10,
+        "col": 23
+      },
+      "extra": {
+        "message": "Sensitive user credential or token potentially printed to system/console logs.",
+        "severity": "WARNING",
+        "metadata": {
+          "cwe": "CWE-532",
+          "owasp": "A09:2021-Security Logging and Monitoring Failures"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sensitive-data-logging",
+      "path": "wrindhaos-backend/src/services/authService.js",
+      "start": {
+        "line": 386,
+        "col": 3
+      },
+      "end": {
+        "line": 386,
+        "col": 23
+      },
+      "extra": {
+        "message": "Sensitive user credential or token potentially printed to system/console logs.",
+        "severity": "WARNING",
+        "metadata": {
+          "cwe": "CWE-532",
+          "owasp": "A09:2021-Security Logging and Monitoring Failures"
+        }
+      }
+    },
+    {
+      "check_id": "rules.security.sensitive-data-logging",
+      "path": "wrindhaos-backend/src/services/authService.js",
+      "start": {
+        "line": 456,
+        "col": 3
+      },
+      "end": {
+        "line": 456,
+        "col": 23
+      },
+      "extra": {
+        "message": "Sensitive user credential or token potentially printed to system/console logs.",
+        "severity": "WARNING",
+        "metadata": {
+          "cwe": "CWE-532",
+          "owasp": "A09:2021-Security Logging and Monitoring Failures"
+        }
+      }
+    }
+  ],
+  "errors": [],
+  "paths": {
+    "scanned": [
+      ".github/workflows/build_apk.yml",
+      ".github/workflows/deploy.yml",
+      ".github/workflows/security_scan.yml",
+      "admin-portal/.env.example",
+      "admin-portal/index.html",
+      "admin-portal/metadata.json",
+      "admin-portal/package.json",
+      "admin-portal/src/lib/defaultAnalyticsData.ts",
+      "admin-portal/src/lib/defaultContentData.ts",
+      "admin-portal/src/lib/defaultPlanData.ts",
+      "admin-portal/src/lib/defaultSettingsData.ts",
+      "admin-portal/src/lib/defaultWebsiteAndLegalData.ts",
+      "admin-portal/src/lib/supabase.ts",
+      "admin-portal/src/lib/supabaseSchema.ts",
+      "admin-portal/src/services/analyticsService.ts",
+      "admin-portal/src/services/auditService.ts",
+      "admin-portal/src/services/authService.ts",
+      "admin-portal/src/services/contentService.ts",
+      "admin-portal/src/services/legalService.ts",
+      "admin-portal/src/services/notificationService.ts",
+      "admin-portal/src/services/settingsService.ts",
+      "admin-portal/src/services/subscriptionService.ts",
+      "admin-portal/src/services/userService.ts",
+      "admin-portal/src/services/websiteService.ts",
+      "admin-portal/src/types/index.ts",
+      "admin-portal/src/utils/dateUtils.ts",
+      "admin-portal/src/vite-env.d.ts",
+      "admin-portal/tsconfig.json",
+      "admin-portal/vite.config.ts",
+      "analysis_options.yaml",
+      "api/health.js",
+      "api/index.js",
+      "api/journal.js",
+      "api/[...path].js",
+      "AssetManifest.json",
+      "assets/AssetManifest.bin.json",
+      "assets/AssetManifest.json",
+      "assets/FontManifest.json",
+      "backend/.env",
+      "backend/.env.example",
+      "backend/api/health.js",
+      "backend/api/journal.js",
+      "backend/api/[...path].js",
+      "backend/api_handler.js",
+      "backend/db_manager.js",
+      "backend/email_service.js",
+      "backend/package.json",
+      "backend/schema.sql",
+      "backend/server.js",
+      "backend/services/auth_2fa.js",
+      "backend/services/fcm_notifications.js",
+      "backend/supabase_client.js",
+      "backend/supabase_config.js",
+      "backend/vercel.json",
+      "backend/web_server.js",
+      "canvaskit/canvaskit.js",
+      "canvaskit/chromium/canvaskit.js",
+      "canvaskit/experimental_webparagraph/canvaskit.js",
+      "canvaskit/skwasm.js",
+      "canvaskit/skwasm_heavy.js",
+      "canvaskit/webparagraph/canvaskit.js",
+      "canvaskit/wimp.js",
+      "docs/AssetManifest.json",
+      "docs/assets/AssetManifest.bin.json",
+      "docs/assets/AssetManifest.json",
+      "docs/assets/FontManifest.json",
+      "docs/backend/vercel.json",
+      "docs/canvaskit/canvaskit/canvaskit.js",
+      "docs/canvaskit/canvaskit/chromium/canvaskit.js",
+      "docs/canvaskit/canvaskit/experimental_webparagraph/canvaskit.js",
+      "docs/canvaskit/canvaskit/skwasm.js",
+      "docs/canvaskit/canvaskit/skwasm_heavy.js",
+      "docs/canvaskit/canvaskit/webparagraph/canvaskit.js",
+      "docs/canvaskit/canvaskit/wimp.js",
+      "docs/canvaskit/canvaskit.js",
+      "docs/canvaskit/chromium/canvaskit.js",
+      "docs/canvaskit/experimental_webparagraph/canvaskit.js",
+      "docs/canvaskit/skwasm.js",
+      "docs/canvaskit/skwasm_heavy.js",
+      "docs/canvaskit/webparagraph/canvaskit.js",
+      "docs/canvaskit/wimp.js",
+      "docs/flutter.js",
+      "docs/flutter_service_worker.js",
+      "docs/goal_sync_hook.js",
+      "docs/index.html",
+      "docs/manifest.json",
+      "docs/ui_modals.js",
+      "docs/vercel.json",
+      "docs/version.json",
+      "flutter.js",
+      "goal_sync_hook.js",
+      "index.html",
+      "ios/Runner/Assets.xcassets/AppIcon.appiconset/Contents.json",
+      "ios/Runner/Assets.xcassets/LaunchImage.imageset/Contents.json",
+      "lib/config/msg91_config.dart",
+      "lib/config/subscription_config.dart",
+      "lib/features/smart_assistant/assistant_response.dart",
+      "lib/features/smart_assistant/command_models.dart",
+      "lib/features/smart_assistant/entity_extractor.dart",
+      "lib/features/smart_assistant/intent_detector.dart",
+      "lib/features/smart_assistant/rules/analytics_rules.dart",
+      "lib/features/smart_assistant/rules/calendar_rules.dart",
+      "lib/features/smart_assistant/rules/career_rules.dart",
+      "lib/features/smart_assistant/rules/expense_rules.dart",
+      "lib/features/smart_assistant/rules/goal_rules.dart",
+      "lib/features/smart_assistant/rules/habit_rules.dart",
+      "lib/features/smart_assistant/rules/journal_rules.dart",
+      "lib/features/smart_assistant/rules/priority_eisenhower_rules.dart",
+      "lib/features/smart_assistant/rules/smart_rules.dart",
+      "lib/features/smart_assistant/rules/subject_rules.dart",
+      "lib/features/smart_assistant/rules/task_rules.dart",
+      "lib/features/smart_assistant/rules/timetable_rules.dart",
+      "lib/features/smart_assistant/smart_assistant_controller.dart",
+      "lib/features/smart_assistant/smart_assistant_screen.dart",
+      "lib/features/smart_assistant/smart_assistant_service.dart",
+      "lib/main.dart",
+      "lib/models/analytics_models.dart",
+      "lib/models/journal_entry.dart",
+      "lib/models/models.dart",
+      "lib/providers/app_provider.dart",
+      "lib/screens/about_us_screen.dart",
+      "lib/screens/add_expense_screen.dart",
+      "lib/screens/add_milestone_screen.dart",
+      "lib/screens/add_subject_screen.dart",
+      "lib/screens/add_unit_screen.dart",
+      "lib/screens/analytics_screen.dart",
+      "lib/screens/auth_entry_screen.dart",
+      "lib/screens/calendar_screen.dart",
+      "lib/screens/career_roadmap_screen.dart",
+      "lib/screens/career_screen.dart",
+      "lib/screens/choose_username_screen.dart",
+      "lib/screens/create_new_password_screen.dart",
+      "lib/screens/email_login_screen.dart",
+      "lib/screens/email_otp_screen.dart",
+      "lib/screens/expense_tracker_screen.dart",
+      "lib/screens/focus_timer_screen.dart",
+      "lib/screens/forgot_password_screen.dart",
+      "lib/screens/goal_achieved_screen.dart",
+      "lib/screens/goal_pyramid_screen.dart",
+      "lib/screens/habit_tracker_screen.dart",
+      "lib/screens/home_screen.dart",
+      "lib/screens/login_screen.dart",
+      "lib/screens/main_navigation.dart",
+      "lib/screens/milestones_screen.dart",
+      "lib/screens/notes_screen.dart",
+      "lib/screens/organize_matrix_screen.dart",
+      "lib/screens/otp_verification_screen.dart",
+      "lib/screens/password_reset_otp_screen.dart",
+      "lib/screens/payment_history_screen.dart",
+      "lib/screens/personal_growth_screen.dart",
+      "lib/screens/pricing_screen.dart",
+      "lib/screens/priority_matrix_screen.dart",
+      "lib/screens/profile_screen.dart",
+      "lib/screens/pro_plans_screen.dart",
+      "lib/screens/referral_screen.dart",
+      "lib/screens/short_term_priorities_screen.dart",
+      "lib/screens/signup_screen.dart",
+      "lib/screens/studies_screen.dart",
+      "lib/screens/subject_details_screen.dart",
+      "lib/screens/subject_planner_screen.dart",
+      "lib/screens/terms_conditions_screen.dart",
+      "lib/screens/todo_screen.dart",
+      "lib/screens/unit_details_screen.dart",
+      "lib/services/analytics_service.dart",
+      "lib/services/api_service.dart",
+      "lib/services/auth_api_service.dart",
+      "lib/services/feature_access_service.dart",
+      "lib/services/msg91_service.dart",
+      "lib/theme/app_theme.dart",
+      "lib/widgets/analytics/analytics_date_filter_bar.dart",
+      "lib/widgets/analytics/analytics_empty_state.dart",
+      "lib/widgets/analytics/analytics_insights_card.dart",
+      "lib/widgets/analytics/analytics_metric_card.dart",
+      "lib/widgets/analytics/analytics_tab_nav.dart",
+      "lib/widgets/analytics/expenses_tab_view.dart",
+      "lib/widgets/analytics/goals_tab_view.dart",
+      "lib/widgets/analytics/habits_tab_view.dart",
+      "lib/widgets/analytics/milestones_tab_view.dart",
+      "lib/widgets/analytics/overview_tab_view.dart",
+      "lib/widgets/analytics/studies_tab_view.dart",
+      "lib/widgets/premium_lock_banner.dart",
+      "lib/widgets/pro_feature_guard.dart",
+      "lib/widgets/pro_upgrade_dialog.dart",
+      "lib/widgets/upgrade_pro_modal.dart",
+      "macos/Runner/Assets.xcassets/AppIcon.appiconset/Contents.json",
+      "manifest.json",
+      "migrations/007_subscription_and_feature_access.sql",
+      "migrations/010_referrals_and_auth_fixes.sql",
+      "package.json",
+      "pubspec.yaml",
+      "serve.js",
+      "supabase_schema.sql",
+      "test/auth_api_service_test.dart",
+      "test/mobile_viewport_responsiveness_test.dart",
+      "test/subscription_feature_access_test.dart",
+      "test/test_comprehensive_backend.js",
+      "test/test_comprehensive_habit_tracker.js",
+      "test/test_feature_locks_and_limits.js",
+      "test/test_full_crud_lifecycle.js",
+      "test/test_full_quality_suite.js",
+      "test/widget_test.dart",
+      "ui_modals.js",
+      "vercel.json",
+      "version.json",
+      "web/backend/vercel.json",
+      "web/index.html",
+      "web/manifest.json",
+      "web/vercel.json",
+      "wrindhaos-backend/.env.example",
+      "wrindhaos-backend/migrations/000_wrindhaos_master_database_schema.sql",
+      "wrindhaos-backend/migrations/001_initial_schema.sql",
+      "wrindhaos-backend/migrations/002_admin_schema.sql",
+      "wrindhaos-backend/migrations/003_complete_wrindhaos_schema.sql",
+      "wrindhaos-backend/migrations/004_zero_admin_access_security.sql",
+      "wrindhaos-backend/migrations/005_referrals_and_expenses_update.sql",
+      "wrindhaos-backend/migrations/006_complete_production_supabase_schema.sql",
+      "wrindhaos-backend/package.json",
+      "wrindhaos-backend/public/admin/assets/index-Ccm8XPeg.js",
+      "wrindhaos-backend/public/admin/index.html",
+      "wrindhaos-backend/server.js",
+      "wrindhaos-backend/src/app.js",
+      "wrindhaos-backend/src/config/env.js",
+      "wrindhaos-backend/src/config/firebase.js",
+      "wrindhaos-backend/src/config/googlePlay.js",
+      "wrindhaos-backend/src/config/supabase.js",
+      "wrindhaos-backend/src/constants/auditEvents.js",
+      "wrindhaos-backend/src/constants/entitlements.js",
+      "wrindhaos-backend/src/controllers/adminController.js",
+      "wrindhaos-backend/src/controllers/authController.js",
+      "wrindhaos-backend/src/controllers/calendarController.js",
+      "wrindhaos-backend/src/controllers/eisenhowerController.js",
+      "wrindhaos-backend/src/controllers/entitlementController.js",
+      "wrindhaos-backend/src/controllers/expenseController.js",
+      "wrindhaos-backend/src/controllers/habitController.js",
+      "wrindhaos-backend/src/controllers/notificationController.js",
+      "wrindhaos-backend/src/controllers/referralController.js",
+      "wrindhaos-backend/src/controllers/subjectController.js",
+      "wrindhaos-backend/src/controllers/subscriptionController.js",
+      "wrindhaos-backend/src/controllers/todoController.js",
+      "wrindhaos-backend/src/controllers/userController.js",
+      "wrindhaos-backend/src/controllers/userPrivacyController.js",
+      "wrindhaos-backend/src/middleware/adminAuthMiddleware.js",
+      "wrindhaos-backend/src/middleware/authMiddleware.js",
+      "wrindhaos-backend/src/middleware/errorMiddleware.js",
+      "wrindhaos-backend/src/middleware/premiumMiddleware.js",
+      "wrindhaos-backend/src/middleware/rateLimitMiddleware.js",
+      "wrindhaos-backend/src/middleware/validationMiddleware.js",
+      "wrindhaos-backend/src/routes/adminRoutes.js",
+      "wrindhaos-backend/src/routes/authRoutes.js",
+      "wrindhaos-backend/src/routes/calendarRoutes.js",
+      "wrindhaos-backend/src/routes/eisenhowerRoutes.js",
+      "wrindhaos-backend/src/routes/entitlementRoutes.js",
+      "wrindhaos-backend/src/routes/expenseRoutes.js",
+      "wrindhaos-backend/src/routes/habitRoutes.js",
+      "wrindhaos-backend/src/routes/notificationRoutes.js",
+      "wrindhaos-backend/src/routes/referralRoutes.js",
+      "wrindhaos-backend/src/routes/subjectRoutes.js",
+      "wrindhaos-backend/src/routes/subscriptionRoutes.js",
+      "wrindhaos-backend/src/routes/todoRoutes.js",
+      "wrindhaos-backend/src/routes/userPrivacyRoutes.js",
+      "wrindhaos-backend/src/routes/userRoutes.js",
+      "wrindhaos-backend/src/services/authService.js",
+      "wrindhaos-backend/src/services/encryptionService.js",
+      "wrindhaos-backend/src/services/entitlementService.js",
+      "wrindhaos-backend/src/services/expenseService.js",
+      "wrindhaos-backend/src/services/googlePlayService.js",
+      "wrindhaos-backend/src/services/msg91Service.js",
+      "wrindhaos-backend/src/services/notificationService.js",
+      "wrindhaos-backend/src/services/otpService.js",
+      "wrindhaos-backend/src/services/referralService.js",
+      "wrindhaos-backend/src/services/subscriptionService.js",
+      "wrindhaos-backend/src/services/userService.js",
+      "wrindhaos-backend/src/utils/auditLogger.js",
+      "wrindhaos-backend/src/utils/logger.js",
+      "wrindhaos-backend/src/utils/response.js",
+      "wrindhaos-backend/swagger.json",
+      "wrindhaos-backend/tests/backend.test.js",
+      "wrindhaos-backend/tests/dateRestriction.test.js",
+      "wrindhaos-backend/tests/deleteAccount.test.js",
+      "wrindhaos-backend/tests/expense.test.js",
+      "wrindhaos-backend/tests/jwtAuth.test.js",
+      "wrindhaos-backend/tests/msg91Auth.test.js",
+      "wrindhaos-backend/tests/referral.test.js",
+      "wrindhaos-backend/tests/zeroAdminAccess.test.js"
+    ],
+    "total_files": 284
+  },
+  "summary": {
+    "total_findings": 64,
+    "errors": 33,
+    "warnings": 31,
+    "info": 0
+  },
+  "supabase_rls_audit": {
+    "enabledTables": [
+      "profiles",
+      "subscriptions",
+      "payments",
+      "coupons",
+      "coupon_redemptions",
+      "tasks",
+      "habits",
+      "habit_completions",
+      "expenses",
+      "monthly_budgets",
+      "subjects",
+      "study_units",
+      "study_items",
+      "goals",
+      "milestones",
+      "calendar_events",
+      "journal_entries",
+      "user_auth_identities",
+      "audit_logs",
+      "referrals"
+    ],
+    "missingRlsTables": [],
+    "policies": []
+  }
+}

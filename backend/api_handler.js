@@ -35,7 +35,7 @@ async function storeAuthOtp(cleanEmail, otpData) {
       } else {
         await supabase.auth.admin.createUser({
           email: cleanEmail,
-          password: 'Wrindha_Auth_' + Math.random().toString(36).slice(-8) + '!',
+          password: 'Wrindha_Auth_' + crypto.randomBytes(8).toString('hex') + '!',
           email_confirm: false,
           user_metadata: {
             otp: otpData.otp,

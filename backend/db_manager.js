@@ -1,8 +1,8 @@
 const crypto = require('crypto');
 const { supabase, isConfigured: isSupabaseConfigured } = require('./supabase_client');
 
-const SUPABASE_URL = process.env.SUPABASE_URL || 'https://hkeyywopbkmlclsealbz.supabase.co';
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhrZXl5d29wYmttbGNsc2VhbGJ6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4ODI3MTIxOSwiZXhwIjoyMTAzODQ3MjE5fQ.rAJQONxcr0PgCT-59ZfsjoyojY4-_g5aTaH2zwIntAg';
+const SUPABASE_URL = (process.env.SUPABASE_URL || '').trim();
+const SUPABASE_KEY = (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || '').trim();
 
 // -----------------------------------------------------------------------------
 // 1. CRYPTOGRAPHIC SECURITY HELPERS & UUID GENERATOR
@@ -201,7 +201,7 @@ class DatabaseManager {
       subscription_plan: (userData.subscription_plan || 'FREE').toUpperCase(),
       focus_score: userData.focus_score ?? 85,
       active_streak: userData.active_streak ?? 1,
-      referral_code: userData.referral_code || ('WRINDHA_' + Math.floor(100000 + Math.random() * 900000)),
+      referral_code: userData.referral_code || ('WRINDHA_' + crypto.randomInt(100000, 1000000)),
       is_email_verified: !!userData.is_email_verified,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
