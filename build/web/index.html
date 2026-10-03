@@ -62,8 +62,7 @@
   <script type="text/javascript" src="https://control.msg91.com/app/assets/otp-provider/otp-provider.js"></script>
   <script>
     window.MSG91_CONFIG = {
-      widgetId: "36687761466f383937303733",
-      tokenAuth: "563368AbE6Nls32x6a9703baP1"
+      widgetId: "36687761466f383937303733"
     };
 
     window.sendMSG91EmailOTP = function(email, liveOtp, callback) {
@@ -72,7 +71,6 @@
         try {
           window.initSendOTP({
             widgetId: window.MSG91_CONFIG.widgetId,
-            tokenAuth: window.MSG91_CONFIG.tokenAuth,
             identifier: email,
             exposeMethods: true,
             success: function(data) {
@@ -96,8 +94,12 @@
     };
 
     window.verifyMSG91EmailOTP = function(email, otp, callback) {
-      console.log("[MSG91] Verifying OTP for:", email);
-      fetch("https://control.msg91.com/api/v5/otp/verify?email=" + encodeURIComponent(email) + "&otp=" + encodeURIComponent(otp) + "&authkey=" + window.MSG91_CONFIG.tokenAuth)
+      console.log("[MSG91] Verifying OTP securely via backend for:", email);
+      fetch("/api/auth/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email, otp: otp })
+      })
         .then(function(res){ return res.json(); })
         .then(function(json){
           console.log("[MSG91 Verify Response]:", json);

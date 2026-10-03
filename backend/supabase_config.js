@@ -2,7 +2,7 @@
 const https = require('https');
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://xyzproductivedb.supabase.co';
-const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mockkey';
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || '';
 
 /**
  * Native HTTP REST helper for Supabase PostgREST API

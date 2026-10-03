@@ -1,6 +1,6 @@
 {
   "version": "1.74.0",
-  "scan_time": "2026-10-03T14:33:23.521Z",
+  "scan_time": "2026-10-03T14:39:13.786Z",
   "target": "WrindhaOS Full Stack (Flutter, Express, Supabase Postgres)",
   "results": [
     {
@@ -787,11 +787,11 @@
       "check_id": "rules.security.sensitive-data-logging",
       "path": "docs/index.html",
       "start": {
-        "line": 70,
+        "line": 69,
         "col": 7
       },
       "end": {
-        "line": 70,
+        "line": 69,
         "col": 27
       },
       "extra": {
@@ -807,11 +807,11 @@
       "check_id": "rules.security.sensitive-data-logging",
       "path": "docs/index.html",
       "start": {
-        "line": 99,
+        "line": 97,
         "col": 7
       },
       "end": {
-        "line": 99,
+        "line": 97,
         "col": 27
       },
       "extra": {
@@ -827,11 +827,11 @@
       "check_id": "rules.security.sensitive-data-logging",
       "path": "index.html",
       "start": {
-        "line": 74,
+        "line": 73,
         "col": 7
       },
       "end": {
-        "line": 74,
+        "line": 73,
         "col": 27
       },
       "extra": {
@@ -847,11 +847,11 @@
       "check_id": "rules.security.sensitive-data-logging",
       "path": "index.html",
       "start": {
-        "line": 103,
+        "line": 101,
         "col": 7
       },
       "end": {
-        "line": 103,
+        "line": 101,
         "col": 27
       },
       "extra": {
@@ -860,26 +860,6 @@
         "metadata": {
           "cwe": "CWE-532",
           "owasp": "A09:2021-Security Logging and Monitoring Failures"
-        }
-      }
-    },
-    {
-      "check_id": "rules.security.msg91-auth-key",
-      "path": "lib/config/msg91_config.dart",
-      "start": {
-        "line": 4,
-        "col": 23
-      },
-      "end": {
-        "line": 4,
-        "col": 43
-      },
-      "extra": {
-        "message": "Hardcoded SMS/OTP service provider API credential detected.",
-        "severity": "WARNING",
-        "metadata": {
-          "cwe": "CWE-798",
-          "owasp": "A07:2021-Identification and Authentication Failures"
         }
       }
     },
@@ -927,11 +907,11 @@
       "check_id": "rules.security.sensitive-data-logging",
       "path": "web/index.html",
       "start": {
-        "line": 74,
+        "line": 73,
         "col": 7
       },
       "end": {
-        "line": 74,
+        "line": 73,
         "col": 27
       },
       "extra": {
@@ -947,11 +927,11 @@
       "check_id": "rules.security.sensitive-data-logging",
       "path": "web/index.html",
       "start": {
-        "line": 103,
+        "line": 101,
         "col": 7
       },
       "end": {
-        "line": 103,
+        "line": 101,
         "col": 27
       },
       "extra": {
@@ -1575,9 +1555,9 @@
     "total_files": 284
   },
   "summary": {
-    "total_findings": 64,
+    "total_findings": 63,
     "errors": 33,
-    "warnings": 31,
+    "warnings": 30,
     "info": 0
   },
   "supabase_rls_audit": {
