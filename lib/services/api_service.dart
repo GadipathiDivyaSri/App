@@ -3444,22 +3444,9 @@ class ApiService {
         debugPrint('[ApiService] Supabase delete failed: HTTP ${res.statusCode} -> ${res.body}');
       }
 
-      // If original taskId was different from cleanTaskId, also delete by original taskId
       if (cleanTaskId != taskId && taskId.isNotEmpty) {
         await http.delete(
           Uri.parse('$supabaseUrl/rest/v1/tasks?id=eq.$taskId'),
-          headers: {
-            'apikey': supabaseServiceKey,
-            'Authorization': 'Bearer $supabaseServiceKey',
-          },
-        ).catchError((_) => http.Response('', 500));
-      }
-
-      // If taskTitle is provided and user is authenticated, also purge by title and user_id to ensure NO orphan task remains
-      if (taskTitle != null && taskTitle.trim().isNotEmpty && uid != null && uid.isNotEmpty) {
-        final encodedTitle = Uri.encodeComponent(taskTitle.trim());
-        await http.delete(
-          Uri.parse('$supabaseUrl/rest/v1/tasks?title=eq.$encodedTitle&user_id=eq.$uid'),
           headers: {
             'apikey': supabaseServiceKey,
             'Authorization': 'Bearer $supabaseServiceKey',
@@ -4072,19 +4059,9 @@ class ApiService {
           headers: {'apikey': supabaseServiceKey, 'Authorization': 'Bearer $supabaseServiceKey'},
         ).timeout(const Duration(seconds: 8));
 
-        // If cleanId != eventId, delete by raw eventId
         if (cleanId != eventId) {
           await http.delete(
             Uri.parse('$supabaseUrl/rest/v1/calendar_events?id=eq.$eventId&user_id=eq.$uid'),
-            headers: {'apikey': supabaseServiceKey, 'Authorization': 'Bearer $supabaseServiceKey'},
-          ).catchError((_) => http.Response('', 500));
-        }
-
-        // Delete by title fallback
-        if (eventTitle != null && eventTitle.trim().isNotEmpty) {
-          final encTitle = Uri.encodeComponent(eventTitle.trim());
-          await http.delete(
-            Uri.parse('$supabaseUrl/rest/v1/calendar_events?title=eq.$encTitle&user_id=eq.$uid'),
             headers: {'apikey': supabaseServiceKey, 'Authorization': 'Bearer $supabaseServiceKey'},
           ).catchError((_) => http.Response('', 500));
         }

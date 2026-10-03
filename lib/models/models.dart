@@ -369,32 +369,51 @@ class CalendarEvent {
       };
 
   factory CalendarEvent.fromJson(Map<String, dynamic> json) {
-    DateTime parseDate(dynamic val, dynamic altVal, DateTime defaultVal) {
-      if (val != null) {
-        final str = val.toString();
-        final parsed = DateTime.tryParse(str);
-        if (parsed != null) return parsed.isUtc ? parsed.toLocal() : parsed;
-      }
-      if (altVal != null) {
-        final str = altVal.toString();
-        if (str.contains('T')) {
-          final parsed = DateTime.tryParse(str);
-          if (parsed != null) return parsed.isUtc ? parsed.toLocal() : parsed;
-        } else {
-          final parts = str.split(':');
-          if (parts.length >= 2) {
-            final h = int.tryParse(parts[0]) ?? 10;
-            final m = int.tryParse(parts[1]) ?? 0;
-            final now = DateTime.now();
-            return DateTime(now.year, now.month, now.day, h, m);
-          }
+    DateTime parseDateTimeCombined(dynamic primaryTimeVal, dynamic eventDateVal, DateTime fallback) {
+      DateTime baseDate = fallback;
+
+      if (eventDateVal != null && eventDateVal.toString().trim().isNotEmpty) {
+        final dStr = eventDateVal.toString().trim();
+        final parsedD = DateTime.tryParse(dStr);
+        if (parsedD != null) {
+          final localD = parsedD.isUtc ? parsedD.toLocal() : parsedD;
+          baseDate = DateTime(localD.year, localD.month, localD.day, baseDate.hour, baseDate.minute, baseDate.second);
         }
       }
-      return defaultVal;
+
+      if (primaryTimeVal != null && primaryTimeVal.toString().trim().isNotEmpty) {
+        final tStr = primaryTimeVal.toString().trim();
+        final fullParsed = DateTime.tryParse(tStr);
+        if (fullParsed != null && tStr.contains('T')) {
+          final localT = fullParsed.isUtc ? fullParsed.toLocal() : fullParsed;
+          if (eventDateVal != null && eventDateVal.toString().trim().isNotEmpty) {
+            return DateTime(baseDate.year, baseDate.month, baseDate.day, localT.hour, localT.minute, localT.second);
+          }
+          return localT;
+        }
+        final parts = tStr.split(':');
+        if (parts.length >= 2) {
+          final h = int.tryParse(parts[0]) ?? baseDate.hour;
+          final m = int.tryParse(parts[1]) ?? baseDate.minute;
+          final s = (parts.length >= 3) ? (int.tryParse(parts[2].split('.')[0]) ?? 0) : 0;
+          return DateTime(baseDate.year, baseDate.month, baseDate.day, h, m, s);
+        }
+      }
+
+      return baseDate;
     }
 
-    final start = parseDate(json['startTime'] ?? json['start_time'], json['event_date'], DateTime.now());
-    final end = parseDate(json['endTime'] ?? json['end_time'], json['event_date'], start.add(const Duration(hours: 1)));
+    final now = DateTime.now();
+    final start = parseDateTimeCombined(
+      json['startTime'] ?? json['start_time'],
+      json['event_date'] ?? json['eventDate'] ?? json['date'],
+      now,
+    );
+    final end = parseDateTimeCombined(
+      json['endTime'] ?? json['end_time'],
+      json['event_date'] ?? json['eventDate'] ?? json['date'],
+      start.add(const Duration(hours: 1)),
+    );
     final rawType = (json['type'] ?? json['event_type'] ?? json['type_name'] ?? '').toString().trim();
     final rawCat = (json['category'] ?? json['event_category'] ?? '').toString().trim();
 

@@ -1564,6 +1564,8 @@ class AppProvider extends ChangeNotifier {
       dueTime: dueTime ?? '05:00 PM',
       priority: priority,
     );
+    _deletedItemIds.remove(newTask.id);
+    _saveDeletedItemIds();
     _todoTasks.add(newTask);
     _saveTodoTasks();
     _recalculateMetrics();
@@ -1663,6 +1665,8 @@ class AppProvider extends ChangeNotifier {
       dueTime: dueTime ?? '05:00 PM',
       priority: priority,
     );
+    _deletedItemIds.remove(newTask.id);
+    _saveDeletedItemIds();
     _organizeTasks.add(newTask);
     _saveOrganizeTasks();
     notifyListeners();
@@ -1732,6 +1736,8 @@ class AppProvider extends ChangeNotifier {
       priority: priority,
       isPriorityMatrixOnly: true,
     );
+    _deletedItemIds.remove(newTask.id);
+    _saveDeletedItemIds();
     _priorityMatrixTasks.add(newTask);
     _savePriorityMatrixTasks();
     notifyListeners();
@@ -1890,6 +1896,8 @@ class AppProvider extends ChangeNotifier {
       type: type,
     );
 
+    _deletedItemIds.remove(newEvent.id);
+    _saveDeletedItemIds();
     _calendarEvents.add(newEvent);
     _saveEvents();
     notifyListeners();
@@ -2158,15 +2166,18 @@ class AppProvider extends ChangeNotifier {
 
   Future<void> syncTasksFromCloud() async {
     try {
-      // 1. Flush any pending offline deletions to Supabase
       final List<Future> flushDeletes = [];
+      final Set<String> flushedIds = {};
       for (final delId in _deletedItemIds) {
-        if (delId.contains('-') && delId.length == 36) {
+        if (delId.contains('-') && delId.length >= 32) {
           flushDeletes.add(ApiService.deleteTaskOnBackend(delId));
+          flushedIds.add(delId);
         }
       }
       if (flushDeletes.isNotEmpty) {
         await Future.wait(flushDeletes);
+        _deletedItemIds.removeAll(flushedIds);
+        await _saveDeletedItemIds();
       }
 
       // 2. Fetch authoritative remote tasks from Supabase
