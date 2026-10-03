@@ -7,7 +7,6 @@ import 'habit_tracker_screen.dart';
 import 'expense_tracker_screen.dart';
 
 import 'organize_matrix_screen.dart';
-import 'priority_matrix_screen.dart';
 import 'notes_screen.dart';
 
 class PersonalGrowthScreen extends StatelessWidget {
@@ -137,26 +136,7 @@ class PersonalGrowthScreen extends StatelessWidget {
             ),
             const SizedBox(height: 14),
 
-            // 3. Priority Matrix (Pro Only)
-            _buildMenuCard(
-              context,
-              category: 'TASK PRIORITIZATION',
-              title: 'Priority Matrix',
-              icon: Icons.grid_view_rounded,
-              isDark: isDark,
-              isLocked: !provider.hasAccess(AppFeature.priorityMatrix),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const PriorityMatrixScreen(),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 14),
-
-            // 4. Organize Matrix (Pro Only)
+            // 3. Organize Matrix (Pro Only)
             _buildMenuCard(
               context,
               category: 'ORGANIZATION',
@@ -187,7 +167,7 @@ class PersonalGrowthScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => const NotesScreen(),
+                    builder: (_) => const NotesScreen(screenTitle: 'Productivity Notes'),
                   ),
                 );
               },

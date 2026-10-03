@@ -7,7 +7,6 @@ import '../providers/app_provider.dart';
 import '../widgets/pro_feature_guard.dart';
 import '../widgets/pro_upgrade_dialog.dart';
 import '../widgets/premium_lock_banner.dart';
-import '../widgets/upgrade_pro_modal.dart';
 import '../theme/app_theme.dart';
 
 /// Journal / Notes Screen for WrindhaOS
@@ -19,7 +18,11 @@ import '../theme/app_theme.dart';
 /// - Date & Time stamps, mood chips, short preview
 /// - Persistent storage in AppProvider
 class NotesScreen extends StatefulWidget {
-  const NotesScreen({super.key});
+  final String screenTitle;
+  const NotesScreen({
+    super.key,
+    this.screenTitle = 'Journal / Notes',
+  });
 
   @override
   State<NotesScreen> createState() => _NotesScreenState();
@@ -73,7 +76,7 @@ class _NotesScreenState extends State<NotesScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Journal / Notes',
+          widget.screenTitle,
           style: TextStyle(color: textPrimary, fontWeight: FontWeight.w800),
         ),
         actions: [

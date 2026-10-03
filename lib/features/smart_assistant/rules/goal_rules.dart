@@ -29,16 +29,8 @@ class GoalRules {
     final category = entities.category ?? 'Studies';
 
     // Add as a task in To-Do list
-    final newTask = Task(
-      id: generateUuidV4(),
-      title: title,
-      description: 'Goal in $category',
-      category: category,
-      priority: 'high',
-      dueDate: DateTime.now().add(const Duration(days: 7)),
-      isCompleted: false,
-    );
-    provider.addTask(newTask);
+    final taskId = generateUuidV4();
+    provider.addTask(title, category, 'Today', id: taskId);
 
     return AssistantMessage(
       id: 'msg_${DateTime.now().millisecondsSinceEpoch}',
@@ -52,7 +44,7 @@ class GoalRules {
         subtitle: 'Category: $category • High Priority',
         items: [
           ActionCardItem(
-            id: newTask.id,
+            id: taskId,
             title: title,
             subtitle: 'High Priority Task',
             icon: Icons.flag_rounded,

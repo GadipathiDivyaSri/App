@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
 import '../config/subscription_config.dart';
-import '../widgets/pro_feature_guard.dart';
 import '../widgets/pro_upgrade_dialog.dart';
-import '../widgets/upgrade_pro_modal.dart';
 import '../theme/app_theme.dart';
 import 'personal_growth_screen.dart';
 import 'career_screen.dart';
@@ -14,8 +12,6 @@ import 'priority_matrix_screen.dart';
 import 'focus_timer_screen.dart';
 import 'analytics_screen.dart';
 import 'notes_screen.dart';
-
-import '../features/smart_assistant/smart_assistant_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   final Function(int) onTabChange;
@@ -227,7 +223,7 @@ class HomeScreen extends StatelessWidget {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => const NotesScreen(),
+                              builder: (_) => const NotesScreen(screenTitle: 'Daily Journal & Reflections'),
                             ),
                           );
                         }
