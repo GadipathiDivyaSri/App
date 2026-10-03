@@ -1018,6 +1018,7 @@ class AppProvider extends ChangeNotifier {
         startTime: startTime ?? existing.startTime,
         endTime: endTime ?? existing.endTime,
         isCompleted: existing.isCompleted,
+        updatedAt: DateTime.now(),
       );
       _saveEvents();
       notifyListeners();
@@ -1917,6 +1918,8 @@ class AppProvider extends ChangeNotifier {
       endTime: endDT,
       location: location.isEmpty ? 'Workspace' : location,
       type: type,
+      isCompleted: false,
+      updatedAt: DateTime.now(),
     );
 
     _deletedItemIds.remove(newEvent.id);
@@ -1931,6 +1934,7 @@ class AppProvider extends ChangeNotifier {
     final index = _calendarEvents.indexWhere((e) => e.id == eventId);
     if (index != -1) {
       _calendarEvents[index].isCompleted = !_calendarEvents[index].isCompleted;
+      _calendarEvents[index].updatedAt = DateTime.now();
       _saveEvents();
       _recalculateMetrics();
       notifyListeners();
@@ -2558,7 +2562,18 @@ class AppProvider extends ChangeNotifier {
           local.location = re.location.isNotEmpty ? re.location : local.location;
           local.type = (re.type.isNotEmpty && re.type.toLowerCase() != 'general') ? re.type : local.type;
           local.category = local.type;
-          local.isCompleted = re.isCompleted;
+
+          // Preserve completion:
+          // If local has already been marked completed, keep it completed (never wipe with stale/empty remote false).
+          if (local.isCompleted) {
+            if (!re.isCompleted) {
+              ApiService.updateCalendarEventOnBackend(local);
+            }
+          } else {
+            if (re.isCompleted) {
+              local.isCompleted = true;
+            }
+          }
           evtMap[matchKey!] = local;
         } else {
           evtMap[re.id] = re;

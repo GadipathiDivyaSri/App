@@ -4036,11 +4036,13 @@ class ApiService {
           'location': event.location,
           'event_type': event.type,
           'category': event.category,
+          'is_completed': event.isCompleted,
+          'status': event.isCompleted ? 'completed' : 'pending',
           'is_all_day': false,
-          'updated_at': DateTime.now().toUtc().toIso8601String(),
+          'updated_at': event.updatedAt.toUtc().toIso8601String(),
         };
 
-        final res = await http.post(
+        var res = await http.post(
           Uri.parse('$supabaseUrl/rest/v1/calendar_events'),
           headers: {
             'apikey': supabaseServiceKey,
@@ -4053,7 +4055,25 @@ class ApiService {
 
         if (res.statusCode >= 200 && res.statusCode < 300) {
           saved = true;
-          debugPrint('[ApiService] Calendar event $cleanId saved to Supabase');
+          debugPrint('[ApiService] Calendar event $cleanId saved to Supabase (isCompleted: ${event.isCompleted})');
+        } else if (res.body.contains('is_completed') || res.statusCode == 400) {
+          // Fallback if is_completed column not yet present on Supabase schema cache
+          payload.remove('is_completed');
+          payload.remove('status');
+          res = await http.post(
+            Uri.parse('$supabaseUrl/rest/v1/calendar_events'),
+            headers: {
+              'apikey': supabaseServiceKey,
+              'Authorization': 'Bearer $supabaseServiceKey',
+              'Content-Type': 'application/json',
+              'Prefer': 'return=representation, resolution=merge-duplicates',
+            },
+            body: jsonEncode(payload),
+          ).timeout(const Duration(seconds: 8));
+          if (res.statusCode >= 200 && res.statusCode < 300) {
+            saved = true;
+            debugPrint('[ApiService] Calendar event $cleanId saved to Supabase on fallback');
+          }
         }
       } catch (e) {
         debugPrint('[ApiService] Error saving calendar event to Supabase: $e');
@@ -4074,6 +4094,10 @@ class ApiService {
           'location': event.location,
           'type': event.type,
           'category': event.category,
+          'is_completed': event.isCompleted,
+          'isCompleted': event.isCompleted,
+          'status': event.isCompleted ? 'completed' : 'pending',
+          'updated_at': event.updatedAt.toIso8601String(),
         }),
       ).catchError((_) => http.Response('', 500));
     } catch (_) {}

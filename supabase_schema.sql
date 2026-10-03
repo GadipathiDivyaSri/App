@@ -587,6 +587,8 @@ ALTER TABLE public.calendar_events ADD COLUMN IF NOT EXISTS category VARCHAR(50)
 ALTER TABLE public.calendar_events ADD COLUMN IF NOT EXISTS event_type VARCHAR(50) DEFAULT 'General';
 ALTER TABLE public.calendar_events ADD COLUMN IF NOT EXISTS location VARCHAR(255) DEFAULT 'Workspace A';
 ALTER TABLE public.calendar_events ADD COLUMN IF NOT EXISTS is_all_day BOOLEAN DEFAULT FALSE;
+ALTER TABLE public.calendar_events ADD COLUMN IF NOT EXISTS is_completed BOOLEAN DEFAULT FALSE;
+ALTER TABLE public.calendar_events ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'pending';
 ALTER TABLE public.calendar_events ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP;
 
 CREATE INDEX IF NOT EXISTS idx_calendar_events_user_date ON public.calendar_events(user_id, event_date);

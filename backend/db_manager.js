@@ -390,6 +390,9 @@ class DatabaseManager {
             END IF;
           END $$;
 
+          ALTER TABLE public.calendar_events ADD COLUMN IF NOT EXISTS is_completed BOOLEAN DEFAULT FALSE;
+          ALTER TABLE public.calendar_events ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'pending';
+
           NOTIFY pgrst, 'reload schema';
         `);
         await client.end().catch(() => {});
@@ -1436,6 +1439,9 @@ class DatabaseManager {
         type: eventType,
         event_type: eventType,
         category: cat,
+        is_completed: !!(e.is_completed ?? e.isCompleted ?? (e.status === 'completed')),
+        isCompleted: !!(e.is_completed ?? e.isCompleted ?? (e.status === 'completed')),
+        status: (e.is_completed ?? e.isCompleted ?? (e.status === 'completed')) ? 'completed' : 'pending',
       };
     });
   }
@@ -1462,6 +1468,7 @@ class DatabaseManager {
 
     const eventType = eventData.event_type || eventData.type || eventData.category || 'Meeting';
     const category = eventData.category || eventType || 'General';
+    const isCompleted = !!(eventData.is_completed ?? eventData.isCompleted ?? (eventData.status === 'completed'));
 
     const newEvent = {
       id: ensureUuid(eventData.id),
@@ -1475,6 +1482,8 @@ class DatabaseManager {
       event_type: eventType,
       location: eventData.location || 'Workspace A',
       is_all_day: !!(eventData.is_all_day ?? eventData.isAllDay),
+      is_completed: isCompleted,
+      status: isCompleted ? 'completed' : 'pending',
       created_at: new Date().toISOString(),
     };
 
@@ -1492,6 +1501,9 @@ class DatabaseManager {
       type: eventType,
       event_type: eventType,
       category: category,
+      is_completed: isCompleted,
+      isCompleted: isCompleted,
+      status: isCompleted ? 'completed' : 'pending',
     };
   }
 
@@ -1508,8 +1520,10 @@ class DatabaseManager {
       payload.event_type = updates.event_type || updates.type;
     }
     if (updates.category !== undefined) payload.category = updates.category;
-    if (updates.is_completed !== undefined || updates.isCompleted !== undefined) {
-      payload.is_completed = !!(updates.is_completed ?? updates.isCompleted);
+    if (updates.is_completed !== undefined || updates.isCompleted !== undefined || updates.status !== undefined) {
+      const comp = !!(updates.is_completed ?? updates.isCompleted ?? (updates.status === 'completed'));
+      payload.is_completed = comp;
+      payload.status = comp ? 'completed' : 'pending';
     }
     if (updates.startTime || updates.start_time) {
       const st = updates.startTime || updates.start_time;

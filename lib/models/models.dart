@@ -335,6 +335,7 @@ class CalendarEvent {
   String type; // 'Focus Session', 'Meeting', 'Task'
   String category;
   bool isCompleted;
+  DateTime updatedAt;
 
   CalendarEvent({
     required this.id,
@@ -346,7 +347,9 @@ class CalendarEvent {
     this.type = 'Focus Session',
     String? category,
     this.isCompleted = false,
-  }) : category = (category != null && category.isNotEmpty) ? category : type;
+    DateTime? updatedAt,
+  })  : category = (category != null && category.isNotEmpty) ? category : type,
+        updatedAt = updatedAt ?? DateTime.now();
 
   DateTime get date => startTime;
   String get time => '${startTime.hour.toString().padLeft(2, '0')}:${startTime.minute.toString().padLeft(2, '0')}';
@@ -366,6 +369,8 @@ class CalendarEvent {
         'event_category': category,
         'isCompleted': isCompleted,
         'is_completed': isCompleted,
+        'status': isCompleted ? 'completed' : 'pending',
+        'updated_at': updatedAt.toIso8601String(),
       };
 
   factory CalendarEvent.fromJson(Map<String, dynamic> json) {
@@ -430,6 +435,10 @@ class CalendarEvent {
 
     final parsedCat = (rawCat.isNotEmpty && rawCat.toLowerCase() != 'general') ? rawCat : resolvedType;
 
+    final parsedUpdatedAt = DateTime.tryParse(json['updated_at']?.toString() ?? '') ??
+        DateTime.tryParse(json['updatedAt']?.toString() ?? '') ??
+        DateTime.now();
+
     return CalendarEvent(
       id: json['id']?.toString() ?? generateUuidV4(),
       title: json['title'] ?? 'Event',
@@ -439,7 +448,8 @@ class CalendarEvent {
       location: json['location'] ?? 'Workspace A',
       type: resolvedType,
       category: parsedCat,
-      isCompleted: parseBool(json['isCompleted'] ?? json['is_completed']),
+      isCompleted: parseBool(json['isCompleted'] ?? json['is_completed'] ?? json['status']),
+      updatedAt: parsedUpdatedAt,
     );
   }
 }
