@@ -752,6 +752,11 @@ class StudyUnit {
   factory StudyUnit.fromJson(Map<String, dynamic> json) {
     final rawId = json['id']?.toString() ?? '';
     final cleanId = rawId.isNotEmpty ? rawId : generateUuidV4();
+    final completed = parseBool(json['is_completed'] ?? json['isCompleted']) || (json['status'] == 'completed');
+    final parsedProgress = (json['progress'] is num)
+        ? (json['progress'] as num).toDouble()
+        : (double.tryParse(json['progress']?.toString() ?? '') ?? (completed ? 1.0 : 0.0));
+    final finalProgress = (completed && parsedProgress < 1.0) ? 1.0 : parsedProgress;
     return StudyUnit(
       id: cleanId,
       subjectId: json['subject_id'] ?? json['subjectId'] ?? '',
@@ -760,8 +765,8 @@ class StudyUnit {
       unitNumber: json['unit_number'] != null
           ? int.tryParse(json['unit_number'].toString()) ?? 1
           : (json['unitNumber'] != null ? int.tryParse(json['unitNumber'].toString()) ?? 1 : 1),
-      isCompleted: parseBool(json['is_completed'] ?? json['isCompleted']) || (json['status'] == 'completed'),
-      progress: (json['progress'] is num) ? (json['progress'] as num).toDouble() : 0.0,
+      isCompleted: completed || (finalProgress >= 1.0),
+      progress: finalProgress,
     );
   }
 

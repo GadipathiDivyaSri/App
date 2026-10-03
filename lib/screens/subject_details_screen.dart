@@ -170,7 +170,9 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
 
   Widget _buildUnitCard(BuildContext context, AppProvider provider, StudyUnit unit) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final progress = unit.progress;
+    final progress = provider.getUnitProgress(unit);
+    final isCompleted = progress >= 1.0 || unit.isCompleted;
+    final pPct = (progress * 100).toInt();
 
     return GestureDetector(
       onTap: () {
@@ -218,11 +220,11 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
                   ),
                 ),
                 Text(
-                  '${(progress * 100).toInt()}%',
-                  style: const TextStyle(
+                  '$pPct%',
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w800,
-                    color: Color(0xFF0D5CE5),
+                    color: isCompleted ? const Color(0xFF10B981) : const Color(0xFF0D5CE5),
                   ),
                 ),
                 PopupMenuButton<String>(
@@ -283,11 +285,11 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
             ClipRRect(
               borderRadius: BorderRadius.circular(6),
               child: LinearProgressIndicator(
-                value: progress,
+                value: progress.clamp(0.0, 1.0),
                 minHeight: 6,
-                backgroundColor: const Color(0xFFEEF2FF),
-                valueColor: const AlwaysStoppedAnimation<Color>(
-                  Color(0xFF0D5CE5),
+                backgroundColor: isDark ? const Color(0xFF2A2B3D) : const Color(0xFFEEF2FF),
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  isCompleted ? const Color(0xFF10B981) : const Color(0xFF0D5CE5),
                 ),
               ),
             ),

@@ -565,7 +565,9 @@ class AppProvider extends ChangeNotifier {
 
     return _studyUnits.where((u) {
       final uSub = u.subjectId.trim().toLowerCase();
-      return uSub == clean || matchingIds.contains(uSub) || matchingNames.contains(uSub);
+      if (uSub == clean || matchingIds.contains(uSub) || matchingNames.contains(uSub)) return true;
+      if (clean.isNotEmpty && ApiService.ensureUuid(uSub).toLowerCase() == ApiService.ensureUuid(clean).toLowerCase()) return true;
+      return matchingIds.any((mid) => ApiService.ensureUuid(mid).toLowerCase() == ApiService.ensureUuid(uSub).toLowerCase());
     }).toList();
   }
 
@@ -580,6 +582,39 @@ class AppProvider extends ChangeNotifier {
     if (tUnit == uId || tUnit == uTitle) return true;
     if (uId.isNotEmpty && ApiService.ensureUuid(uId).toLowerCase() == ApiService.ensureUuid(tUnit).toLowerCase()) return true;
     if (uTitle.isNotEmpty && ApiService.ensureUuid(uTitle).toLowerCase() == ApiService.ensureUuid(tUnit).toLowerCase()) return true;
+
+    // Direct parent unit lookup in _studyUnits list
+    final parentUnit = _studyUnits.where((u) =>
+      u.id.trim().toLowerCase() == tUnit ||
+      u.title.trim().toLowerCase() == tUnit ||
+      (u.id.isNotEmpty && ApiService.ensureUuid(u.id).toLowerCase() == ApiService.ensureUuid(tUnit).toLowerCase()) ||
+      (u.title.isNotEmpty && ApiService.ensureUuid(u.title).toLowerCase() == ApiService.ensureUuid(tUnit).toLowerCase())
+    ).firstOrNull;
+
+    if (parentUnit != null) {
+      if (parentUnit.id.trim().toLowerCase() == uId || parentUnit.title.trim().toLowerCase() == uTitle) return true;
+      if (uId.isNotEmpty && ApiService.ensureUuid(uId).toLowerCase() == ApiService.ensureUuid(parentUnit.id).toLowerCase()) return true;
+      if (uTitle.isNotEmpty && ApiService.ensureUuid(uTitle).toLowerCase() == ApiService.ensureUuid(parentUnit.title).toLowerCase()) return true;
+    }
+
+    // Normalized alphanumeric match (ignores punctuation/spacing differences like "Unit 1: Intro" vs "Unit 1 - Intro")
+    final normT = tUnit.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '');
+    final normU = uTitle.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '');
+    if (normT.isNotEmpty && normT == normU) return true;
+
+    // Fallback: If topic has subjectId and the subject has only 1 unit
+    if (topic.subjectId.isNotEmpty) {
+      final cleanSub = topic.subjectId.trim().toLowerCase();
+      final unitsInSub = _studyUnits.where((u) =>
+        u.subjectId.trim().toLowerCase() == cleanSub ||
+        (u.subjectId.isNotEmpty && ApiService.ensureUuid(u.subjectId).toLowerCase() == ApiService.ensureUuid(cleanSub).toLowerCase())
+      ).toList();
+      if (unitsInSub.length == 1) {
+        final singleUnit = unitsInSub.first;
+        if (singleUnit.id.trim().toLowerCase() == uId || singleUnit.title.trim().toLowerCase() == uTitle) return true;
+      }
+    }
+
     return false;
   }
 
@@ -598,6 +633,22 @@ class AppProvider extends ChangeNotifier {
     final targetTitle = unitMatch != null ? unitMatch.title : unitIdOrTitle;
 
     return _studyTopics.where((t) => _isTopicForUnit(t, targetId, targetTitle)).toList();
+  }
+
+  double getUnitProgress(StudyUnit unit) {
+    final topics = getTopicsForUnit(unit.id.isNotEmpty ? unit.id : unit.title);
+    if (topics.isNotEmpty) {
+      final completed = topics.where((t) => t.isCompleted).length;
+      final calc = completed / topics.length;
+      // Auto-heal unit model in memory if it diverged
+      if ((unit.progress - calc).abs() > 0.001 || unit.isCompleted != (calc >= 1.0)) {
+        unit.progress = calc;
+        unit.isCompleted = calc >= 1.0;
+        _saveStudyUnits();
+      }
+      return calc;
+    }
+    return unit.isCompleted ? 1.0 : unit.progress;
   }
 
   void addStudyUnit(StudyUnit unit) {
@@ -727,8 +778,7 @@ class AppProvider extends ChangeNotifier {
       final u = _studyUnits[unitIdx];
       final topics = _studyTopics.where((t) => _isTopicForUnit(t, u.id, u.title)).toList();
       if (topics.isEmpty) {
-        _studyUnits[unitIdx].progress = 0.0;
-        _studyUnits[unitIdx].isCompleted = false;
+        _studyUnits[unitIdx].progress = _studyUnits[unitIdx].isCompleted ? 1.0 : _studyUnits[unitIdx].progress;
       } else {
         final completed = topics.where((t) => t.isCompleted).length;
         _studyUnits[unitIdx].progress = completed / topics.length;
@@ -736,6 +786,8 @@ class AppProvider extends ChangeNotifier {
       }
       _saveStudyUnits();
       _updateSubjectProgress(_studyUnits[unitIdx].subjectId);
+      notifyListeners();
+      ApiService.createStudyUnitOnBackend(_studyUnits[unitIdx]);
     }
   }
 
@@ -2217,7 +2269,34 @@ class AppProvider extends ChangeNotifier {
     }
   }
 
+  void recalculateAllUnitProgress() {
+    bool changed = false;
+    for (final u in _studyUnits) {
+      final topics = _studyTopics.where((t) => _isTopicForUnit(t, u.id, u.title)).toList();
+      if (topics.isNotEmpty) {
+        final completed = topics.where((t) => t.isCompleted).length;
+        final calc = completed / topics.length;
+        final isComp = calc >= 1.0;
+        if ((u.progress - calc).abs() > 0.001 || u.isCompleted != isComp) {
+          u.progress = calc;
+          u.isCompleted = isComp;
+          changed = true;
+          ApiService.createStudyUnitOnBackend(u);
+        }
+      } else if (u.isCompleted && u.progress < 1.0) {
+        u.progress = 1.0;
+        changed = true;
+        ApiService.createStudyUnitOnBackend(u);
+      }
+    }
+    if (changed) {
+      _saveStudyUnits();
+      notifyListeners();
+    }
+  }
+
   void recalculateAllSubjectProgress() {
+    recalculateAllUnitProgress();
     for (final s in _subjects) {
       _updateSubjectProgress(s.id);
     }
@@ -2489,8 +2568,9 @@ class AppProvider extends ChangeNotifier {
           local.title = ru.title.isNotEmpty ? ru.title : local.title;
           if (ru.description.isNotEmpty) local.description = ru.description;
           if (ru.subjectId.isNotEmpty) local.subjectId = ru.subjectId;
-          local.isCompleted = ru.isCompleted;
-          local.progress = ru.progress;
+          local.isCompleted = local.isCompleted || ru.isCompleted;
+          local.progress = local.progress > ru.progress ? local.progress : ru.progress;
+          if (local.isCompleted && local.progress < 1.0) local.progress = 1.0;
           unitMap[matchKey!] = local;
         } else {
           unitMap[ru.id] = ru;
@@ -2498,6 +2578,7 @@ class AppProvider extends ChangeNotifier {
       }
       _studyUnits = unitMap.values.where((u) => !_deletedItemIds.contains(u.id)).toList();
       _saveStudyUnits();
+      recalculateAllUnitProgress();
       recalculateAllSubjectProgress();
       notifyListeners();
     } catch (e) {
@@ -2531,6 +2612,7 @@ class AppProvider extends ChangeNotifier {
       }
       _studyTopics = topicMap.values.where((t) => !_deletedItemIds.contains(t.id)).toList();
       _saveStudyTopics();
+      recalculateAllUnitProgress();
       recalculateAllSubjectProgress();
       notifyListeners();
     } catch (e) {

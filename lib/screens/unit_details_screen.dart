@@ -29,15 +29,25 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
     final provider = Provider.of<AppProvider>(context);
 
     final uKey = widget.unitId.isNotEmpty ? widget.unitId : widget.unitTitle;
+    final unitMatch = provider.studyUnits.where((u) =>
+      u.id.toLowerCase() == uKey.toLowerCase() ||
+      u.title.toLowerCase() == uKey.toLowerCase() ||
+      (u.id.isNotEmpty && ApiService.ensureUuid(u.id).toLowerCase() == ApiService.ensureUuid(uKey).toLowerCase()) ||
+      (u.title.isNotEmpty && ApiService.ensureUuid(u.title).toLowerCase() == ApiService.ensureUuid(uKey).toLowerCase())
+    ).firstOrNull;
+
     final topics = provider.getTopicsForUnit(uKey);
 
     final double currentProgress;
-    if (topics.isEmpty) {
+    if (unitMatch != null) {
+      currentProgress = provider.getUnitProgress(unitMatch);
+    } else if (topics.isEmpty) {
       currentProgress = widget.progress;
     } else {
       final completedCount = topics.where((t) => t.isCompleted).length;
       currentProgress = completedCount / topics.length;
     }
+    final isCompleted = currentProgress >= 1.0;
     final pPct = (currentProgress * 100).toInt();
 
     return Scaffold(
@@ -84,10 +94,10 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
                     ),
                     Text(
                       '$pPct%',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w800,
-                        color: Color(0xFF0D5CE5),
+                        color: isCompleted ? const Color(0xFF10B981) : const Color(0xFF0D5CE5),
                       ),
                     ),
                   ],
@@ -96,11 +106,11 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(6),
                   child: LinearProgressIndicator(
-                    value: currentProgress,
+                    value: currentProgress.clamp(0.0, 1.0),
                     minHeight: 8,
-                    backgroundColor: Colors.white,
-                    valueColor: const AlwaysStoppedAnimation<Color>(
-                      Color(0xFF0D5CE5),
+                    backgroundColor: isDark ? const Color(0xFF2A2B3D) : Colors.white,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      isCompleted ? const Color(0xFF10B981) : const Color(0xFF0D5CE5),
                     ),
                   ),
                 ),
