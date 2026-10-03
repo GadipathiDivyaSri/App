@@ -800,6 +800,7 @@ class AppProvider extends ChangeNotifier {
     final idx = _careerNodes.indexWhere((n) => n.id == id);
     if (idx != -1) {
       _careerNodes[idx].isCompleted = !_careerNodes[idx].isCompleted;
+      _careerNodes[idx].updatedAt = DateTime.now();
       _saveCareerNodes();
       notifyListeners();
       ApiService.updateCareerNodeOnBackend(_careerNodes[idx]);
@@ -809,6 +810,7 @@ class AppProvider extends ChangeNotifier {
   void updateCareerNode(CareerRoadmapNode node) {
     final idx = _careerNodes.indexWhere((n) => n.id == node.id);
     if (idx != -1) {
+      node.updatedAt = DateTime.now();
       _careerNodes[idx] = node;
       _saveCareerNodes();
       notifyListeners();
@@ -2563,16 +2565,13 @@ class AppProvider extends ChangeNotifier {
           local.type = (re.type.isNotEmpty && re.type.toLowerCase() != 'general') ? re.type : local.type;
           local.category = local.type;
 
-          // Preserve completion:
-          // If local has already been marked completed, keep it completed (never wipe with stale/empty remote false).
-          if (local.isCompleted) {
-            if (!re.isCompleted) {
+          if (local.updatedAt.isAfter(re.updatedAt)) {
+            if (local.isCompleted != re.isCompleted) {
               ApiService.updateCalendarEventOnBackend(local);
             }
           } else {
-            if (re.isCompleted) {
-              local.isCompleted = true;
-            }
+            local.isCompleted = re.isCompleted;
+            local.updatedAt = re.updatedAt;
           }
           evtMap[matchKey!] = local;
         } else {
@@ -2613,7 +2612,16 @@ class AppProvider extends ChangeNotifier {
           local.section = rn.section;
           local.status = rn.status;
           local.order = rn.order;
-          local.isCompleted = rn.isCompleted;
+          
+          if (local.updatedAt.isAfter(rn.updatedAt)) {
+            if (local.isCompleted != rn.isCompleted) {
+              ApiService.updateCareerNodeOnBackend(local);
+            }
+          } else {
+            local.isCompleted = rn.isCompleted;
+            local.status = rn.status;
+            local.updatedAt = rn.updatedAt;
+          }
           nodeMap[existingId] = local;
         } else {
           nodeMap[rn.id] = rn;

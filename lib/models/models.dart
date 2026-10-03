@@ -365,10 +365,11 @@ class CalendarEvent {
         'location': location,
         'type': type,
         'event_type': type,
-        'category': category,
-        'event_category': category,
+        'category': isCompleted ? 'COMPLETED' : category,
+        'event_category': isCompleted ? 'COMPLETED' : category,
         'isCompleted': isCompleted,
         'is_completed': isCompleted,
+        'is_all_day': isCompleted,
         'status': isCompleted ? 'completed' : 'pending',
         'updated_at': updatedAt.toIso8601String(),
       };
@@ -425,7 +426,7 @@ class CalendarEvent {
     String resolvedType = 'Task';
     if (rawType.isNotEmpty && rawType.toLowerCase() != 'general') {
       resolvedType = rawType;
-    } else if (rawCat.isNotEmpty && rawCat.toLowerCase() != 'general') {
+    } else if (rawCat.isNotEmpty && rawCat.toLowerCase() != 'general' && rawCat.toUpperCase() != 'COMPLETED') {
       resolvedType = rawCat;
     }
 
@@ -433,11 +434,18 @@ class CalendarEvent {
     if (resolvedType.toLowerCase() == 'task') resolvedType = 'Task';
     if (resolvedType.toLowerCase() == 'focus session') resolvedType = 'Focus Session';
 
-    final parsedCat = (rawCat.isNotEmpty && rawCat.toLowerCase() != 'general') ? rawCat : resolvedType;
+    final parsedCat = (rawCat.isNotEmpty && rawCat.toLowerCase() != 'general' && rawCat.toUpperCase() != 'COMPLETED')
+        ? rawCat
+        : resolvedType;
 
     final parsedUpdatedAt = DateTime.tryParse(json['updated_at']?.toString() ?? '') ??
         DateTime.tryParse(json['updatedAt']?.toString() ?? '') ??
         DateTime.now();
+
+    final bool isDone = parseBool(json['isCompleted'] ?? json['is_completed']) ||
+        (json['status']?.toString().toLowerCase() == 'completed') ||
+        (rawCat.toUpperCase() == 'COMPLETED') ||
+        parseBool(json['is_all_day']);
 
     return CalendarEvent(
       id: json['id']?.toString() ?? generateUuidV4(),
@@ -448,7 +456,7 @@ class CalendarEvent {
       location: json['location'] ?? 'Workspace A',
       type: resolvedType,
       category: parsedCat,
-      isCompleted: parseBool(json['isCompleted'] ?? json['is_completed'] ?? json['status']),
+      isCompleted: isDone,
       updatedAt: parsedUpdatedAt,
     );
   }
@@ -881,6 +889,7 @@ class CareerRoadmapNode {
   String description;
   String status; // 'PLANNED', 'IN_PROGRESS', 'COMPLETED'
   int order;
+  DateTime updatedAt;
 
   CareerRoadmapNode({
     required this.id,
@@ -890,7 +899,8 @@ class CareerRoadmapNode {
     this.status = 'PLANNED',
     this.order = 0,
     bool? isCompleted,
-  }) {
+    DateTime? updatedAt,
+  }) : updatedAt = updatedAt ?? DateTime.now() {
     if (isCompleted != null) {
       status = isCompleted ? 'COMPLETED' : 'PLANNED';
     }
@@ -904,10 +914,15 @@ class CareerRoadmapNode {
   Map<String, dynamic> toJson() => {
         'id': id,
         'section': section,
+        'section_key': section,
         'title': title,
         'description': description,
         'status': status,
         'order': order,
+        'sort_order': order,
+        'is_completed': isCompleted,
+        'isCompleted': isCompleted,
+        'updated_at': updatedAt.toIso8601String(),
       };
 
   factory CareerRoadmapNode.fromJson(Map<String, dynamic> json) {
@@ -918,14 +933,25 @@ class CareerRoadmapNode {
     final isDone = parseBool(json['isCompleted'] ?? json['is_completed']) ||
         json['status'] == 'COMPLETED';
 
+    final parsedOrder = json['sort_order'] != null
+        ? int.tryParse(json['sort_order'].toString()) ?? 0
+        : (json['order'] != null ? int.tryParse(json['order'].toString()) ?? 0 : 0);
+
+    final parsedSection = (json['section_key'] ?? json['section'] ?? 'SKILLS').toString().toUpperCase();
+
+    final parsedUpdatedAt = DateTime.tryParse(json['updated_at']?.toString() ?? '') ??
+        DateTime.tryParse(json['updatedAt']?.toString() ?? '') ??
+        DateTime.now();
+
     return CareerRoadmapNode(
       id: cleanId,
-      section: json['section'] ?? 'SKILLS',
+      section: parsedSection,
       title: json['title'] ?? 'Career Item',
       description: json['description'] ?? json['aligned_purpose'] ?? '',
       status: isDone ? 'COMPLETED' : (json['status'] ?? 'PLANNED'),
-      order: json['order'] != null ? int.tryParse(json['order'].toString()) ?? 0 : 0,
+      order: parsedOrder,
       isCompleted: isDone,
+      updatedAt: parsedUpdatedAt,
     );
   }
 }

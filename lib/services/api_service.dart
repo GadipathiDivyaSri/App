@@ -2631,7 +2631,7 @@ class ApiService {
     };
   }
 
-  /// Career Roadmap Node backend sync (Strictly isolated to 'career_nodes' table)
+  /// Career Roadmap Node backend sync (Strictly aligned with Supabase 'career_nodes' table)
   static Future<Map<String, dynamic>> createCareerNodeOnBackend(CareerRoadmapNode node) async {
     final uid = await getEffectiveUserUuid();
     final cleanId = ensureUuid(node.id);
@@ -2644,16 +2644,15 @@ class ApiService {
           'user_id': uid,
           'title': node.title,
           'description': node.description,
-          'section': node.section,
+          'section_key': node.section,
           'is_completed': node.isCompleted,
-          'tier': 'short',
-          'timeframe': 'short',
-          'category': 'General',
-          'updated_at': DateTime.now().toUtc().toIso8601String(),
+          'completed_at': node.isCompleted ? DateTime.now().toUtc().toIso8601String() : null,
+          'sort_order': node.order,
+          'updated_at': node.updatedAt.toUtc().toIso8601String(),
         };
 
         final res = await http.post(
-          Uri.parse('$supabaseUrl/rest/v1/career_roadmap'),
+          Uri.parse('$supabaseUrl/rest/v1/career_nodes'),
           headers: {
             'apikey': supabaseServiceKey,
             'Authorization': 'Bearer $supabaseServiceKey',
@@ -2665,7 +2664,7 @@ class ApiService {
 
         if (res.statusCode >= 200 && res.statusCode < 300) {
           saved = true;
-          debugPrint('[ApiService] Career node $cleanId saved to Supabase career_roadmap');
+          debugPrint('[ApiService] Career node $cleanId saved to Supabase career_nodes');
         }
       } catch (e) {
         debugPrint('[ApiService] Error saving career node to Supabase: $e');
@@ -2673,30 +2672,6 @@ class ApiService {
     }
 
     try {
-      final uid = await getEffectiveUserUuid();
-      if (uid != null && uid.isNotEmpty) {
-        await http.post(
-          Uri.parse('$supabaseUrl/rest/v1/career_nodes'),
-          headers: {
-            'apikey': supabaseServiceKey,
-            'Authorization': 'Bearer $supabaseServiceKey',
-            'Content-Type': 'application/json',
-            'Prefer': 'resolution=merge-duplicates',
-          },
-          body: jsonEncode({
-            'id': node.id,
-            'user_id': uid,
-            'title': node.title,
-            'description': node.description,
-            'section': node.section,
-            'status': node.status,
-            'is_completed': node.isCompleted,
-            'order': node.order,
-            'created_at': DateTime.now().toUtc().toIso8601String(),
-          }),
-        ).timeout(const Duration(seconds: 6), onTimeout: () => http.Response('', 408));
-      }
-
       final headers = await _getHeaders();
       final response = await http.post(
         Uri.parse('$baseUrl/career-roadmap'),
@@ -2721,22 +2696,19 @@ class ApiService {
 
     if (uid != null && uid.isNotEmpty) {
       try {
-        await http.patch(
-          Uri.parse('$supabaseUrl/rest/v1/career_roadmap?id=eq.$cleanId&user_id=eq.$uid'),
-          headers: {
-            'apikey': supabaseServiceKey,
-            'Authorization': 'Bearer $supabaseServiceKey',
-            'Content-Type': 'application/json',
-          },
-          body: jsonEncode({
-            'title': node.title,
-            'description': node.description,
-            'section': node.section,
-            'is_completed': node.isCompleted,
-            'updated_at': DateTime.now().toUtc().toIso8601String(),
-          }),
-        ).timeout(const Duration(seconds: 8));
+        final payload = {
+          'id': cleanId,
+          'user_id': uid,
+          'title': node.title,
+          'description': node.description,
+          'section_key': node.section,
+          'is_completed': node.isCompleted,
+          'completed_at': node.isCompleted ? DateTime.now().toUtc().toIso8601String() : null,
+          'sort_order': node.order,
+          'updated_at': node.updatedAt.toUtc().toIso8601String(),
+        };
 
+        // 1. Direct PATCH for existing node
         await http.patch(
           Uri.parse('$supabaseUrl/rest/v1/career_nodes?id=eq.$cleanId&user_id=eq.$uid'),
           headers: {
@@ -2747,13 +2719,30 @@ class ApiService {
           body: jsonEncode({
             'title': node.title,
             'description': node.description,
-            'section': node.section,
+            'section_key': node.section,
             'is_completed': node.isCompleted,
-            'status': node.status,
-            'updated_at': DateTime.now().toUtc().toIso8601String(),
+            'completed_at': node.isCompleted ? DateTime.now().toUtc().toIso8601String() : null,
+            'sort_order': node.order,
+            'updated_at': node.updatedAt.toUtc().toIso8601String(),
           }),
-        ).catchError((_) => http.Response('', 500));
-      } catch (_) {}
+        ).timeout(const Duration(seconds: 8));
+
+        // 2. Also ensure upsert
+        await http.post(
+          Uri.parse('$supabaseUrl/rest/v1/career_nodes'),
+          headers: {
+            'apikey': supabaseServiceKey,
+            'Authorization': 'Bearer $supabaseServiceKey',
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation, resolution=merge-duplicates',
+          },
+          body: jsonEncode(payload),
+        ).timeout(const Duration(seconds: 8));
+
+        debugPrint('[ApiService] Career node $cleanId updated in Supabase career_nodes');
+      } catch (e) {
+        debugPrint('[ApiService] Error updating career node in Supabase: $e');
+      }
     }
 
     try {
@@ -2779,22 +2768,14 @@ class ApiService {
 
     if (uid != null && uid.isNotEmpty) {
       try {
-        // Delete from career_roadmap by clean UUID
-        await http.delete(
-          Uri.parse('$supabaseUrl/rest/v1/career_roadmap?id=eq.$cleanId&user_id=eq.$uid'),
-          headers: {'apikey': supabaseServiceKey, 'Authorization': 'Bearer $supabaseServiceKey'},
-        ).timeout(const Duration(seconds: 8));
-
-        // Delete from career_nodes by clean UUID
         await http.delete(
           Uri.parse('$supabaseUrl/rest/v1/career_nodes?id=eq.$cleanId&user_id=eq.$uid'),
           headers: {'apikey': supabaseServiceKey, 'Authorization': 'Bearer $supabaseServiceKey'},
-        ).catchError((_) => http.Response('', 500));
+        ).timeout(const Duration(seconds: 8));
 
-        // If cleanId != nodeId, also delete with raw nodeId
         if (cleanId != nodeId) {
           await http.delete(
-            Uri.parse('$supabaseUrl/rest/v1/career_roadmap?id=eq.$nodeId&user_id=eq.$uid'),
+            Uri.parse('$supabaseUrl/rest/v1/career_nodes?id=eq.$nodeId&user_id=eq.$uid'),
             headers: {'apikey': supabaseServiceKey, 'Authorization': 'Bearer $supabaseServiceKey'},
           ).catchError((_) => http.Response('', 500));
         }
@@ -2821,7 +2802,7 @@ class ApiService {
     if (uid == null || uid.isEmpty) return [];
 
     try {
-      final url = '$supabaseUrl/rest/v1/career_nodes?user_id=eq.$uid&select=*&order=order.asc';
+      final url = '$supabaseUrl/rest/v1/career_nodes?user_id=eq.$uid&select=*&order=sort_order.asc';
       final res = await http.get(
         Uri.parse(url),
         headers: {
@@ -4035,10 +4016,8 @@ class ApiService {
           'end_time': endTimeStr,
           'location': event.location,
           'event_type': event.type,
-          'category': event.category,
-          'is_completed': event.isCompleted,
-          'status': event.isCompleted ? 'completed' : 'pending',
-          'is_all_day': false,
+          'category': event.isCompleted ? 'COMPLETED' : event.type,
+          'is_all_day': event.isCompleted,
           'updated_at': event.updatedAt.toUtc().toIso8601String(),
         };
 
@@ -4056,24 +4035,6 @@ class ApiService {
         if (res.statusCode >= 200 && res.statusCode < 300) {
           saved = true;
           debugPrint('[ApiService] Calendar event $cleanId saved to Supabase (isCompleted: ${event.isCompleted})');
-        } else if (res.body.contains('is_completed') || res.statusCode == 400) {
-          // Fallback if is_completed column not yet present on Supabase schema cache
-          payload.remove('is_completed');
-          payload.remove('status');
-          res = await http.post(
-            Uri.parse('$supabaseUrl/rest/v1/calendar_events'),
-            headers: {
-              'apikey': supabaseServiceKey,
-              'Authorization': 'Bearer $supabaseServiceKey',
-              'Content-Type': 'application/json',
-              'Prefer': 'return=representation, resolution=merge-duplicates',
-            },
-            body: jsonEncode(payload),
-          ).timeout(const Duration(seconds: 8));
-          if (res.statusCode >= 200 && res.statusCode < 300) {
-            saved = true;
-            debugPrint('[ApiService] Calendar event $cleanId saved to Supabase on fallback');
-          }
         }
       } catch (e) {
         debugPrint('[ApiService] Error saving calendar event to Supabase: $e');
@@ -4093,7 +4054,7 @@ class ApiService {
           'endTime': event.endTime.toIso8601String(),
           'location': event.location,
           'type': event.type,
-          'category': event.category,
+          'category': event.isCompleted ? 'COMPLETED' : event.type,
           'is_completed': event.isCompleted,
           'isCompleted': event.isCompleted,
           'status': event.isCompleted ? 'completed' : 'pending',
@@ -4106,6 +4067,43 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> updateCalendarEventOnBackend(CalendarEvent event) async {
+    final uid = await getEffectiveUserUuid();
+    final cleanId = ensureUuid(event.id);
+
+    if (uid != null && uid.isNotEmpty) {
+      try {
+        final dateStr = event.startTime.toIso8601String().split('T')[0];
+        final startTimeStr = '${event.startTime.hour.toString().padLeft(2, '0')}:${event.startTime.minute.toString().padLeft(2, '0')}:${event.startTime.second.toString().padLeft(2, '0')}';
+        final endTimeStr = '${event.endTime.hour.toString().padLeft(2, '0')}:${event.endTime.minute.toString().padLeft(2, '0')}:${event.endTime.second.toString().padLeft(2, '0')}';
+
+        // 1. Direct PATCH to Supabase
+        await http.patch(
+          Uri.parse('$supabaseUrl/rest/v1/calendar_events?id=eq.$cleanId&user_id=eq.$uid'),
+          headers: {
+            'apikey': supabaseServiceKey,
+            'Authorization': 'Bearer $supabaseServiceKey',
+            'Content-Type': 'application/json',
+          },
+          body: jsonEncode({
+            'title': event.title,
+            'description': event.description,
+            'event_date': dateStr,
+            'start_time': startTimeStr,
+            'end_time': endTimeStr,
+            'location': event.location,
+            'event_type': event.type,
+            'category': event.isCompleted ? 'COMPLETED' : event.type,
+            'is_all_day': event.isCompleted,
+            'updated_at': event.updatedAt.toUtc().toIso8601String(),
+          }),
+        ).timeout(const Duration(seconds: 8));
+
+        debugPrint('[ApiService] Calendar event $cleanId patched in Supabase (isCompleted: ${event.isCompleted})');
+      } catch (e) {
+        debugPrint('[ApiService] Error patching calendar event in Supabase: $e');
+      }
+    }
+
     return createCalendarEventOnBackend(event);
   }
 
