@@ -313,6 +313,9 @@ class AppProvider extends ChangeNotifier {
       FeatureAccessService.getRemainingHabitSlots(currentCount: _habits.where((h) => h.status == 'active').length, plan: currentPlan);
 
   void addHabit(Habit habit) {
+    _deletedItemIds.remove(habit.id);
+    _deletedItemIds.remove(ApiService.ensureUuid(habit.id));
+    _saveDeletedItemIds();
     _habits.add(habit);
     _saveHabits();
     _recalculateMetrics();
@@ -743,6 +746,9 @@ class AppProvider extends ChangeNotifier {
   List<JournalEntry> get journalEntries => _journalEntries;
 
   void addJournalEntry(JournalEntry entry) {
+    _deletedItemIds.remove(entry.id);
+    _deletedItemIds.remove(ApiService.ensureUuid(entry.id));
+    _saveDeletedItemIds();
     _journalEntries.insert(0, entry);
     _saveJournalEntries();
     notifyListeners();
@@ -781,6 +787,9 @@ class AppProvider extends ChangeNotifier {
   List<CareerRoadmapNode> get careerRoadmap => _careerNodes;
 
   void addCareerNode(CareerRoadmapNode node) {
+    _deletedItemIds.remove(node.id);
+    _deletedItemIds.remove(ApiService.ensureUuid(node.id));
+    _saveDeletedItemIds();
     _careerNodes.add(node);
     _saveCareerNodes();
     notifyListeners();
@@ -2142,15 +2151,45 @@ class AppProvider extends ChangeNotifier {
   bool _isSyncing = false;
   bool get isSyncing => _isSyncing;
 
+  Future<void> flushDeletedItemsToCloud() async {
+    if (_deletedItemIds.isEmpty) return;
+    try {
+      final List<Future> flushFutures = [];
+      final Set<String> flushedIds = {};
+
+      for (final delId in _deletedItemIds) {
+        if (delId.contains('-') && delId.length >= 32) {
+          flushFutures.add(ApiService.deleteTaskOnBackend(delId));
+          flushFutures.add(ApiService.deleteCalendarEventOnBackend(delId));
+          flushFutures.add(ApiService.deleteStudyUnitOnBackend(delId));
+          flushFutures.add(ApiService.deleteStudyTopicOnBackend(delId));
+          flushFutures.add(ApiService.deleteCareerNodeOnBackend(delId));
+          flushFutures.add(ApiService.deleteHabitOnBackend(delId));
+          flushFutures.add(ApiService.deleteExpenseOnBackend(delId));
+          flushFutures.add(ApiService.deleteJournalEntryOnBackend(delId));
+          flushedIds.add(delId);
+        }
+      }
+
+      if (flushFutures.isNotEmpty) {
+        await Future.wait(flushFutures).catchError((_) => []);
+        _deletedItemIds.removeAll(flushedIds);
+        await _saveDeletedItemIds();
+      }
+    } catch (e) {
+      debugPrint('[AppProvider] Error flushing deleted items to cloud: $e');
+    }
+  }
+
   Future<void> syncAllDataFromCloud() async {
     if (!_isLoggedIn) return;
     final uid = await ApiService.getEffectiveUserUuid();
     if (uid == null || uid.isEmpty) {
-      // Offline or unauthenticated user: preserve local state
       return;
     }
     _isSyncing = true;
     try {
+      await flushDeletedItemsToCloud();
       await Future.wait([
         syncTasksFromCloud(),
         syncHabitsFromCloud(),

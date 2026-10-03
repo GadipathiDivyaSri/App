@@ -2451,13 +2451,6 @@ class ApiService {
           headers: {'apikey': supabaseServiceKey, 'Authorization': 'Bearer $supabaseServiceKey'},
         ).timeout(const Duration(seconds: 8));
 
-        if (habitTitle != null && habitTitle.trim().isNotEmpty) {
-          final encTitle = Uri.encodeComponent(habitTitle.trim());
-          await http.delete(
-            Uri.parse('$supabaseUrl/rest/v1/habits?title=eq.$encTitle&user_id=eq.$uid'),
-            headers: {'apikey': supabaseServiceKey, 'Authorization': 'Bearer $supabaseServiceKey'},
-          ).catchError((_) => http.Response('', 500));
-        }
         debugPrint('[ApiService] Habit $cleanId deleted from Supabase');
       } catch (e) {
         debugPrint('[ApiService] Error deleting habit from Supabase: $e');
@@ -2806,18 +2799,6 @@ class ApiService {
           ).catchError((_) => http.Response('', 500));
         }
 
-        // Title fallback deletion
-        if (nodeTitle != null && nodeTitle.trim().isNotEmpty) {
-          final encTitle = Uri.encodeComponent(nodeTitle.trim());
-          await http.delete(
-            Uri.parse('$supabaseUrl/rest/v1/career_roadmap?title=eq.$encTitle&user_id=eq.$uid'),
-            headers: {'apikey': supabaseServiceKey, 'Authorization': 'Bearer $supabaseServiceKey'},
-          ).catchError((_) => http.Response('', 500));
-          await http.delete(
-            Uri.parse('$supabaseUrl/rest/v1/career_nodes?title=eq.$encTitle&user_id=eq.$uid'),
-            headers: {'apikey': supabaseServiceKey, 'Authorization': 'Bearer $supabaseServiceKey'},
-          ).catchError((_) => http.Response('', 500));
-        }
         debugPrint('[ApiService] Career node $cleanId deleted from Supabase');
       } catch (e) {
         debugPrint('[ApiService] Error deleting career node from Supabase: $e');
@@ -3058,13 +3039,7 @@ class ApiService {
           ).catchError((_) => http.Response('', 500));
         }
 
-        if (unitTitle != null && unitTitle.trim().isNotEmpty) {
-          final encTitle = Uri.encodeComponent(unitTitle.trim());
-          await http.delete(
-            Uri.parse('$supabaseUrl/rest/v1/study_units?title=eq.$encTitle&user_id=eq.$uid'),
-            headers: {'apikey': supabaseServiceKey, 'Authorization': 'Bearer $supabaseServiceKey'},
-          ).catchError((_) => http.Response('', 500));
-        }
+        debugPrint('[ApiService] Study unit $cleanUnitId deleted from Supabase');
       } catch (e) {
         debugPrint('[ApiService] Error deleting unit: $e');
       }
@@ -3488,7 +3463,6 @@ class ApiService {
 
   static Future<Map<String, dynamic>> deleteTaskOnBackend(String taskId, {String? taskTitle}) async {
     final cleanTaskId = ensureUuid(taskId);
-    final uid = await getEffectiveUserUuid();
     bool supabaseDeleted = false;
 
     // 1. Primary: Direct Supabase PostgreSQL Record Deletion (Source of Truth)
@@ -4272,14 +4246,6 @@ class ApiService {
           ).catchError((_) => http.Response('', 500));
         }
 
-        // Title fallback deletion
-        if (entryTitle != null && entryTitle.trim().isNotEmpty) {
-          final encTitle = Uri.encodeComponent(entryTitle.trim());
-          await http.delete(
-            Uri.parse('$supabaseUrl/rest/v1/journal_entries?title=eq.$encTitle&user_id=eq.$uid'),
-            headers: {'apikey': supabaseServiceKey, 'Authorization': 'Bearer $supabaseServiceKey'},
-          ).catchError((_) => http.Response('', 500));
-        }
         debugPrint('[ApiService] Journal entry $cleanId deleted from Supabase');
       } catch (e) {
         debugPrint('[ApiService] Error deleting journal entry from Supabase: $e');
