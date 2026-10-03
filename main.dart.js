@@ -59850,6 +59850,8 @@ $S:0}
 A.axP.prototype={
 $2(a,b){return this.a.SS(a,b,!0)},
 $S:58}
+A.axQ_detail=function axQ_detail(a,b){this.a=a;this.b=b};
+A.axQ_detail.prototype={$1(a){var s=null,r=this.a,q=A.ax(A.n(r.c,s,s,s,s,B.lL,s,s,s),1),p=r.e==="COMPLETED",o=p?B.tj:B.tc,n=A.L(8),m=p?"Completed \u2713":"In Progress",l=t.p;n=A.a([A.a3(A.a([q,A.a1(s,A.n(m,s,s,s,s,A.H(s,s,p?B.rW:B.fO,s,s,s,s,s,s,s,s,11,s,s,B.z,s,s,!0,s,s,s,s,s,s,s,s),s,s,s),B.l,s,s,new A.X(o,s,s,n,s,s,B.o),s,s,s,B.io,s,s,s)],l),B.i,B.a1,B.e,0,s,s)],l);q=r.d;if(q.length!==0)B.b.M(n,A.a([B.ae,A.n(q,s,s,s,s,B.lO,s,s,s)],l));return new A.au(B.W,A.a2(n,B.w,B.h,B.a4,0,B.m),s)},$S:97};
 A.axQ.prototype={
 $2(a,b){return this.a.SS(a,b,!1)},
 $S:58}
@@ -59902,8 +59904,7 @@ q=s.gbw()?o.w:n
 p=o.f.gbw()?o.r:n
 return A.af3(m,!1,new A.Js(r,q,p,o.a.c,n),!0,s,B.b2,o.gakh(),n,n,B.B5)}}
 A.axS.prototype={
-$0(){if(this.b){var s=this.a
-if(s.w==null)s.w=s.a.f}},
+$0(){A.Xr.prototype.at8(this.c,this.b)},
 $S:0}
 A.axR.prototype={
 $0(){var s,r,q=this.a,p=q.w
@@ -108127,7 +108128,7 @@ A.qG(null,new A.aa6(new A.bK(new A.c2(s,B.b4,B.aA),r),new A.bK(new A.c2(c.c,B.b4
 at2(a){var s,r={},q=A.co(a,!1,t.C),p=new A.aA(Date.now(),0,!1),o=A.aS(A.aa(p),A.ae(p),A.av(p),0,0,0,0),n=q.cy
 r.a=n.dX(o)?o:n
 s=$.a9()
-r.b="Focus Session"
+r.b="Task"
 r.c=B.qv
 r.d=B.ad0
 A.qG(null,new A.aa4(r,new A.bK(B.aJ,s),a,new A.bK(B.aJ,s),new A.bK(B.aJ,s),q),a,!0,B.fv,t.z)}}
