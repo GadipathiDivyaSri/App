@@ -11,7 +11,6 @@ import 'career_screen.dart';
 import 'studies_screen.dart';
 import 'calendar_screen.dart';
 import 'priority_matrix_screen.dart';
-import 'organize_matrix_screen.dart';
 import 'focus_timer_screen.dart';
 import 'analytics_screen.dart';
 
@@ -186,7 +185,7 @@ class HomeScreen extends StatelessWidget {
                       isDark: isDark,
                       icon: Icons.grid_view_rounded,
                       title: 'Priority Matrix',
-                      subtitle: '3-Tier Urgency',
+                      subtitle: 'Urgency & Eisenhower',
                       lightCardBg: const Color(0xFFF0F9FF),
                       lightIconContainerColor: const Color(0xFF0284C7),
                       isLocked: !provider.hasAccess(AppFeature.priorityMatrix),
@@ -207,34 +206,7 @@ class HomeScreen extends StatelessWidget {
                       },
                     ),
 
-                    // 6. Organize Tasks (PRO ONLY: AppFeature.eisenhowerMatrix)
-                    _buildModuleCard(
-                      context,
-                      isDark: isDark,
-                      icon: Icons.dashboard_customize_rounded,
-                      title: 'Organize Tasks',
-                      subtitle: 'Eisenhower 4-Quadrant',
-                      lightCardBg: const Color(0xFFFFF7ED),
-                      lightIconContainerColor: const Color(0xFFEA580C),
-                      isLocked: !provider.hasAccess(AppFeature.eisenhowerMatrix),
-                      onTap: () {
-                        if (!provider.hasAccess(AppFeature.eisenhowerMatrix)) {
-                          ProUpgradeDialog.showFeatureLockedDialog(
-                            context,
-                            AppFeature.eisenhowerMatrix,
-                          );
-                        } else {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const OrganizeMatrixScreen(),
-                            ),
-                          );
-                        }
-                      },
-                    ),
-
-                    // 7. Focus Centre
+                    // 6. Focus Centre
                     _buildModuleCard(
                       context,
                       isDark: isDark,
@@ -253,7 +225,7 @@ class HomeScreen extends StatelessWidget {
                       },
                     ),
 
-                    // 8. Analytics (PRO ONLY: AppFeature.analytics)
+                    // 7. Analytics (PRO ONLY: AppFeature.analytics)
                     _buildModuleCard(
                       context,
                       isDark: isDark,
