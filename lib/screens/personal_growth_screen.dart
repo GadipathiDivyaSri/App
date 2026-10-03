@@ -7,7 +7,6 @@ import 'habit_tracker_screen.dart';
 import 'expense_tracker_screen.dart';
 
 import 'organize_matrix_screen.dart';
-import 'notes_screen.dart';
 
 class PersonalGrowthScreen extends StatelessWidget {
   const PersonalGrowthScreen({super.key});
@@ -149,25 +148,6 @@ class PersonalGrowthScreen extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                     builder: (_) => const OrganizeMatrixScreen(),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 14),
-
-            // 5. Notes (Pro Only)
-            _buildMenuCard(
-              context,
-              category: 'KNOWLEDGE HUB',
-              title: 'Notes',
-              icon: Icons.edit_note_rounded,
-              isDark: isDark,
-              isLocked: !provider.hasAccess(AppFeature.notes),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const NotesScreen(screenTitle: 'Productivity Notes'),
                   ),
                 );
               },
