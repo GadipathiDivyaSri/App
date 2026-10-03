@@ -519,8 +519,7 @@ class AppProvider extends ChangeNotifier {
 
       if (units.isNotEmpty) {
         final allTopics = _studyTopics.where((t) {
-          final tUnitId = t.unitId.trim().toLowerCase();
-          return units.any((u) => u.id.trim().toLowerCase() == tUnitId || u.title.trim().toLowerCase() == tUnitId);
+          return units.any((u) => _isTopicForUnit(t, u.id, u.title));
         }).toList();
 
         if (allTopics.isNotEmpty) {
@@ -570,25 +569,32 @@ class AppProvider extends ChangeNotifier {
   List<StudyTopic> _studyTopics = [];
   List<StudyTopic> get studyTopics => _studyTopics;
 
+  bool _isTopicForUnit(StudyTopic topic, String unitId, String unitTitle) {
+    final tUnit = topic.unitId.trim().toLowerCase();
+    final uId = unitId.trim().toLowerCase();
+    final uTitle = unitTitle.trim().toLowerCase();
+    if (tUnit.isEmpty) return false;
+    if (tUnit == uId || tUnit == uTitle) return true;
+    if (uId.isNotEmpty && ApiService.ensureUuid(uId).toLowerCase() == ApiService.ensureUuid(tUnit).toLowerCase()) return true;
+    if (uTitle.isNotEmpty && ApiService.ensureUuid(uTitle).toLowerCase() == ApiService.ensureUuid(tUnit).toLowerCase()) return true;
+    return false;
+  }
+
   List<StudyTopic> getTopicsForUnit(String unitIdOrTitle) {
     final clean = unitIdOrTitle.trim().toLowerCase();
     if (clean.isEmpty) return [];
 
     final unitMatch = _studyUnits.where((u) =>
       u.id.trim().toLowerCase() == clean ||
-      u.title.trim().toLowerCase() == clean
+      u.title.trim().toLowerCase() == clean ||
+      (u.id.isNotEmpty && ApiService.ensureUuid(u.id).toLowerCase() == ApiService.ensureUuid(clean).toLowerCase()) ||
+      (u.title.isNotEmpty && ApiService.ensureUuid(u.title).toLowerCase() == ApiService.ensureUuid(clean).toLowerCase())
     ).firstOrNull;
 
-    final matchKeys = <String>{clean};
-    if (unitMatch != null) {
-      matchKeys.add(unitMatch.id.trim().toLowerCase());
-      matchKeys.add(unitMatch.title.trim().toLowerCase());
-    }
+    final targetId = unitMatch != null ? unitMatch.id : unitIdOrTitle;
+    final targetTitle = unitMatch != null ? unitMatch.title : unitIdOrTitle;
 
-    return _studyTopics.where((t) {
-      final tUnit = t.unitId.trim().toLowerCase();
-      return matchKeys.contains(tUnit);
-    }).toList();
+    return _studyTopics.where((t) => _isTopicForUnit(t, targetId, targetTitle)).toList();
   }
 
   void addStudyUnit(StudyUnit unit) {
@@ -618,7 +624,7 @@ class AppProvider extends ChangeNotifier {
     if (idx != -1) {
       _studyUnits[idx].progress = 1.0;
       _studyUnits[idx].isCompleted = true;
-      for (var t in _studyTopics.where((t) => t.unitId == unitId)) {
+      for (var t in _studyTopics.where((t) => _isTopicForUnit(t, _studyUnits[idx].id, _studyUnits[idx].title))) {
         t.isCompleted = true;
         ApiService.toggleStudyTopicOnBackend(t.id);
       }
@@ -657,6 +663,9 @@ class AppProvider extends ChangeNotifier {
   }
 
   void addStudyTopic(StudyTopic topic) {
+    _deletedItemIds.remove(topic.id);
+    _deletedItemIds.remove(ApiService.ensureUuid(topic.id));
+    _saveDeletedItemIds();
     _studyTopics.add(topic);
     _updateUnitProgress(topic.unitId);
     _saveStudyTopics();
@@ -665,7 +674,7 @@ class AppProvider extends ChangeNotifier {
   }
 
   void updateStudyTopic(String topicId, String title) {
-    final idx = _studyTopics.indexWhere((t) => t.id == topicId);
+    final idx = _studyTopics.indexWhere((t) => t.id == topicId || ApiService.ensureUuid(t.id) == ApiService.ensureUuid(topicId));
     if (idx != -1) {
       _studyTopics[idx].title = title;
       _saveStudyTopics();
@@ -675,7 +684,7 @@ class AppProvider extends ChangeNotifier {
   }
 
   void toggleStudyTopic(String topicId) {
-    final idx = _studyTopics.indexWhere((t) => t.id == topicId);
+    final idx = _studyTopics.indexWhere((t) => t.id == topicId || ApiService.ensureUuid(t.id) == ApiService.ensureUuid(topicId));
     if (idx != -1) {
       _studyTopics[idx].isCompleted = !_studyTopics[idx].isCompleted;
       _updateUnitProgress(_studyTopics[idx].unitId);
@@ -686,11 +695,12 @@ class AppProvider extends ChangeNotifier {
   }
 
   Future<void> deleteStudyTopic(String topicId) async {
-    final idx = _studyTopics.indexWhere((t) => t.id == topicId);
-    _deletedItemIds.add(topicId);
-    _saveDeletedItemIds();
+    final idx = _studyTopics.indexWhere((t) => t.id == topicId || ApiService.ensureUuid(t.id) == ApiService.ensureUuid(topicId));
     if (idx != -1) {
       final unitId = _studyTopics[idx].unitId;
+      _deletedItemIds.add(_studyTopics[idx].id);
+      _deletedItemIds.add(ApiService.ensureUuid(_studyTopics[idx].id));
+      _saveDeletedItemIds();
       _studyTopics.removeAt(idx);
       _updateUnitProgress(unitId);
       _saveStudyTopics();
@@ -700,15 +710,19 @@ class AppProvider extends ChangeNotifier {
   }
 
   void _updateUnitProgress(String unitIdOrTitle) {
-    final cleanId = unitIdOrTitle.trim().toLowerCase();
-    final unitIdx = _studyUnits.indexWhere((u) => u.id.trim().toLowerCase() == cleanId || u.title.trim().toLowerCase() == cleanId);
+    final clean = unitIdOrTitle.trim().toLowerCase();
+    if (clean.isEmpty) return;
+
+    final unitIdx = _studyUnits.indexWhere((u) =>
+      u.id.trim().toLowerCase() == clean ||
+      u.title.trim().toLowerCase() == clean ||
+      (u.id.isNotEmpty && ApiService.ensureUuid(u.id).toLowerCase() == ApiService.ensureUuid(clean).toLowerCase()) ||
+      (u.title.isNotEmpty && ApiService.ensureUuid(u.title).toLowerCase() == ApiService.ensureUuid(clean).toLowerCase())
+    );
+
     if (unitIdx != -1) {
-      final uId = _studyUnits[unitIdx].id.trim().toLowerCase();
-      final uTitle = _studyUnits[unitIdx].title.trim().toLowerCase();
-      final topics = _studyTopics.where((t) {
-        final tUnitId = t.unitId.trim().toLowerCase();
-        return tUnitId == uId || tUnitId == uTitle;
-      }).toList();
+      final u = _studyUnits[unitIdx];
+      final topics = _studyTopics.where((t) => _isTopicForUnit(t, u.id, u.title)).toList();
       if (topics.isEmpty) {
         _studyUnits[unitIdx].progress = 0.0;
         _studyUnits[unitIdx].isCompleted = false;
