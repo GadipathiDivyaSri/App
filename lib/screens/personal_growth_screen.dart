@@ -175,12 +175,12 @@ class PersonalGrowthScreen extends StatelessWidget {
             ),
             const SizedBox(height: 14),
 
-            // 5. Journal & Notes (Pro Only)
+            // 5. Notes (Pro Only)
             _buildMenuCard(
               context,
               category: 'KNOWLEDGE HUB',
-              title: 'Journal & Notes',
-              icon: Icons.book_outlined,
+              title: 'Notes',
+              icon: Icons.edit_note_rounded,
               isDark: isDark,
               isLocked: !provider.hasAccess(AppFeature.notes),
               onTap: () {

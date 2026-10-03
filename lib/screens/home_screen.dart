@@ -13,6 +13,7 @@ import 'calendar_screen.dart';
 import 'priority_matrix_screen.dart';
 import 'focus_timer_screen.dart';
 import 'analytics_screen.dart';
+import 'notes_screen.dart';
 
 import '../features/smart_assistant/smart_assistant_screen.dart';
 
@@ -206,7 +207,34 @@ class HomeScreen extends StatelessWidget {
                       },
                     ),
 
-                    // 6. Focus Centre
+                    // 6. Journal (PRO ONLY: AppFeature.notes)
+                    _buildModuleCard(
+                      context,
+                      isDark: isDark,
+                      icon: Icons.book_outlined,
+                      title: 'Journal',
+                      subtitle: 'Reflections & Diary',
+                      lightCardBg: const Color(0xFFFAF5FF),
+                      lightIconContainerColor: const Color(0xFF9333EA),
+                      isLocked: !provider.hasAccess(AppFeature.notes),
+                      onTap: () {
+                        if (!provider.hasAccess(AppFeature.notes)) {
+                          ProUpgradeDialog.showFeatureLockedDialog(
+                            context,
+                            AppFeature.notes,
+                          );
+                        } else {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const NotesScreen(),
+                            ),
+                          );
+                        }
+                      },
+                    ),
+
+                    // 7. Focus Centre
                     _buildModuleCard(
                       context,
                       isDark: isDark,
@@ -225,7 +253,7 @@ class HomeScreen extends StatelessWidget {
                       },
                     ),
 
-                    // 7. Analytics (PRO ONLY: AppFeature.analytics)
+                    // 8. Analytics (PRO ONLY: AppFeature.analytics)
                     _buildModuleCard(
                       context,
                       isDark: isDark,
