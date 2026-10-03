@@ -28,168 +28,145 @@ class GoalRules {
     final title = entities.title ?? 'Achieve Academic Excellence';
     final category = entities.category ?? 'Studies';
 
-    // Add as a goal in Goal Pyramid
-    final newGoal = Goal(
-      id: 'g_${DateTime.now().millisecondsSinceEpoch}',
+    // Add as a task in To-Do list
+    final newTask = Task(
+      id: generateUuidV4(),
       title: title,
       description: 'Goal in $category',
-      tier: 'short',
+      category: category,
+      priority: 'high',
+      dueDate: DateTime.now().add(const Duration(days: 7)),
       isCompleted: false,
     );
-    provider.addGoal(newGoal);
+    provider.addTask(newTask);
 
     return AssistantMessage(
       id: 'msg_${DateTime.now().millisecondsSinceEpoch}',
-      text: '🎯 Created goal: **"$title"**. It has been added to your Goal Pyramid.',
+      text: '🎯 Goal added to your Tasks: **"$title"**.',
       isUser: false,
       timestamp: DateTime.now(),
       detectedIntent: SmartIntent.createGoal,
       cardData: ActionCardData(
-        type: ActionCardType.goalMeter,
+        type: ActionCardType.taskList,
         title: title,
-        subtitle: 'Status: In Progress • Short Term Goal',
+        subtitle: 'Category: $category • High Priority',
         items: [
           ActionCardItem(
-            id: newGoal.id,
+            id: newTask.id,
             title: title,
-            subtitle: 'Goal • Short Term',
+            subtitle: 'High Priority Task',
             icon: Icons.flag_rounded,
             iconColor: const Color(0xFF0D5CE5),
           ),
         ],
       ),
-      suggestionChips: ['What should I do for my goal?', 'Show my goals'],
+      suggestionChips: ['Show my tasks', 'Show career roadmap'],
     );
   }
 
   static AssistantMessage _completeGoal(ExtractedEntities entities, AppProvider provider) {
     final query = (entities.title ?? '').toLowerCase().trim();
-    final goals = provider.goals;
-    if (goals.isEmpty) {
+    final tasks = provider.tasks;
+    if (tasks.isEmpty) {
       return AssistantMessage(
         id: 'msg_${DateTime.now().millisecondsSinceEpoch}',
-        text: 'You have no active goals to mark completed.',
+        text: 'You have no active tasks or goals to mark completed.',
         isUser: false,
         timestamp: DateTime.now(),
-        suggestionChips: ['Create a goal to finish my syllabus', 'Plan my day'],
+        suggestionChips: ['Create a task', 'Plan my day'],
       );
     }
 
-    Goal? target;
+    Task? target;
     if (query.isNotEmpty && query != 'untitled item') {
-      for (final g in goals) {
-        final title = g.title.toLowerCase();
+      for (final t in tasks) {
+        final title = t.title.toLowerCase();
         if (title.contains(query) || query.contains(title)) {
-          target = g;
+          target = t;
           break;
         }
       }
     }
 
-    target ??= goals.firstWhere((g) => !g.isCompleted, orElse: () => goals.first);
-    provider.toggleGoal(target.id);
+    target ??= tasks.firstWhere((t) => !t.isCompleted, orElse: () => tasks.first);
+    provider.toggleTaskCompletion(target.id);
 
     return AssistantMessage(
       id: 'msg_${DateTime.now().millisecondsSinceEpoch}',
-      text: '🏆 Congratulations! You accomplished your goal: **"${target.title}"**!',
+      text: '🏆 Congratulations! You accomplished your goal/task: **"${target.title}"**!',
       isUser: false,
       timestamp: DateTime.now(),
       detectedIntent: SmartIntent.completeGoal,
-      suggestionChips: ['Show my progress', 'Create a new goal'],
+      suggestionChips: ['Show my tasks', 'Create a new task'],
     );
   }
 
   static AssistantMessage _getGoalProgress(AppProvider provider) {
-    final goals = provider.goals;
-    if (goals.isEmpty) {
+    final tasks = provider.tasks;
+    if (tasks.isEmpty) {
       return AssistantMessage(
         id: 'msg_${DateTime.now().millisecondsSinceEpoch}',
-        text: 'You don\'t have any goals set yet. Tell me a goal to create!',
+        text: 'You don\'t have any tasks or goals set yet. Tell me a task to create!',
         isUser: false,
         timestamp: DateTime.now(),
-        suggestionChips: ['Create a goal to finish my syllabus', 'Plan my day'],
+        suggestionChips: ['Create a task to finish my syllabus', 'Plan my day'],
       );
     }
 
-    final completed = goals.where((g) => g.isCompleted).length;
-    final inProgress = goals.where((g) => !g.isCompleted).length;
-    final percent = ((completed / goals.length) * 100).round();
+    final completed = tasks.where((t) => t.isCompleted).length;
+    final percent = ((completed / tasks.length) * 100).round();
 
     return AssistantMessage(
       id: 'msg_${DateTime.now().millisecondsSinceEpoch}',
-      text: '🎯 **Goal Pyramid Progress**:\n• Total Goals: **${goals.length}**\n• Completed: **$completed** ($percent%)\n• Active in progress: **$inProgress**',
+      text: '🎯 **Task & Goal Progress**:\n• Total Tasks: **${tasks.length}**\n• Completed: **$completed** ($percent%)',
       isUser: false,
       timestamp: DateTime.now(),
       detectedIntent: SmartIntent.getGoalProgress,
-      cardData: ActionCardData(
-        type: ActionCardType.goalMeter,
-        title: '$percent% Goals Completed',
-        subtitle: '$completed of ${goals.length} targets achieved',
-        items: goals.map((g) => ActionCardItem(
-          id: g.id,
-          title: g.title,
-          subtitle: '${g.tier.toUpperCase()} • ${g.isCompleted ? "COMPLETED" : "IN_PROGRESS"}',
-          icon: g.isCompleted ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
-          iconColor: g.isCompleted ? const Color(0xFF10B981) : const Color(0xFF0D5CE5),
-        )).toList(),
-      ),
-      suggestionChips: ['What should I do for my goal?', 'What should I do now?'],
+      suggestionChips: ['Show my tasks', 'What should I do now?'],
     );
   }
 
   static AssistantMessage _nextGoalAction(AppProvider provider) {
-    final pendingGoals = provider.goals.where((g) => !g.isCompleted).toList();
-    if (pendingGoals.isEmpty) {
+    final pendingTasks = provider.tasks.where((t) => !t.isCompleted).toList();
+    if (pendingTasks.isEmpty) {
       return AssistantMessage(
         id: 'msg_${DateTime.now().millisecondsSinceEpoch}',
-        text: '🎉 You have completed all existing goals! Ready to add a new ambitious target?',
+        text: '🎉 You have completed all existing tasks and goals! Ready to add a new ambitious target?',
         isUser: false,
         timestamp: DateTime.now(),
       );
     }
 
-    final topGoal = pendingGoals.first;
+    final topTask = pendingTasks.first;
     return AssistantMessage(
       id: 'msg_${DateTime.now().millisecondsSinceEpoch}',
-      text: '🎯 **Next Recommended Goal Action**:\nFocus on **"${topGoal.title}"** (${topGoal.description.isNotEmpty ? topGoal.description : topGoal.tier.toUpperCase()}).',
+      text: '🎯 **Next Recommended Action**:\nFocus on **"${topTask.title}"** (${topTask.category}).',
       isUser: false,
       timestamp: DateTime.now(),
       detectedIntent: SmartIntent.nextGoalAction,
-      suggestionChips: ['Add a task for this goal', 'Show my tasks'],
+      suggestionChips: ['Show my tasks', 'Show career roadmap'],
     );
   }
 
   static AssistantMessage _getAllGoals(AppProvider provider) {
-    final goals = provider.goals;
-    if (goals.isEmpty) {
+    final tasks = provider.tasks;
+    if (tasks.isEmpty) {
       return AssistantMessage(
         id: 'msg_${DateTime.now().millisecondsSinceEpoch}',
-        text: 'You haven\'t set up your goals yet. Tell me a goal to begin!',
+        text: 'You haven\'t set up any tasks or goals yet. Tell me a target to begin!',
         isUser: false,
         timestamp: DateTime.now(),
-        suggestionChips: ['Create a goal to finish my syllabus'],
+        suggestionChips: ['Create a task to finish my syllabus'],
       );
     }
 
     return AssistantMessage(
       id: 'msg_${DateTime.now().millisecondsSinceEpoch}',
-      text: '🎯 Here is your active Goal Pyramid:',
+      text: '🎯 Here are your active priority targets:',
       isUser: false,
       timestamp: DateTime.now(),
       detectedIntent: SmartIntent.getGoals,
-      cardData: ActionCardData(
-        type: ActionCardType.goalMeter,
-        title: 'Goal Pyramid',
-        subtitle: '${goals.length} goals tracked',
-        items: goals.map((g) => ActionCardItem(
-          id: g.id,
-          title: g.title,
-          subtitle: '${g.tier.toUpperCase()} • ${g.isCompleted ? "COMPLETED" : "IN_PROGRESS"}',
-          icon: g.isCompleted ? Icons.check_circle_rounded : Icons.flag_rounded,
-          iconColor: g.isCompleted ? const Color(0xFF10B981) : const Color(0xFF0D5CE5),
-        )).toList(),
-      ),
-      suggestionChips: ['What should I do for my goal?', 'What should I do now?'],
+      suggestionChips: ['Show my tasks', 'What should I do now?'],
     );
   }
 }
