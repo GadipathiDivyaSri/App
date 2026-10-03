@@ -3126,19 +3126,68 @@ class ApiService {
     final uid = await getEffectiveUserUuid();
     final cleanTopicId = ensureUuid(topic.id);
     final cleanUnitId = ensureUuid(topic.unitId);
-    String cleanSubId = ensureUuid(topic.subjectId);
+    String cleanSubId = topic.subjectId.isNotEmpty ? ensureUuid(topic.subjectId) : '';
     bool saved = false;
 
     // 1. Primary: Direct Supabase PostgreSQL
     if (uid != null && uid.isNotEmpty) {
       try {
-        // Verify or auto-create parent unit in Supabase to satisfy foreign key constraint
+        // Step A: Resolve or auto-create parent Subject in Supabase
+        if (cleanSubId.isNotEmpty) {
+          final resSub = await http.get(
+            Uri.parse('$supabaseUrl/rest/v1/subjects?id=eq.$cleanSubId&user_id=eq.$uid&select=id'),
+            headers: {'apikey': supabaseServiceKey, 'Authorization': 'Bearer $supabaseServiceKey'},
+          ).catchError((_) => http.Response('[]', 500));
+
+          bool subExists = false;
+          if (resSub.statusCode == 200) {
+            final List list = jsonDecode(resSub.body);
+            if (list.isNotEmpty) subExists = true;
+          }
+
+          if (!subExists && topic.subjectId.trim().isNotEmpty) {
+            final encName = Uri.encodeComponent(topic.subjectId.trim());
+            final resSubName = await http.get(
+              Uri.parse('$supabaseUrl/rest/v1/subjects?name=eq.$encName&user_id=eq.$uid&select=id'),
+              headers: {'apikey': supabaseServiceKey, 'Authorization': 'Bearer $supabaseServiceKey'},
+            ).catchError((_) => http.Response('[]', 500));
+            if (resSubName.statusCode == 200) {
+              final List list = jsonDecode(resSubName.body);
+              if (list.isNotEmpty && list[0]['id'] != null) {
+                cleanSubId = list[0]['id'].toString();
+                subExists = true;
+              }
+            }
+          }
+
+          if (!subExists) {
+            final subPayload = {
+              'id': cleanSubId,
+              'user_id': uid,
+              'name': topic.subjectId.trim().isNotEmpty ? topic.subjectId.trim() : 'General Studies',
+              'code': '',
+              'instructor': '',
+              'credits': 3,
+              'color_hex': '4279065829',
+              'created_at': DateTime.now().toUtc().toIso8601String(),
+            };
+            await http.post(
+              Uri.parse('$supabaseUrl/rest/v1/subjects'),
+              headers: {
+                'apikey': supabaseServiceKey,
+                'Authorization': 'Bearer $supabaseServiceKey',
+                'Content-Type': 'application/json',
+                'Prefer': 'return=representation, resolution=merge-duplicates',
+              },
+              body: jsonEncode(subPayload),
+            ).catchError((_) => http.Response('', 500));
+          }
+        }
+
+        // Step B: Resolve or auto-create parent Unit in Supabase
         final resUnit = await http.get(
           Uri.parse('$supabaseUrl/rest/v1/study_units?id=eq.$cleanUnitId&select=id,subject_id'),
-          headers: {
-            'apikey': supabaseServiceKey,
-            'Authorization': 'Bearer $supabaseServiceKey',
-          },
+          headers: {'apikey': supabaseServiceKey, 'Authorization': 'Bearer $supabaseServiceKey'},
         ).timeout(const Duration(seconds: 4), onTimeout: () => http.Response('[]', 408));
 
         bool unitExists = false;
@@ -3153,10 +3202,9 @@ class ApiService {
         }
 
         if (!unitExists) {
-          // Auto-create parent unit stub if missing in Supabase
           final unitPayload = {
             'id': cleanUnitId,
-            'subject_id': cleanSubId,
+            if (cleanSubId.isNotEmpty) 'subject_id': cleanSubId,
             'user_id': uid,
             'title': 'Unit',
             'description': '',
@@ -3177,10 +3225,11 @@ class ApiService {
           ).catchError((_) => http.Response('', 500));
         }
 
+        // Step C: Save Study Topic to Supabase
         final payload = {
           'id': cleanTopicId,
           'unit_id': cleanUnitId,
-          'subject_id': cleanSubId,
+          if (cleanSubId.isNotEmpty) 'subject_id': cleanSubId,
           'user_id': uid,
           'title': topic.title,
           'description': topic.description,
@@ -3189,7 +3238,7 @@ class ApiService {
           'updated_at': DateTime.now().toUtc().toIso8601String(),
         };
 
-        final res = await http.post(
+        var res = await http.post(
           Uri.parse('$supabaseUrl/rest/v1/study_topics'),
           headers: {
             'apikey': supabaseServiceKey,
@@ -3204,7 +3253,22 @@ class ApiService {
           saved = true;
           debugPrint('[ApiService] Topic $cleanTopicId saved to Supabase (Status: ${res.statusCode})');
         } else {
-          debugPrint('[ApiService] Failed creating topic on Supabase: HTTP ${res.statusCode} -> ${res.body}');
+          debugPrint('[ApiService] Retry topic save without subject_id (HTTP ${res.statusCode} -> ${res.body})');
+          payload.remove('subject_id');
+          res = await http.post(
+            Uri.parse('$supabaseUrl/rest/v1/study_topics'),
+            headers: {
+              'apikey': supabaseServiceKey,
+              'Authorization': 'Bearer $supabaseServiceKey',
+              'Content-Type': 'application/json',
+              'Prefer': 'return=representation, resolution=merge-duplicates',
+            },
+            body: jsonEncode(payload),
+          ).timeout(const Duration(seconds: 8));
+          if (res.statusCode >= 200 && res.statusCode < 300) {
+            saved = true;
+            debugPrint('[ApiService] Topic $cleanTopicId saved to Supabase on fallback retry');
+          }
         }
       } catch (e) {
         debugPrint('[ApiService] Error saving topic to Supabase: $e');
